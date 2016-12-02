@@ -26,7 +26,7 @@
 
 #include "brathl.h"
 #include "BratObject.h"
-#include "new-gui/Common/tools/Trace.h"
+#include "common/tools/Trace.h"
 
 namespace brathl
 {

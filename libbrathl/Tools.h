@@ -26,8 +26,8 @@
 #include <bitset>
 #include <map>
 
-#include "new-gui/Common/tools/brathl_error.h"
-#include "new-gui/Common/tools/CoreTypes.h"
+#include "common/tools/brathl_error.h"
+#include "common/tools/CoreTypes.h"
 #include "brathl.h"
 
 

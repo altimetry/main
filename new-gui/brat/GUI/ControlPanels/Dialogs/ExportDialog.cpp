@@ -212,7 +212,7 @@ void CExportDialog::CalculateMinMax()
 
 	CFormula *formula = mOperation->GetFormula( CMapTypeField::eTypeOpAsField );
 
-	CProduct *product_tmp = CProduct::Construct( *(const_cast<CDataset*>(mOperation->OriginalDataset())->GetProductList() ) );
+	CProduct *product_tmp = CProduct::Construct( *mOperation->OriginalDataset()->GetProductList() );
 
 	std::string error_msg;
 	CExpression expr;

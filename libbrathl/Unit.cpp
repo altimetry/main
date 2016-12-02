@@ -27,7 +27,7 @@
 #include "brathl.h"
 
 #include "Tools.h"
-#include "new-gui/Common/tools/Exception.h"
+#include "common/tools/Exception.h"
 #include "Expression.h"
 
 #include "Unit.h"

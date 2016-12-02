@@ -21,7 +21,7 @@
 #include <cmath>
 #include <cstdlib>
 
-#include "new-gui/Common/tools/Exception.h"
+#include "common/tools/Exception.h"
 #include "FileParams.h"
 #include "InternalFilesZFXY.h"
 

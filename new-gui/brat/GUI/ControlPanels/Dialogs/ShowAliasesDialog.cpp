@@ -129,9 +129,9 @@ CShowAliasesDialog::CShowAliasesDialog( QWidget *parent, COperation *operation, 
 
 	CProduct *product = operation->GetProduct();	assert__( product != nullptr );
 
-	setWindowTitle( ( "Show '" + product->GetProductClassType() + "' aliases..." ).c_str() );
+	setWindowTitle( ( "Show '" + product->GetProductClassAndType() + "' aliases..." ).c_str() );
 
-	mHeaderLabel->setText( QString( "The list below shows the available aliases for the product\n" ) + product->GetProductClassType().c_str() );
+	mHeaderLabel->setText( QString( "The list below shows the available aliases for the product\n" ) + product->GetProductClassAndType().c_str() );
 
 	CStringArray aliasesArray;
 	product->GetAliasKeys( aliasesArray );

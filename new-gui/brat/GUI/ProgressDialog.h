@@ -58,6 +58,8 @@ public:
 
 private:
 
+	QWidget* PreConstruction( QWidget *parent );
+	void PostConstruction( int minimum );
 	void Wire();
 public:
     explicit CProgressDialog( QWidget *parent = nullptr, Qt::WindowFlags flags = 0 );

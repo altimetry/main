@@ -182,7 +182,7 @@ CDesktopManagerSDI::CDesktopManagerSDI( const CBratSettings &settings, QMainWind
 
 #if defined TABBED_MANAGER
 
-	mMap->setMinimumSize( min_main_window_width / 3 * 2, min_main_window_height / 3 * 2 );
+	mMap->setMinimumSize(  min_globe_widget_width, min_globe_widget_height );
 	addTab( mMap, "Map" );
 
 #else
@@ -190,7 +190,7 @@ CDesktopManagerSDI::CDesktopManagerSDI( const CBratSettings &settings, QMainWind
 	mSplitter = CreateSplitterIn( this, Qt::Horizontal );
 	mSplitter->setFrameStyle( QFrame::Panel );
 	mSplitter->setFrameShadow( QFrame::Sunken );
-	mSplitter->setMinimumSize( min_main_window_width / 3 * 2, min_main_window_height / 3 * 2 );
+	mSplitter->setMinimumSize( min_globe_widget_width, min_globe_widget_height );
 	mSplitter->addWidget( mMap );
 	//mGlobeView = new CGlobeWidget( this, mMap, parent->statusBar() );
 	//mSplitter->addWidget( mGlobeView );

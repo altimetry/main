@@ -19,11 +19,11 @@
 #include <cstdlib>
 #include <string>
 #include "List.h"
-#include "new-gui/Common/ApplicationStaticPaths.h"
-#include "new-gui/Common/tools/Exception.h"
+#include "common/ApplicationStaticPaths.h"
+#include "common/tools/Exception.h"
 #include "FileParams.h"
 #include "Product.h"
-#include "new-gui/Common/tools/Trace.h"
+#include "common/tools/Trace.h"
 #include "BratProcess.h"
 #include "BratProcessYFX.h"
 #include "InternalFilesYFX.h"

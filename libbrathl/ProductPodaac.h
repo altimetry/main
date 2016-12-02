@@ -52,12 +52,12 @@ public:
   
   /** Creates new CProductPodaac object
     \param fileNameList [in] : list of file to be connected */
-  CProductPodaac(const CStringList& fileNameList);
+  CProductPodaac( const CStringList &fileNameList, bool check_only_first_file );
 
   /// Destructor
   virtual ~CProductPodaac();
 
-  virtual std::string GetLabel();
+  virtual const std::string& GetLabel() const override;
 
   virtual void InitCriteriaInfo();
 

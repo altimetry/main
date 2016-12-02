@@ -26,7 +26,7 @@
 
 #include "libbrathl/Tools.h"
 
-#include "new-gui/Common/BratVersion.h"
+#include "common/BratVersion.h"
 #include "new-gui/Common/QtUtils.h"
 #include "new-gui/Common/GUI/ApplicationUserPaths.h"
 #include "new-gui/Common/GUI/BasicLogShell.h"

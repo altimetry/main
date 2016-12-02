@@ -18,7 +18,7 @@
 #if !defined COMMON_GUI_APPLICATION_USER_PATHS_H
 #define COMMON_GUI_APPLICATION_USER_PATHS_H
 
-#include "new-gui/Common/ApplicationStaticPaths.h"
+#include "common/ApplicationStaticPaths.h"
 
 
 

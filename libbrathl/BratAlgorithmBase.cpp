@@ -24,8 +24,8 @@
 #include "brathl.h" 
 
 
-#include "new-gui/Common/tools/TraceLog.h" 
-#include "new-gui/Common/tools/Exception.h"
+#include "common/tools/TraceLog.h"
+#include "common/tools/Exception.h"
 
 #include "Product.h" 
 #include "ProductNetCdf.h" 
@@ -150,7 +150,8 @@ CProductNetCdf* CBratAlgorithmBase::GetProductNetCdf(CProduct* product)
 
   if (productNetCdf == NULL)
   {
-    throw CAlgorithmException(CTools::Format("Product file '%s' (%s) is not a Netcdf file product - '%s' algorithm can't be applied only on 'gridded' Netcdf files.", product->GetCurrentFileName().c_str(), product->GetProductClassType().c_str(), this->GetName().c_str()), this->GetName(), BRATHL_LOGIC_ERROR);
+    throw CAlgorithmException(CTools::Format("Product file '%s' (%s) is not a Netcdf file product - '%s' algorithm can't be applied only on 'gridded' Netcdf files.", 
+		product->GetCurrentFileName().c_str(), product->GetProductClassAndType().c_str(), this->GetName().c_str()), this->GetName(), BRATHL_LOGIC_ERROR);
   }
 
   return productNetCdf;

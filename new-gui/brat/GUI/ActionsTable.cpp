@@ -149,14 +149,7 @@ CActionInfo ActionsTable[ EActionTags_size ] =
 	{ eAction_Projection_Default, "Default", "Original projection", "://images/OSGeo/projection.png", "://images/OSGeo/projection.png" },
 
 
-    { eAction_ApplicationPaths_page, "Paths", CActionInfo::FormatTip("Paths\nDefault application paths selection"), "://images/alpha-numeric/__n.png", "://images/alpha-numeric/__n.png" },
-
-    { eAction_StartupOptions_page, "Startup", CActionInfo::FormatTip("Startup\nApplication start-up behavior"), "://images/alpha-numeric/__o.png", "://images/alpha-numeric/__o.png" },
-
-    { eAction_ApplicationStyles_page, "Styles", CActionInfo::FormatTip("Styles\nApplication visual options"), "://images/alpha-numeric/__p.png", "://images/alpha-numeric/__p.png" },
-
-
-    { eAction_SelectFeatures, "Rectangular Selection", CActionInfo::FormatTip("Selection\nSelect area"), ":/images/themes/default/mActionSelectRectangle.svg", ":/images/themes/default/mActionSelectRectangle.svg" },
+    { eAction_SelectFeatures, "Rectangular Selection", CActionInfo::FormatTip("Selection Tool\nSelect area with mouse"), ":/images/themes/default/mActionSelectRectangle.svg", ":/images/themes/default/mActionSelectRectangle.svg" },
 
     { eAction_SelectPolygon, "Polygon Selection", CActionInfo::FormatTip("Polygon Selection\nSelect Features by Polygon"), ":/images/themes/default/mActionSelectPolygon.svg", ":/images/themes/default/mActionSelectPolygon.svg" },
 
@@ -164,7 +157,7 @@ CActionInfo ActionsTable[ EActionTags_size ] =
 
     { eAction_DecorationGrid, "Grid", CActionInfo::FormatTip("Grid\nCreates a scale bar that is displayed on the map canvas"), ":/images/themes/default/transformed.png", ":/images/themes/default/transformed.png" },
 
-    { eAction_MapTips, "Map Tips", CActionInfo::FormatTip("Map Tips\nShow layer data values when mouse moves over map canvas"), ":/images/OSGeo/maptips.png", ":/images/OSGeo/maptips.png" },	
+    { eAction_MapTips, "Map Tips", CActionInfo::FormatTip("Map Tips\nShow layer data values when mouse stops over map canvas"), ":/images/OSGeo/maptips.png", ":/images/OSGeo/maptips.png" },	
 
     { eAction_MouseTrackingeCoordinatesFormat, "", CActionInfo::FormatTip("Format\nCoordinates format"), ":/images/OSGeo/coordinate_capture.png" },
 
@@ -181,8 +174,14 @@ CActionInfo ActionsTable[ EActionTags_size ] =
 
     { eAction_DataDisplayProperties, "", CActionInfo::FormatTip("Vector Plot Properties\nSet selected field as East or North component."), ":images/OSGeo/vector_plot.png" },
 
+	{ eAction_InstallRadsService, "", CActionInfo::FormatTip("Install\nInstall/Uninstall RADS service in operating system."), ":images/ledoff.png", ":images/ledon.png" },
 
-    // TODO images __n, __o and __p are used by settings dialog
+	{ eAction_StartRadsService, "", CActionInfo::FormatTip("Run\nStart/Stop checking RADS for updated data."), ":/images/themes/default/media/media-seek-forward-16.png", ":/images/themes/default/media/media-stop-16.png" },
+
+	{ eAction_PauseRadsService, "", CActionInfo::FormatTip("Suspend\nPause/Resume data synchronization with RADS."), ":/images/themes/default/media/media-pause-16.png", ":/images/themes/default/media/media-play-16.png" },
+
+	{ eAction_ExecuteRadsService, "", CActionInfo::FormatTip("Execute\nExecute immediate data synchronization with RADS."), ":/images/OSGeo/execute.png" },
+
 };
 
 
@@ -298,17 +297,7 @@ QAction* CActionInfo::SetActionProperties( QAction *a, EActionTag tag )
 	if ( !ai.mTip.empty() )
 		a->setToolTip( ai.mTip.c_str() );
 
-	if ( !ai.mIconPath.empty() )
-	{
-		QIcon icon;
-		icon.addFile( QString::fromUtf8( ai.mIconPath.c_str() ), QSize(), QIcon::Normal, QIcon::Off );
-		if ( !ai.mOnIconPath.empty() )
-		{
-			icon.addFile( QString::fromUtf8( ai.mOnIconPath.c_str() ), QSize(), QIcon::Normal, QIcon::On );
-			a->setCheckable( true );
-		}
-		a->setIcon( icon );
-	}
+	SetIcon( a, ai.mIconPath, ai.mOnIconPath );
 
 	ai.mActions.push_back( a );
 	return a;
@@ -366,7 +355,7 @@ QToolButton* CActionInfo::CreateToolButton( EActionTag button_tag, bool auto_rai
 
 	CActionInfo  &button_ai = ActionsTable[ button_tag ];
 
-	return ::CreateToolButton( button_ai.mName, button_ai.mIconPath, button_ai.mTip, auto_raise );
+	return ::CreateDefaultToolButton( button_ai.mName, button_ai.mIconPath, button_ai.mOnIconPath , button_ai.mTip, auto_raise );
 }
 
 

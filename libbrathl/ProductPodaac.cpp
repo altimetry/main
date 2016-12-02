@@ -25,169 +25,172 @@
 #include <string> 
 
 
-#include "new-gui/Common/tools/brathl_error.h" 
+#include "common/tools/brathl_error.h"
 #include "brathl.h" 
 
-#include "new-gui/Common/tools/TraceLog.h" 
+#include "common/tools/TraceLog.h"
 #include "Tools.h" 
-#include "new-gui/Common/tools/Exception.h" 
+#include "common/tools/Exception.h"
 #include "ProductPodaac.h" 
 
-using namespace brathl;
+
 
 namespace brathl
 {
 
-const std::string PODAAC_HEADER = "header";
+	const std::string PODAAC_HEADER = "header";
 
-const std::string CProductPodaac::m_J1SSHA_PASS_FILE = "J1SSHA_PASS_FILE";
-const std::string CProductPodaac::m_J1SSHA_ATG_FILE = "J1SSHA_ATG_FILE";
-const std::string CProductPodaac::m_TPSSHA_PASS_FILE = "TPSSHA_PASS_FILE";
-const std::string CProductPodaac::m_TPSSHA_ATG_FILE = "TPSSHA_ATG_FILE";
-
-CProductPodaac::CProductPodaac()
-{
-  Init();
-}
+	const std::string CProductPodaac::m_J1SSHA_PASS_FILE = "J1SSHA_PASS_FILE";
+	const std::string CProductPodaac::m_J1SSHA_ATG_FILE = "J1SSHA_ATG_FILE";
+	const std::string CProductPodaac::m_TPSSHA_PASS_FILE = "TPSSHA_PASS_FILE";
+	const std::string CProductPodaac::m_TPSSHA_ATG_FILE = "TPSSHA_ATG_FILE";
 
 
-//----------------------------------------
+	void CProductPodaac::Init()
+	{
+		mLabel = "POODAAC products";		//BUT see GetLabel!
 
-CProductPodaac::CProductPodaac(const std::string& fileName)
-      : CProduct(fileName)
-{  
-  Init();
-}
+		InitDateRef();
 
+		m_latitudeFieldName = "latitude";
+		m_longitudeFieldName = "longitude";
 
-//----------------------------------------
-CProductPodaac::CProductPodaac(const CStringList& fileNameList)
-      : CProduct(fileNameList)
-
-{
-  Init();
-}
-
-//----------------------------------------
-
-CProductPodaac::~CProductPodaac()
-{
-}
-
-//----------------------------------------
-void CProductPodaac::InitDateRef()
-{
-  m_refDate = REF19580101;
-}
-//----------------------------------------
-void CProductPodaac::Init()
-{
-  m_label = "POODAAC products";
-
-  InitDateRef();
-
-  m_latitudeFieldName = "latitude";
-  m_longitudeFieldName = "longitude";
-
-  InitCriteriaInfo();
-}
-//----------------------------------------
-std::string CProductPodaac::GetLabel()
-{
-  if ((m_fileList.m_productType.compare(CProductPodaac::m_J1SSHA_PASS_FILE) == 0) ||
-      (m_fileList.m_productType.compare(CProductPodaac::m_TPSSHA_PASS_FILE) == 0))
-  {
-    m_label = "PODAAC Jason-1 or Topex/Poseidon SSHA pass product";
-  }
-  else if ((m_fileList.m_productType.compare(CProductPodaac::m_J1SSHA_ATG_FILE) == 0) ||
-           (m_fileList.m_productType.compare(CProductPodaac::m_TPSSHA_ATG_FILE) == 0))
-  {
-    m_label = "PODAAC Jason-1 or Topex/Poseidon Along Track Gridded SSHA product";
-  }
-
-  return m_label; 
-}
-
-//----------------------------------------
-void CProductPodaac::InitCriteriaInfo()
-{
-  CProduct::InitCriteriaInfo();
-
-  //std::string productype = CTools::StringToUpper(m_fileList.m_productType);
-  std::string productype = m_fileList.m_productType;
-  if ((productype.compare(CProductPodaac::m_J1SSHA_PASS_FILE) == 0) || ((productype.compare(CProductPodaac::m_TPSSHA_PASS_FILE) == 0)))
-  {
-    //-------------------------
-    // Datetime criteria info
-    //-------------------------
-    CCriteriaDatetimeInfo* criteriaDatetimeInfo = new CCriteriaDatetimeInfo();
-
-    criteriaDatetimeInfo->SetDataRecord(PODAAC_HEADER);
-    criteriaDatetimeInfo->SetStartDateField("Frst");
-    criteriaDatetimeInfo->SetEndDateField("Last");
-
-    criteriaDatetimeInfo->SetRefDate(m_refDate);
-
-    m_criteriaInfoMap.Insert(criteriaDatetimeInfo->GetKey(), criteriaDatetimeInfo); 
-
-    //-------------------------
-    // Pass criteria info
-    //-------------------------
-    CCriteriaPassIntInfo* criteriaPassInfo = new CCriteriaPassIntInfo();
-
-    criteriaPassInfo->SetDataRecord(PODAAC_HEADER);
-    criteriaPassInfo->SetStartPassField("Pass_Number");
-
-    m_criteriaInfoMap.Insert(criteriaPassInfo->GetKey(), criteriaPassInfo); 
-  
-
-    //-------------------------
-    // Cycle criteria info
-    //-------------------------
-    CCriteriaCycleInfo* criteriaCycleInfo = new CCriteriaCycleInfo();
-
-    criteriaCycleInfo->SetDataRecord(PODAAC_HEADER);
-    criteriaCycleInfo->SetStartCycleField("Cycle_Number");
-
-    m_criteriaInfoMap.Insert(criteriaCycleInfo->GetKey(), criteriaCycleInfo); 
-
-  } 
-  else if ((productype.compare(CProductPodaac::m_J1SSHA_ATG_FILE) == 0) || ((productype.compare(CProductPodaac::m_TPSSHA_ATG_FILE) == 0)))
-  {
-    //-------------------------
-    // Cycle criteria info
-    //-------------------------
-    CCriteriaCycleInfo* criteriaCycleInfo = new CCriteriaCycleInfo();
-
-    criteriaCycleInfo->SetDataRecord(PODAAC_HEADER);
-    criteriaCycleInfo->SetStartCycleField("Cycle_Number");
-
-    m_criteriaInfoMap.Insert(criteriaCycleInfo->GetKey(), criteriaCycleInfo); 
-
-  }
-}
+		InitCriteriaInfo();
+	}
 
 
-//----------------------------------------
-void CProductPodaac::Dump(std::ostream& fOut /* = std::cerr */)
-{
-  if (CTrace::IsTrace() == false)
-  {
-    return;
-  }
+	const std::string& CProductPodaac::GetLabel() const
+	{
+		if ( ( m_fileList.m_productType.compare( CProductPodaac::m_J1SSHA_PASS_FILE ) == 0 ) ||
+			( m_fileList.m_productType.compare( CProductPodaac::m_TPSSHA_PASS_FILE ) == 0 ) )
+		{
+			const_cast<std::string&>( mLabel ) = "PODAAC Jason-1 or Topex/Poseidon SSHA pass product";					//FIXME
+		}
+		else if ( ( m_fileList.m_productType.compare( CProductPodaac::m_J1SSHA_ATG_FILE ) == 0 ) ||
+			( m_fileList.m_productType.compare( CProductPodaac::m_TPSSHA_ATG_FILE ) == 0 ) )
+		{
+			const_cast<std::string&>( mLabel ) = "PODAAC Jason-1 or Topex/Poseidon Along Track Gridded SSHA product";	//FIXME
+		}
+
+		return mLabel;
+	}
 
 
-  fOut << "==> Dump a CProductPodaac Object at "<< this << std::endl;
+	CProductPodaac::CProductPodaac()
+	{
+		Init();
+	}
 
-  //------------------
-  CProduct::Dump(fOut);
-  //------------------
 
-  fOut << "==> END Dump a CProductPodaac Object at "<< this << std::endl;
+	//----------------------------------------
 
-  fOut << std::endl;
+	CProductPodaac::CProductPodaac( const std::string& fileName )
+		: CProduct( fileName )
+	{
+		Init();
+	}
 
-}
+
+	//----------------------------------------
+	CProductPodaac::CProductPodaac( const CStringList &fileNameList, bool check_only_first_file )
+		: CProduct( fileNameList, check_only_first_file )
+
+	{
+		Init();
+	}
+
+	//----------------------------------------
+
+	CProductPodaac::~CProductPodaac()
+	{
+	}
+
+	//----------------------------------------
+	void CProductPodaac::InitDateRef()
+	{
+		m_refDate = REF19580101;
+	}
+
+	//----------------------------------------
+	void CProductPodaac::InitCriteriaInfo()
+	{
+		CProduct::InitCriteriaInfo();
+
+		//std::string productype = CTools::StringToUpper(m_fileList.m_productType);
+		std::string productype = m_fileList.m_productType;
+		if ( ( productype.compare( CProductPodaac::m_J1SSHA_PASS_FILE ) == 0 ) || ( ( productype.compare( CProductPodaac::m_TPSSHA_PASS_FILE ) == 0 ) ) )
+		{
+			//-------------------------
+			// Datetime criteria info
+			//-------------------------
+			CCriteriaDatetimeInfo* criteriaDatetimeInfo = new CCriteriaDatetimeInfo();
+
+			criteriaDatetimeInfo->SetDataRecord( PODAAC_HEADER );
+			criteriaDatetimeInfo->SetStartDateField( "Frst" );
+			criteriaDatetimeInfo->SetEndDateField( "Last" );
+
+			criteriaDatetimeInfo->SetRefDate( m_refDate );
+
+			m_criteriaInfoMap.Insert( criteriaDatetimeInfo->GetKey(), criteriaDatetimeInfo );
+
+			//-------------------------
+			// Pass criteria info
+			//-------------------------
+			CCriteriaPassIntInfo* criteriaPassInfo = new CCriteriaPassIntInfo();
+
+			criteriaPassInfo->SetDataRecord( PODAAC_HEADER );
+			criteriaPassInfo->SetStartPassField( "Pass_Number" );
+
+			m_criteriaInfoMap.Insert( criteriaPassInfo->GetKey(), criteriaPassInfo );
+
+
+			//-------------------------
+			// Cycle criteria info
+			//-------------------------
+			CCriteriaCycleInfo* criteriaCycleInfo = new CCriteriaCycleInfo();
+
+			criteriaCycleInfo->SetDataRecord( PODAAC_HEADER );
+			criteriaCycleInfo->SetStartCycleField( "Cycle_Number" );
+
+			m_criteriaInfoMap.Insert( criteriaCycleInfo->GetKey(), criteriaCycleInfo );
+
+		}
+		else if ( ( productype.compare( CProductPodaac::m_J1SSHA_ATG_FILE ) == 0 ) || ( ( productype.compare( CProductPodaac::m_TPSSHA_ATG_FILE ) == 0 ) ) )
+		{
+			//-------------------------
+			// Cycle criteria info
+			//-------------------------
+			CCriteriaCycleInfo* criteriaCycleInfo = new CCriteriaCycleInfo();
+
+			criteriaCycleInfo->SetDataRecord( PODAAC_HEADER );
+			criteriaCycleInfo->SetStartCycleField( "Cycle_Number" );
+
+			m_criteriaInfoMap.Insert( criteriaCycleInfo->GetKey(), criteriaCycleInfo );
+
+		}
+	}
+
+
+	//----------------------------------------
+	void CProductPodaac::Dump( std::ostream& fOut /* = std::cerr */ )
+	{
+		if ( CTrace::IsTrace() == false )
+		{
+			return;
+		}
+
+
+		fOut << "==> Dump a CProductPodaac Object at " << this << std::endl;
+
+		//------------------
+		CProduct::Dump( fOut );
+		//------------------
+
+		fOut << "==> END Dump a CProductPodaac Object at " << this << std::endl;
+
+		fOut << std::endl;
+
+	}
 
 
 } // end namespace

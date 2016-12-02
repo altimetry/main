@@ -312,7 +312,7 @@ public:
 	void RemoveTracksLayerFeatures( bool render = false );
 
 	void SelectArea( double lonm, double lonM, double latm, double latM );
-	void RemoveAreaSelection();												//TODO really needed?
+	void RemoveAreaSelection( bool with_signal = false );
 	
 
 	void Home();

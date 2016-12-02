@@ -23,8 +23,8 @@
 
 #include <QDateTime>
 
+#include "common/tools/Trace.h"
 #include "new-gui/Common/QtStringUtils.h"
-#include "new-gui/Common/tools/Trace.h"
 
 #include "libbrathl/brathl.h" 
 #include "libbrathl/BratAlgorithmBase.h" 

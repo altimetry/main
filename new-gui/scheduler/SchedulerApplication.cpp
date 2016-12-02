@@ -37,7 +37,7 @@ const CApplicationUserPaths *CSchedulerApplication::smApplicationPaths = nullptr
 //	like assigning/checking application paths or statically setting 
 //	application style sheet.
 //
-void CSchedulerApplication::Prologue( int argc, char *argv[], const char *app_name )
+void CSchedulerApplication::Prologue( int argc, char *argv[] )
 {
 	// lambda
 
@@ -72,13 +72,13 @@ void CSchedulerApplication::Prologue( int argc, char *argv[], const char *app_na
 
 	// Application/Organization Names ////////////////////////////////////
 
-	QCoreApplication::setApplicationName( app_name );
+	QCoreApplication::setApplicationName( SCHEDULER_APPLICATION_NAME );
 	QCoreApplication::setOrganizationName( ORGANIZATION_NAME );
 
 
 	// Application Paths - a critical first thing to do ////////////////////////////////////
 
-    static const CApplicationUserPaths brat_paths( argv[ 0 ], app_name );
+    static const CApplicationUserPaths brat_paths( argv[ 0 ], SCHEDULER_APPLICATION_NAME );
     if ( !brat_paths.IsValid() )
         throw CException( "One or more path directories are invalid:\n" + brat_paths.GetErrorMsg() );
 

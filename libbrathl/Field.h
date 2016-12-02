@@ -22,7 +22,7 @@
 
 #include <string>
 
-#include "new-gui/Common/tools/brathl_error.h" 
+#include "common/tools/brathl_error.h"
 #include "brathl.h" 
 
 #include "coda.h"
@@ -86,14 +86,14 @@ public:
   CField();  
   
   CField(const std::string& name, const std::string& description = "", const std::string& unit = "");  
-  CField(CField& f);  
+  CField( const CField &f );  
   
   /// Dtor
   virtual ~CField();
 
-  const CField& operator= (CField& f);
+  CField& operator= ( const CField &f );
 
-  void Set(CField& f);
+  void Set( const CField &f );
 
 
 
@@ -109,8 +109,8 @@ public:
   class CListField : public CObList
   {
   public:
-    CListField(bool bDelete) : CObList(bDelete) {};
-    virtual ~CListField() {};
+    CListField(bool bDelete) : CObList(bDelete) {}
+    virtual ~CListField() {}
     CField* Back(bool withExcept = true);
     CField* Front(bool withExcept = true);
 
@@ -127,50 +127,50 @@ public:
   virtual std::string GetNativeTypeName();
   virtual std::string GetSpecialTypeName();
 
-  void SetKey(const std::string& key) { m_key = key; };
-  const std::string& GetKey() { return m_key; };
+  void SetKey(const std::string& key) { m_key = key; }
+  const std::string& GetKey() { return m_key; }
 
-  void SetName(const std::string& name) { m_name = name; };
-  const std::string& GetName() const { return m_name; };
+  void SetName(const std::string& name) { m_name = name; }
+  const std::string& GetName() const { return m_name; }
 
-  virtual std::string GetFullName();
+  virtual std::string GetFullName() const;
   virtual std::string GetRecordName();			//v4 note: cannot be const; changes field state
   virtual std::string GetFullNameWithRecord();
 
-  void SetDescription(const std::string& description) { m_description = description; };
-  const std::string& GetDescription() const { return m_description; };
+  void SetDescription(const std::string& description) { m_description = description; }
+  const std::string& GetDescription() const { return m_description; }
 
-  virtual void SetUnit(const std::string& unit) { m_unit = CTools::RemoveCharSurroundingNumber(unit); };
-  const std::string& GetUnit() const { return m_unit; };
+  virtual void SetUnit(const std::string& unit) { m_unit = CTools::RemoveCharSurroundingNumber(unit); }
+  const std::string& GetUnit() const { return m_unit; }
   
-  void SetTypeClass(coda_type_class typeClass) { m_typeClass = typeClass; };
-  coda_type_class GetTypeClass() { return m_typeClass; };
+  void SetTypeClass(coda_type_class typeClass) { m_typeClass = typeClass; }
+  coda_type_class GetTypeClass() { return m_typeClass; }
 
   void SetDateRef(brathl_refDate refDate);
 
   void SetDateRef(const CDate& value);
   
-  const CDate& GetDateRef() { return m_dateRef; };
+  const CDate& GetDateRef() { return m_dateRef; }
 
-  void SetSpecialType(coda_special_type specialType) { m_specialType = specialType; };
-  coda_special_type GetSpecialType() { return m_specialType; };
-  virtual bool IsSpecialType() { return m_specialType != coda_special_no_data; };
+  void SetSpecialType(coda_special_type specialType) { m_specialType = specialType; }
+  coda_special_type GetSpecialType() { return m_specialType; }
+  virtual bool IsSpecialType() { return m_specialType != coda_special_no_data; }
 
-  void SetNativeType(coda_native_type nativeType) { m_nativeType = nativeType; };
-  coda_native_type GetNativeType() { return m_nativeType; };
+  void SetNativeType(coda_native_type nativeType) { m_nativeType = nativeType; }
+  coda_native_type GetNativeType() { return m_nativeType; }
 
-  void SetMetaData(bool metaData) { m_metaData = metaData; };
-  bool IsMetaData() { return m_metaData; };
+  void SetMetaData(bool metaData) { m_metaData = metaData; }
+  bool IsMetaData() { return m_metaData; }
 
-  void SetIndex(int32_t index) { m_index = index; };
-  int32_t GetIndex() { return m_index; };
+  void SetIndex(int32_t index) { m_index = index; }
+  int32_t GetIndex() { return m_index; }
 
-  void SetUnion(int32_t value) { m_isUnion = value; };
-  int32_t GetUnion() { return m_isUnion; };
-  bool IsUnion() { return m_isUnion == 1; };
+  void SetUnion(int32_t value) { m_isUnion = value; }
+  int32_t GetUnion() { return m_isUnion; }
+  bool IsUnion() { return m_isUnion == 1; }
 
-  void SetToBeRemoved(bool value) { m_toBeRemoved = value; };
-  bool IsToBeRemoved() { return m_toBeRemoved; };
+  void SetToBeRemoved(bool value) { m_toBeRemoved = value; }
+  bool IsToBeRemoved() { return m_toBeRemoved; }
 
 
 
@@ -196,43 +196,43 @@ public:
   void Convert(double* data, int32_t size);
   void SetDefaultValue(double* data, int32_t size);
 
-  int32_t GetNbDims() {return m_nbDims;};
+  int32_t GetNbDims() {return m_nbDims;}
   virtual int32_t GetVirtualNbDims();
   virtual uint32_t GetOffsetDim();
   
-  bool HasDim() {return m_nbDims > 0;};
-  virtual bool HasVirtualNbDims() {return GetVirtualNbDims() > 0; };
+  bool HasDim() {return m_nbDims > 0;}
+  virtual bool HasVirtualNbDims() {return GetVirtualNbDims() > 0; }
   
-  inline bool HasXDim() {return m_nbDims >= 1;};
-  inline bool HasYDim() {return m_nbDims >= 2;};
+  inline bool HasXDim() {return m_nbDims >= 1;}
+  inline bool HasYDim() {return m_nbDims >= 2;}
 
-  long* GetDim() { return m_dim;};
+  long* GetDim() { return m_dim;}
   long GetDimAt(int32_t index);
   void GetDimAsVector(CUIntArray& dim);
   virtual std::string GetDimAsString();
 
-  bool IsFixedSize() const {return m_isFixedSize;};
-  void SetFixedSize(bool isFixedSize) {m_isFixedSize = isFixedSize;};
+  bool IsFixedSize() const {return m_isFixedSize;}
+  void SetFixedSize(bool isFixedSize) {m_isFixedSize = isFixedSize;}
 
-  int32_t GetCurrentPos() {return m_currentPos;};
-  void SetCurrentPos(int32_t currentPos) {m_currentPos = currentPos;};
-  void SetCurrentPosToLast() {m_currentPos = m_maxPos;};
+  int32_t GetCurrentPos() {return m_currentPos;}
+  void SetCurrentPos(int32_t currentPos) {m_currentPos = currentPos;}
+  void SetCurrentPosToLast() {m_currentPos = m_maxPos;}
   
-  void SetGoToAvailableUnionField(bool value) { m_goToAvailableUnionField = value; };
-  bool IsGoToAvailableUnionField() { return m_goToAvailableUnionField; };
+  void SetGoToAvailableUnionField(bool value) { m_goToAvailableUnionField = value; }
+  bool IsGoToAvailableUnionField() { return m_goToAvailableUnionField; }
 
   virtual void PushPos() = 0;
   virtual void PopCursor() = 0;
 
   void PopRecordCusor(CObList* parentFieldList);
 
-  coda_Cursor* GetCursor() {return &m_cursor;};
-  void SetCursor(coda_Cursor& cursor) {m_cursor = cursor;};
+  coda_Cursor* GetCursor() {return &m_cursor;}
+  void SetCursor(coda_Cursor& cursor) {m_cursor = cursor;}
 
-  int GetMaxPos() {return m_maxPos;};
-  int GetNbElts() {return m_maxPos + 1;};
-  bool End() {return m_currentPos > m_maxPos;};
-  bool LastRecord() {return m_currentPos == m_maxPos;};
+  int GetMaxPos() {return m_maxPos;}
+  int GetNbElts() {return m_maxPos + 1;}
+  bool End() {return m_currentPos > m_maxPos;}
+  bool LastRecord() {return m_currentPos == m_maxPos;}
   
   virtual void ReadParent(CDoubleArray& vect, CFieldRecord* parentField);
   virtual void ReadParent(CDoubleArray& vect, CObList* parentFieldList);
@@ -243,26 +243,26 @@ public:
 
   virtual CFieldSet* CreateFieldSet(const CField::CListField& listFields) = 0;
 
-  virtual bool GetHighResolution() {return m_highResolution;};
-  virtual void SetHighResolution(bool value) {m_highResolution = value;};
+  virtual bool GetHighResolution() {return m_highResolution;}
+  virtual void SetHighResolution(bool value) {m_highResolution = value;}
 
-  virtual bool IsHighResolution() {return GetHighResolution();};
+  virtual bool IsHighResolution() {return GetHighResolution();}
 
-  virtual bool GetHidden() {return m_hidden;};
-  virtual void SetHidden(bool value) {m_hidden = value;};
+  virtual bool GetHidden() {return m_hidden;}
+  virtual void SetHidden(bool value) {m_hidden = value;}
 
-  virtual bool IsHidden() {return GetHidden();};
+  virtual bool IsHidden() {return GetHidden();}
   
-  virtual bool IsVirtual() const {return m_virtualField;};
-  virtual void SetVirtual(bool value) {m_virtualField = value;};
+  virtual bool IsVirtual() const {return m_virtualField;}
+  virtual void SetVirtual(bool value) {m_virtualField = value;}
 
-  virtual bool IsDimTransposed() {return m_dimsTransposed;};
+  virtual bool IsDimTransposed() {return m_dimsTransposed;}
 
-  void SetValidMin(double value) { m_validMin = value; };
-  double GetValidMin() { return m_validMin; };
+  void SetValidMin(double value) { m_validMin = value; }
+  double GetValidMin() { return m_validMin; }
   
-  void SetValidMax(double value) { m_validMax = value; };
-  double GetValidMax() { return m_validMax; };
+  void SetValidMax(double value) { m_validMax = value; }
+  double GetValidMax() { return m_validMax; }
 
   virtual void AdjustValidMinMax(double* data, int32_t size);
   virtual void AdjustValidMinMax(double value);
@@ -270,10 +270,10 @@ public:
   static void AdjustValidMinMax(double* data, int32_t size, double& min, double& max);
   static void AdjustValidMinMax(double value, double& min, double& max);
 
-  void SetConvertDate(bool value) { m_convertDate = value; };
-  bool GetConvertDate() { return m_convertDate; };
+  void SetConvertDate(bool value) { m_convertDate = value; }
+  bool GetConvertDate() { return m_convertDate; }
   
-  CObArray* GetFieldIndexes() { return m_fieldIndexes; };
+  CObArray* GetFieldIndexes() { return m_fieldIndexes; }
   void AddFieldIndexes(CFieldIndex* value);
   void AddFieldIndexes(CObArray* vect, bool removeAll = true);
 
@@ -284,28 +284,28 @@ public:
 
   void DeleteFieldIndexes();
 
-  bool IsExpandArray() {return GetExpandArray();};
-  bool GetExpandArray() {return m_expandArray;};
-  void SetExpandArray(bool value) {m_expandArray = value;};
+  bool IsExpandArray() {return GetExpandArray();}
+  bool GetExpandArray() {return m_expandArray;}
+  void SetExpandArray(bool value) {m_expandArray = value;}
 
   bool HasEqualDims(CField* field);
 
   void HandleBratError(const std::string& str = "", int32_t errClass = BRATHL_LOGIC_ERROR);
 
-  virtual uint32_t GetNumHighResolutionMeasure() { return m_numHighResolutionMeasure; };
-  virtual void SetNumHighResolutionMeasure(uint32_t value) { m_numHighResolutionMeasure = value; };
+  virtual uint32_t GetNumHighResolutionMeasure() { return m_numHighResolutionMeasure; }
+  virtual void SetNumHighResolutionMeasure(uint32_t value) { m_numHighResolutionMeasure = value; }
   
-  bool UnitIsDate() {return m_unitIsDate; };
+  bool UnitIsDate() {return m_unitIsDate; }
 
 
   bool IsFieldNetCdfCFAttr();
   
-  bool IsFieldHasDefaultValue() { return m_fieldHasDefaultValue; };
-  void SetFieldHasDefaultValue(bool value) { m_fieldHasDefaultValue = value; };
+  bool IsFieldHasDefaultValue() { return m_fieldHasDefaultValue; }
+  void SetFieldHasDefaultValue(bool value) { m_fieldHasDefaultValue = value; }
 
-  virtual void SetOffset(double value) { m_offset = value; };
-  virtual void AddOffset(double value) { m_offset += value; };
-  double GetOffset() { return m_offset; };
+  virtual void SetOffset(double value) { m_offset = value; }
+  virtual void AddOffset(double value) { m_offset += value; }
+  double GetOffset() { return m_offset; }
 
   static bool IsFieldNetCdfCFAttr(CBratObject* ob);
   static CFieldNetCdfCFAttr* GetFieldNetCdfCFAttr(CBratObject* ob, bool withExcept = true);
@@ -331,7 +331,7 @@ protected:
   bool m_convertDate;
 
 
-  std::string m_fullName;
+  mutable std::string m_fullName;
   std::string m_recordName;
 
   // true by default. Have to be set to false is field is in output (asked by user)
@@ -488,8 +488,8 @@ public:
 
   void Set(CFieldRecord& f);
 
-  void SetNbFields(size_t value) { m_nbFields = value; };
-  size_t GetNbFields() { return m_nbFields; };
+  void SetNbFields(size_t value) { m_nbFields = value; }
+  size_t GetNbFields() { return m_nbFields; }
 
   virtual void PushPos();
   virtual void PushPos(int32_t iDim);  
@@ -656,18 +656,18 @@ public:
   
   const CFieldNetCdf& operator= (CFieldNetCdf& f);
 
-  virtual CBratObject* Clone();
-  CFieldNetCdf* CloneThis() { return dynamic_cast<CFieldNetCdf*>(Clone()); };
+  virtual CBratObject* Clone() override;
+  CFieldNetCdf* CloneThis() { return dynamic_cast<CFieldNetCdf*>(Clone()); }
 
   void AdjustValidMinMaxFromValues();
 
   void Set(CFieldNetCdf& f);
 
-  virtual void PushPos();
-  virtual void PopCursor();
+  virtual void PushPos() override;
+  virtual void PopCursor() override;
 
   bool IsAtBeginning();
-  void SetAtBeginning(bool value) { m_atBeginning = value; };
+  void SetAtBeginning(bool value) { m_atBeginning = value; }
 
   virtual void InitDimIndexes (uint32_t value);
   virtual void InitDimsIndexToMax();
@@ -679,39 +679,39 @@ public:
 
   virtual void SetIndex(const std::string& dimName, uint32_t index, uint32_t count);
 
-  uint32_t* GetDimsIndexArray() { return m_dimsIndexArray; };
-  uint32_t* GetDimsCountArray() { return m_dimsCountArray; };
+  uint32_t* GetDimsIndexArray() { return m_dimsIndexArray; }
+  uint32_t* GetDimsCountArray() { return m_dimsCountArray; }
 
-  void SetNativeType(int32_t type) { SetType(type); };
-  int32_t GetNativeType() { return GetType(); };
+  void SetNativeType(int32_t type) { SetType(type); }
+  int32_t GetNativeType() { return GetType(); }
   
-  virtual std::string GetNativeTypeName() {return GetTypeName();}
+  virtual std::string GetNativeTypeName() override {return GetTypeName();}
 
-  virtual void SetType(int32_t type) { m_type = type; };
-  int32_t GetType() { return m_type; };
+  virtual void SetType(int32_t type) { m_type = type; }
+  int32_t GetType() { return m_type; }
   virtual std::string GetTypeName();
   
   int32_t GetSpecialType();
-  virtual std::string GetSpecialTypeName();
+  virtual std::string GetSpecialTypeName() override;
   
-  virtual bool IsSpecialType() { return false; };
+  virtual bool IsSpecialType() override { return false; }
 
-  virtual int32_t GetVirtualNbDims();
+  virtual int32_t GetVirtualNbDims() override;
 
-  void SetNetCdfId(int32_t id) { m_netCdfId = id; };
-  int32_t GetNetCdfId() { return m_netCdfId; };
+  void SetNetCdfId(int32_t id) { m_netCdfId = id; }
+  int32_t GetNetCdfId() { return m_netCdfId; }
 
   virtual void SetDimValues(const CUIntMap& dimValues);
   virtual void SetDimValues(const CUIntMap* dimValues);
-  const CUIntMap& GetDimValues() { return m_dimValues; };
+  const CUIntMap& GetDimValues() { return m_dimValues; }
   
   void GetDimValuesAsArray(CUIntArray& values, bool bRemoveAll = true);
   
   virtual void SetDimNames(const CStringArray& dimNames);
   virtual void SetDimNames(const CStringArray* dimNames);
-  const CStringArray& GetDimNames() { return m_dimNames; };
+  const CStringArray& GetDimNames() { return m_dimNames; }
 
-  const CUIntMap& GetDimRanges() { return m_dimRanges; };;
+  const CUIntMap& GetDimRanges() { return m_dimRanges; }
   uint32_t GetDimRange(const std::string& dimName);
 
   virtual void SetDimInfo(const CStringArray& dimNames, const CIntArray& dimIds, const CUIntArray& dimValues);
@@ -740,12 +740,12 @@ public:
 
   virtual void SetValues(const std::string& values);
 
-  virtual CDoubleArray& GetValues() { return m_values; };
+  virtual CDoubleArray& GetValues() { return m_values; }
   virtual CDoubleArray& GetValuesWithUnitConversion(const std::string& wantedUnit);
 
   void EmptyValues();
 
-  double* GetValuesAsArray() { return m_valuesAsArray; };
+  double* GetValuesAsArray() { return m_valuesAsArray; }
   void SetValuesAsArray();
   void SetValuesAsArray(const CDoubleArray& values);
   void SetValuesAsArray(const CDoubleArray* values);
@@ -753,41 +753,41 @@ public:
 
   void SetDimIds(const CIntMap& dimIds);
   void SetDimIds(const CIntMap* dimIds);
-  const CIntMap& GetDimIds() { return m_dimIds; };
+  const CIntMap& GetDimIds() { return m_dimIds; }
 
   void GetDimIdsAsArray(CIntArray& values, bool bRemoveAll = true);
 
   virtual void SetAttributes(const CStringMap& mapAttributes);
   virtual void SetAttributes(const CStringMap* mapAttributes);
-  const CStringMap& GetAttributes() { return m_mapAttributes; };
+  const CStringMap& GetAttributes() { return m_mapAttributes; }
 
   virtual std::string GetAttribute(const std::string attrName);
 
-  virtual std::string GetFullName();
-  virtual std::string GetRecordName();
-  virtual std::string GetFullNameWithRecord();
+  virtual std::string GetFullName() const override;
+  virtual std::string GetRecordName() override;
+  virtual std::string GetFullNameWithRecord() override;
 
   NetCDFVarKind SearchDimKind();
 
-  virtual void Read(CDoubleArray& vect, bool skip = false);
+  virtual void Read(CDoubleArray& vect, bool skip = false) override;
   virtual void Read(CExpressionValue& value, bool skip = false);
 
-  virtual CFieldSet* CreateFieldSet(const CField::CListField& listFields);
+  virtual CFieldSet* CreateFieldSet(const CField::CListField& listFields) override;
   //virtual CFieldSet* CreateFieldSet(const CUIntArray& dims);
   virtual CFieldSet* CreateFieldSet();
 
-  virtual void SetUnit(const std::string& unit);
+  virtual void SetUnit(const std::string& unit) override;
   virtual void SetUnit(const CUnit& unit);
-  CUnit* GetNetCdfUnit() { return &m_netCdfUnit; };
+  CUnit* GetNetCdfUnit() { return &m_netCdfUnit; }
   
-  void SetScaleFactor(double value) { m_scaleFactor = value;};;
-  double GetScaleFactor() { return m_scaleFactor; };
+  void SetScaleFactor(double value) { m_scaleFactor = value;}
+  double GetScaleFactor() { return m_scaleFactor; }
  
-  void SetAddOffset(double value) { m_addOffset = value;};;
-  double GetAddOffset() { return m_addOffset; };
+  void SetAddOffset(double value) { m_addOffset = value;}
+  double GetAddOffset() { return m_addOffset; }
 
-  void SetFillValue(double value) { m_fillValue = value;};
-  double GetFillValue() { return m_fillValue; };
+  void SetFillValue(double value) { m_fillValue = value;}
+  double GetFillValue() { return m_fillValue; }
 
   virtual std::string GetMostExplicitName();
 
@@ -796,10 +796,10 @@ public:
   int32_t GetPosFromDimIndexArray();
   int32_t GetCounFromDimCountArray();
 
-  virtual void DumpFieldDictionary(std::ostream& fOut = std::cout);
+  virtual void DumpFieldDictionary(std::ostream& fOut = std::cout) override;
 
   ///Dump fonction
-  virtual void Dump(std::ostream& fOut = std::cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr) override;
 
 
 protected:
@@ -1041,7 +1041,7 @@ public:
   const CFieldNetCdfCFAttr& operator= (CFieldNetCdfCFAttr& f);
 
   virtual CBratObject* Clone();
-  CFieldNetCdfCFAttr* CloneThis() { return dynamic_cast<CFieldNetCdfCFAttr*>(Clone()); };
+  CFieldNetCdfCFAttr* CloneThis() { return dynamic_cast<CFieldNetCdfCFAttr*>(Clone()); }
 
 
   void Set(CFieldNetCdfCFAttr& f);
@@ -1053,15 +1053,15 @@ public:
   void SetValuesFromAttr(CNetCDFAttr* netCDFAttr);
 
 
-  virtual void SetType(int32_t type) { m_type = type; };
+  virtual void SetType(int32_t type) { m_type = type; }
 
-  CNetCDFAttr* GetNetCDFAttr() {return m_netCDFAttr;};
+  CNetCDFAttr* GetNetCDFAttr() {return m_netCDFAttr;}
   void SetNetCDFAttr(CNetCDFAttr* value);
 
   void DeleteNetCDFAttr();
 
-  const std::string& GetRelatedVarName() {return m_relatedVarName;};
-  void SetRelatedVarName(const std::string& value) {m_relatedVarName = value;};
+  const std::string& GetRelatedVarName() {return m_relatedVarName;}
+  void SetRelatedVarName(const std::string& value) {m_relatedVarName = value;}
 
   virtual void SetAttributes(const CStringMap& mapAttributes);
   virtual void SetAttributes(const CStringMap* mapAttributes);
@@ -1131,7 +1131,7 @@ public:
 
   virtual void Read(CDoubleArray& vect, bool skip = false);
 
-  virtual int32_t GetVirtualNbDims() {return GetNbDims();};
+  virtual int32_t GetVirtualNbDims() {return GetNbDims();}
 
   virtual void PushPos();
   virtual void PopCursor();
@@ -1191,10 +1191,10 @@ public:
   virtual void Insert(double value, bool bRemove = false) = 0;
   virtual void Insert(const std::string& value, bool bRemove = false) = 0;
 
-  const std::string& GetName() { return m_name; };
+  const std::string& GetName() { return m_name; }
 
-  virtual CField* GetField() {return m_field;};
-  virtual void SetField(CField* value) {m_field = value;};
+  virtual CField* GetField() {return m_field;}
+  virtual void SetField(CField* value) {m_field = value;}
 
   CFieldSet& operator=(CFieldSet& o);
 
@@ -1244,9 +1244,9 @@ public:
 
   CFieldSetString& operator=(CFieldSetString& o);
 
-  std::string& GetDataRef() {return m_value;}; 
-  std::string GetData() {return m_value;}; 
-  void SetData(const std::string& value) {m_value = value;}; 
+  std::string& GetDataRef() {return m_value;} 
+  std::string GetData() {return m_value;} 
+  void SetData(const std::string& value) {m_value = value;} 
 
   ///Dump fonction
   virtual void Dump(std::ostream& fOut = std::cerr);
@@ -1291,16 +1291,16 @@ public:
   virtual void Insert(double value, bool bRemove = false);
   virtual void Insert(const std::string& value, bool bRemove = false);
 
-  int32_t AsInt32() {return static_cast<int32_t>(m_value);};
-  int32_t AsUInt32() {return static_cast<uint32_t>(m_value);};
+  int32_t AsInt32() {return static_cast<int32_t>(m_value);}
+  int32_t AsUInt32() {return static_cast<uint32_t>(m_value);}
 
   CFieldSetDbl& operator=(CFieldSetDbl& o);
   //CFieldSetDbl& operator=(uint32_t value);
   //CFieldSetDbl& operator=(int32_t value);
 
-  double& GetDataRef() {return m_value;}; 
-  double GetData() {return m_value;}; 
-  void SetData(double value) {m_value = value;}; 
+  double& GetDataRef() {return m_value;} 
+  double GetData() {return m_value;} 
+  void SetData(double value) {m_value = value;} 
 
   ///Dump fonction
   virtual void Dump(std::ostream& fOut = std::cerr);
@@ -1344,7 +1344,7 @@ public:
   virtual void Insert(double value, bool bRemove = false);
   virtual void Insert(const std::string& value, bool bRemove = false);
 
-  CDoubleArray& GetDataVector() {return m_vector; };
+  CDoubleArray& GetDataVector() {return m_vector; }
 
   CFieldSetArrayDbl& operator=(CFieldSetArrayDbl& o);
 
@@ -1433,7 +1433,7 @@ public:
 
   const std::string& GetName();
 
-  CRecordSet* GetRecordSet() {return m_recordSet;};
+  CRecordSet* GetRecordSet() {return m_recordSet;}
 
   ///Dump fonction
   virtual void Dump(std::ostream& fOut = std::cerr);
@@ -1466,10 +1466,10 @@ public:
   /// Dtor
   virtual ~CDataSet();
 
-  const std::string& GetName() { return m_name; };
-  void SetName(const std::string& name) { m_name = name; };
+  const std::string& GetName() { return m_name; }
+  void SetName(const std::string& name) { m_name = name; }
 
-  CObMap* GetRecordSetMap() { return &m_recordSetMap; };
+  CObMap* GetRecordSetMap() { return &m_recordSetMap; }
 
   CRecordSet* Back(bool withExcept = true);
 
@@ -1483,7 +1483,7 @@ public:
   void SetCurrentRecordSet(const std::string& recordSetName); 
   void SetCurrentRecordSet(CRecordSet* recordSet); 
 
-  CRecordSet* GetCurrentRecordSet() {return m_currentRecordSet;}; 
+  CRecordSet* GetCurrentRecordSet() {return m_currentRecordSet;} 
 
   CRecordSet* GetFirstRecordSet();
 

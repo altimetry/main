@@ -71,6 +71,15 @@ public:
 	    AutoStartup = 0, ManualStartup
     };
 
+    
+    //femm    
+#if defined(Q_OS_MAC)
+#define QSettingsServiceScope QSettings::UserScope
+#else
+#define QSettingsServiceScope QSettings::SystemScope
+#endif
+    
+    
     QtServiceController(const QString &name);
     virtual ~QtServiceController();
 
@@ -133,9 +142,9 @@ public:
     ServiceFlags serviceFlags() const;
     void setServiceFlags(ServiceFlags flags);
 
-    int exec();
+    virtual int exec();
 
-    void logMessage(const QString &message, MessageType type = Success,
+    virtual void logMessage(const QString &message, MessageType type = Success,
                 int id = 0, uint category = 0, const QByteArray &data = QByteArray());
 
     static QtServiceBase *instance();

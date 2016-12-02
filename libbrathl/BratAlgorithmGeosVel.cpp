@@ -21,8 +21,8 @@
 #include "brathl.h" 
 
 
-#include "new-gui/Common/tools/TraceLog.h" 
-#include "new-gui/Common/tools/Exception.h" 
+#include "common/tools/TraceLog.h"
+#include "common/tools/Exception.h"
 #include "Mission.h" 
 #include "Expression.h" 
 #include "LatLonRect.h" 

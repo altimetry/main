@@ -175,8 +175,19 @@
 #include <QtWidgets/QActionGroup>
 #include <QtWidgets/QMenu>
 #include <QtWidgets/QInputDialog>
-#include <QDesktopServices>
 #include <QtWidgets/QDesktopWidget>
+#include <QDesktopServices>
+#include <QNetworkAccessManager>
+#include <QAuthenticator>
+#include <QNetworkRequest>
+#include <QNetworkReply>
+
+#if defined(USE_WEB_ENGINE)
+#include <QtWebEngineWidgets/QWebEngineView>
+#include <QtWebEngineWidgets/QWebEnginePage>
+#include <QtWebEngineWidgets/QWebEngineProfile>
+#endif
+
 #else
 #include <qprinter.h>
 #include <qprintdialog.h>
@@ -241,7 +252,7 @@
 //////////////////////////////////////////////////////////
 
 #if defined (_MSC_VER)
-#include "new-gui/Common/tools/ExceptionWin.h"
+#include "common/tools/ExceptionWin.h"
 #endif
 
 

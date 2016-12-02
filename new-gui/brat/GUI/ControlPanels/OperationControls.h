@@ -114,11 +114,7 @@ public:
 
 	static const std::string& QuickFindAliasValue( CProduct *product, EPredefinedVariables index );
 
-	static CField* QuickFindField( CProduct *product, EPredefinedVariables index, bool &alias_used, std::string &field_error_msg );
-
 	static const std::string& QuickFindAliasValue( CProduct *product, EPredefinedSelectionCriteria index );
-
-	static CField* QuickFindField( CProduct *product, EPredefinedSelectionCriteria index, bool &alias_used, std::string &field_error_msg );
 
 
 	static void SelectOperationDatasetIndex( COperation *operation, QComboBox *combo );
@@ -323,6 +319,9 @@ protected:
 	COperation* CreateQuickOperation( CMapTypeOp::ETypeOp type );
     bool IsQuickOperationSelected() const;
     void UpdateFieldsCheckState();
+
+	CField* QuickFindField( CProduct *product, EPredefinedVariables index, bool &alias_used, std::string &field_error_msg );
+	CField* QuickFindField( CProduct *product, EPredefinedSelectionCriteria index, bool &alias_used, std::string &field_error_msg );
 
 	//advanced
 

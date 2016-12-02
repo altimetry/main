@@ -27,7 +27,7 @@
 
 #include "Xml.h"
 
-#include "new-gui/Common/tools/Exception.h" 
+#include "common/tools/Exception.h"
 #include "Tools.h"
 using namespace brathl;
 
@@ -763,14 +763,14 @@ static void DefaultHnd(void *userData, const char *s, int len)
     structXmlParsingContext *ctx = (structXmlParsingContext*)userData;
 
     std::string buf = CTools::ToString(s, (size_t)len);
-    int pos = buf.find("encoding=");
-    if (pos != -1)
+    auto pos = buf.find("encoding=");
+    if (pos != std::string::npos)
     {
       std::string str = buf.substr(pos + 10);
       ctx->encoding = CTools::BeforeFirst(str, buf[(size_t)pos+9]);
     }
     pos = buf.find("version=");
-    if (pos != -1) 
+    if (pos != std::string::npos) 
     {
       std::string str = buf.substr(pos + 9);
       ctx->version = CTools::BeforeFirst(str, buf[(size_t)pos+8]);

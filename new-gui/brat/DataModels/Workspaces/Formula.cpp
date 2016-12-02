@@ -21,8 +21,8 @@
 #include "libbrathl/Tools.h"
 
 #include "new-gui/Common/ConfigurationKeywords.h"
-#include "new-gui/Common/tools/Trace.h"
-#include "new-gui/Common/tools/Exception.h"
+#include "common/tools/Trace.h"
+#include "common/tools/Exception.h"
 
 using namespace brathl;
 

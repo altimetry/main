@@ -22,7 +22,7 @@
 
 #include <string>
 
-#include "new-gui/Common/tools/brathl_error.h" 
+#include "common/tools/brathl_error.h"
 #include "brathl.h" 
 
 #include "List.h"

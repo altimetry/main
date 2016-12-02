@@ -451,6 +451,22 @@
   <!-- =================================================================== -->
   <product class="NETCDF_CF" description="Netcdf products">
 
+    <aliases productType="RADS-CRYOSAT2" description="RADS CryoSat-2">
+      <alias name="lat">lat</alias>
+      <alias name="lon">lon</alias>
+      <alias name="time">time</alias>
+      <alias name="ssh">ssha</alias>
+      <alias name="ssha">ssha</alias>
+    </aliases>
+
+    <aliases productType="RADS-JASON-2" description="RADS Jason-2">
+      <alias name="lat">lat</alias>
+      <alias name="lon">lon</alias>
+      <alias name="time">time</alias>
+      <alias name="ssh">ssha</alias>
+      <alias name="ssha">ssha</alias>
+    </aliases>
+
     <aliases productType="JASON-2/SSHA" description="Jason-2 Reduced Dataset Aliases">
       <alias name="lat">lat</alias>
       <alias name="lon">lon</alias>
@@ -710,11 +726,36 @@
 	  <alias name="ocean_editing">%{Ocean_data_editing_REAPER_ERS}</alias>
 	</aliases>
 
+    <aliases productType="Geosat_GDR" description="Geosat GDR Dataset Aliases">
+	  <alias name="lat">lat</alias>
+	  <alias name="lon">lon</alias>
+	  <alias name="time">time</alias>
+	  <alias name="altitude">orb</alias>
+	  <alias name="alt" ref="altitude"/>
+	  <alias name="sigma0">sig_0</alias>
+	  <alias name="sigma0_ku" ref="sigma0"/>
+	  <alias name="swh">swh</alias>
+	  <alias name="swh_ku" ref="swh"/>
+	  <alias name="wind_speed">ws</alias>
+	  <alias name="winds" ref="wind_speed"/>
+	  <alias name="iono_corr">iono</alias>
+	  <alias name="dry_tropo_corr">dry_ncep</alias>
+	  <alias name="wet_tropo_corr">wet_ncep</alias>
+	  <alias name="solid_tides_corr">s_tid</alias>
+	  <alias name="ocean_tides_corr">o_tid</alias>
+	  <alias name="load_tides_corr">l_tid</alias>
+	  <alias name="sea_state_bias_corr">ssb</alias>
+	  <alias name="sea_state_bias_corr_ku" ref="sea_state_bias_corr"/>
+	  <alias name="mean_sea_surface">mssh</alias>
+	  <alias name="ssh">h</alias>
+	  <alias name="sla">%{ssh} - %{mean_sea_surface}</alias>
+	</aliases>
+
     <aliases productType="Generic NetCdf" description="Generic Netcdf Dataset Aliases">
-      <alias name="lat">latitude</alias>
-      <alias name="lon">longitude</alias>
-      <alias name="time">time</alias>
-    </aliases>
+	  <alias name="lat">latitude</alias>
+	  <alias name="lon">longitude</alias>
+	  <alias name="time">time</alias>
+	</aliases>
 
     <aliases productType="Y=F(X)" ref="Generic Netcdf" description="Brat Y=F(X)  Dataset Aliases"/>
 

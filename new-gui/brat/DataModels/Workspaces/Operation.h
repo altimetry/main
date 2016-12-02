@@ -237,6 +237,8 @@ public:
 
 	virtual const_iterator end() const { return m_formulas.end(); }
 
+	bool IsRadsDataset() const;
+
     static void SetExecNames( const CApplicationPaths &appPath );
 	static const std::string& GetExecYFXName() { return m_execYFXName; }
 	static const std::string& GetExecZFXYName() { return m_execZFXYName; }

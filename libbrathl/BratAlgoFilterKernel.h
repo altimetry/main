@@ -22,7 +22,7 @@
 
 #include <string>
 
-#include "new-gui/Common/tools/brathl_error.h" 
+#include "common/tools/brathl_error.h"
 #include "brathl.h" 
 
 #include "Tools.h" 
@@ -95,7 +95,7 @@ protected:
   //virtual void PrepareDataWindow2D(double* dataValue, uint32_t nbValues);
 
   virtual void PrepareDataWindow2DSymmetrically(CExpressionValue& exprValue, uint32_t shiftSymmetry = 0);
-  virtual void PrepareDataWindow2DSymmetrically(double* dataValue, uint32_t nbValues, uint32_t shiftSymmetry = 0);
+  virtual void PrepareDataWindow2DSymmetrically(double* dataValue, size_t nbValues, uint32_t shiftSymmetry = 0);
 
   void SetParamValueExtrapolate(CVectorBratAlgorithmParam& args, uint32_t paramIndex);
   

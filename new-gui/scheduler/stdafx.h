@@ -184,7 +184,7 @@
 //////////////////////////////////////////////////////////
 
 #if defined (_MSC_VER)
-#include "new-gui/Common/tools/ExceptionWin.h"
+#include "common/tools/ExceptionWin.h"
 #endif
 
 

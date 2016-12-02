@@ -57,7 +57,7 @@ public:
   
   /** Creates new CProductNetCdf object
     \param fileNameList [in] : list of file to be connected */
-  CProductJason2(const CStringList& fileNameList);
+  CProductJason2( const CStringList& fileNameList, bool check_only_first_files );
 
   virtual ~CProductJason2();
 

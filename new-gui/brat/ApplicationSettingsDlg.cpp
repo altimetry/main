@@ -15,8 +15,9 @@
 * along with this program; if not, write to the Free Software
 * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
-#include "new-gui/brat/stdafx.h"
+#include "stdafx.h"
 
+#include "new-gui/Common/System/Service/qtservice.h"
 #include "new-gui/Common/QtUtils.h"
 #include "new-gui/Common/System/Service/qtservice.h"
 #include "GUI/ActionsTable.h"
@@ -24,6 +25,7 @@
 #include "BratApplication.h"
 #include "BratSettings.h"
 #include "ApplicationSettingsDlg.h"
+
 
 
 void CApplicationSettingsDlg::CreateWidgets()
@@ -118,37 +120,32 @@ void CApplicationSettingsDlg::CreateWidgets()
 #endif
 
 
-#if (BRAT_MINOR_VERSION_INT==1)
 	//RADS Page
 
 	mRadsOutputEdit = new QLineEdit;
-	mRadsPathBrowseButton = new QPushButton( "Browse..." );
+	SetReadOnlyEditor( mRadsOutputEdit, true );
 	mRadsViewLogFile = new QPushButton( "Log..." );
 	mRadsSpin = new QSpinBox;
 	mRadsSpin->setMinimum( 1 );
 	mRadsSpin->setMaximum( 31 );
 	mRadsMissionsList = new QListWidget;
 
-	mRadsInstallButton = CreateToolButton( "", "", CActionInfo::FormatTip("Install") ); 
-	mRadsUninstallButton = CreateToolButton( "", "", CActionInfo::FormatTip("Uninstall") ); 
-	mRadsStartButton = CreateToolButton( "", ":/images/themes/default/media/media-seek-forward-16.png", CActionInfo::FormatTip("Start") ); 
-	mRadsStopButton = CreateToolButton( "", ":/images/themes/default/media/media-stop-16.png", CActionInfo::FormatTip("Stop") ); 
-	mRadsPauseButton = CreateToolButton( "", ":/images/themes/default/media/media-pause-16.png", CActionInfo::FormatTip("Pause") ); 
-	mRadsResumeButton = CreateToolButton( "", ":/images/themes/default/media/media-play-16.png", CActionInfo::FormatTip("Resume") ); 
+	mRadsInstallButton = CActionInfo::CreateToolButton( eAction_InstallRadsService, true ); 	assert__( mRadsInstallButton->isCheckable() );
+	mRadsStartButton = CActionInfo::CreateToolButton( eAction_StartRadsService, true ); 		assert__( mRadsStartButton->isCheckable() );
+	mRadsPauseButton = CActionInfo::CreateToolButton( eAction_PauseRadsService, true ); 		assert__( mRadsPauseButton->isCheckable() );
+	mRadsExecuteNow = CActionInfo::CreateToolButton( eAction_ExecuteRadsService, true ); 		
 
 	auto *sync_settings_l = LayoutWidgets( Qt::Vertical,
 	{
-		LayoutWidgets( Qt::Horizontal, { new QLabel( "Destination Path" ), mRadsOutputEdit, mRadsPathBrowseButton }, nullptr, 2,2,2,2,2 ),
+		LayoutWidgets( Qt::Horizontal, { new QLabel( "Destination Path" ), mRadsOutputEdit }, nullptr, 2,2,2,2,2 ),
 		LayoutWidgets( Qt::Horizontal, { new QLabel( "Sync data every" ), mRadsSpin, new QLabel( "days for mission(s)" ), mRadsMissionsList }, nullptr, 2,2,2,2,2 ),
 	}, 
 	nullptr, 2,2,2,2,2 );
 
 	mRadsCommandsBox = CreateGroupBox( ELayoutType::Vertical, 
 	{
-		CreateButtonRow( true, Qt::Horizontal, { mRadsInstallButton, mRadsUninstallButton, mRadsViewLogFile }, 2, 2 ),
-		CreateButtonRow( true, Qt::Horizontal, { mRadsStartButton, mRadsStopButton }, 2, 2 ),
-		CreateButtonRow( true, Qt::Horizontal, { mRadsPauseButton, mRadsResumeButton }, 2, 2 )
-	}, 
+		CreateButtonRow( false, Qt::Horizontal, { mRadsInstallButton, mRadsStartButton, mRadsPauseButton, mRadsExecuteNow, mRadsViewLogFile }, 2, 2 ),
+	},
 	"Service Control", nullptr, 2,2,2,2,2 );
 
 	mRadsOptionsPage = CreateGroupBox( ELayoutType::Vertical, 
@@ -156,7 +153,6 @@ void CApplicationSettingsDlg::CreateWidgets()
 		nullptr, sync_settings_l, mRadsCommandsBox, nullptr 
 	}, 
 	"RADS Settings", this, 6, 6, 6, 6, 6 );
-#endif
 
 
 	//ApplicationStyles Page
@@ -177,18 +173,12 @@ void CApplicationSettingsDlg::CreateWidgets()
 	mStackedWidget = new CStackedWidget( this, { 
         { mApplicationPathsPage, "Paths", CActionInfo::FormatTip("Paths\nDefault application paths selection"), "://images/brat_paths.png", true },
 		{ mStartupOptionsPage, "Startup", CActionInfo::FormatTip("Startup\nApplication start-up behavior"), "://images/OSGeo/tools.png", true },
-#if (BRAT_MINOR_VERSION_INT==1)
 		{ mRadsOptionsPage, "RADS", CActionInfo::FormatTip("RADS\nRADS data synchronization control"), "://images/rads.gif", true },
-#endif
 		{ mApplicationStylesPage, "Style", CActionInfo::FormatTip("Styles\nApplication visual options"), "://images/brat_style.png", true }
 	} );
 
 
-#if (BRAT_MINOR_VERSION_INT==1)
 	auto *row = CreateButtonRow( true, Qt::Vertical, { mStackedWidget->Button( 0 ), mStackedWidget->Button( 1 ), mStackedWidget->Button( 2 ), mStackedWidget->Button( 3 ) } );
-#else
-	auto *row = CreateButtonRow( true, Qt::Vertical, { mStackedWidget->Button( 0 ), mStackedWidget->Button( 1 ), mStackedWidget->Button( 2 ) } );
-#endif
 	auto *row_group = CreateGroupBox( ELayoutType::Vertical, { row } );
 
 	auto *content_l = LayoutWidgets( Qt::Horizontal, { row_group, mStackedWidget }, nullptr, 6, 6, 6, 6, 6 );
@@ -221,84 +211,102 @@ void CApplicationSettingsDlg::CreateWidgets()
 }
 
 
+
 void CApplicationSettingsDlg::Wire()
 {
-    const CApplicationPaths* settings_paths = &mSettings.BratPaths();
+	const CApplicationPaths* settings_paths = &mSettings.BratPaths();
 
 	//	ApplicationPaths Page
 
-    mDataDirectoryLineEdit->setText( settings_paths->UserDataDirectory().c_str() );				//for data portable paths
-    mProjectsDirectoryLineEdit->setText( settings_paths->WorkspacesDirectory().c_str() );
+	mDataDirectoryLineEdit->setText( settings_paths->UserDataDirectory().c_str() );				//for data portable paths
+	mProjectsDirectoryLineEdit->setText( settings_paths->WorkspacesDirectory().c_str() );
 
-    mUsePortablePathsCheckBox->setChecked( settings_paths->UsePortablePaths() );
+	mUsePortablePathsCheckBox->setChecked( settings_paths->UsePortablePaths() );
 
-	connect( mBrowseDataDirectoryPushButton, SIGNAL( clicked() ), this, SLOT(  HandleBrowseDataDirectory() ) );
-	connect( mBrowseWorkspacesDirectoryPushButton, SIGNAL( clicked() ), this, SLOT(  HandleBrowseProjectsPath() ) );
+	connect( mBrowseDataDirectoryPushButton, SIGNAL( clicked() ), this, SLOT( HandleBrowseDataDirectory() ) );
+	connect( mBrowseWorkspacesDirectoryPushButton, SIGNAL( clicked() ), this, SLOT( HandleBrowseProjectsPath() ) );
 
 
 	//StartupOptions Page
 
 	mLoadLastProjectAtAtartupCheckBox->setChecked( mSettings.mLoadLastWorkspaceAtStartUp );
 
-    mUseVectorLayer->setChecked( mSettings.MainLayerBaseType() == CMapWidget::ELayerBaseType::eVectorLayer );
-    mUseRasterLayer->setChecked( mSettings.MainLayerBaseType() == CMapWidget::ELayerBaseType::eRasterLayer );
-    mUseRasterLayerURI->setChecked( mSettings.MainLayerBaseType() == CMapWidget::ELayerBaseType::eRasterURL );
+	mUseVectorLayer->setChecked( mSettings.MainLayerBaseType() == CMapWidget::ELayerBaseType::eVectorLayer );
+	mUseRasterLayer->setChecked( mSettings.MainLayerBaseType() == CMapWidget::ELayerBaseType::eRasterLayer );
+	mUseRasterLayerURI->setChecked( mSettings.MainLayerBaseType() == CMapWidget::ELayerBaseType::eRasterURL );
 
-    mViewsUseVectorLayer->setChecked( mSettings.ViewsLayerBaseType() == CMapWidget::ELayerBaseType::eVectorLayer );
-    mViewsUseRasterLayer->setChecked( mSettings.ViewsLayerBaseType() == CMapWidget::ELayerBaseType::eRasterLayer );
-    mViewsUseRasterLayerURI->setChecked( mSettings.ViewsLayerBaseType() == CMapWidget::ELayerBaseType::eRasterURL );
+	mViewsUseVectorLayer->setChecked( mSettings.ViewsLayerBaseType() == CMapWidget::ELayerBaseType::eVectorLayer );
+	mViewsUseRasterLayer->setChecked( mSettings.ViewsLayerBaseType() == CMapWidget::ELayerBaseType::eRasterLayer );
+	mViewsUseRasterLayerURI->setChecked( mSettings.ViewsLayerBaseType() == CMapWidget::ELayerBaseType::eRasterURL );
 
 	mVectorSimplifyMethodCheck->setChecked( mSettings.mVectorSimplifyMethod );
 
-    connect( mUseRasterLayer, SIGNAL( toggled( bool ) ), this,  SLOT( HandleMainLayerTypeChanged( bool ) ) );
-    connect( mUseVectorLayer, SIGNAL( toggled( bool ) ), this,  SLOT( HandleMainLayerTypeChanged( bool ) ) );
-    connect( mUseRasterLayerURI, SIGNAL( toggled( bool ) ), this,  SLOT( HandleMainLayerTypeChanged( bool ) ) );
+	connect( mUseRasterLayer, SIGNAL( toggled( bool ) ), this, SLOT( HandleMainLayerTypeChanged( bool ) ) );
+	connect( mUseVectorLayer, SIGNAL( toggled( bool ) ), this, SLOT( HandleMainLayerTypeChanged( bool ) ) );
+	connect( mUseRasterLayerURI, SIGNAL( toggled( bool ) ), this, SLOT( HandleMainLayerTypeChanged( bool ) ) );
 
-    connect( mViewsUseRasterLayer, SIGNAL( toggled( bool ) ), this,  SLOT( HandleViewsLayerTypeChanged( bool ) ) );
-    connect( mViewsUseVectorLayer, SIGNAL( toggled( bool ) ), this,  SLOT( HandleViewsLayerTypeChanged( bool ) ) );
-    connect( mViewsUseRasterLayerURI, SIGNAL( toggled( bool ) ), this,  SLOT( HandleViewsLayerTypeChanged( bool ) ) );
+	connect( mViewsUseRasterLayer, SIGNAL( toggled( bool ) ), this, SLOT( HandleViewsLayerTypeChanged( bool ) ) );
+	connect( mViewsUseVectorLayer, SIGNAL( toggled( bool ) ), this, SLOT( HandleViewsLayerTypeChanged( bool ) ) );
+	connect( mViewsUseRasterLayerURI, SIGNAL( toggled( bool ) ), this, SLOT( HandleViewsLayerTypeChanged( bool ) ) );
 
-    mLayerURLLineEdit->setText( settings_paths->URLRasterLayerPath().c_str() );
+	mLayerURLLineEdit->setText( settings_paths->URLRasterLayerPath().c_str() );
 
-    HandleMainLayerTypeChanged( false );		//argument not used
-    HandleViewsLayerTypeChanged( false );		//idem
+	HandleMainLayerTypeChanged( false );		//argument not used
+	HandleViewsLayerTypeChanged( false );		//idem
 
 
-#if (BRAT_MINOR_VERSION_INT==1)
 	//RADS Page
 
-	mRadsOutputEdit->setText( settings_paths->UserDataDirectory().c_str() );				//TODO mSettings.RadsPeriod() 
-	connect( mRadsPathBrowseButton, SIGNAL( clicked() ), this, SLOT(  HandleRadsPathBrowse() ) );
+	std::string rads_error_msg, user_missions_str;
+	unsigned ndays = 1;
 
-	mRadsSpin->setValue( 7 );																//TODO mSettings.RadsPeriod() 
-
-	std::vector< std::string > missions = { "Sentinel", "Jason 1", "Jason 2", "Cryosat" };	//TODO: mSettings.RadsMissionsList
-	for ( auto &mission : missions )
+	bool result = mRadsServiceSettings.mValidRadsMissions;
+	if ( !result )
+		rads_error_msg = "An error occurred reading missions from rads configuration file.\nPlease check " + settings_paths->mRadsConfigurationFilePath;
+	else
 	{
-		QListWidgetItem* item = new QListWidgetItem;
-		item->setText( t2q( mission )  );
-		item->setFlags( item->flags() | Qt::ItemIsUserCheckable );
-		item->setCheckState( Qt::Unchecked );		//Qt::Checked
-		mRadsMissionsList->addItem( item );
+		result = mRadsServiceSettings.LoadConfig();
+		if ( !result )
+			rads_error_msg = "Could not read RADS Service configuration file.";
 	}
-	// Sort items (ascending order)
-	mRadsMissionsList->sortItems();
-	mRadsMissionsList->setMaximumHeight( mRadsMissionsList->sizeHintForRow( 0 ) * 5 );
+	if ( !result )
+	{
+		SimpleErrorBox( rads_error_msg + "\nRADS settings will not be available." );
+		mRadsOptionsPage->setEnabled( false );
+	}
+	else
+	{
+		mRadsOutputEdit->setText( FormatRadsLocalOutputPath( settings_paths->UserDataDirectory() ).c_str() );
+		mRadsSpin->setValue( ndays );
 
-	bool installed = mRadsController->isInstalled();
-	bool running = mRadsController->isRunning();
-	mRadsStopButton->setChecked( installed && running );		mRadsStartButton->setChecked( installed && !running );
-	mRadsPauseButton->setChecked( installed && running );		mRadsResumeButton->setChecked( installed && running );
-	EnableRadsButtons();
+		auto const &user_missions = mRadsServiceSettings.MissionNames();
+		for ( auto const &mission : mRadsServiceSettings.AllAvailableMissions() )
+		{
+			QListWidgetItem* item = new QListWidgetItem;
+			item->setText( t2q( mission.mName ) );
+			item->setFlags( item->flags() | Qt::ItemIsUserCheckable );
+			bool selected = std::find( user_missions.begin(), user_missions.end(), mission.mAbbr ) != user_missions.end();
+			item->setCheckState( selected ? Qt::Checked : Qt::Unchecked );
+			item->setData( Qt::UserRole, t2q( mission.mAbbr ) );
+			mRadsMissionsList->addItem( item );
+		}
+		// Sort items (ascending order)
+		mRadsMissionsList->sortItems();
+		SetMaximumVisibleItems( mRadsMissionsList, 7 );
 
-	connect( mRadsInstallButton, SIGNAL( clicked() ), this, SLOT(  HandleRadsInstall() ) );
-	connect( mRadsUninstallButton, SIGNAL( clicked() ), this, SLOT(  HandleRadsUninstall() ) );
-	connect( mRadsStartButton, SIGNAL( clicked() ), this, SLOT(  HandleRadsStart() ) );
-	connect( mRadsStopButton, SIGNAL( clicked() ), this, SLOT(  HandleRadsStop() ) );
-	connect( mRadsPauseButton, SIGNAL( clicked() ), this, SLOT(  HandleRadsPause() ) );
-	connect( mRadsResumeButton, SIGNAL( clicked() ), this, SLOT(  HandleRadsResume() ) );
-	connect( mRadsViewLogFile, SIGNAL( clicked() ), this, SLOT(  HandleViewLogFile() ) );
-#endif
+		const bool installed = mRadsController->isInstalled();
+		const bool running = installed && mRadsController->isRunning();
+		mRadsInstallButton->setChecked( installed );
+		mRadsStartButton->setChecked( running );
+		mRadsPauseButton->setChecked( running );
+		EnableRadsButtons();
+
+		connect( mRadsInstallButton, SIGNAL( toggled( bool ) ), this, SLOT( HandleRadsInstall( bool ) ) );
+		connect( mRadsStartButton, SIGNAL( toggled( bool ) ), this, SLOT( HandleRadsStart( bool ) ) );
+		connect( mRadsPauseButton, SIGNAL( toggled( bool ) ), this, SLOT( HandleRadsPause( bool ) ) );
+		connect( mRadsViewLogFile, SIGNAL( clicked() ), this, SLOT( HandleViewLogFile() ) );
+		connect( mRadsExecuteNow, SIGNAL( clicked() ), this, SLOT( HandleRadsExecuteNow() ) );
+	}
 
 
     //	Application Styles
@@ -326,8 +334,9 @@ void CApplicationSettingsDlg::Wire()
 
 CApplicationSettingsDlg::CApplicationSettingsDlg( CBratSettings &options, QWidget *parent )
 	: QDialog( parent )
-	, mRadsController( new QtServiceController( RADS_SERVICE_NAME ) )
 	, mSettings( options )
+	, mRadsController( new QtServiceController( RADS_SERVICE_NAME ) )	//, mRadsServiceSettings( mSettings.BratPaths().mRadsServiceIniFilePath )
+	, mRadsServiceSettings( mSettings.BratPaths() )
 {
 	CreateWidgets();
 }
@@ -341,14 +350,19 @@ CApplicationSettingsDlg::~CApplicationSettingsDlg()
 
 
 
-
+//////////////////////////
 //	ApplicationPaths_page
+//////////////////////////
+
 
 void CApplicationSettingsDlg::HandleBrowseDataDirectory()
 {
     QString dir = BrowseDirectory( this, "Select Default Data Directory", mDataDirectoryLineEdit->text() );
-    if ( !dir.isEmpty() )
-        mDataDirectoryLineEdit->setText( dir );
+	if ( !dir.isEmpty() )
+	{
+		mDataDirectoryLineEdit->setText( dir );
+		mRadsOutputEdit->setText( FormatRadsLocalOutputPath( q2a( dir ) ).c_str() );
+	}
 }
 
 void CApplicationSettingsDlg::HandleBrowseProjectsPath()
@@ -359,7 +373,10 @@ void CApplicationSettingsDlg::HandleBrowseProjectsPath()
 }
 
 
+
+//////////////////////////
 //	StartupOptions_page
+//////////////////////////
 
 void CApplicationSettingsDlg::HandleMainLayerTypeChanged( bool )
 {
@@ -373,92 +390,144 @@ void CApplicationSettingsDlg::HandleViewsLayerTypeChanged( bool )
 }
 
 
-#if (BRAT_MINOR_VERSION_INT==1)
 
+//////////////////////////
 //	RADS page
-
-void CApplicationSettingsDlg::HandleRadsPathBrowse()
-{
-	QString dir = BrowseDirectory( this, "Select RADS Output Directory", mRadsOutputEdit->text() );
-	if ( !dir.isEmpty() )
-		mRadsOutputEdit->setText( dir );
-}
+//////////////////////////
 
 void CApplicationSettingsDlg::EnableRadsButtons()
 {
-	const bool installed = mRadsController->isInstalled();
-
-	mRadsInstallButton->setChecked( installed );				
-	mRadsUninstallButton->setChecked( !installed );
-
-	mRadsStopButton->setEnabled( installed );		
+	const bool installed = mRadsController->isInstalled();		assert__( !installed || mRadsInstallButton->isChecked() );
+                                                                //assert__( installed || !mRadsInstallButton->isChecked() );
+	const bool running = installed && mRadsController->isRunning();
 	mRadsStartButton->setEnabled( installed );
-	mRadsPauseButton->setEnabled( installed );		
-	mRadsResumeButton->setEnabled( installed );
+	mRadsPauseButton->setEnabled( running );
+	mRadsExecuteNow->setEnabled( running );
 }
+
 
 void CApplicationSettingsDlg::DisplayRadsError( const std::string & action )
 {
 	SimpleErrorBox( "Could not " + action + " RADS service" );
 }
 
-void CApplicationSettingsDlg::HandleRadsInstall()
-{
-	assert__( !mRadsController->isInstalled() );
 
-	if ( !CBratApplication::InstallRadsService() )
-		DisplayRadsError( "install" );
+void CApplicationSettingsDlg::HandleRadsInstall( bool toggled )
+{
+	const bool installed = mRadsController->isInstalled();
+	std::string error_token;
+
+	if ( toggled )
+	{
+		if ( !ValidateAndSaveRadsValues( true ) )
+			return;
+		if ( !installed && !CBratApplication::InstallRadsService() )
+			error_token = "install";
+	}
+	else
+	{
+		if ( installed )
+		{
+			HandleRadsStart( false );
+			if ( !mRadsController->uninstall() )
+				error_token = "uninstall";			//Windows 1072: "The specified service has been marked for deletion."
+		}
+	}
+
+	if ( !error_token.empty() )
+	{
+		DisplayRadsError( error_token );
+		mRadsInstallButton->setChecked( mRadsController->isInstalled() );
+	}
 
 	EnableRadsButtons();
 }
-void CApplicationSettingsDlg::HandleRadsUninstall()
+
+
+void CApplicationSettingsDlg::HandleRadsStart( bool toggled )
 {
 	assert__( mRadsController->isInstalled() );
 
-	if ( !mRadsController->uninstall() )
-		DisplayRadsError( "uninstall" );
+	const bool running = mRadsController->isRunning();
+	std::string error_token;
+
+	if ( toggled )
+	{
+		if ( !ValidateAndSaveRadsValues( true ) )
+			return;
+		if ( !running && !mRadsController->start() )
+			error_token = "start";					//Windows 1069: "The service did not start due to a logon failure."
+	}
+	else
+	{
+		if ( running && !mRadsController->stop() )
+			error_token = "stop";
+	}
+
+    QBratThread::sleep( 2 );    //give some time for isRunning to return an accurate value
+    
+	if ( !error_token.empty() )
+	{
+		DisplayRadsError( error_token );
+		mRadsStartButton->setChecked( mRadsController->isRunning() );
+	}
 
 	EnableRadsButtons();
 }
-void CApplicationSettingsDlg::HandleRadsStart()
-{
-	assert__( !mRadsController->isRunning() );
 
-	if ( !mRadsController->start() )
-		DisplayRadsError( "start" );
-}
-void CApplicationSettingsDlg::HandleRadsStop()
-{
-	assert__( mRadsController->isRunning() );
 
-	if ( !mRadsController->stop() )
-		DisplayRadsError( "stop" );
-}
-void CApplicationSettingsDlg::HandleRadsPause()
+void CApplicationSettingsDlg::HandleRadsPause( bool toggled )
 {
-	assert__( mRadsController->isRunning() );
+	assert__( mRadsController->isInstalled() );
 
-	if ( !mRadsController->pause() )
-		DisplayRadsError( "pause" );
+	std::string error_token;
+	//TODO:  the controller has no flag for paused state
+
+	if ( toggled )
+	{
+		if ( !mRadsController->pause() )
+			error_token = "pause";
+	}
+	else
+	{
+		if ( !ValidateAndSaveRadsValues( true ) )
+			return;
+		if ( !mRadsController->resume() )
+			error_token = "resume";
+	}
+
+	if ( !error_token.empty() )
+	{
+		DisplayRadsError( error_token );
+		mRadsPauseButton->blockSignals( true );
+		mRadsPauseButton->setChecked( !toggled );	//Guessing: without flag for paused state, we can only assume that, on failure, the current state did not change
+		mRadsPauseButton->blockSignals( false );
+	}
 }
-void CApplicationSettingsDlg::HandleRadsResume()
+
+
+void CApplicationSettingsDlg::HandleRadsExecuteNow()
 {
-	assert__( !mRadsController->isRunning() );
-
-	if ( !mRadsController->resume() )
-		DisplayRadsError( "resume" );
+	if ( !ValidateAndSaveRadsValues( true ) )
+		return;
+	if ( !mRadsController->sendCommand( eRadsService_ExecNow ) )
+		DisplayRadsError( "execute" );
 }
+
+
 void CApplicationSettingsDlg::HandleViewLogFile()
 {
-	BRAT_NOT_IMPLEMENTED;
+	QDesktopServices::openUrl( QUrl( mSettings.BratPaths().mRadsServiceLogFilePath.c_str() ) );
 }
 
-#endif
 
 
+
+//////////////////////////
 //	ApplicationStyles_page
+//////////////////////////
 
-
+// ( ... )
 
 
 ///////////////////////////////////////////////////////////////////////////////////
@@ -466,6 +535,51 @@ void CApplicationSettingsDlg::HandleViewLogFile()
 //						Validation and Conclusion
 //
 ///////////////////////////////////////////////////////////////////////////////////
+
+
+bool CApplicationSettingsDlg::ValidateAndSaveRadsValues( bool ask_user )
+{
+	if ( ask_user && !SimpleQuestion( "This will save your current RADS settings.\nDo you want to proceed?" ) )
+		return false;
+
+	if ( mRadsOptionsPage->isEnabled() )
+	{
+		const int size = mRadsMissionsList->count();
+		std::string missions_str;
+		for ( int i = 0; i < size; ++i )
+		{
+			auto *item = mRadsMissionsList->item( i );
+			if ( item->checkState() == Qt::Checked )
+			{
+				const std::string &abbr = q2a( item->data( Qt::UserRole ).toString() );		assert__( FindRadsMissionAbbr( q2a( item->text() ), mRadsServiceSettings.AllAvailableMissions() ) == abbr );
+				if ( !missions_str.empty() )
+					missions_str += " ";
+				missions_str += abbr;
+			}
+		}
+
+		int ndays = mRadsSpin->value();
+		const bool running = mRadsController->isRunning();
+
+		bool cmd_success = !running || mRadsController->sendCommand( eRadsService_LockConfig );
+		if ( cmd_success )
+		{
+			cmd_success = 
+				mRadsServiceSettings.SetApplicationParameters( missions_str, ndays, q2a( mRadsOutputEdit->text() ) )
+				&&
+				( !running || mRadsController->sendCommand( eRadsService_UnlockConfig ) );
+		}
+		if ( !cmd_success )
+		{
+			std::string msg = "Could not synchronize configuration settings with RadsService.\n";
+			msg += "Some parameter values may not be updated.";
+			SimpleErrorBox( msg );
+			return false;
+		}
+	}
+
+	return true;
+}
 
 
 
@@ -563,7 +677,12 @@ bool CApplicationSettingsDlg::ValidateAndAssign()
 #endif
 
 
-	//	3. Application Styles
+	//	3. RADS
+
+	ValidateAndSaveRadsValues( false );	//Can we disregard possible failure on RADS parameters save an let the dialog close?
+
+
+	//	4. Application Styles
 
 	if ( mStylesListWidget->currentItem() )
 		mSettings.mAppStyle = mStylesListWidget->currentItem()->text();

@@ -48,6 +48,7 @@ class CBratSettings : public CApplicationSettings
     //////////////////////////////////////
 
     static const CMapWidget::ELayerBaseType smDefaultLayerBaseType;
+	static const bool smUseUnsupportedFields;
 
 protected:
 
@@ -72,6 +73,7 @@ public:
 
 	bool mDesktopManagerSdi = true;
 	bool mCheckOpenGL = true;
+	bool mUseUnsupportedFields = smUseUnsupportedFields;
 
 
     //////////////////////////////////////

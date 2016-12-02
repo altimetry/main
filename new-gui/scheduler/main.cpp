@@ -23,8 +23,6 @@
 #include "new-gui/Common/GUI/ApplicationUserPaths.h"
 
 
-static const char *app_name = SCHEDULER_APPLICATION_NAME;		//IMPORTANT: this name must match BRATSCHEDULER_EXE in brat ApplicationPaths.cpp
-
 
 
 
@@ -32,7 +30,7 @@ int main( int argc, char *argv[] )
 try {
 	LOG_TRACE( "\n*** Entering main." );
 
-	CSchedulerApplication::Prologue( argc, argv, app_name );
+	CSchedulerApplication::Prologue( argc, argv );
 
 	LOG_INFO( "scheduler is starting..." );
 

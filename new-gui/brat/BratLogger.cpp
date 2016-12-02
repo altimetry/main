@@ -19,7 +19,7 @@
 
 #include <osgEarth/Notify>
 
-#include "new-gui/Common/+Utils.h"
+#include "common/+Utils.h"
 #include "BratLogger.h"
 
 

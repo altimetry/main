@@ -25,12 +25,14 @@
 #include "DataModels/Workspaces/Dataset.h"
 #include "DataModels/PlotData/MapColor.h"
 
+#include "GUI/ActionsTable.h"
 #include "GUI/ControlPanels/Dialogs/RegionSettingsDialog.h"
 #include "GUI/DisplayWidgets/MapWidget.h"
 
 #include "BratLogger.h"
+#include "BratSettings.h"
 
-#include "DatasetFilterControls.h"
+#include "BratFilterControls.h"
 
 
 
@@ -39,7 +41,7 @@
 /////////////////////////////////////////////////////////////////////////////////////
 
 
-void CDatasetFilterControls::CreateWidgets()
+void CBratFilterControls::CreateWidgets()
 {
     // I. Top buttons row
     //
@@ -69,7 +71,7 @@ void CDatasetFilterControls::CreateWidgets()
     QFont font = where_l->font();
     font.setBold( true );
     where_l->setFont( font );
-    AddTopLayout( ELayoutType::Horizontal, { WidgetLine( nullptr, Qt::Horizontal ), where_l, WidgetLine( nullptr, Qt::Horizontal ), mClearWhere }, s, m, m, m, m );
+    AddTopLayout( ELayoutType::Horizontal, { /*WidgetLine( nullptr, Qt::Horizontal ), */nullptr, where_l, /*WidgetLine( nullptr, Qt::Horizontal ),*/ nullptr, mClearWhere }, s, m, m, m, m );
 
 
     //    II.1 Buttons for region selection
@@ -89,9 +91,9 @@ void CDatasetFilterControls::CreateWidgets()
     mAreasListWidget = new QListWidget( this );
     mAreasListWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Maximum);
 
-    mNewArea = CreateToolButton( "", ":/images/OSGeo/area_new.png", "<b>Create area</b><br>Use the map selection feature to create a new area" );
-    mAddKML  = CreateToolButton( "", ":/images/OSGeo/area_kml_add.png", "<b>Add area</b><br>Add area from KML file" );
-    mAddMask = CreateToolButton( "", ":/images/OSGeo/area_mask_add.png", "<b>Add area</b><br>Add area from Mask file" );
+    mNewArea = CreateToolButton( "", ":/images/OSGeo/area_new.png", "<b>Create area</b><br>Use the map selection mouse tool to define a new area" );
+    mAddKML  = CreateToolButton( "", ":/images/OSGeo/area_kml_add.png", "<b>Add from KML...</b><br>Add area from KML file" );
+    mAddMask = CreateToolButton( "", ":/images/OSGeo/area_mask_add.png", "<b>Add from mask</b><br>Add area from Mask file" );
     mRenameArea = CreateToolButton( "", ":/images/OSGeo/area_edit.png", "<b>Rename area</b><br>Change the name of selected area" );
     mDeleteArea = CreateToolButton( "", ":/images/OSGeo/area_remove.png", "<b>Delete area</b><br>Delete the selected area" );
     //mSaveArea = CreateToolButton( "", ":/images/OSGeo/area_save.png", "<b>Save area</b><br>Save values in selected area" );
@@ -108,37 +110,49 @@ void CDatasetFilterControls::CreateWidgets()
     mMinLatEdit = new QLineEdit(this);
     mMinLonEdit = new QLineEdit(this);
 
-    mMaxLatEdit->setReadOnly( true );
-    mMaxLonEdit->setReadOnly( true );
-    mMinLatEdit->setReadOnly( true );
-    mMinLonEdit->setReadOnly( true );
-
-    QPalette *palette_readOnly = new QPalette();
-    palette_readOnly->setColor(QPalette::Base, Qt::gray );
-    palette_readOnly->setColor(QPalette::Text,Qt::black);
-
-    mMaxLatEdit->setPalette(*palette_readOnly);
-    mMaxLonEdit->setPalette(*palette_readOnly);
-    mMinLatEdit->setPalette(*palette_readOnly);
-    mMinLonEdit->setPalette(*palette_readOnly);
+	SetReadOnlyEditor( mMaxLatEdit, true );
+	SetReadOnlyEditor( mMaxLonEdit, true );
+	SetReadOnlyEditor( mMinLatEdit, true );
+	SetReadOnlyEditor( mMinLonEdit, true );
 
     QLabel *icon_north = new QLabel();
     icon_north->setPixmap( QPixmap(":/images/OSGeo/north-arrow.png") );
 
     QBoxLayout *coord_values = LayoutWidgets( Qt::Vertical, {
-                                             LayoutWidgets( Qt::Horizontal, { nullptr } ),
+                                             //LayoutWidgets( Qt::Horizontal, { nullptr } ),
                                              LayoutWidgets( Qt::Horizontal, { nullptr, new QLabel( "Max Lat (deg)" ), nullptr } ),
                                              LayoutWidgets( Qt::Horizontal, { nullptr, mMaxLatEdit, nullptr } ),
                                              LayoutWidgets( Qt::Horizontal, { new QLabel( "Min Lon (deg)" ), nullptr, new QLabel( "Max Lon (deg)" ) } ),
                                              LayoutWidgets( Qt::Horizontal, { mMinLonEdit, icon_north, mMaxLonEdit } ),
                                              LayoutWidgets( Qt::Horizontal, { nullptr, new QLabel( "Min Lat (deg)" ), nullptr } ),
                                              LayoutWidgets( Qt::Horizontal, { nullptr, mMinLatEdit, nullptr } ),
-                                             LayoutWidgets( Qt::Horizontal, { nullptr } ),
+                                             //LayoutWidgets( Qt::Horizontal, { nullptr } ),
                                                } );
 
+	QToolBar *toolbar = new QToolBar;
+	mSelectionButton = CMapWidget::CreateMapSelectionActions( toolbar, mActionSelectFeatures, mActionDeselectAll );
+	toolbar->addAction( mActionDeselectAll );
+	toolbar->insertWidget( mActionDeselectAll, mSelectionButton );
+#if defined(ENABLE_POLYGON_SELECTION)
+	CMapWidget::AddMapSelectionPolygon( mSelectionButton, mMainToolsToolBar, mActionSelectPolygon );
+	mDesktopManager->Map()->ConnectParentSelectionActions( mSelectionButton, mActionSelectFeatures, mActionSelectPolygon, mActionDeselectAll );
+#else
+	mDesktopManager->Map()->ConnectParentSelectionActions( mSelectionButton, mActionSelectFeatures, nullptr, mActionDeselectAll );
+#endif
+	mSelectionButton->setAutoRaise( false );
+	((QToolButton*)toolbar->widgetForAction( mActionDeselectAll ))->setAutoRaise( false );
+	toolbar->setIconSize( QSize( tool_icon_size, tool_icon_size ) );
+	toolbar->layout()->setSpacing( 2 );
+	toolbar->layout()->setMargin( 2 );
+
+	auto *coord_box = CreateGroupBox( ELayoutType::Vertical, 
+	{ 
+		toolbar,
+		coord_values 
+	}, "Area Selection", this, 2, 4, 4, 4, 4 );
 
     //    II.4 Adding previous widgets to this...
-    QBoxLayout *areas_coord = LayoutWidgets( Qt::Horizontal, { areas_box, coord_values});
+    QBoxLayout *areas_coord = LayoutWidgets( Qt::Horizontal, { areas_box, coord_box } );
 
     mWhereBox = AddTopGroupBox(  ELayoutType::Vertical, { areas_coord } );
     AddTopSpace( 0, 0, QSizePolicy::Expanding, QSizePolicy::Expanding );
@@ -149,7 +163,7 @@ void CDatasetFilterControls::CreateWidgets()
     auto *when_l = new QLabel( "When" );
     when_l->setFont( font );
     mClearWhen = CreateToolButton( "", ":/images/OSGeo/filter_clearvalues.png", "Clear values" );
-    AddTopLayout( ELayoutType::Horizontal, { WidgetLine( nullptr, Qt::Horizontal ), when_l, WidgetLine( nullptr, Qt::Horizontal ), mClearWhen }, s, m, m, m, m );
+    AddTopLayout( ELayoutType::Horizontal, { /*WidgetLine( nullptr, Qt::Horizontal )*/nullptr, when_l, /*WidgetLine( nullptr, Qt::Horizontal ),*/ nullptr, mClearWhen }, s, m, m, m, m );
 
     //    III.1 Dates, Cycles and Pass (start and stop values)
     QDateTime minDateTime( QDate(1950, 1, 1), QTime(0, 0, 0));
@@ -278,7 +292,7 @@ void CDatasetFilterControls::CreateWidgets()
 }
 
 
-void CDatasetFilterControls::Wire()
+void CBratFilterControls::Wire()
 {
     // Filter buttons //
     connect( mNewFilter, SIGNAL( clicked() ), this, SLOT( HandleNewFilter() ) );
@@ -327,7 +341,7 @@ void CDatasetFilterControls::Wire()
 
 
 //explicit
-CDatasetFilterControls::CDatasetFilterControls( CModel &model, CDesktopManagerBase *manager, QWidget *parent, Qt::WindowFlags f )	//parent = nullptr, Qt::WindowFlags f = 0
+CBratFilterControls::CBratFilterControls( CModel &model, CDesktopManagerBase *manager, QWidget *parent, Qt::WindowFlags f )	//parent = nullptr, Qt::WindowFlags f = 0
     : base_t( model, manager, parent, f )
     , mMap( manager->Map() )
     , mBratFilters( mModel.BratFilters() )
@@ -344,7 +358,7 @@ CDatasetFilterControls::CDatasetFilterControls( CModel &model, CDesktopManagerBa
 }
 
 
-bool CDatasetFilterControls::ReloadFilters()
+bool CBratFilterControls::ReloadFilters()
 {
     if ( !mModel.BratFiltersValid() )
     {
@@ -377,7 +391,7 @@ bool CDatasetFilterControls::ReloadFilters()
 }
 
 
-void CDatasetFilterControls::FillFiltersCombo()
+void CBratFilterControls::FillFiltersCombo()
 {
     mFiltersCombo->clear();
 
@@ -386,7 +400,7 @@ void CDatasetFilterControls::FillFiltersCombo()
         mFiltersCombo->addItem( filter.first.c_str() );
 }
 
-void CDatasetFilterControls::FillRegionsCombo()
+void CBratFilterControls::FillRegionsCombo()
 {
     mRegionsCombo->clear();
 
@@ -397,7 +411,7 @@ void CDatasetFilterControls::FillRegionsCombo()
     }
 }
 
-void CDatasetFilterControls::FillAreasList()
+void CBratFilterControls::FillAreasList()
 {
     mAreasListWidget->clear();
     HandleAreasSelectionChanged(); // for updating buttons status
@@ -420,7 +434,7 @@ void CDatasetFilterControls::FillAreasList()
 }
 
 
-void CDatasetFilterControls::ShowOnlyAreasInRegion(int region_index)
+void CBratFilterControls::ShowOnlyAreasInRegion(int region_index)
 {
     // Show areas of current region, hide remaining ones.
     std::string name = q2a( mRegionsCombo->itemText( region_index ) );
@@ -446,7 +460,7 @@ void CDatasetFilterControls::ShowOnlyAreasInRegion(int region_index)
 }
 
 
-void CDatasetFilterControls::HandleCurrentLayerSelectionChanged( QRectF box /*= QRectF()*/ )
+void CBratFilterControls::HandleCurrentLayerSelectionChanged( QRectF box /*= QRectF()*/ )
 {
     // Clear Selected area in areas list
     mAreasListWidget->clearSelection();
@@ -486,7 +500,7 @@ void CDatasetFilterControls::HandleCurrentLayerSelectionChanged( QRectF box /*= 
 
 
 //public slots:
-void CDatasetFilterControls::HandleWorkspaceChanged()
+void CBratFilterControls::HandleWorkspaceChanged()
 {
 	LOG_TRACEstd( "Filters tab started handling signal to change workspace" );
 
@@ -511,7 +525,7 @@ void CDatasetFilterControls::HandleWorkspaceChanged()
 }
 
 
-void CDatasetFilterControls::HandleNewFilter()
+void CBratFilterControls::HandleNewFilter()
 {
     auto result = ValidatedInputString( "Filter Name", mBratFilters.MakeNewName(), "New Filter..." );
     if ( !result.first )
@@ -529,7 +543,7 @@ void CDatasetFilterControls::HandleNewFilter()
 }
 
 
-void CDatasetFilterControls::HandleRenameFilter()
+void CBratFilterControls::HandleRenameFilter()
 {
     assert__( mFilter );
 
@@ -557,7 +571,7 @@ void CDatasetFilterControls::HandleRenameFilter()
 }
 
 
-void CDatasetFilterControls::HandleDeleteFilter()
+void CBratFilterControls::HandleDeleteFilter()
 {
     assert__( mFilter );
 
@@ -584,7 +598,7 @@ void CDatasetFilterControls::HandleDeleteFilter()
 }
 
 
-void CDatasetFilterControls::HandleSaveFilters()
+void CBratFilterControls::HandleSaveFilters()
 {
     assert__( mFilter );
 
@@ -593,7 +607,7 @@ void CDatasetFilterControls::HandleSaveFilters()
 }
 
 
-void CDatasetFilterControls::HandleFiltersCurrentIndexChanged( int filter_index )
+void CBratFilterControls::HandleFiltersCurrentIndexChanged( int filter_index )
 {
     mRenameFilter->setEnabled( filter_index >= 0 );
     mDeleteFilter->setEnabled( filter_index >= 0 );
@@ -629,7 +643,7 @@ void CDatasetFilterControls::HandleFiltersCurrentIndexChanged( int filter_index 
 }
 
 
-void CDatasetFilterControls::HandleRegionsCurrentIndexChanged( int region_index )
+void CBratFilterControls::HandleRegionsCurrentIndexChanged( int region_index )
 {
     if ( region_index < 0 )
     {
@@ -646,7 +660,7 @@ void CDatasetFilterControls::HandleRegionsCurrentIndexChanged( int region_index 
 }
 
 
-void CDatasetFilterControls::HandleAreasSelectionChanged()
+void CBratFilterControls::HandleAreasSelectionChanged()
 {
     QListWidgetItem *item = mAreasListWidget->currentItem();
 
@@ -672,7 +686,7 @@ void CDatasetFilterControls::HandleAreasSelectionChanged()
 }
 
 
-void CDatasetFilterControls::HandleClearWhere()
+void CBratFilterControls::HandleClearWhere()
 {
     mFilter->DeleteAllAreas();
 
@@ -684,7 +698,7 @@ void CDatasetFilterControls::HandleClearWhere()
 }
 
 
-void CDatasetFilterControls::HandleClearWhen()
+void CBratFilterControls::HandleClearWhen()
 {
     mFilter->SetDefaultValues();
 
@@ -694,7 +708,7 @@ void CDatasetFilterControls::HandleClearWhen()
 }
 
 
-void CDatasetFilterControls::HandleShowAllAreas()
+void CBratFilterControls::HandleShowAllAreas()
 {
     mRegionsCombo->setCurrentIndex( -1 );
     mShowAllAreas->setChecked( true );
@@ -707,7 +721,7 @@ void CDatasetFilterControls::HandleShowAllAreas()
     }
 }
 
-void CDatasetFilterControls::HandleRegionSettings()
+void CBratFilterControls::HandleRegionSettings()
 {
     CRegionSettingsDialog dlg( this, mBratRegions, mBratAreas );
     if ( dlg.exec() == QDialog::Rejected )
@@ -721,7 +735,7 @@ void CDatasetFilterControls::HandleRegionSettings()
 }
 
 
-void CDatasetFilterControls::HandleNewArea()
+void CBratFilterControls::HandleNewArea()
 {
     auto result = ValidatedInputString( "Area Name", mBratAreas.MakeNewName(), "New Area..." );
     if ( !result.first )
@@ -755,7 +769,7 @@ void CDatasetFilterControls::HandleNewArea()
     }
 }
 
-void CDatasetFilterControls::HandleAddKML()
+void CBratFilterControls::HandleAddKML()
 {
     static std::string kml_path = mModel.BratPaths().UserDataDirectory();
 
@@ -815,7 +829,7 @@ void CDatasetFilterControls::HandleAddKML()
     }
 }
 
-void CDatasetFilterControls::HandleAddMask()
+void CBratFilterControls::HandleAddMask()
 {
     // TODO
     BRAT_NOT_IMPLEMENTED;
@@ -823,7 +837,7 @@ void CDatasetFilterControls::HandleAddMask()
 //    SaveAllAreas();
 }
 
-void CDatasetFilterControls::HandleRenameArea()
+void CBratFilterControls::HandleRenameArea()
 {
     std::string area_name = mAreasListWidget->currentItem()->text().toStdString();
 
@@ -853,7 +867,7 @@ void CDatasetFilterControls::HandleRenameArea()
     }
 }
 
-void CDatasetFilterControls::HandleDeleteArea()
+void CBratFilterControls::HandleDeleteArea()
 {
     std::string area_name = mAreasListWidget->currentItem()->text().toStdString();
 
@@ -884,7 +898,7 @@ void CDatasetFilterControls::HandleDeleteArea()
 }
 
 
-void CDatasetFilterControls::HandleAreaChecked(QListWidgetItem *area_item)
+void CBratFilterControls::HandleAreaChecked(QListWidgetItem *area_item)
 {
     if ( area_item->checkState() == Qt::Checked )
     {
@@ -899,7 +913,7 @@ void CDatasetFilterControls::HandleAreaChecked(QListWidgetItem *area_item)
 }
 
 
-void CDatasetFilterControls::SaveAllAreas()
+void CBratFilterControls::SaveAllAreas()
 {
     if ( !mBratAreas.Save() )
         SimpleWarnBox( "There was a problem saving areas to '" + mBratAreas.FilePath() + "'. Some information could be lost or damaged." );
@@ -907,7 +921,7 @@ void CDatasetFilterControls::SaveAllAreas()
 
 
 
-void CDatasetFilterControls::HandleStartDateTimeChanged(const QDateTime &start_datetime)
+void CBratFilterControls::HandleStartDateTimeChanged(const QDateTime &start_datetime)
 {
     mFilter->StartTime() = start_datetime;
 
@@ -920,7 +934,7 @@ void CDatasetFilterControls::HandleStartDateTimeChanged(const QDateTime &start_d
 }
 
 
-void CDatasetFilterControls::HandleStopDateTimeChanged(const QDateTime &stop_datetime)
+void CBratFilterControls::HandleStopDateTimeChanged(const QDateTime &stop_datetime)
 {
     mFilter->StopTime() = stop_datetime;
 
@@ -933,7 +947,7 @@ void CDatasetFilterControls::HandleStopDateTimeChanged(const QDateTime &stop_dat
 }
 
 
-void CDatasetFilterControls::HandleStartCycleChanged()
+void CBratFilterControls::HandleStartCycleChanged()
 {
     ValidateAndStoreValue( mStartCycleEdit,              // Text box
                            mFilter->StartCycle(),        // Filter value
@@ -950,7 +964,7 @@ void CDatasetFilterControls::HandleStartCycleChanged()
 }
 
 
-void CDatasetFilterControls::HandleStopCycleChanged()
+void CBratFilterControls::HandleStopCycleChanged()
 {
     ValidateAndStoreValue( mStopCycleEdit,                // Text box
                            mFilter->StopCycle(),          // Filter value
@@ -967,7 +981,7 @@ void CDatasetFilterControls::HandleStopCycleChanged()
 }
 
 
-void CDatasetFilterControls::HandleStartPassChanged()
+void CBratFilterControls::HandleStartPassChanged()
 {
     ValidateAndStoreValue( mStartPassEdit,               // Text box
                            mFilter->StartPass(),         // Filter value
@@ -984,7 +998,7 @@ void CDatasetFilterControls::HandleStartPassChanged()
 }
 
 
-void CDatasetFilterControls::HandleStopPassChanged()
+void CBratFilterControls::HandleStopPassChanged()
 {
     ValidateAndStoreValue( mStopPassEdit,                 // Text box
                            mFilter->StopPass(),           // Filter value
@@ -1001,7 +1015,7 @@ void CDatasetFilterControls::HandleStopPassChanged()
 }
 
 
-void CDatasetFilterControls::HandleRelativeTimesBoxChecked( bool checked )
+void CBratFilterControls::HandleRelativeTimesBoxChecked( bool checked )
 {
     mAbsoluteTimesBox->setEnabled( !checked );
 
@@ -1027,7 +1041,7 @@ void CDatasetFilterControls::HandleRelativeTimesBoxChecked( bool checked )
 }
 
 
-void CDatasetFilterControls::HandleRelativeStartTimeChanged()
+void CBratFilterControls::HandleRelativeStartTimeChanged()
 {
     ValidateAndStoreValue( mRelativeStart,                // Text box                                                   -------------------------------------
                            mFilter->RelativeStartDays(),  // Filter value          Start  Stop    Ref    Start  Stop   | X1 and X2 are the number of days    |
@@ -1044,7 +1058,7 @@ void CDatasetFilterControls::HandleRelativeStartTimeChanged()
 }
 
 
-void CDatasetFilterControls::HandleRelativeStopTimeChanged()
+void CBratFilterControls::HandleRelativeStopTimeChanged()
 {
     ValidateAndStoreValue( mRelativeStop,                  // Text box                                                   -------------------------------------
                            mFilter->RelativeStopDays(),    // Filter value          Start  Stop    Ref    Start  Stop   | X1 and X2 are the number of days    |
@@ -1061,7 +1075,7 @@ void CDatasetFilterControls::HandleRelativeStopTimeChanged()
 }
 
 
-void CDatasetFilterControls::HandleCurrentDateTimeBoxChecked( bool checked )
+void CBratFilterControls::HandleCurrentDateTimeBoxChecked( bool checked )
 {
     mRefDateTimeEdit->setEnabled( !checked );
 
@@ -1079,7 +1093,7 @@ void CDatasetFilterControls::HandleCurrentDateTimeBoxChecked( bool checked )
 }
 
 
-void CDatasetFilterControls::HandleRelativeReferenceTimeChanged(const QDateTime &ref_datetime)
+void CBratFilterControls::HandleRelativeReferenceTimeChanged(const QDateTime &ref_datetime)
 {
     mFilter->RelativeReferenceTime() = ref_datetime;
 
@@ -1095,7 +1109,7 @@ void CDatasetFilterControls::HandleRelativeReferenceTimeChanged(const QDateTime 
 // This method is used to validate the (start/stop) Cycle, Pass and Relative time values.
 // The value in TextBox is validated and set into filter object.
 // Case the value is outside the min/max limits, the ParamDef is automatically assigned.
-void CDatasetFilterControls::ValidateAndStoreValue(QLineEdit *TextBox, int &ValueInFilter, int ParamDef, int min, int max)
+void CBratFilterControls::ValidateAndStoreValue(QLineEdit *TextBox, int &ValueInFilter, int ParamDef, int min, int max)
 {
     int new_value;
     QString value_str = TextBox->text();
@@ -1116,7 +1130,7 @@ void CDatasetFilterControls::ValidateAndStoreValue(QLineEdit *TextBox, int &Valu
 }
 
 
-void CDatasetFilterControls::updateDateWidgets()
+void CBratFilterControls::updateDateWidgets()
 {
     // BLOCK SIGNALS //
     // Signals are blocked, otherwise HandleStartDateTimeChanged or HandleStopDateTimeChanged are called
@@ -1151,7 +1165,7 @@ void CDatasetFilterControls::updateDateWidgets()
 }
 
 
-void CDatasetFilterControls::updateCyclePassWidgets()
+void CBratFilterControls::updateCyclePassWidgets()
 {
     // UPDATE start/stop Cycle and Pass
     mStartCycleEdit->setText( isDefaultValue(mFilter->StartCycle()) ? "" : n2q(mFilter->StartCycle()) );
@@ -1165,19 +1179,14 @@ void CDatasetFilterControls::updateCyclePassWidgets()
                             isDefaultValue(mFilter->StartPass())  ||
                             isDefaultValue(mFilter->StopPass())
                            );
-    QPalette *palette_readOnly = new QPalette();
-    if ( markAsReadOnly )
-    {
-        palette_readOnly->setColor(QPalette::Base, Qt::gray );
-        palette_readOnly->setColor(QPalette::Text,Qt::black);
-    }
-    mStartCycleEdit->setPalette( *palette_readOnly );
-    mStopCycleEdit->setPalette( *palette_readOnly );
-    mStartPassEdit->setPalette( *palette_readOnly );
-    mStopPassEdit->setPalette( *palette_readOnly );
+
+	SetReadOnlyEditor( mStartCycleEdit, markAsReadOnly );
+	SetReadOnlyEditor( mStopCycleEdit, markAsReadOnly );
+	SetReadOnlyEditor( mStartPassEdit, markAsReadOnly );
+	SetReadOnlyEditor( mStopPassEdit, markAsReadOnly );
 }
 
-void CDatasetFilterControls::updateRelativeTimeWidgets()
+void CBratFilterControls::updateRelativeTimeWidgets()
 {
     // UPDATE start/stop Relative Times
     mRelativeStart->setText( isDefaultValue(mFilter->RelativeStartDays()) ? "" : n2q(mFilter->RelativeStartDays()) );
@@ -1195,45 +1204,14 @@ void CDatasetFilterControls::updateRelativeTimeWidgets()
 //////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////
 
-//CAliasesDictionary* GetAliasesDictionary()
-//{
-//	try
-//	{
-//		return CAliasesDictionary::GetInstance();
-//	}
-//	catch ( CException& e )
-//	{
-//		LOG_WARN( "The aliases dictionary can't be loaded properly - Native Error is " + std::string( e.what() ) );
-//	}
-//	return nullptr;
-//}
-//
-//std::string FindDefaultRecord( const CProduct *product )
-//{
-//	static CAliasesDictionary *ad = GetAliasesDictionary();
-//	static const std::string default_record = "data";
-//
-//	assert__( product );
-//
-//	if ( ad )
-//	{
-//		CXmlNode* node = ad->FindProductNode( product->GetProductClass(), false );
-//		if ( node != nullptr )
-//		{
-//			CObArray defaultRecordsArray;
-//			ad->GetDefaultRecords( node, defaultRecordsArray );
-//			for ( CObArray::const_iterator it = defaultRecordsArray.begin(); it != defaultRecordsArray.end(); it++ )
-//			{
-//				CDefaultRecord* dr = dynamic_cast<CDefaultRecord*>( *it );
-//				if ( dr && ! dr->GetName().empty() )
-//					return dr->GetName();
-//			}
-//		}
-//	}
-//
-//	return default_record;
-//}
 
+
+enum AliasIndex
+{
+	eAliasIndexLon,
+	eAliasIndexLat,
+	eAliasIndexTime,
+};
 
 
 // Here is an expression using the  alias 'swh': %{sig_wave_height} -->  'swh' field in tha aliases dictionary (Jason-1)
@@ -1244,16 +1222,16 @@ void CDatasetFilterControls::updateRelativeTimeWidgets()
 //Expressions[1] = "exec(\"BratAlgoFilterMedianAtp\", %{sig_wave_height}, 7, 1, 0)";
 //Units[1]		= "count";
 //
-int ReadTrack( bool can_use_alias, const std::string &path, const std::string &record, double *&x, size_t &sizex, double *&y, size_t &sizey, double *&z, size_t &sizez, int nfields )
+int ReadTrack( const std::vector< unsigned char > &can_use_alias, const std::string &path, const std::string &record, double *&x, size_t &sizex, double *&y, size_t &sizey, double *&z, size_t &sizez, int nfields )
 {
     static const char *Units[] = { "count", "count", "second" };
     static const int default_nfields = 3;
 
     const char *Expressions[] =
     {
-        can_use_alias ? lon_alias().c_str()	: lon_name().c_str(),
-        can_use_alias ? lat_alias().c_str()	: lat_name().c_str(),
-        can_use_alias ? time_alias().c_str()	: time_name().c_str()
+        can_use_alias[eAliasIndexLon]	? lon_alias().c_str()	: lon_name().c_str(),
+        can_use_alias[eAliasIndexLat]	? lat_alias().c_str()	: lat_name().c_str(),
+        can_use_alias[eAliasIndexTime]	? time_alias().c_str()	: time_name().c_str()
     };
     char *Names[] = { const_cast<char*>( path.c_str() ) };
 
@@ -1293,9 +1271,10 @@ int ReadTrack( bool can_use_alias, const std::string &path, const std::string &r
 
 
 
-void CDatasetFilterControls::HandleDatasetChanged( CDataset *dataset )
+void CBratFilterControls::HandleDatasetChanged( CDataset *dataset )
 {
     static CMapColor &mc = CMapColor::GetInstance();        Q_UNUSED(mc);
+    static const std::string unknown( "???" );
 
     //lambdas
 
@@ -1325,127 +1304,115 @@ void CDatasetFilterControls::HandleDatasetChanged( CDataset *dataset )
     int total_records = -1;
 
     mMap->setRenderFlag( false );
-    std::vector< std::string > paths;    mDataset->GetFiles( paths );
+    std::vector< std::string > paths = mDataset->GetFiles();
     for ( auto &path : paths )
     {
         WaitCursor wait;
-        try
+
+		bool is_netcdf = false, skip_iteration = false;
+        std::vector< unsigned char > alias_used = { false, false, false };
+
+		std::string record, info;
+
+		auto ref_date = REF19500101;	//Use ReadData ref date instead of product->GetRefDate();
+
+		long expected_lon_dim = 0, expected_lat_dim = 0; auto expected_time_dim = 0;                Q_UNUSED( expected_time_dim );
+
+		CField *time = nullptr;
+
+		{
+			CProductInfo product_info( mDataset, path );
+			if ( !product_info.IsValid() )
+			{
+				error_msg += ( "\n\n" + path + " caused error: " + product_info.ErrorMessages() );
+				continue;
+			}
+
+			//total_records += product_info->GetNumberOfRecords();
+			skip_iteration = !product_info.HasAliases();
+			if ( skip_iteration )
+			{
+				LOG_WARN( "Aliases not supported: reading file " + path );
+			}
+			is_netcdf = product_info.IsNetCdfOrNetCdfCF();
+
+			record = product_info.Record();
+
+			std::string field_error_msg;
+			std::pair<CField*, CField*> fields = product_info.FindLonLatFields( mModel.Settings().mUseUnsupportedFields, 
+				(bool&)alias_used[ eAliasIndexLon ], (bool&)alias_used[ eAliasIndexLat ], field_error_msg );
+			CField *lon = fields.first;
+			CField *lat = fields.second;
+			if ( !lon || !lat )
+			{
+				skip_iteration = true;
+				LOG_WARN( field_error_msg + " - File " + path );
+			}
+			time = product_info.FindTimeField( mModel.Settings().mUseUnsupportedFields, (bool&)alias_used[ eAliasIndexTime ], field_error_msg );
+
+			expected_lon_dim = lon ? lon->GetDim()[ 0 ] : 0;
+			expected_lat_dim = lat ? lat->GetDim()[ 0 ] : 0;
+			expected_time_dim = time ? time->GetDim()[ 0 ] : 0;
+			if ( expected_lon_dim != expected_lat_dim )
+			{
+				skip_iteration = true;
+				LOG_WARN( "Different latitude/longitude dimensions in file " + path );
+			}
+			if ( !time )
+			{
+				skip_iteration = true;
+				LOG_WARN( "No time data found in file " + path + "; cannot display track." );
+			}
+
+			info = 
+				( alias_used[ eAliasIndexLon ]	? lon_alias() : lon_name() )	+ "==" + (( lon ? lon->GetName() : unknown ) + " " ) +
+				( alias_used[ eAliasIndexLat ]	? lat_alias() : lat_name() )	+ "==" + (( lat ? lat->GetName() : unknown ) + " " ) +
+				( alias_used[ eAliasIndexTime ]	? time_alias() : time_name() )	+ "==" + (( time ? time->GetName() : unknown ) );
+
+		}	//delete product;
+
+
+        if ( skip_iteration )
         {
-            CProduct *product = mDataset->OpenProduct( path );
-            //total_records += product->GetNumberOfRecords();
-            bool skip_iteration = !product || !product->HasAliases();
-            if ( skip_iteration )
-            {
-                LOG_WARN( "Aliases not supported: reading file " + path );
-            }
-            const bool is_netcdf = product->IsNetCdfOrNetCdfCFProduct();
-
-            std::string record;
-            if ( is_netcdf )
-                record = CProductNetCdf::m_virtualRecordName;		//TODO this is done for COperation; should we do it HERE????
-            else
-            {
-                auto *aliases = product->GetAliases();
-                if ( aliases )
-                    record = aliases->GetRecord();
-            }
-
-            std::string field_error_msg;
-            bool alias_used;
-            std::pair<CField*, CField*> fields = CBratFilters::FindLonLatFields( product, alias_used, field_error_msg );
-            CField *lon = fields.first;
-            CField *lat = fields.second;
-            if ( !lon || !lat )
-            {
-                skip_iteration = true;
-                LOG_WARN( field_error_msg + " - File " + path );
-            }
-            CField *time = CBratFilters::FindTimeField( product, alias_used, field_error_msg );
-
-            auto expected_lon_dim = lon ? lon->GetDim()[ 0 ] : 0;
-            auto expected_lat_dim = lat ? lat->GetDim()[ 0 ] : 0;
-            auto expected_time_dim = time ? time->GetDim()[ 0 ] : 0;                Q_UNUSED( expected_time_dim );
-            if ( expected_lon_dim != expected_lat_dim )
-            {
-                skip_iteration = true;
-                LOG_WARN( "Different latitude/longitude dimensions in file " + path );
-            }
-            if ( !time )
-            {
-                skip_iteration = true;
-                LOG_WARN( "No time data found in file " + path + "; cannot display track." );
-            }
-
-            LOG_WARN(
-                "%{lat}==" + ( lat ? lat->GetName() : "" ) +
-                " %{lon}==" + ( lon ? lon->GetName() : "" ) +
-                " %{time}==" + ( time ? time->GetName() : "") );
-
-            auto ref_date = REF19500101;	//Use ReadData ref date instead of product->GetRefDate();
-            delete product;
-            if ( skip_iteration )
-            {
-                continue;
-            }
-
-            /*
-            p->Open( q2a( path ), "data" );
-            CStringList FieldsToRead;
-            FieldsToRead.push_back("lat");
-            FieldsToRead.push_back("lon");
-            p->SetListFieldToRead( FieldsToRead, false );
-            // Get the number of record for the default record name (set in Open method of CProduct above)
-            int32_t nRecords = p->GetNumberOfRecords();
-
-            for ( int32_t iRecord = 0; iRecord < nRecords; iRecord++ )
-            {
-            //Read fields for the record name  (list of field and record name are set in Open method of CProduct above)
-            p->ReadBratRecord( iRecord );
-            }
-            */
-
-            size_t lon_dim = 0;
-            size_t lat_dim = 0;
-            size_t time_dim = 0;
-            double *lonv = nullptr;
-            double *latv = nullptr;
-            double *timev = nullptr;
-
-            debug_log( "About to read variables from file " + path );
-
-            //https://decs.deimos.com.pt/pages/viewpage.action?spaceKey=S3ALTB&title=Aliases+Products+IDs
-
-            int ReturnCode = ReadTrack( alias_used, path, record, lonv, lon_dim, latv, lat_dim, timev, time_dim, time ? 3 : 2 );
-            if ( ReturnCode == BRATHL_SUCCESS )
-            {
-                assert__( lon_dim == lat_dim );
-                assert__( !is_netcdf || ( lon_dim == expected_lon_dim && lat_dim == expected_lat_dim ) );
-
-                debug_log( "Normalizing longitudes..." );
-
-                for ( size_t i = 0; i < lon_dim; ++i )
-                    lonv[ i ] = CTools::NormalizeLongitude( -180.0, lonv[ i ] );
-
-                debug_log( "About to plot..." );
-
-                mMap->PlotTrack( lonv, latv, timev, lon_dim, ref_date, Qt::red );	// <QColor>( mc.NextPrimaryColors() ) );
-
-                debug_log( "Finished plotting..." );
-            }
-            else
-                error_msg += ( "\n\nError reading " + path + ".\nReturn code: " + n2s<std::string>( ReturnCode ) );
-
-            free( lonv );
-            free( latv );
+			LOG_WARN( info );
+			continue;
         }
-        catch ( const CException &e )
+
+		LOG_INFO( info );
+
+        size_t lon_dim = 0;
+        size_t lat_dim = 0;
+        size_t time_dim = 0;
+        double *lonv = nullptr;
+        double *latv = nullptr;
+        double *timev = nullptr;
+
+        debug_log( "About to read variables from file " + path );
+
+        //https://decs.deimos.com.pt/pages/viewpage.action?spaceKey=S3ALTB&title=Aliases+Products+IDs
+
+        int ReturnCode = ReadTrack( alias_used, path, record, lonv, lon_dim, latv, lat_dim, timev, time_dim, time ? 3 : 2 );
+        if ( ReturnCode == BRATHL_SUCCESS )
         {
-            error_msg += ( "\n\n" + path + " caused error: " + e.Message() );
+            assert__( lon_dim == lat_dim );
+            assert__( !is_netcdf || ( lon_dim == expected_lon_dim && lat_dim == expected_lat_dim ) );
+
+            debug_log( "Normalizing longitudes..." );
+
+            for ( size_t i = 0; i < lon_dim; ++i )
+                lonv[ i ] = CTools::NormalizeLongitude( -180.0, lonv[ i ] );
+
+            debug_log( "About to plot..." );
+
+            mMap->PlotTrack( lonv, latv, timev, lon_dim, ref_date, Qt::red );	// <QColor>( mc.NextPrimaryColors() ) );
+
+            debug_log( "Finished plotting..." );
         }
-        catch ( ... )
-        {
-            error_msg += ( "\n\nUnknown error reading file " + path );
-        }
+        else
+            error_msg += ( "\n\nError reading " + path + ".\nReturn code: " + n2s<std::string>( ReturnCode ) );
+
+        free( lonv );
+        free( latv );
     }
 
     mMap->setRenderFlag( true );
@@ -1468,4 +1435,4 @@ void CDatasetFilterControls::HandleDatasetChanged( CDataset *dataset )
 //
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-#include "moc_DatasetFilterControls.cpp"
+#include "moc_BratFilterControls.cpp"

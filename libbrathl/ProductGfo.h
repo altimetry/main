@@ -52,7 +52,7 @@ public:
   
   /** Creates new CProductGfo object
     \param fileNameList [in] : list of file to be connected */
-  CProductGfo(const CStringList& fileNameList);
+  CProductGfo( const CStringList &fileNameList, bool check_only_first_file );
 
   /// Destructor
   virtual ~CProductGfo();

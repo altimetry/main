@@ -21,8 +21,9 @@
 
 #include <QDialog>
 
-
 #include "new-gui/brat/DataModels/Workspaces/Operation.h"
+
+class CProgressInterface;
 
 
 class CEditExportAsciiDialog : public QDialog
@@ -52,7 +53,7 @@ class CEditExportAsciiDialog : public QDialog
     // instance data
     /////////////////////////////
 
-	CTextWidget *mTextEdit = nullptr;
+	QTableWidget *mAsciiTableWidget = nullptr;
     QDialogButtonBox *mButtonBox = nullptr;
 
 	//domain data
@@ -65,10 +66,11 @@ class CEditExportAsciiDialog : public QDialog
 private:
 
     void CreateWidgets();
-    void Wire();
+	void FillTable( const std::string &ascii, CProgressInterface *pi );
+	void Wire();
 
 public:
-    CEditExportAsciiDialog( COperation *operation, QWidget *parent );
+    CEditExportAsciiDialog( bool modal, COperation *operation, QWidget *parent );
 
     virtual ~CEditExportAsciiDialog();
 
@@ -81,6 +83,8 @@ public:
     /////////////////////////////
 
 protected:
+	virtual QSize sizeHint() const override;
+
     virtual void accept() override;
 
 };

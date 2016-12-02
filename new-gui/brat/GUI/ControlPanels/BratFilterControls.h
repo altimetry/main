@@ -34,7 +34,7 @@ class CDataset;
 //								Dataset Filter
 /////////////////////////////////////////////////////////////////////////////////////
 
-class CDatasetFilterControls : public CDesktopControlsPanel
+class CBratFilterControls : public CDesktopControlsPanel
 {
 #if defined (__APPLE__)
 #pragma clang diagnostic push
@@ -81,7 +81,11 @@ class CDatasetFilterControls : public CDesktopControlsPanel
     QLineEdit *mMinLatEdit = nullptr;
     QLineEdit *mMinLonEdit = nullptr;
 
-    QWidget *mWhereBox = nullptr;
+	QAction *mActionSelectFeatures = nullptr;
+	QAction *mActionDeselectAll = nullptr;
+	QToolButton *mSelectionButton = nullptr;
+
+	QWidget *mWhereBox = nullptr;
 
 	//when
 
@@ -128,9 +132,9 @@ class CDatasetFilterControls : public CDesktopControlsPanel
 	void CreateWidgets();
 	void Wire();
 public:
-	explicit CDatasetFilterControls( CModel &model, CDesktopManagerBase *manager, QWidget *parent = nullptr, Qt::WindowFlags f = 0 );
+	explicit CBratFilterControls( CModel &model, CDesktopManagerBase *manager, QWidget *parent = nullptr, Qt::WindowFlags f = 0 );
 
-	virtual ~CDatasetFilterControls()
+	virtual ~CBratFilterControls()
 	{}	
 
 
@@ -159,7 +163,6 @@ protected:
     void FillAreasList();
     void ShowOnlyAreasInRegion(int region_index);
     void SaveAllAreas();
-    void Relative2AbsoluteTimes();
     void ValidateAndStoreValue(QLineEdit *TextBox, int &ValueInFilter, int ParamDef, int min, int max);
     void updateDateWidgets();
     void updateCyclePassWidgets();

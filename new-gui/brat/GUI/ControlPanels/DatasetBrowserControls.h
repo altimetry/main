@@ -52,12 +52,6 @@ class CDatasetBrowserControls : public CDesktopControlsPanel
 
 	//instance data
 
-#if defined(TEST_RADS)
-	CStackedWidget *mBrowserStakWidget = nullptr;
-    QAbstractButton *m_BrowseFilesButton = nullptr;
-    QAbstractButton *m_BrowseRadsButton = nullptr;
-#endif
-
     QTreeWidget *mDatasetTree = nullptr;
 
     QToolButton *mNewDataset = nullptr;
@@ -94,13 +88,15 @@ public:
     // operations
     void AddFiles(QStringList &paths_list);
 
-    void DatasetChanged(QTreeWidgetItem *tree_item );
-    void FileChanged(QTreeWidgetItem *file_item );
+    void DatasetChanged( QTreeWidgetItem *tree_item );
+    virtual void FileChanged( QTreeWidgetItem *file_or_mission_item );
 
     QTreeWidgetItem *AddDatasetToTree(const QString &dataset_name);
-    void FillFileTree(QTreeWidgetItem *current_dataset_item);
-    void FillFieldList(QTreeWidgetItem *current_file_item);
+    void FillFileTree( QTreeWidgetItem *current_dataset_item);
+    void FillFieldList( CDataset *current_dataset, const std::string &current_file );
     void ClearFieldList();
+
+	bool RenameDataset( QTreeWidgetItem *dataset_item );
 
 signals:
     void CurrentDatasetChanged( CDataset* );
@@ -121,7 +117,7 @@ public slots:
 protected slots:
 
     void HandleDatasetExpanded(); // Resizes DatasetTree when datasets are expanded
-    void HandleRenameDataset(QTreeWidgetItem *dataset_item, int col);
+    void HandleItemChanged( QTreeWidgetItem *item, int col );
 };
 
 

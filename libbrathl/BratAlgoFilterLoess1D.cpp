@@ -24,8 +24,8 @@
 #include "brathl.h" 
 
 
-#include "new-gui/Common/tools/TraceLog.h" 
-#include "new-gui/Common/tools/Exception.h" 
+#include "common/tools/TraceLog.h"
+#include "common/tools/Exception.h"
 #include "Product.h" 
 
 #include "BratAlgoFilterLoess1D.h" 

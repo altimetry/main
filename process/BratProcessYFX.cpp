@@ -18,7 +18,7 @@
 * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
-#include "new-gui/Common/tools/Exception.h"
+#include "common/tools/Exception.h"
 #include "FileParams.h"
 #include "InternalFilesYFX.h"
 

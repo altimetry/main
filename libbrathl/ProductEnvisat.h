@@ -52,7 +52,7 @@ public:
   
   /** Creates new CProductEnvisat object
     \param fileNameList [in] : list of file to be connected */
-  CProductEnvisat(const CStringList& fileNameList);
+  CProductEnvisat( const CStringList &fileNameList, bool check_only_first_file );
 
   /// Destructor
   virtual ~CProductEnvisat();

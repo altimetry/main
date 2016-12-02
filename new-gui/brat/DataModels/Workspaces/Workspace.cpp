@@ -17,8 +17,8 @@
 */
 #include "new-gui/brat/stdafx.h"
 
-#include "new-gui/Common/tools/Trace.h"
-#include "new-gui/Common/tools/Exception.h"
+#include "common/tools/Trace.h"
+#include "common/tools/Exception.h"
 
 #include "libbrathl/brathl.h"
 #include "BitSet32.h"
@@ -223,40 +223,40 @@ bool CWorkspaceDataset::Import( CWorkspace* wksi, std::string &errorMsg, CWorksp
 //----------------------------------------
 // v4 note: Apparently not used...
 //
-bool CWorkspaceDataset::CheckFiles( std::string &errorMsg )
-{
-	bool bOk = true;
-
-	for ( CObMap::iterator it = m_datasets.begin(); it != m_datasets.end(); it++ )
-	{
-		CDataset* dataset = dynamic_cast<CDataset*>( it->second );
-		if ( dataset == nullptr )
-		{
-			errorMsg +=
-				"ERROR in  CWorkspaceDataset::CheckFiles\ndynamic_cast<CDataset*>(it->second) returns nullptr pointer"
-				"\nList seems to contain objects other than those of the class CDataset";
-
-			return false;
-		}
-
-		try
-		{
-			dataset->CheckFiles();
-		}
-		catch ( CException& e )
-		{
-			bOk = false;
-			errorMsg +=
-				"Dataset '"
-				+ dataset->GetName()
-				+ "':\nUnable to process files. Please apply correction\n\nReason:\n"
-				+ e.what()
-				+ "\n";
-		}
-	}
-
-	return bOk;
-}
+//bool CWorkspaceDataset::CheckFiles( std::string &errorMsg )
+//{
+//	bool bOk = true;
+//
+//	for ( CObMap::iterator it = m_datasets.begin(); it != m_datasets.end(); it++ )
+//	{
+//		CDataset* dataset = dynamic_cast<CDataset*>( it->second );
+//		if ( dataset == nullptr )
+//		{
+//			errorMsg +=
+//				"ERROR in  CWorkspaceDataset::CheckFiles\ndynamic_cast<CDataset*>(it->second) returns nullptr pointer"
+//				"\nList seems to contain objects other than those of the class CDataset";
+//
+//			return false;
+//		}
+//
+//		try
+//		{
+//			dataset->CheckFiles();
+//		}
+//		catch ( CException& e )
+//		{
+//			bOk = false;
+//			errorMsg +=
+//				"Dataset '"
+//				+ dataset->GetName()
+//				+ "':\nUnable to process files. Please apply correction\n\nReason:\n"
+//				+ e.what()
+//				+ "\n";
+//		}
+//	}
+//
+//	return bOk;
+//}
 //----------------------------------------
 bool CWorkspaceDataset::SaveConfig( std::string &errorMsg, CWorkspaceOperation *wkso, CWorkspaceDisplay *wksd, bool flush )
 {
@@ -331,11 +331,6 @@ std::string CWorkspaceDataset::GetDatasetNewName()
   return key;
 }
 //----------------------------------------
-CDataset* CWorkspaceDataset::GetDataset(const std::string& name)
-{
-  return dynamic_cast<CDataset*>( m_datasets.Exists( name ) );
-}
-//----------------------------------------
 void CWorkspaceDataset::GetDatasetNames( std::vector< std::string >& array ) const
 {
 	for ( CObMap::const_iterator it = m_datasets.begin(); it != m_datasets.end(); it++ )
@@ -344,14 +339,15 @@ void CWorkspaceDataset::GetDatasetNames( std::vector< std::string >& array ) con
 	}
 }
 //----------------------------------------
-bool CWorkspaceDataset::InsertDataset( const std::string& name )
+bool CWorkspaceDataset::InsertDataset( const std::string& name, std::function< CDataset*(const std::string &) > factory )
 {
     if ( m_datasets.Exists(name) )
     {
         return false;
     }
 
-    m_datasets.Insert(name, new CDataset(name));
+    m_datasets.Insert(name, factory(name) );
+
     return true;
 }
 //----------------------------------------

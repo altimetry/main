@@ -17,8 +17,8 @@
 */
 #include "new-gui/brat/stdafx.h"
 
-#include "new-gui/Common/tools/Trace.h"
-#include "new-gui/Common/tools/Exception.h"
+#include "common/tools/Trace.h"
+#include "common/tools/Exception.h"
 
 #include "libbrathl/brathl.h"
 #include "libbrathl/Tools.h"
@@ -30,6 +30,7 @@ using namespace processes;
 #include "../Filters/BratFilters.h"
 #include "Workspace.h"
 #include "Operation.h"
+#include "RadsDataset.h"
 #include "WorkspaceSettings.h"
 
 
@@ -111,8 +112,7 @@ public:
 		WriteLn();
 		WriteLn( kwRECORD + "=" + mOp.GetRecord() );
 		WriteLn();
-		std::vector< std::string >  array;
-		mOp.Dataset()->GetFiles( array );
+		std::vector< std::string > array = mOp.Dataset()->GetFiles( false );
 		for ( size_t i = 0; i < array.size(); i++ )
 		{
 			WriteLn( kwFILE + "=" + array[ i ] );
@@ -245,7 +245,7 @@ public:
         if ( mOp.Filter() )
         {
             CritExpression.empty() ? CritExpression += "" : CritExpression += " && ";
-            CritExpression += mOp.Filter()->GetSelectionCriteriaExpression( mOp.GetProduct() );
+            CritExpression += mOp.Filter()->GetSelectionCriteriaExpression( mOp.m_product );
         }
         /////////////////////////////////////////////////////////////////
 
@@ -958,6 +958,12 @@ void COperation::RemoveFilter()
 }
 
 
+bool COperation::IsRadsDataset() const
+{
+	return dynamic_cast< const CRadsDataset* >( mOriginalDataset ) != nullptr;
+}
+
+
 bool COperation::SetFilteredDataset( std::string &error_msg )
 {
 	delete mDataset;
@@ -966,33 +972,21 @@ bool COperation::SetFilteredDataset( std::string &error_msg )
 		mDataset = nullptr;
 		return true;
 	}
-	mDataset = new CDataset( OriginalDatasetName() + "_filtered_" + m_name );
-	const CProductList &products = *mOriginalDataset->GetProductList();		//this is a CStringList
-	CStringList filtered_file_list;
-	for ( auto const &product : products )
+
+	const bool is_rads_dataset = dynamic_cast< const CRadsDataset* >( mOriginalDataset ) != nullptr;
+	auto const filtered_name = OriginalDatasetName() + "_filtered_" + m_name;
+	mDataset = 
+		is_rads_dataset ? 
+		new CRadsDataset( filtered_name ) : 
+		new CDataset( filtered_name ) ;
+
+	bool result = mDataset->ApplyFilter( mFilter, mOriginalDataset, error_msg );
+	if ( !result )
 	{
-		filtered_file_list.InsertUnique( product );
+		error_msg = "Filter '" + mFilter->Name() + "' could not be applied and was removed from operation '" + GetName() + "'.\nReason: " + error_msg;
+		mFilter = nullptr;
 	}
 
-	bool result = true;
-
-	if ( mFilter )
-	{
-		CStringList files_out;
-		result = mFilter->Apply( filtered_file_list, files_out, error_msg );
-		if ( result )
-		{
-			filtered_file_list.clear();
-			filtered_file_list.Insert( files_out );
-		}
-		else
-		{
-			error_msg = "Filter '" + mFilter->Name() + "' could not be applied and was removed.\nReason: " + error_msg;
-			mFilter = nullptr;
-		}
-	}
-
-	mDataset->GetProductList()->InsertUnique( filtered_file_list );
 	return result;
 }
 
@@ -1279,7 +1273,8 @@ const std::string& COperation::GetExportAsciiSystemCommand() const
 
 std::string COperation::GetFullCmd() const
 {
-	return "\"" + GetSystemCommand() + "\" \"" + GetCmdFile() + "\"";
+	//return "\"" + GetSystemCommand() + "\" \"" + GetCmdFile() + "\"";
+	return "\"" + GetSystemCommand() + "\" " + std::string( IsRadsDataset() ? "-rads " : "" ) + "\"" + GetCmdFile() + "\"";
 }
 
 std::string COperation::GetExportAsciiFullCmd() const

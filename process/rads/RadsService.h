@@ -21,8 +21,9 @@
 #include <QProcess>
 
 
-#include "new-gui/Common/GUI/ApplicationUserPaths.h"
 #include "new-gui/Common/System/Service/QtService"
+#include "RadsSettings.h"
+
 
 
 //////////////////////////////////////////////////////////
@@ -55,9 +56,10 @@ class CRadsDaemon : public QObject
 	//	Instance Data
 	/////////////////////////////
 
-	const CApplicationStaticPaths &mPaths;
+	CRadsSettings &mSettings;
 	QTimer mTimer;
 	bool mDisabled = false;
+	const std::string mRadsServerAddress;
 	COsProcess *mCurrentProcess = nullptr;
 
 
@@ -66,16 +68,7 @@ class CRadsDaemon : public QObject
 	/////////////////////////////
 
 public:
-	CRadsDaemon( const CApplicationStaticPaths &paths, QObject* parent = nullptr )
-		: base_t( parent )
-		, mPaths( paths ) 
-		, mTimer( this )
-		, mDisabled( false )
-	{
-		connect( &mTimer, SIGNAL( timeout() ), this, SLOT( Synchronize() ) );
-		mTimer.start( /*24 * 60 * 60 * */10000 );
-	}
-
+	CRadsDaemon( CRadsSettings &settings, QObject* parent = nullptr );
 
 	virtual ~CRadsDaemon();
 
@@ -89,20 +82,26 @@ public:
 		return mTimer.isActive();
 	}
 
-	void Pause()
-	{
-		mDisabled = true;
-	}
 
-	void Resume()
-	{
-		mDisabled = false;
-	}
+public slots:
 
-	
+	void Pause();
+
+	void Resume();
+
+	void ForceSynchronize();
+
+
 private slots:
 
-	bool Synchronize();
+	void DelaySaveConfig();
+
+	bool Synchronize( bool force = false );
+
+	void HandleSynchronize()
+	{
+		Synchronize();
+	}
 
 	void HandleUpdateOutput();
 	void HandleProcessFinished( int exit_code, QProcess::ExitStatus exitStatus );
@@ -126,15 +125,15 @@ class CRadsService : public QtService<QCoreApplication>
 	//	Types
 	/////////////////////////////
 
-	using base_t = QtService<QCoreApplication>;
+	using base_t = QtService< QCoreApplication >;
 
 
 	/////////////////////////////
 	//	Instance Data
 	/////////////////////////////
 
-	const CApplicationStaticPaths &mPaths;
 	CRadsDaemon *mDaemon = nullptr;
+	CRadsSettings mSettings;
 
 
 	/////////////////////////////
@@ -142,13 +141,7 @@ class CRadsService : public QtService<QCoreApplication>
 	/////////////////////////////
 
 public:
-	CRadsService( int argc, char *argv[], const CApplicationStaticPaths &paths )
-		: base_t( argc, argv, RADS_SERVICE_NAME )
-		, mPaths( paths ) 
-	{
-		setServiceDescription( "Synchronizes data between RADS sever and local BRAT data repository" );
-		setServiceFlags( QtServiceBase::CanBeSuspended );
-	}
+	CRadsService( int argc, char *argv[], const CApplicationStaticPaths &paths, bool auto_start );
 	
 	virtual ~CRadsService()
 	{}
@@ -158,18 +151,19 @@ public:
 	//	
 	/////////////////////////////
 
+	virtual int exec() override;
+
 protected:
+	virtual void logMessage(const QString &message, MessageType type = Success,
+		int id = 0, uint category = 0, const QByteArray &data = QByteArray() ) override;
+
 	virtual void start() override;
 
-	virtual void pause() override
-	{
-		mDaemon->Pause();
-	}
+	virtual void pause() override;
 
-	virtual void resume() override
-	{
-		mDaemon->Resume();
-	}
+	virtual void resume() override;
+
+	virtual void processCommand( int code ) override;
 };
 
 

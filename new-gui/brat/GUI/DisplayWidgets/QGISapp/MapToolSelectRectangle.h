@@ -76,7 +76,7 @@ public:
 	virtual void canvasReleaseEvent( map_tool_mouse_event_t *e ) override;
 
 	void SetRubberBandSelection( double lonm, double lonM, double latm, double latM );
-	void RemoveRubberBandSelection();														//TODO confirm it is really needed
+	void RemoveRubberBandSelection( bool with_signal );
 
 
 protected:

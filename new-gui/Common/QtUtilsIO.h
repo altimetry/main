@@ -12,9 +12,9 @@
 #include <QtCore/QDir>
 #include <QTemporaryFile>
 
-#include "new-gui/Common/ccore-types.h"
-#include "+UtilsIO.h"		// => +Utils.h
-#include "QtStringUtils.h"	// => QtUtils.h => QtUtilsIO.h => QtStringUtils.h => +Utils.h
+#include "common/ccore-types.h"
+#include "common/+UtilsIO.h"		// => +Utils.h
+#include "QtStringUtils.h"          // => QtUtils.h => QtUtilsIO.h => QtStringUtils.h => +Utils.h
 
 
 ///////////////////////////////////////////////////////////////////////////
@@ -140,12 +140,16 @@ inline std::string win2cygwin( const std::string &win_path )
 	//C:\WORK\* --> /cygdrive/c/work/*
 
 	std::string path = NormalizedPath( win_path );
-	if ( !IsRelative( win_path ) )
+
+#if defined (Q_OS_WIN)
+    if ( !IsRelative( win_path ) )
 	{
 		path = "/cygdrive/" + path;
 		path = replace( path, ":", "" );
 	}
-	return path;
+#endif
+
+    return path;
 }
 
 

@@ -31,8 +31,8 @@
 
 #include "brathl.h"
 
-#include "new-gui/Common/tools/Exception.h"
-#include "new-gui/Common/tools/Trace.h"
+#include "common/tools/Exception.h"
+#include "common/tools/Trace.h"
 #include "Tools.h"
 #include "LatLonPoint.h"
 #include "deelx.h"

@@ -70,7 +70,7 @@ void  CShowInfoDialog::CreateWidgets( const std::string& exprValue, COperation *
 
       if (product != nullptr)
       {
-        CField* field = product->FindFieldByName(fieldName, (const char *)operation->GetRecord().c_str(), false, nullptr, true);
+        CField* field = product->FindFieldByName(fieldName, operation->GetRecord().c_str(), false, nullptr, true);
 
         if (field != nullptr)
         {

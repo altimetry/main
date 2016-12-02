@@ -19,6 +19,7 @@
 #define BRAT_APPLICATION_H
 
 
+
 #if QT_VERSION >= 0x050000
 #include <QtWidgets/QApplication>
 #else
@@ -84,15 +85,12 @@ public:
 
 	// Calling this in main is mandatory
 	//	
-	static void Prologue( int argc, char *argv[], const char *app_name );
+	static void Prologue( int argc, char *argv[] );
 
 
     static int OffGuiErrorDialog( int error_type, char const *error_msg );
 
-
-#if (BRAT_MINOR_VERSION_INT==1)
 	static bool InstallRadsService();
-#endif
 
 protected:
 	//	This is accurate only if(when) no style sheet was also assigned.

@@ -20,7 +20,7 @@
 #if !defined(_BratAlgoFilterLoess_h_)
 #define _BratAlgoFilterLoess_h_
 
-#include "new-gui/Common/tools/brathl_error.h" 
+#include "common/tools/brathl_error.h"
 #include "brathl.h" 
 
 #include <string>

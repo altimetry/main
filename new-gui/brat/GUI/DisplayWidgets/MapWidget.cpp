@@ -64,9 +64,8 @@
 // from brat
 #include "libbrathl/Date.h"
 
-#include "new-gui/Common/+UtilsIO.h"
 #include "new-gui/Common/QtUtils.h"
-#include "new-gui/Common/tools/Trace.h"
+#include "common/tools/Trace.h"
 
 #include "DataModels/PlotData/MapProjection.h"
 #include "DataModels/PlotData/BratLookupTable.h"
@@ -77,6 +76,7 @@
 #include "BratLogger.h"
 #include "BratSettings.h"
 #include "GUI/ActionsTable.h"
+#include "GUI/ProgressDialog.h"
 
 #include "MapTip.h"
 #include "SublayersDialog.h"
@@ -792,7 +792,7 @@ inline QgsFields TimeFields()
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static const double default_data_step = 0.333;
-static const double track_symbol_width = 0.1;
+static const double track_symbol_width = default_data_step;	// 0.1;
 static const int data_layer_tranparency = 10;
 
 //static 
@@ -1444,7 +1444,6 @@ QgsVectorLayer* CMapWidget::AddDataLayer( const std::string &name, double symbol
 }
 
 
-#include "GUI/ProgressDialog.h"
 
 bool CreateCountourFeatures( QWidget *parent, QgsFeatureList &flist, const CMapPlotParameters &map, size_t ncontours, unsigned factor1, unsigned factor2 )
 {
@@ -1482,15 +1481,10 @@ bool CreateCountourFeatures( QWidget *parent, QgsFeatureList &flist, const CMapP
 	contours.SetFirstGrid( factor1 * map.mXaxis.size(), factor1 * map.mYaxis.size() );
 	contours.SetSecondaryGrid( factor2 * map.mXaxis.size(), factor2 * map.mYaxis.size() );
 
-    if ( !parent || !parent->isVisible() )
-        parent = ApplicationWindow();
-    if ( parent && !parent->isVisible() )
-        parent = nullptr;
     CProgressDialog progress( "Computing contours...", "Cancel", 0, 100, parent );
 	CProgressInterface *pi = nullptr;
-	if ( parent && parent->isVisible() )
+	if ( progress.parentWidget() && progress.parentWidget()->isVisible() )
 	{
-		progress.setWindowModality( Qt::WindowModal );
 		progress.show();
 		pi = &progress;
 	}
@@ -2113,6 +2107,8 @@ void CMapWidget::DeselectAll()
 		vl->removeSelection();
 	}
 
+	RemoveAreaSelection( true );	//true -> emit
+
 	// Turn on rendering (if it was on previously)
 	if ( renderFlagState )
 		setRenderFlag( true );
@@ -2136,10 +2132,10 @@ void CMapWidget::SelectArea( double lonm, double lonM, double latm, double latM 
 	if ( mSelectFeatures )
 		mSelectFeatures->SetRubberBandSelection( lonm, lonM, latm, latM );
 }
-void CMapWidget::RemoveAreaSelection()
+void CMapWidget::RemoveAreaSelection( bool with_signal )	// = false 
 {
 	if ( mSelectFeatures )
-		mSelectFeatures->RemoveRubberBandSelection();
+		mSelectFeatures->RemoveRubberBandSelection( with_signal );
 }
 
 

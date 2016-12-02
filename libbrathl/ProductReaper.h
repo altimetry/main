@@ -58,8 +58,8 @@ namespace brathl
 
 		/** Creates new CProductReaper object
 		  \param fileNameList [in] : list of file to be connected */
-		CProductReaper( const CStringList& paths )
-			: base_t( paths )
+		CProductReaper( const CStringList& paths, bool check_only_first_files )
+			: base_t( paths, check_only_first_files )
 		{
 			InitDateRef();
 		}

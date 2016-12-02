@@ -40,7 +40,7 @@
 #include "Dialogs/SaveAsFormulaDialog.h"
 #include "Dialogs/ShowAliasesDialog.h"
 
-#include "DataExpressionsTree.h"
+#include "DataExpressionsTreeWidgets.h"
 
 
 
@@ -76,84 +76,6 @@ static int dummy = RegisterMetaTypeStreamOperators();
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//						CAbstractTree
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-CAbstractTree::CAbstractTree( QWidget *parent )
-{
-    Q_UNUSED( parent );
-
-	SetObjectName( this, "FieldsTree" );
-
-    mGroupIcon.addPixmap( style()->standardPixmap( QStyle::SP_DirClosedIcon ), QIcon::Normal, QIcon::Off );
-    mGroupIcon.addPixmap( style()->standardPixmap( QStyle::SP_DirOpenIcon ), QIcon::Normal, QIcon::On );
-    mKeyIcon.addPixmap( style()->standardPixmap( QStyle::SP_FileIcon ) );	//SP_FileIcon
-
-	mContextMenu = new QMenu( this );				//setContextMenuPolicy( Qt::ActionsContextMenu );
-	setContextMenuPolicy(Qt::CustomContextMenu);
-	connect( this, SIGNAL( customContextMenuRequested( const QPoint & ) ), this, SLOT( HandleCustomContextMenu( const QPoint & ) ) );
-}
-
-
-QTreeWidgetItem* CAbstractTree::SetItemBold( QTreeWidgetItem *item, bool bold )
-{
-	QFont font = item->font( 0 );
-	font.setBold( bold );
-	item->setFont( 0, font );
-	return item;
-}
-
-
-template< typename PARENT, typename DATA >
-QTreeWidgetItem* CAbstractTree::MakeItem( PARENT *parent, const std::string &name, DATA data, bool bold, bool folder )		//data = nullptr, bold = false, bool folder = false )
-{
-	QTreeWidgetItem *item = new QTreeWidgetItem( parent );
-	item->setText( 0, name.c_str() );
-	if ( bold )
-		SetItemBold( item, bold );
-	SetItemData( item, &data );
-	item->setIcon( 0, folder ? mGroupIcon : mKeyIcon );
-	item->setExpanded( folder );
-	return item;
-}
-
-
-template< typename PARENT, typename DATA >
-QTreeWidgetItem* CAbstractTree::MakeEditableLeaf( PARENT *parent, const std::string &name, DATA data, bool bold )		//data = nullptr, bool bold = false 
-{
-	auto item = MakeItem( parent, name, data, bold, false );
-	item->setFlags( item->flags() | Qt::ItemIsEditable );
-	return item;
-}
-
-
-template< typename DATA >
-QTreeWidgetItem* CAbstractTree::MakeRootItem( const std::string &name, DATA data, bool bold )	//data = nullptr, bool bold = true );
-{
-	return MakeItem( this, name, data, bold, true );
-}
-
-
-template< typename FUNCTION >
-QTreeWidgetItem* CAbstractTree::FindItem( FUNCTION f )
-{
-	//TODO code for a future templated find item with predicate
-
-	QTreeWidgetItemIterator it( this );
-	while ( *it )
-	{
-		if ( f( *it ) )
-			return *it;
-		++it;
-	}
-
-	return nullptr;
-}
-
-
-
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //						CFieldsTreeWidget
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -166,7 +88,7 @@ CFieldsTreeWidget::CFieldsTreeWidget( QWidget *parent )
     labels << tr("Fields");
     setHeaderLabels(labels);
 
-	setRootIsDecorated( false );
+	//setRootIsDecorated( false );	the problem with this: the highest level items have no node icon, can only be expanded/collapsed by double-clicking
 	setDragEnabled( true );
 	setDragDropMode( DragOnly );
 	setToolTip( "Drag fields to the data expressions tree" );
@@ -178,22 +100,6 @@ CFieldsTreeWidget::CFieldsTreeWidget( QWidget *parent )
 
     connect( mSortAscending,		SIGNAL(triggered()),	this, SLOT( HandleSortAscending() ) );
     connect( mSortDescending,		SIGNAL(triggered()),	this, SLOT( HandleSortDescending() ) );
-
-    //wxMenu* item1 = new wxMenu( _("Menu for fields tree") );
-    //item1->Append( ID_ASXMENU, _("Set as &X"), _("Set field as X") );
-    //item1->Append( ID_ASYMENU, _("Set as &Y"), _("Set field as Y") );
-    //item1->Append( ID_ASDATAMENU, _("Set as &Data"), _("Add field as data") );
-    //item1->Append( ID_ASSELECTMENU, _("Insert into  Selection &criteria"), _("Insert field into selection criteria") );
-    //item1->AppendSeparator();
-    //wxMenuItem *item2 = new wxMenuItem( item1, ID_FIELDSSORTMENU, _("Sort &Ascending"), _("Sort branch in ascending order") );
-    //item2->SetBitmap( BitmapsList( 1 ) );
-    //item1->Append( item2 );
-    //wxMenuItem *item3 = new wxMenuItem( item1, ID_FIELDSSORTREVMENU, _("Sort &Descending"), _("Sort branch in ascending order") );
-    //item3->SetBitmap( BitmapsList( 0 ) );
-    //item1->Append( item3 );
-    //item1->AppendSeparator();
-    //item1->Append( ID_FIELD_ATTR_CHANGE_UNIT, _("Change &unit"), _("Allow to change the unit of this field (only for netcdf variable attributes)") );
-    //item0->Append( item1, _("Menu for fields tree") );
 }
 
 
@@ -401,13 +307,13 @@ void CDataExpressionsTreeWidget::MakeRootItems()
 }
 
 
-QAction* CAbstractTree::AddMenuAction( const std::string &name )
+QAction* CGenericTreeWidget::AddMenuAction( const std::string &name )
 {
     QAction *a = new QAction( name.c_str(), mContextMenu );
 	mContextMenu->addAction( a );
 	return a;
 }
-QAction* CAbstractTree::AddMenuSeparator()
+QAction* CGenericTreeWidget::AddMenuSeparator()
 {
 	QAction *a = CActionInfo::CreateAction( mContextMenu, eAction_Separator );
 	mContextMenu->addAction( a );
@@ -416,7 +322,7 @@ QAction* CAbstractTree::AddMenuSeparator()
 
 
 CDataExpressionsTreeWidget::CDataExpressionsTreeWidget( CWorkspaceFormula *&wkspc, CStringMap &map_formula, bool is_map, QWidget *parent, CFieldsTreeWidget *drag_source )
-	: base_t( parent )
+	: base_t( parent, false )
 	, mDragSource( drag_source )
 	, mWFormula( wkspc )
 	, mMapFormulaString( map_formula )
@@ -977,6 +883,7 @@ void CDataExpressionsTreeWidget::dropEvent( QDropEvent *event )
 		{
 			//TODO if childCount == 1, replace 
 			//if ( item->childCount() > 0 )
+			qDebug() << formats[0];
 
 			QByteArray itemData = event->mimeData()->data( formats[0] );		//"application/x-qabstractitemmodeldatalist"
 			QDataStream stream( &itemData, QIODevice::ReadOnly );
@@ -984,10 +891,10 @@ void CDataExpressionsTreeWidget::dropEvent( QDropEvent *event )
 			QMap< int, QVariant > v;
 			stream >> r >> c >> v;
 
-			qDebug() << v.value( 32 ).userType();
-			qDebug() << v.value( 32 ).typeName();
+			qDebug() << v.value( Qt::UserRole ).userType();
+			qDebug() << v.value( Qt::UserRole ).typeName();
 
-			CField *field = v.value( 32 ).value<CField*>();			
+			CField *field = v.value( Qt::UserRole ).value<CField*>();			
 			if ( field )
 				AddField( item, field );
 
@@ -1434,4 +1341,4 @@ void CDataExpressionsTreeWidget::HandleRenameExpr()		//COperationPanel::RenameEx
 //
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-#include "moc_DataExpressionsTree.cpp"
+#include "moc_DataExpressionsTreeWidgets.cpp"

@@ -1,0 +1,10 @@
+ 
+Qt_5 {
+    global:
+	extern "C++" {
+	    std::*;
+		std::__throw_bad_function_call;
+		std::__throw_out_of_range_fmt;
+		std::test_qt_5;
+		};
+};

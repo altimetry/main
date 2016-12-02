@@ -12,7 +12,7 @@
 #include <fstream>
 #include <iostream>
 
-#include "new-gui/Common/+Utils.h"
+#include "common/+Utils.h"
 
 
 #endif      //STDAFX_H

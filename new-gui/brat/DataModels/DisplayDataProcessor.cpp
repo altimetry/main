@@ -185,7 +185,7 @@ void CDisplayDataProcessorBase::CheckOperationOutputFiles()
 
 	for ( CStringArray::iterator it = mOperationOutputFiles.begin(); it != mOperationOutputFiles.end(); it++ )
 	{
-		std::string inputFileTypeRead = CNetCDFFiles::IdentifyExistingFile( *it );
+		std::string inputFileTypeRead = CNetCDFFiles::IdentifyExistingFile( *it ).first;
 
 		if ( it != mOperationOutputFiles.begin() )
 		{

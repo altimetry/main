@@ -20,7 +20,7 @@
 
 #include <algorithm>
 
-#include "new-gui/Common/tools/Exception.h"
+#include "common/tools/Exception.h"
 #include "NetCDFFiles.h"
 #include "ExternalFiles.h"
 #include "ExternalFilesATP.h"
@@ -37,60 +37,69 @@ namespace brathl
 {
 
 #define CHECK_TYPE(Class)			\
-	if (Class::TypeOf() == TypeStr)		\
-	  return new Class(Name)
+	if (Class::TypeOf() == type_str)		\
+	  return new Class(path)
 
-CExternalFiles* BuildExistingExternalFileKind
-		(const std::string		&Name)
-{
-  std::string TypeStr	= CNetCDFFiles::IdentifyExistingFile(Name, true, true);
-  CHECK_TYPE(CExternalFilesATP);
-  CHECK_TYPE(CExternalFilesDotGrid);
-  CHECK_TYPE(CExternalFilesBoxGrid);
-  CHECK_TYPE(CExternalFilesMercatorDotGrid);
-  CHECK_TYPE(CExternalFilesMercatorBoxGrid);
 
-  // Jason-2 SSHA dataset products
-  CHECK_TYPE(CExternalFilesJason2SSHA);
-//  CHECK_TYPE(CExternalFilesJason2SSHAOGDR);
-//  CHECK_TYPE(CExternalFilesJason2SSHAIGDR);
-//  CHECK_TYPE(CExternalFilesJason2SSHAGDR);
-  
-  // Jason-2 GDR dataset products
-  CHECK_TYPE(CExternalFilesJason2GDR);
-//  CHECK_TYPE(CExternalFilesJason2GDROGDR);
-//  CHECK_TYPE(CExternalFilesJason2GDRIGDR);
-//  CHECK_TYPE(CExternalFilesJason2GDRGDR);
-  
-  // Jason-2 SGDR dataset products
-  CHECK_TYPE(CExternalFilesJason2SGDR);
-//  CHECK_TYPE(CExternalFilesJason2SGDRIGDR);
-//  CHECK_TYPE(CExternalFilesJason2SGDRGDR);
-  
-  // Brat Output file Y=F(X)
-  CHECK_TYPE(CExternalFilesYFX);
-  // Brat Output file Z=F(X,Y)
-  CHECK_TYPE(CExternalFilesZFXY);
+	CExternalFiles* BuildExistingExternalFileKind( const std::string &path )
+	{
+		const std::pair< std::string, std::string > type_info = CNetCDFFiles::IdentifyExistingFile( path, true, true );
+		const std::string type_str = type_info.first;
+		const std::string additional_info = type_info.second;
 
-  // Generic Netcdf roducts
-  CHECK_TYPE(CExternalFilesNetCDFCFGeneric);
+		if ( CExternalFilesRads::TypeOf() == type_str )
+			return new CExternalFilesRads( additional_info, path );
 
-  // Sentinel 3A
-  CHECK_TYPE(CExternalFilesSentinel3A);
+		CHECK_TYPE( CExternalFilesATP );
+		CHECK_TYPE( CExternalFilesDotGrid );
+		CHECK_TYPE( CExternalFilesBoxGrid );
+		CHECK_TYPE( CExternalFilesMercatorDotGrid );
+		CHECK_TYPE( CExternalFilesMercatorBoxGrid );
 
-  CHECK_TYPE(CExternalFilesSentinel3A_enhanced);
-  CHECK_TYPE(CExternalFilesSentinel3A_standard);
-  CHECK_TYPE(CExternalFilesSentinel3A_reduced);
+		// Jason-2 SSHA dataset products
+		CHECK_TYPE( CExternalFilesJason2SSHA );
+		//  CHECK_TYPE(CExternalFilesJason2SSHAOGDR);
+		//  CHECK_TYPE(CExternalFilesJason2SSHAIGDR);
+		//  CHECK_TYPE(CExternalFilesJason2SSHAGDR);
 
-  CHECK_TYPE(CExternalFilesSentinel3A_l1b);
-  CHECK_TYPE(CExternalFilesSentinel3A_l1a);
-  CHECK_TYPE(CExternalFilesSentinel3A_l1bs);
+		  // Jason-2 GDR dataset products
+		CHECK_TYPE( CExternalFilesJason2GDR );
+		//  CHECK_TYPE(CExternalFilesJason2GDROGDR);
+		//  CHECK_TYPE(CExternalFilesJason2GDRIGDR);
+		//  CHECK_TYPE(CExternalFilesJason2GDRGDR);
 
-  // Reaper
-  CHECK_TYPE(CExternalFilesReaper);
+		  // Jason-2 SGDR dataset products
+		CHECK_TYPE( CExternalFilesJason2SGDR );
+		//  CHECK_TYPE(CExternalFilesJason2SGDRIGDR);
+		//  CHECK_TYPE(CExternalFilesJason2SGDRGDR);
 
-  return NULL;
-}
+		  // Brat Output file Y=F(X)
+		CHECK_TYPE( CExternalFilesYFX );
+		// Brat Output file Z=F(X,Y)
+		CHECK_TYPE( CExternalFilesZFXY );
+
+		// Generic Netcdf roducts
+		CHECK_TYPE( CExternalFilesNetCDFCFGeneric );
+
+		// Sentinel 3A
+		CHECK_TYPE( CExternalFilesSentinel3A );
+
+		CHECK_TYPE( CExternalFilesSentinel3A_enhanced );
+		CHECK_TYPE( CExternalFilesSentinel3A_standard );
+		CHECK_TYPE( CExternalFilesSentinel3A_reduced );
+
+		CHECK_TYPE( CExternalFilesSentinel3A_l1b );
+		CHECK_TYPE( CExternalFilesSentinel3A_l1a );
+		CHECK_TYPE( CExternalFilesSentinel3A_l1bs );
+
+		// Reaper
+		CHECK_TYPE( CExternalFilesReaper );
+
+		// Geosat GDR
+		CHECK_TYPE( CExternalFilesGeosatGDR );
+
+		return NULL;
+	}
 
 
 }

@@ -23,7 +23,7 @@
 #pragma clang diagnostic ignored "-Wdeprecated-register"
 #endif
 
-#include "new-gui/Common/+UtilsIO.h"
+#include "common/+UtilsIO.h"
 #include "new-gui/Common/QtUtils.h"
 
 #include "FileSettings.h"

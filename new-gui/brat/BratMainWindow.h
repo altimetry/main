@@ -36,7 +36,7 @@ class CRecentFilesProcessor;
 class CControlPanel;
 class CDatasetBrowserControls;
 class CRadsBrowserControls;
-class CDatasetFilterControls;
+class CBratFilterControls;
 class COperationControls;
 class CProcessesTable;
 class CAbstractDisplayEditor;
@@ -45,6 +45,14 @@ class CWorkspace;
 class CBratFilters;
 
 
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////
+//									Brat Main Window
+//////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////
 
 
 //net stop uxsms
@@ -72,9 +80,7 @@ public:
 	enum ETabName
 	{
 		eDataset,
-#if (BRAT_MINOR_VERSION_INT==1)
 		eRADS,
-#endif
 		eFilter,
 		eOperations,
 
@@ -205,11 +211,7 @@ public:
 	template< CBratMainWindow::ETabName INDEX >
 	struct ControlsPanelType
 	{
-#if (BRAT_MINOR_VERSION_INT==1)
-		using panels_factory_t = std::tuple< CDatasetBrowserControls, CRadsBrowserControls, CDatasetFilterControls, COperationControls >;
-#else
-		using panels_factory_t = std::tuple< CDatasetBrowserControls, CDatasetFilterControls, COperationControls >;
-#endif
+		using panels_factory_t = std::tuple< CDatasetBrowserControls, CRadsBrowserControls, CBratFilterControls, COperationControls >;
 
 		using type = typename std::tuple_element< INDEX, panels_factory_t >::type;
 	};
@@ -364,6 +366,139 @@ private slots:
 
 	void StopDisplayMode();
 };
+
+
+
+
+
+
+QT_BEGIN_NAMESPACE
+class QSslError;
+QT_END_NAMESPACE
+
+QT_USE_NAMESPACE
+
+
+class RemoteCounter: public QObject
+{
+#if defined (__APPLE__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Winconsistent-missing-override"
+#endif
+
+	Q_OBJECT;
+
+#if defined (__APPLE__)
+#pragma clang diagnostic pop
+#endif
+
+    // Types
+
+	using base_t = QObject;
+    friend class CBratMainWindow;
+    
+    // statics 
+    
+    static RemoteCounter *smRemoteCounter;
+
+    // instance data    
+    
+	QNetworkAccessManager mManager;
+	QList<QNetworkReply *> mCurrentReplies;
+
+public:
+    // construction / destruction
+    
+	RemoteCounter();
+    virtual ~RemoteCounter();
+    
+    
+    //
+    
+	void Count();
+
+public slots:
+	void downloadFinished(QNetworkReply *reply);
+	void sslErrors(const QList<QSslError> &errors);
+};
+
+
+
+
+
+#if defined(USE_WEB_ENGINE)
+
+//////////////////////////////////////////////////////////////////////////////////////////////
+//									Remote Counter
+//////////////////////////////////////////////////////////////////////////////////////////////
+
+class RemoteCounterPage : public QWebEnginePage
+{
+#if defined (__APPLE__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Winconsistent-missing-override"
+#endif
+
+	Q_OBJECT;
+
+#if defined (__APPLE__)
+#pragma clang diagnostic pop
+#endif
+
+	// Types
+
+	using base_t = QWebEnginePage;
+
+	// Data
+
+	std::string mUser;
+	std::string mPass;
+
+public:
+	RemoteCounterPage( const std::string &user, const std::string &pass, QWebEngineProfile *profile, QObject *parent = nullptr );
+	virtual ~RemoteCounterPage();
+
+protected:
+	virtual bool certificateError(const QWebEngineCertificateError &error) override;
+	void FillAuth( QAuthenticator *auth );
+
+	private slots:
+	void handleAuthenticationRequired( const QUrl &requestUrl, QAuthenticator *auth );
+	void handleProxyAuthenticationRequired( const QUrl &requestUrl, QAuthenticator *auth, const QString &proxyHost );
+};
+
+
+class RemoteCounterView : public QWebEngineView
+{
+#if defined (__APPLE__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Winconsistent-missing-override"
+#endif
+
+	Q_OBJECT;
+
+#if defined (__APPLE__)
+#pragma clang diagnostic pop
+#endif
+
+	// Types & Friends
+
+	using base_t = QWebEngineView;
+
+	friend class CBratMainWindow;
+
+	// Statics
+
+	static RemoteCounterView *smRemoteCounterView;
+
+public:
+	RemoteCounterView();
+	virtual ~RemoteCounterView();
+
+	void RemoteCount();
+};
+
+#endif
 
 
 

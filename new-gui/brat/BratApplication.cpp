@@ -21,8 +21,8 @@
 
 #include "process/BratEmbeddedPythonProcess.h"
 
-#include "new-gui/Common/+Utils.h"
-#include "new-gui/Common/+UtilsIO.h"
+#include "common/+Utils.h"
+#include "common/+UtilsIO.h"
 #include "new-gui/Common/QtUtils.h"
 #include "new-gui/Common/DataModels/TaskProcessor.h"
 #include "new-gui/Common/System/Service/qtservice.h"
@@ -32,6 +32,11 @@
 #include "BratLogger.h"
 #include "BratApplication.h"
 
+
+
+/*****************************************************************************************/
+/*****************************************************************************************/
+/*****************************************************************************************/
 
 //////////////////////////////////////////////////////////////////////////////////
 //								CBratApplication
@@ -67,7 +72,7 @@ int CBratApplication::OffGuiErrorDialog( int error_type, char const *error_msg )
 //	like assigning/checking application paths or statically setting 
 //	application style sheet.
 //
-void CBratApplication::Prologue( int argc, char *argv[], const char *app_name )
+void CBratApplication::Prologue( int argc, char *argv[] )
 {
 	// lambda
 
@@ -102,13 +107,13 @@ void CBratApplication::Prologue( int argc, char *argv[], const char *app_name )
 
 	// Application/Organization Names ////////////////////////////////////
 
-	QCoreApplication::setApplicationName( app_name );
+	QCoreApplication::setApplicationName( BRAT_APPLICATION_NAME );
 	QCoreApplication::setOrganizationName( ORGANIZATION_NAME );
 
 
 	// Application Paths ////////////////////////////////////
 
-    static CApplicationPaths brat_paths( argv[0], app_name );		// (*)
+    static CApplicationPaths brat_paths( argv[0], BRAT_APPLICATION_NAME );		// (*)
     if ( !brat_paths.IsValid() )
 		throw CException( "One or more path directories are invalid:\n" + brat_paths.GetErrorMsg() );
 
@@ -193,17 +198,20 @@ void CBratApplication::CheckOpenGL( bool extended )		//extended = false
 
 inline QString ServiceUserName()
 {
-#if defined (Q_OS_WIN)
-	return "";
+#if defined (Q_OS_WIN) && defined(USE_LocalSystem_ACCOUNT)
+	return "";			// --> LocalSystem will have different settings file
 #else
-	return UserName();
+#if defined (Q_OS_MAC)
+    return UserName();
+#else
+    return UserName();
+#endif
 #endif
 }
 
 
 
 
-#if (BRAT_MINOR_VERSION_INT==1)
 bool CBratApplication::InstallRadsService()
 {
 	static const QString rads_service_name = RADS_SERVICE_NAME;
@@ -219,7 +227,7 @@ bool CBratApplication::InstallRadsService()
 	if ( !installed ) 
 	{
 		LoginDialog *dlg = new LoginDialog( QString( "Install " ) + RADS_SERVICE_NAME );
-		dlg->SetUsername( ServiceUserName() );
+		dlg->SetUsername( ServiceUserName(), true );
 		if ( dlg->exec() == QDialog::Accepted )
 		{
 			QString account = dlg->Username();
@@ -239,7 +247,6 @@ bool CBratApplication::InstallRadsService()
 
 	return installed;
 }
-#endif
 
 
 void CBratApplication::CheckRunMode()
@@ -457,11 +464,11 @@ void CBratApplication::CreateSplash()
 {
 	assert__( !mSplash );
 
-	QPixmap myPixmap( "://images/InstallSplashScreen.png" );		//://images/Create.jpg		://images/12-final.jpg
-	if ( myPixmap.isNull() )
+	QPixmap pix( "://images/InstallSplashScreen.png" );		//://images/Create.jpg		://images/12-final.jpg
+	if ( pix.isNull() )
 		LOG_TRACE( "Null splash image" );
-	mSplash = new QSplashScreen( myPixmap );
-    mSplash->setMask( myPixmap.mask() );
+	mSplash = new QSplashScreen( pix );
+    mSplash->setMask( pix.mask() );
     mSplash->show();
 }
 

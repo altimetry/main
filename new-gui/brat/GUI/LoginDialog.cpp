@@ -79,10 +79,10 @@ LoginDialog::LoginDialog( QString title, QWidget *parent ) //parent = nullptr
 }
 
 
-void LoginDialog::SetUsername( const QString &username )
+void LoginDialog::SetUsername( const QString &username, bool disable_user )		//disable_user = false
 {
 	bool found = false;
-	for( int i = 0; i < mUserNameCombo->count() && ! found ; i++ )
+	for( int i = 0; i < mUserNameCombo->count() && !found ; i++ )
 		if( mUserNameCombo->itemText( i ) == username )
 		{
 			mUserNameCombo->setCurrentIndex( i );
@@ -95,6 +95,8 @@ void LoginDialog::SetUsername( const QString &username )
 		mUserNameCombo->addItem( username );
 		mUserNameCombo->setCurrentIndex( index );
 	}
+
+	mUserNameCombo->setEditable( !disable_user );
 
 	// place the focus on the password field
 	mPasswordEdit->setFocus();

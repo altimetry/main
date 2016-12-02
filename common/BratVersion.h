@@ -24,7 +24,7 @@
 #define BRAT_MAJOR_VERSION_INT			4
 #endif
 #if !defined(BRAT_MINOR_VERSION_INT)
-#define BRAT_MINOR_VERSION_INT			0
+#define BRAT_MINOR_VERSION_INT			1
 #endif
 #if !defined(BRAT_PATCH_VERSION_INT)
 #define BRAT_PATCH_VERSION_INT			0

@@ -216,7 +216,7 @@ public:
 
 	bool HasDataset() { return GetDatasetCount() > 0; }
 
-	bool CheckFiles( std::string &errorMsg );			// femm: Apparently not used...
+	//bool CheckFiles( std::string &errorMsg );			// femm: Apparently not used...
 
 
 	virtual const_iterator begin() const override { return m_datasets.begin(); }
@@ -237,15 +237,22 @@ public:
 		return m_datasets.size();
 	}
 
-	CDataset* GetDataset( const std::string& name );
+	template< typename DATASET = CDataset >
+	DATASET* GetDataset( const std::string& name )
+	{
+		return dynamic_cast< DATASET* >( m_datasets.Exists( name ) );
+	}
 
-	const CDataset* GetDataset(const std::string& name) const { return const_cast<CWorkspaceDataset*>( this )->GetDataset( name ); }
+	template< typename DATASET = CDataset >
+	const DATASET* GetDataset( const std::string& name ) const { return const_cast< CWorkspaceDataset* >( this )->GetDataset< DATASET >( name ); }
 
 	const CObMap* GetDatasets() const { return &m_datasets; }
 
+
 	void GetDatasetNames( std::vector< std::string >& array ) const;
 
-    bool InsertDataset( const std::string& name );
+    bool InsertDataset( const std::string& name, std::function< CDataset*(const std::string &) > factory );
+
 
     virtual void Dump( std::ostream& fOut = std::cerr ) override;
 

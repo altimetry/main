@@ -24,7 +24,7 @@
 #include "Expression.h"
 #include <string>
 #include "brathl.h"
-#include "new-gui/Common/tools/brathl_error.h"
+#include "common/tools/brathl_error.h"
 #include "List.h"
 
 using namespace brathl;

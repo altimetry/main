@@ -22,7 +22,7 @@
 #include <string>
 #include "Product.h"
 
-#include "new-gui/Common/ApplicationStaticPaths.h"
+#include "common/ApplicationStaticPaths.h"
 
 // When debugging changes all calls to "new" to be calls to "DEBUG_NEW" allowing for memory leaks to
 // give you the file name and line number where it occurred.

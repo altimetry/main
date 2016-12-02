@@ -26,6 +26,23 @@ using namespace brathl;
 //------------------- CProductJason2 class --------------------
 //-------------------------------------------------------------
 
+void CProductJason2::Init()
+{
+	mLabel = "Jason-2 product";
+
+	m_longitudeFieldName = "lon";
+	m_latitudeFieldName = "lat";
+
+	m_forceLatMinCriteriaValue = -67.0;
+	m_forceLatMaxCriteriaValue = 67.0;
+
+	InitDateRef();
+
+	InitCriteriaInfo();
+
+}
+
+
 CProductJason2::CProductJason2()
 {
   Init();
@@ -43,11 +60,10 @@ CProductJason2::CProductJason2(const std::string& fileName)
 
 
 //----------------------------------------
-CProductJason2::CProductJason2(const CStringList& fileNameList)
-      : CProductNetCdfCF(fileNameList)
-
+CProductJason2::CProductJason2( const CStringList& fileNameList, bool check_only_first_files )
+	: CProductNetCdfCF( fileNameList, check_only_first_files )
 {
-  Init();
+	Init();
 }
 
 //----------------------------------------
@@ -55,22 +71,7 @@ CProductJason2::~CProductJason2()
 {
 }
 
-//----------------------------------------
-void CProductJason2::Init()
-{
-  m_label = "Jason-2 product";
 
-  m_longitudeFieldName = "lon";
-  m_latitudeFieldName = "lat";
-
-  m_forceLatMinCriteriaValue = -67.0;
-  m_forceLatMaxCriteriaValue = 67.0;
-
-  InitDateRef();
-  
-  InitCriteriaInfo();
-  
-}
 //----------------------------------------
 void CProductJason2::InitDateRef()
 {

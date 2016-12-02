@@ -52,7 +52,7 @@ public:
   
   /** Creates new CProductErsWAP object
     \param fileNameList [in] : list of file to be connected */
-  CProductErsWAP(const CStringList& fileNameList);
+  CProductErsWAP( const CStringList &fileNameList, bool check_only_first_file );
 
   /// Destructor
   virtual ~CProductErsWAP();

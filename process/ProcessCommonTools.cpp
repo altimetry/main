@@ -26,10 +26,10 @@
 #include "brathl.h"
 
 #include "Date.h"
-#include "new-gui/Common/tools/Exception.h"
+#include "common/tools/Exception.h"
 #include "Expression.h"
 #include "Tools.h"
-#include "new-gui/Common/tools/Trace.h"
+#include "common/tools/Trace.h"
 #include "LatLonPoint.h"
 
 // Included inside namespace since it is local data only
@@ -64,7 +64,7 @@ void PrintParameterHelp
 /*
 ** Checks the command line parameters (with -h -k or parameter file)
 ** and return true if command line is invalid
-** Last entry of KeywordList MUST BE NULL or result is unpredictible
+** Last entry of KeywordList MUST BE NULL or result is unpredictable
 ** (and maybe a core dump)
 */
 bool CheckCommandLineOptions
@@ -74,9 +74,8 @@ bool CheckCommandLineOptions
 		 const KeywordHelp	*keywordList,
 		 std::string			&commandFileName)
 {
-  return  CBratProcess::CheckCommandLineOptions(argc, argv, helpString, keywordList, commandFileName);
-
-
+	bool checked_dataset = false;
+	return  CBratProcess::CheckCommandLineOptions( argc, argv, helpString, keywordList, commandFileName, checked_dataset );
 }
 
 //----------------------------------------

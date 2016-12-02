@@ -22,7 +22,7 @@
 
 #include <cstdarg>
 
-#include "new-gui/Common/tools/brathl_error.h"
+#include "common/tools/brathl_error.h"
 #include "brathl.h"
 #include "Tools.h"
 #include "Date.h"

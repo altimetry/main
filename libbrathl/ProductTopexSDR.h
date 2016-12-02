@@ -52,12 +52,12 @@ public:
   
   /** Creates new CProductTopexSDR object
     \param fileNameList [in] : list of file to be connected */
-  CProductTopexSDR(const CStringList& fileNameList);
+  CProductTopexSDR( const CStringList &fileNameList, bool check_only_first_file );
     
   /// Destructor
   virtual ~CProductTopexSDR();
 
-  virtual std::string GetLabel();
+  virtual const std::string& GetLabel() const override;
 
   ///Dump fonction
   virtual void Dump(std::ostream& fOut = std::cerr);

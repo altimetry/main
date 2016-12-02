@@ -163,7 +163,7 @@ QString QtServiceBasePrivate::filePath() const
 
 QString QtServiceController::serviceDescription() const
 {
-    QSettings settings(QSettings::SystemScope, "QtSoftware");
+    QSettings settings(QSettingsServiceScope, "QtSoftware");
     settings.beginGroup("services");
     settings.beginGroup(serviceName());
 
@@ -177,7 +177,7 @@ QString QtServiceController::serviceDescription() const
 
 QtServiceController::StartupType QtServiceController::startupType() const
 {
-    QSettings settings(QSettings::SystemScope, "QtSoftware");
+    QSettings settings(QSettingsServiceScope, "QtSoftware");
     settings.beginGroup("services");
     settings.beginGroup(serviceName());
 
@@ -191,7 +191,7 @@ QtServiceController::StartupType QtServiceController::startupType() const
 
 QString QtServiceController::serviceFilePath() const
 {
-    QSettings settings(QSettings::SystemScope, "QtSoftware");
+    QSettings settings(QSettingsServiceScope, "QtSoftware");
     settings.beginGroup("services");
     settings.beginGroup(serviceName());
 
@@ -205,7 +205,7 @@ QString QtServiceController::serviceFilePath() const
 
 bool QtServiceController::uninstall()
 {
-    QSettings settings(QSettings::SystemScope, "QtSoftware");
+    QSettings settings(QSettingsServiceScope, "QtSoftware");
     settings.beginGroup("services");
 
     settings.remove(serviceName());
@@ -254,7 +254,7 @@ bool QtServiceController::sendCommand(int code)
 
 bool QtServiceController::isInstalled() const
 {
-    QSettings settings(QSettings::SystemScope, "QtSoftware");
+    QSettings settings(QSettingsServiceScope, "QtSoftware");
     settings.beginGroup("services");
 
     QStringList list = settings.childGroups();
@@ -434,8 +434,7 @@ bool QtServiceBasePrivate::install(const QString &account, const QString &passwo
 {
     Q_UNUSED(account)
     Q_UNUSED(password)
-    QSettings settings(QSettings::SystemScope, "QtSoftware");
-
+    QSettings settings(QSettingsServiceScope, "QtSoftware");
     settings.beginGroup("services");
     settings.beginGroup(controller.serviceName());
 
