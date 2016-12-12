@@ -442,7 +442,7 @@ bool CBratApplication::InstallRadsService( QWidget *parent )
 	if ( !installed ) 
 	{
 		LoginDialog *dlg = new LoginDialog( "Install " + rads_service_name, parent );
-		dlg->SetUsername( ServiceUserName(), true );
+		dlg->SetUsername( ServiceUserName(), false );
 		if ( dlg->exec() == QDialog::Accepted )
 		{
 			QString account = dlg->Username();

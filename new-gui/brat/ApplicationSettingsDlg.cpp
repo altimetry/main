@@ -768,6 +768,30 @@ void CApplicationSettingsDlg::HandleViewRADSServiceSettingsFile()
 ///////////////////////////////////////////////////////////////////////////////////
 
 
+bool ask_create_dir( const std::string &dir_name, const std::string &dir )
+{
+	QMessageBox msg_userdir;
+	msg_userdir.setText( t2q( dir_name + " does not exist." ) );
+	msg_userdir.setInformativeText( t2q( "Would you like to create '" + dir + "' ?" ) );
+	msg_userdir.setStandardButtons(QMessageBox::Ok |  QMessageBox::Cancel);
+	msg_userdir.setDefaultButton(QMessageBox::Ok);
+	int user_option = msg_userdir.exec();
+	if (user_option != QMessageBox::Ok)
+	{
+		return false;
+	}
+	if (!MakeDirectory(dir))
+	{
+		SimpleErrorBox( "Could not create path " + dir );
+		return false;
+	}
+	return true;
+};
+
+
+// main function body
+
+
 // Returns false only when the user cancels
 //
 bool CApplicationSettingsDlg::ValidateAndSaveRadsValues( bool ask_user )
@@ -794,6 +818,12 @@ bool CApplicationSettingsDlg::ValidateAndSaveRadsValues( bool ask_user )
 		int ndays = mRadsSpin->value();
 		const bool running = mRadsController.isRunning();
 
+		std::string rads_dir = FormatRadsLocalOutputPath( mSettings.BratPaths().UserDataDirectory() );
+		if ( !IsDir( rads_dir ) && !ask_create_dir( "RADS data download directory", rads_dir ) )
+		{
+			return false;
+		}
+
 		bool cmd_success = !running || mApp.SendRadsServiceCommand( eRadsService_LockConfig );
 		if ( cmd_success )
 		{
@@ -807,7 +837,7 @@ bool CApplicationSettingsDlg::ValidateAndSaveRadsValues( bool ask_user )
 		}
 		if ( !cmd_success )
 		{
-			std::string msg = "Could not synchronize configuration settings with RadsService.\n";
+			std::string msg = "Could not write or synchronize configuration settings with RADS service.\n";
 			msg += "Some parameter values may not be updated.";
 			SimpleErrorBox( msg );
 			return false;
@@ -823,31 +853,6 @@ bool CApplicationSettingsDlg::ValidateAndSaveRadsValues( bool ask_user )
 //
 bool CApplicationSettingsDlg::ValidateAndAssign()
 {
-	// lambda
-
-	auto ask_create_dir = []( const std::string &dir_name, const std::string &dir ) -> bool
-	{
-        QMessageBox msg_userdir;
-        msg_userdir.setText( t2q( dir_name + " does not exist." ) );
-        msg_userdir.setInformativeText( t2q( "Would you like to create '" + dir + "' ?" ) );
-        msg_userdir.setStandardButtons(QMessageBox::Ok |  QMessageBox::Cancel);
-        msg_userdir.setDefaultButton(QMessageBox::Ok);
-        int user_option = msg_userdir.exec();
-        if (user_option != QMessageBox::Ok)
-        {
-            return false;
-        }
-        if (!MakeDirectory(dir))
-        {
-            SimpleErrorBox( "Could not create path " + dir );
-			return false;
-        }
-		return true;
-	};
-
-
-	// main function body
-
 	//	1. Application Paths
 
     std::string user_dir = q2a(mDataDirectoryLineEdit->text());
@@ -917,6 +922,7 @@ bool CApplicationSettingsDlg::ValidateAndAssign()
 
 	//	3. RADS
 
+	
 	ValidateAndSaveRadsValues( false );	//Can we disregard possible failure on RADS parameters save an let the dialog close?
 
 
