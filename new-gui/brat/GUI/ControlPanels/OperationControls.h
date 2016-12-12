@@ -32,6 +32,7 @@ class CFieldsTreeWidget;
 class CMapDisplayData;
 class CBratFilters;
 class CBratTask;
+class CProgressInterface;
 
 
 #if defined (_MSC_VER) && (_MSC_VER >= 1900 ) && defined (USE_DATA_VISUALIZATION)
@@ -112,9 +113,9 @@ public:
 
 	static bool FormulaNameMatchesQuickAlias( const std::string &description, EPredefinedVariables index );
 
-	static const std::string& QuickFindAliasValue( CProduct *product, EPredefinedVariables index );
+	static const std::string& QuickFindAliasValue( const CProductInfo &pi, EPredefinedVariables index );
 
-	static const std::string& QuickFindAliasValue( CProduct *product, EPredefinedSelectionCriteria index );
+	static const std::string& QuickFindAliasValue( const CProductInfo &pi, EPredefinedSelectionCriteria index );
 
 
 	static void SelectOperationDatasetIndex( COperation *operation, QComboBox *combo );
@@ -307,6 +308,7 @@ protected:
 	bool CheckOperation( COperation *operation, std::string& msg, const CStringMap* aliases );	//CtrlOperation
 	void LaunchDisplay( const std::string &display_name );
 	bool ExecuteCurrentOperation( post_execution_handler_t post_execution_handler = &COperationControls::OperationSyncExecutionFinishedWithDisplay );
+	std::pair< bool, CProgressInterface* > ConfirmFiltering( const COperation *operation );
 	bool Execute( EExecutionType type, COperation *operation, bool sync, post_execution_handler_t post_execution_handler );
 	CBratTask* Schedule( EExecutionType type, const QDateTime &at, CBratTask *parent = nullptr );
 

@@ -19,20 +19,24 @@
 #define __RADS_SERVICE_H__
 
 #include <QProcess>
+#include <QSharedMemory>
 
 
 #include "new-gui/Common/System/Service/QtService"
 #include "RadsSettings.h"
 
 
+class QLocalServer;
+
+
 
 //////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////
-//						RadsFaemon
+//						RadsClient
 //////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////
 
-class CRadsDaemon : public QObject
+class CRadsClient : public QObject
 {
 #if defined (__APPLE__)
 #pragma clang diagnostic push
@@ -61,6 +65,10 @@ class CRadsDaemon : public QObject
 	bool mDisabled = false;
 	const std::string mRadsServerAddress;
 	COsProcess *mCurrentProcess = nullptr;
+	QSharedMemory mSharedMemory;
+	QLocalServer *mSocketServer = nullptr;
+	std::vector< QLocalSocket* > mSocketConnections;
+	bool mBroadcasting = false;
 
 
 	/////////////////////////////
@@ -68,9 +76,9 @@ class CRadsDaemon : public QObject
 	/////////////////////////////
 
 public:
-	CRadsDaemon( CRadsSettings &settings, QObject* parent = nullptr );
+	CRadsClient( CRadsSettings &settings, QObject* parent = nullptr );
 
-	virtual ~CRadsDaemon();
+	virtual ~CRadsClient();
 
 
 	/////////////////////////////
@@ -81,6 +89,11 @@ public:
 	{
 		return mTimer.isActive();
 	}
+
+
+protected:
+
+	void CleanRsyncProcess( bool kill = false );
 
 
 public slots:
@@ -106,7 +119,11 @@ private slots:
 	void HandleUpdateOutput();
 	void HandleProcessFinished( int exit_code, QProcess::ExitStatus exitStatus );
 
-	void RsyncError( QProcess::ProcessError error );
+	void HandleRsyncError( QProcess::ProcessError error );
+
+	void HandleNewConnection();
+	void HandleSocketDisconnected();
+	bool BroadcastRsyncStatusToSocketClients( const char *msg );
 };
 
 
@@ -132,7 +149,7 @@ class CRadsService : public QtService<QCoreApplication>
 	//	Instance Data
 	/////////////////////////////
 
-	CRadsDaemon *mDaemon = nullptr;
+	CRadsClient *mRadsClient = nullptr;
 	CRadsSettings mSettings;
 
 
@@ -143,8 +160,7 @@ class CRadsService : public QtService<QCoreApplication>
 public:
 	CRadsService( int argc, char *argv[], const CApplicationStaticPaths &paths, bool auto_start );
 	
-	virtual ~CRadsService()
-	{}
+	virtual ~CRadsService();
 
 
 	/////////////////////////////
@@ -158,6 +174,8 @@ protected:
 		int id = 0, uint category = 0, const QByteArray &data = QByteArray() ) override;
 
 	virtual void start() override;
+
+	virtual void stop() override;
 
 	virtual void pause() override;
 

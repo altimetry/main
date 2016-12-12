@@ -887,7 +887,7 @@ void CSchedulerMainWindow::action_UserManual_slot()
 
 void CSchedulerMainWindow::action_About_slot()
 {
-	SimpleAbout( BRAT_VERSION, PROCESSOR_ARCH, "CNES/ESA" );
+	SimpleAboutBox( BRAT_VERSION, PROCESSOR_ARCH, "CNES/ESA" );
 }
 
 

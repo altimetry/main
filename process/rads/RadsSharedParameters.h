@@ -168,7 +168,7 @@ inline const std::string& FindRadsMissionName( const std::string &abbr, const st
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
-//									Service Command Codes
+//										Service Command Codes
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 enum ERadsServiceCmds
@@ -182,9 +182,8 @@ enum ERadsServiceCmds
 
 
 
-
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
-//									Service Settings Public Keys
+//										Service Public Keys
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 //entries in rads configuration file
@@ -194,10 +193,36 @@ const std::string GROUP_RADS_ALL_MISSIONS =			"AllMissions";
 const std::string GROUP_RADS_AVAILABLE_MISSIONS =	"AvailableMissions";
 
 
+//for IPC with client apps such as brat
+
+const std::string RADS_SHARED_MEMORY_KEY =			"RADS_SHARED_MEMORY_KEY";
+
+const std::string RSYNC_RUNNING_SIGN = "RUNNING";
+const std::string RSYNC_STOPPED_SIGN = "STOPPED";
+const std::string CONFIG_UPDATED_SIGN = "CONFIG_UPDATED";
+
+struct CRadsSharedMemory
+{
+	char mSignature[ 256 ];
+	bool mRsyncRunning = false;
+
+	CRadsSharedMemory()
+	{
+		memset( mSignature, 0, sizeof(mSignature) );
+	}
+};
+
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 //									RADS Configuration File Readers
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+//Separator to be used when converting missions vector to/from string
+//	in RadsSettings variables
+//
+static const std::string missions_separator = " ";
+
 
 inline bool ReadAvailableRadsMissions( const std::string &ini_path, std::vector< CRadsMission > &vavailable_missions )
 {

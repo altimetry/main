@@ -21,7 +21,7 @@
 #include "DataModels/Workspaces/RadsDataset.h"
 #include "DataModels/Workspaces/Workspace.h"
 #include "new-gui/Common/GUI/TextWidget.h"
-#include "GUI/ControlPanels/RadsBrowserControls.h"
+#include "GUI/ControlPanels/DatasetsBrowserControls.h"
 
 #include "libbrathl/Field.h"
 
@@ -33,7 +33,7 @@
 
 
 //explicit
-CRadsBrowserControls::CRadsBrowserControls( CModel &model, CDesktopManagerBase *manager, QWidget *parent, Qt::WindowFlags f )	//parent = nullptr, Qt::WindowFlags f = 0
+CDatasetBrowserControls::CDatasetBrowserControls( CModel &model, CDesktopManagerBase *manager, QWidget *parent, Qt::WindowFlags f )	//parent = nullptr, Qt::WindowFlags f = 0
     : base_t( model, manager, parent, f )
 	, mBratPaths( mModel.BratPaths() )
 {
@@ -57,40 +57,18 @@ CRadsBrowserControls::CRadsBrowserControls( CModel &model, CDesktopManagerBase *
 
 	//datasets tree
 
-    mDatasetTree = new CRadsDatasetsTreeWidget( mBratPaths );
+    mDatasetTree = new QTreeWidget();
     mDatasetTree->setToolTip("Tree of current workspace datasets");
+    mDatasetTree->setHeaderHidden(true);
 
-    QGroupBox *page_1 = CreateGroupBox( ELayoutType::Vertical, { mDatasetTree }, "Mission Datasets", nullptr, s, m, m, m, m );
-
-
-#if defined(TEST_RADS)
-    // - Page RADS browser
-    //
-    QListWidget *mRadsList = CreateBooleanList( nullptr, { { "ERS1", true }, { "Jason1" }, { "CryoSat" } } );	//TODO, obviously
-
-    QGroupBox *page_2 = CreateGroupBox( ELayoutType::Vertical, { mRadsList }, "Missions", nullptr, s, m, m, m, m );
-
-
-    // Group Stack Widget Buttons & add Stack Widget itself
-    //
-    mBrowserStakWidget = new CStackedWidget( nullptr, { 
-		{ page_1, "Files", "", ":/images/OSGeo/file.png", true }, 
-		{ page_2, "RADS", "", "://images/rads.gif", true } 
-	} );
-
-    m_BrowseFilesButton = qobject_cast<stack_button_type*>( mBrowserStakWidget->Button( 0 ) );
-    m_BrowseRadsButton = qobject_cast<stack_button_type*>( mBrowserStakWidget->Button( 1 ) );
-    auto *browse_buttons = CreateButtonRow( false, Qt::Vertical, { m_BrowseFilesButton, m_BrowseRadsButton } );
-
-    auto *browse_group = CreateGroupBox( ELayoutType::Horizontal, { mBrowserStakWidget, browse_buttons }, "", nullptr, s, 4, 4, 4, 4 );
-#endif
+    QGroupBox *page_1 = CreateGroupBox( ELayoutType::Vertical, { mDatasetTree }, "File Datasets", nullptr, s, m, m, m, m );
 
 
     // II. File Description group
     //
     mFileDesc = new CTextWidget;
     mFileDesc->SetReadOnlyEditor(true);
-    mFileDescGroup = CreateGroupBox( ELayoutType::Horizontal, { mFileDesc }, "Files Description", nullptr, s, 4, 4, 4, 4 );
+    mFileDescGroup = CreateGroupBox( ELayoutType::Horizontal, { mFileDesc }, "File Description", nullptr, s, 4, 4, 4, 4 );
 
 
     // III. Variable Description group
@@ -106,11 +84,7 @@ CRadsBrowserControls::CRadsBrowserControls( CModel &model, CDesktopManagerBase *
     }, "Fields Description", nullptr, s, 4, 4, 4, 4 );
 
 
-#if defined(TEST_RADS)
-	AddTopSplitter( Qt::Vertical, { browse_group, mFileDescGroup, fields_desc_group } );
-#else
 	AddTopSplitter( Qt::Vertical, { page_1, mFileDescGroup, fields_desc_group } );
-#endif
 
 
     // IV. Making connections
@@ -120,7 +94,7 @@ CRadsBrowserControls::CRadsBrowserControls( CModel &model, CDesktopManagerBase *
 
 
 
-void CRadsBrowserControls::Wire()
+void CDatasetBrowserControls::Wire()
 {
     connect( mDatasetTree, SIGNAL( itemSelectionChanged() ), this, SLOT( HandleTreeItemChanged() ) );
     connect( mDatasetTree, SIGNAL( itemExpanded(QTreeWidgetItem*) ), this, SLOT( HandleDatasetExpanded() ) );
@@ -139,13 +113,14 @@ void CRadsBrowserControls::Wire()
 
 
 
-void CRadsBrowserControls::HandleDatasetExpanded()
+void CDatasetBrowserControls::HandleDatasetExpanded()
 {
     mDatasetTree->resizeColumnToContents(0);
 }
 
 
-bool CRadsBrowserControls::RenameDataset( QTreeWidgetItem *dataset_item )
+
+bool CDatasetBrowserControls::RenameDataset( QTreeWidgetItem *dataset_item )
 {
 	static QRegExp re("[_a-zA-Z0-9]+"); // only alphanumeric letters
 
@@ -155,7 +130,7 @@ bool CRadsBrowserControls::RenameDataset( QTreeWidgetItem *dataset_item )
 
 	if (re.exactMatch( new_name ) ) // Has a Valid Name
 	{
-		CRadsDataset *current_dataset = mWDataset->GetDataset< CRadsDataset >( old_name.toStdString() );
+		CDataset *current_dataset = mWDataset->GetDataset< CDataset >( old_name.toStdString() );
 
 		if( mWDataset->RenameDataset(current_dataset, new_name.toStdString() ) )
 		{
@@ -184,25 +159,20 @@ bool CRadsBrowserControls::RenameDataset( QTreeWidgetItem *dataset_item )
 
 
 
-void CRadsBrowserControls::HandleItemChanged( QTreeWidgetItem *item, int col )
+void CDatasetBrowserControls::HandleItemChanged( QTreeWidgetItem *item, int col )
 {
 	assert__( col == 0 );		 Q_UNUSED( col );
 
-	auto *item_parent = item->parent();
-	if ( !item_parent )					// top level item has no parent() = nullptr
-		RenameDataset( item );
-	else
-	{
-		CWorkspaceOperation *wkso = mModel.Workspace<CWorkspaceOperation>();		assert__( wkso != nullptr );
-		mDatasetTree->MissionStateChanged( wkso, item_parent->text( 0 ), item );
-	}
+	assert__( item->parent() == nullptr );
+
+	RenameDataset( item );
 }
 
 
 
-void CRadsBrowserControls::HandleTreeItemChanged( )
+void CDatasetBrowserControls::HandleTreeItemChanged( )
 {
-    static CRadsDataset *current_dataset = nullptr;
+    static CDataset *current_dataset = nullptr;
 
     QString dataset_name;
 
@@ -250,7 +220,7 @@ void CRadsBrowserControls::HandleTreeItemChanged( )
     }
 
     // notify the world (different dataset)
-    CRadsDataset *dataset = mWDataset->GetDataset< CRadsDataset >( dataset_name.toStdString() );
+    CDataset *dataset = mWDataset->GetDataset( dataset_name.toStdString() );
     if( current_dataset != dataset )
     {
         current_dataset = dataset;
@@ -260,9 +230,11 @@ void CRadsBrowserControls::HandleTreeItemChanged( )
 
 
 
-void CRadsBrowserControls::HandleWorkspaceChanged( CWorkspaceDataset *wksd )
+void CDatasetBrowserControls::HandleWorkspaceChanged( CWorkspaceDataset *wksd )
 {
-    mWDataset = wksd;
+	LOG_TRACEstd( "Datasets tab started handling signal to change workspace" );
+
+	mWDataset = wksd;
 
     // Fill DatasetTree with Datasets items
 	mDatasetTree->blockSignals( true );
@@ -270,14 +242,13 @@ void CRadsBrowserControls::HandleWorkspaceChanged( CWorkspaceDataset *wksd )
 	mDatasetTree->blockSignals( false );
 
     HandleTreeItemChanged(); // for updating buttons status
-	mDatasetTree->WorkspaceChanged( mWDataset );
 
     if (wksd)
     {
 		auto *datasets = mWDataset->GetDatasets();
         for( auto const it : *datasets )
         {
-			if ( dynamic_cast<CRadsDataset*>( it.second ) )
+			if ( !dynamic_cast<CRadsDataset*>( it.second ) )
 				AddDatasetToTree( t2q( it.first ) );
         }
 
@@ -289,16 +260,21 @@ void CRadsBrowserControls::HandleWorkspaceChanged( CWorkspaceDataset *wksd )
 		//}
     }
 
-	LOG_TRACEstd( "RADS Datasets tab finished handling signal to change workspace" );
+	LOG_TRACEstd( "Datasets tab finished handling signal to change workspace" );
 }
 
 
 
-QTreeWidgetItem *CRadsBrowserControls::AddDatasetToTree( const QString &dataset_name )
+QTreeWidgetItem *CDatasetBrowserControls::AddDatasetToTree( const QString &dataset_name )
 {
     QIcon dataset_icon = QIcon(":/images/OSGeo/dataset.png");
 
-	QTreeWidgetItem *dataset_item = mDatasetTree->AddDatasetToTree( dataset_name );
+    QTreeWidgetItem *dataset_item = new QTreeWidgetItem();
+    dataset_item->setText(0, dataset_name );
+    dataset_item->setToolTip(0, dataset_name );
+    dataset_item->setIcon(0, dataset_icon);
+    dataset_item->setFlags( dataset_item->flags() | Qt::ItemIsEditable );
+    mDatasetTree->addTopLevelItem( dataset_item );
 
     // Fill tree with new dataset products
     FillFileTree( dataset_item );
@@ -310,7 +286,7 @@ QTreeWidgetItem *CRadsBrowserControls::AddDatasetToTree( const QString &dataset_
 
 
 
-void CRadsBrowserControls::DatasetChanged( QTreeWidgetItem *tree_item )
+void CDatasetBrowserControls::DatasetChanged( QTreeWidgetItem *tree_item )
 {
     Q_UNUSED( tree_item );
 
@@ -321,7 +297,7 @@ void CRadsBrowserControls::DatasetChanged( QTreeWidgetItem *tree_item )
 
 
 
-void CRadsBrowserControls::FileChanged( QTreeWidgetItem *file_or_mission_item )
+void CDatasetBrowserControls::FileChanged( QTreeWidgetItem *file_or_mission_item )
 {
     WaitCursor wait;
 
@@ -329,7 +305,7 @@ void CRadsBrowserControls::FileChanged( QTreeWidgetItem *file_or_mission_item )
     ClearFieldList();
 
 	//do not use this before ensuring "there are" datasets
-	CRadsDataset *current_dataset  = mWDataset->GetDataset< CRadsDataset >( file_or_mission_item->parent()->text(0).toStdString() );
+	CDataset *current_dataset  = mWDataset->GetDataset< CDataset >( file_or_mission_item->parent()->text(0).toStdString() );
 	if( current_dataset == nullptr )
 		return;
 
@@ -338,7 +314,7 @@ void CRadsBrowserControls::FileChanged( QTreeWidgetItem *file_or_mission_item )
 
 
 
-void CRadsBrowserControls::HandleFieldChanged()
+void CDatasetBrowserControls::HandleFieldChanged()
 {
     WaitCursor wait;
 
@@ -358,17 +334,21 @@ void CRadsBrowserControls::HandleFieldChanged()
 
 
 
-void CRadsBrowserControls::HandleNewDataset()
+void CDatasetBrowserControls::HandleNewDataset()
 {
 	assert__( mWDataset != nullptr );
 
-    WaitCursor wait;
+	auto result = ValidatedInputString( "Dataset Name", mWDataset->GetDatasetNewName( false ), "New Dataset..." );
+	if ( !result.first )
+		return;
+
+	WaitCursor wait;
 
     // Get name for the new dataset
-    std::string dataset_name = mWDataset->GetDatasetNewName();
+    std::string dataset_name = result.second;
 
     // Insert dataset in workspace and into DatasetTree
-    mWDataset->InsertDataset( dataset_name, []( const std::string &name ) { return new CRadsDataset( name ); } );
+	mWDataset->InsertDataset( dataset_name, []( const std::string &name ) { return new CDataset( name ); } );
     QTreeWidgetItem *dataset_item = AddDatasetToTree( dataset_name.c_str() );
 
     // Selects new dataset
@@ -400,7 +380,7 @@ void CRadsBrowserControls::HandleNewDataset()
 
 
 
-void CRadsBrowserControls::HandleDeleteDataset()
+void CDatasetBrowserControls::HandleDeleteDataset()
 {
 	// Get selected dataset item
 	QTreeWidgetItem *current_dataset_item = mDatasetTree->currentItem();
@@ -414,7 +394,7 @@ void CRadsBrowserControls::HandleDeleteDataset()
 		current_dataset_item = current_dataset_item->parent();
 
 	// Get current dataset
-	CRadsDataset *current_dataset = mWDataset->GetDataset< CRadsDataset >( current_dataset_item->text( 0 ).toStdString() );
+	CDataset *current_dataset = mWDataset->GetDataset( current_dataset_item->text( 0 ).toStdString() );
 
 	CWorkspaceOperation *wks = mModel.Workspace<CWorkspaceOperation>();			assert__( wks != nullptr );
 	CStringArray operation_names;
@@ -463,7 +443,7 @@ void CRadsBrowserControls::HandleDeleteDataset()
 
 
 
-void CRadsBrowserControls::HandleAddFiles()
+void CDatasetBrowserControls::HandleAddFiles()
 {
 	static std::string last_path = mBratPaths.UserDataDirectory();
 
@@ -488,7 +468,7 @@ void CRadsBrowserControls::HandleAddFiles()
 }
 
 
-void CRadsBrowserControls::HandleAddDir()
+void CDatasetBrowserControls::HandleAddDir()
 {
 	static std::string last_path = mBratPaths.UserDataDirectory();
 
@@ -528,7 +508,7 @@ void CRadsBrowserControls::HandleAddDir()
 
 
 
-void CRadsBrowserControls::HandleRemoveFile()
+void CDatasetBrowserControls::HandleRemoveFile()
 {
     // Get selected dataset item
     QTreeWidgetItem *current_dataset_item = nullptr;
@@ -555,7 +535,7 @@ void CRadsBrowserControls::HandleRemoveFile()
     }
 
     // Delete product from current dataset
-    CRadsDataset *current_dataset = mWDataset->GetDataset< CRadsDataset >( q2a( current_dataset_item->text(0) ) );
+    CDataset *current_dataset = mWDataset->GetDataset( q2a( current_dataset_item->text(0) ) );
     current_dataset->EraseProduct( q2a( current_file_item->text(0) ) );
 
     // Delete product from tree
@@ -570,7 +550,7 @@ void CRadsBrowserControls::HandleRemoveFile()
 
 
 
-void CRadsBrowserControls::HandleClearFiles()
+void CDatasetBrowserControls::HandleClearFiles()
 {
     // Get selected dataset item
     QTreeWidgetItem *current_dataset_item = mDatasetTree->currentItem();
@@ -591,7 +571,7 @@ void CRadsBrowserControls::HandleClearFiles()
     }
 
     // Delete all products from current dataset
-    CRadsDataset *current_dataset = mWDataset->GetDataset< CRadsDataset >( q2a( current_dataset_item->text(0) ) );
+    CDataset *current_dataset = mWDataset->GetDataset( q2a( current_dataset_item->text(0) ) );
     current_dataset->ClearProductList();
 
     // Delete all products in current dataset
@@ -607,8 +587,11 @@ void CRadsBrowserControls::HandleClearFiles()
 }
 
 
-void CRadsBrowserControls::AddFiles( QStringList &paths_list )
+void CDatasetBrowserControls::AddFiles( QStringList &paths_list )
 {
+	WaitCursor wait;
+
+
 	if ( paths_list.empty() )
 	{
 		return;
@@ -621,7 +604,7 @@ void CRadsBrowserControls::AddFiles( QStringList &paths_list )
 	{
 		current_dataset_item = current_dataset_item->parent();
 	}
-	CRadsDataset *current_dataset = mWDataset->GetDataset< CRadsDataset >( current_dataset_item->text( 0 ).toStdString() );
+	CDataset *current_dataset = mWDataset->GetDataset( current_dataset_item->text( 0 ).toStdString() );
 
 	// Get current files class and type
 	std::string old_product_class = current_dataset->ProductClass();
@@ -633,21 +616,29 @@ void CRadsBrowserControls::AddFiles( QStringList &paths_list )
 		try
 		{
 			// Insert file path into current Dataset; Check each file (as they are added to current dataset)
-			std::string msg;
-			assert__( false ); /*all this is to delete*/ current_dataset->AddProduct( normalized_path );
-			if ( !msg.empty() )
-			{
-				LOG_WARN( msg );
-			}
+
+			current_dataset->AddProduct( normalized_path );
 		}
 		catch ( CException& e )
 		{
-			SimpleWarnBox( QString( "Unable to process files. Please apply correction.\n\nReason:\n%1" ).arg( e.what() ) );
+			LOG_WARN( QString( "Unable to process file " ) + file_path + ".\nReason: " + e.what() );
 
 			// Delete product from dataset
 			current_dataset->EraseProduct( normalized_path );	//use the exact same path string, otherwise it is not recognized
 		}
 	}
+
+
+	auto const &files = *current_dataset->GetProductList();
+	if ( ( files.IsYFX() || files.IsZFXY() || files.IsGenericNetCdf() ) && files.size() > 1 )
+	{
+		std::string msg = "Warning - You have to check that all the files in the list : "
+			"\n1) are in the same way (same structure, same fields with same dimension...)"
+			"\n2) contain the same kind of data"
+			"\n\n otherwise results may be ill-defined and confused or Brat may return a reading error.";
+		LOG_WARN( msg );
+	}
+
 
 	// Check new files class and type
 	const bool is_same_product_class_and_type = 
@@ -684,33 +675,34 @@ void CRadsBrowserControls::AddFiles( QStringList &paths_list )
 	// Notify to redraw tracks. Item selection may not change, thus, is not catched by HandleTreeItemChanged()
 	emit CurrentDatasetChanged( current_dataset );
 
-	// Notify about the change (files added) TODO: try to merge with previous signal??
+	// Notify about the change (files added)
 	emit DatasetsChanged( current_dataset );
 }
 
 
 
-void CRadsBrowserControls::FillFileTree( QTreeWidgetItem * )
+void CDatasetBrowserControls::FillFileTree( QTreeWidgetItem *current_dataset_item )
 {
-    // Get current Dataset            (do not use this before ensuring "there are" datasets)
-    //CRadsDataset *current_dataset  = mWDataset->GetDataset< CRadsDataset >( current_dataset_item->text(0).toStdString() );
+    // Get current Dataset
+	const CDataset *current_dataset = mWDataset->GetDataset( current_dataset_item->text( 0 ).toStdString() );		assert__( current_dataset );
 
-    //QIcon file_icon = QIcon(":/images/OSGeo/file.png");
+    QIcon file_icon = QIcon( ":/images/OSGeo/file.png" );
 
-    //for ( auto const it : *current_dataset->GetProductList() )
-    //{
-    //    QTreeWidgetItem *file = new QTreeWidgetItem();
-    //    file->setText(0, it.c_str());
-    //    file->setToolTip(0, it.c_str() );	//see complete path when it exceeds list width
-    //    file->setIcon(0, file_icon );
+	std::vector< std::string > v = current_dataset->GetFiles();
+    for ( auto const &file : v )
+    {
+        QTreeWidgetItem *file_item = new QTreeWidgetItem();
+		file_item->setText( 0, file.c_str() );
+		file_item->setToolTip( 0, file.c_str() );	//see complete path when it exceeds list width
+		file_item->setIcon(0, file_icon );
 
-    //    current_dataset_item->addChild(file);
-    //}
+        current_dataset_item->addChild( file_item );
+    }
 }
 
 
 
-void CRadsBrowserControls::ClearFieldList()  // the old method was: ClearDict();
+void CDatasetBrowserControls::ClearFieldList()  // the old method was: ClearDict();
 {   
     mFileDescGroup->setDisabled(true);
     mFileDesc->setDisabled(true);
@@ -722,20 +714,11 @@ void CRadsBrowserControls::ClearFieldList()  // the old method was: ClearDict();
 
 
 
-void CRadsBrowserControls::FillFieldList( CDataset *current_dataset, const std::string &current_file_or_mission )
+void CDatasetBrowserControls::FillFieldList( CDataset *current_dataset, const std::string &current_file )
 {
 	assert__( current_dataset );
-    CRadsDataset *current_rads_dataset = dynamic_cast<CRadsDataset*>( current_dataset );    assert__( current_rads_dataset );
-    
-    if ( !current_rads_dataset->HasMission( current_file_or_mission ) )
-        return;
-    
-    if ( current_rads_dataset->GetProductList()->empty() )
-    {
-        SimpleWarnBox( "No files were found for mission " + current_file_or_mission );
-        return;
-    }
-	CProductInfo product( current_dataset, *current_rads_dataset->GetProductList()->begin() );
+
+	CProductInfo product( current_dataset, current_file );
     if ( product.IsValid() )
     {
         // GetDictlist()->InsertProduct(m_product); //////////////////////////////////////////////
@@ -801,4 +784,4 @@ void CRadsBrowserControls::FillFieldList( CDataset *current_dataset, const std::
 //
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-#include "moc_RadsBrowserControls.cpp"
+#include "moc_DatasetsBrowserControls.cpp"

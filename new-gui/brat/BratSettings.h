@@ -49,6 +49,7 @@ class CBratSettings : public CApplicationSettings
 
     static const CMapWidget::ELayerBaseType smDefaultLayerBaseType;
 	static const bool smUseUnsupportedFields;
+	static const size_t smMinimumFilesToWarnUser;
 
 protected:
 
@@ -74,6 +75,12 @@ public:
 	bool mDesktopManagerSdi = true;
 	bool mCheckOpenGL = true;
 	bool mUseUnsupportedFields = smUseUnsupportedFields;
+
+	bool mDisplayRadsInstallInformation = true;
+
+protected:
+
+	size_t mMinimumFilesToWarnUser = smMinimumFilesToWarnUser;
 
 
     //////////////////////////////////////
@@ -138,6 +145,8 @@ public:
         mBratPaths.SetURLRasterLayerPath( path );
     }
 
+
+	size_t MinimumFilesToWarnUser() const { return mMinimumFilesToWarnUser; }
 
 
 public:

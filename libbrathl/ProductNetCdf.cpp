@@ -478,11 +478,36 @@ namespace brathl
 
 	}
 	//----------------------------------------
-	void CProductNetCdf::ApplyCriteria( CStringList& filteredFileList, const std::string& logFileName /* = "" */ )
+	bool CProductNetCdf::ApplyCriteria( CStringList& filteredFileList, CProgressInterface *pi, const std::string &log_file )	//log_file = ""
 	{
-		if ( !logFileName.empty() )
+		const bool with_log = !log_file.empty();
+
+		auto log = [&with_log, this]( const char *s, bool crlf )
 		{
-			CreateLogFile( logFileName );
+			if ( with_log )
+			{
+				Log( s, crlf );
+			};
+		};
+
+
+		auto progress = [pi]( int_t i )
+		{
+			if ( pi )
+			{
+				if ( pi->Cancelled() )
+					return false;
+				pi->SetCurrentValue( i );
+			}
+			return true;
+		};
+
+		//function body
+
+
+		if ( with_log )
+		{
+			CreateLogFile( log_file );
 		}
 
 		InitApplyCriteriaStats();
@@ -497,41 +522,48 @@ namespace brathl
 		// To optimize reading data, fields are organized by data record
 		////BuildCriteriaFieldsToRead(listRecord);
 
-		CProductList::iterator itFile;
-
 		m_indexProcessedFile = 0;
+		if ( pi )
+			pi->SetRange( 0, m_fileList.size() );
 
 		// Searches for each files if it corresponds to criteria
-		for ( itFile = m_fileList.begin(); itFile != m_fileList.end(); itFile++ )
+		for ( CProductList::iterator itFile = m_fileList.begin(); itFile != m_fileList.end(); itFile++ )
 		{
 			bool fileOk = true;
 
 			m_indexProcessedFile++;
-			CTrace::Tracer( 1, "Process file %ld of %ld", (long)m_indexProcessedFile, (long)m_fileList.size() );
+			if ( !progress( m_indexProcessedFile ) )
+				break;
+
+			if ( with_log )
+				CTrace::Tracer( 1, "Process file %ld of %ld", (long)m_indexProcessedFile, (long)m_fileList.size() );
 
 			try
 			{
-				Log( "---------------------------", true );
-				Log( "File ", false );
-				Log( *itFile, true );
-				Log( "---------------------------", true );
-				this->Open( *itFile );
+				if ( with_log )
+				{
+					Log( "---------------------------", true );
+					Log( "File ", false );
+					Log( *itFile, true );
+					Log( "---------------------------", true );
+				}
+
+				Open( *itFile );
 			}
 			catch ( CException e )
 			{
-				Log( "Error while opening file:", false );
-				Log( e.what(), true );
+				log( "Error while opening file:", false );
+				log( e.what(), true );
 				continue;
 			}
 			catch ( ... )
 			{
-				Log( "Unknown error while opening file", true );
+				log( "Unknown error while opening file", true );
 				continue;
 			}
 
 			// Tests each criteria
-			CObIntMap::iterator itMapCritInfo;
-			for ( itMapCritInfo = m_criteriaInfoMap.begin(); itMapCritInfo != m_criteriaInfoMap.end(); itMapCritInfo++ )
+			for ( CObIntMap::iterator itMapCritInfo = m_criteriaInfoMap.begin(); itMapCritInfo != m_criteriaInfoMap.end(); itMapCritInfo++ )
 			{
 				//m_criteriaInfoMap.Dump(*CTrace::GetDumpContext());
 
@@ -582,30 +614,33 @@ namespace brathl
 				}
 				catch ( CException e )
 				{
-					Log( "Error while processing file:", false );
-					Log( e.what(), true );
+					log( "Error while processing file:", false );
+					log( e.what(), true );
 					fileOk = false;
 					break;
 				}
 				catch ( ... )
 				{
-					Log( "Unknown error while processing file", true );
+					log( "Unknown error while processing file", true );
 					fileOk = false;
 					break;
 				}
 			}
 
-			LogSelectionResult( *itFile, fileOk );
+			if ( with_log )
+				LogSelectionResult( *itFile, fileOk );
 
-			this->Close();
+			Close();
 		}
 
 		m_indexProcessedFile = -1;
 
-		EndApplyCriteriaStats( filteredFileList );
+		if ( with_log )
+			EndApplyCriteriaStats( filteredFileList );
 
 		DeleteLogFile();
 
+		return !pi || !pi->Cancelled();
 	}
 
 	//----------------------------------------
@@ -661,6 +696,9 @@ namespace brathl
 	//////// Alternative algorithm for finding left and right longitudes /////////////////////////////////////
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////
 #endif
+
+
+//#define TEST_ApplyCriteriaLatLon
 
 
 	bool CProductNetCdf::ApplyCriteriaLatLon( CCriteriaInfo* criteriaInfo )
@@ -755,7 +793,7 @@ namespace brathl
 					prevValue = value180;
 				}
 
-#if defined (DEBUG) || defined(_DEBUG)
+#if defined (TEST_ApplyCriteriaLatLon)
 
 				double left_test, right_test;
 				ComputeLongitudeRange360( values, left_test, right_test );

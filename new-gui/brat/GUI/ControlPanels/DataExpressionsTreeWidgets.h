@@ -143,7 +143,9 @@ class CDataExpressionsTreeWidget : public CGenericTreeWidget
 	// static members
 
 public:
-	static bool SelectRecord( QWidget *parent, COperation *operation, CProduct *product );
+	static bool SelectAndAssignRecord( QWidget *parent, COperation *operation, CProduct *product );
+
+	static std::pair< bool,std::string > SelectRecord( QWidget *parent, CProduct *product );
 
 
 private:
@@ -213,7 +215,7 @@ public:
 
     void InsertOperation( COperation *operation );
 
-	bool SelectRecord( CProduct *product );
+	bool SelectAndAssignRecord( CProduct *product );
 
 	void SelectX();
 

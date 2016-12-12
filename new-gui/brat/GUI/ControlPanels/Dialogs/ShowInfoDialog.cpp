@@ -25,7 +25,130 @@
 
 
 
-CShowInfoDialog::CShowInfoDialog( QWidget *parent, const CFormula *formula, COperation *operation )
+void  CShowInfoDialog::CreateWidgets( const std::string &expr_value, const COperation *operation )
+{
+	//	Create
+
+	std::string error_msg;
+	CExpression expr;
+	CFormula::SetExpression(expr_value, expr, error_msg);
+
+	std::string field_name = "";
+	std::string orignal_unit = "";
+	std::string baseUnit = "";
+
+	const CStringArray* fieldNames = expr.GetFieldNames();
+
+
+	mInfoTable = new QStandardItemModel(1,2,this);
+	initializeModel(mInfoTable);
+
+	mInfoTable->setRowCount((int)fieldNames->size());
+	CProductInfo pi( operation->OriginalDataset() );
+	for (uint32_t i = 0 ; i < fieldNames->size() ; i++)
+	{
+		field_name = fieldNames->at(i);
+
+		//    GetExprinfoGrid()->SetRowLabelValue(i, field_name.c_str());
+
+		if (pi.IsValid() )
+		{
+			std::string field_error_msg;
+			CField* field = pi.FindFieldByName( field_name, operation->GetRecord(), field_error_msg );
+			if ( !field_error_msg.empty() )
+				error_msg += ( "\n" + field_error_msg );
+
+			if (field != nullptr)
+			{
+				orignal_unit = field->GetUnit().empty() ? "count" : field->GetUnit();
+				// GetExprinfoGrid()->SetCellValue(i, 0, orignal_unit);
+
+				try
+				{
+					CUnit unit( field->GetUnit() );
+					if (unit.HasDateRef())
+					{
+						baseUnit = CUnit::m_DATE_REF_UNIT.c_str();
+					}
+					else
+					{
+						baseUnit = unit.BaseUnit().AsString().c_str();
+					}
+				}
+				catch (CException& e)
+				{
+					e.what();
+					baseUnit = "count";
+				}
+
+				//GetExprinfoGrid()->SetCellValue(i, 1, baseUnit);
+			}
+
+		}
+
+		QString inline_fieldName = t2q(field_name);
+		QString inline_originalUnit = t2q(orignal_unit);
+		QString inline_baseUnit = t2q(baseUnit);
+		addEntry(i, inline_fieldName, inline_originalUnit, inline_baseUnit);
+
+	}
+
+	if ( !error_msg.empty() )
+	{
+		LOG_WARN( error_msg );
+	}
+
+
+
+	//	... Help
+
+	auto help = new CTextWidget;
+	help->SetHelpProperties(
+		"Provides information about the original units (the ones defined in the\n"
+		"data products) and the units used during computation or selection.",
+		0 , 6 );
+	auto help_group = CreateGroupBox( ELayoutType::Grid, { help }, "", nullptr, 6, 6, 6, 6, 6 );
+	help_group->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Maximum );
+
+	//	... Buttons
+
+	mButtonBox = new QDialogButtonBox( this );
+	mButtonBox->setObjectName( QString::fromUtf8( "mButtonBox" ) );
+	mButtonBox->setOrientation( Qt::Horizontal );
+	mButtonBox->setStandardButtons( QDialogButtonBox::Ok );
+	mButtonBox->button( QDialogButtonBox::Ok )->setDefault( true );
+	mButtonBox->button( QDialogButtonBox::Ok )->setText( "Close" );
+
+	mTableView = CreateTableView(mInfoTable, QObject::tr("Table Model (View 1)"));
+	QBoxLayout *main_l =
+		LayoutWidgets( Qt::Vertical,
+		{
+			mTableView,
+			help_group,
+			mButtonBox
+
+		}, this, 6, 6, 6, 6, 6 );                       Q_UNUSED( main_l );
+
+
+	//	Wrap up dimensions
+
+	adjustSize();
+	setMinimumWidth( width() );
+
+	Wire();
+}
+
+
+void  CShowInfoDialog::Wire()
+{
+	//	Setup things
+
+	connect( mButtonBox, SIGNAL( accepted() ), this, SLOT( accept() ) );
+	connect( mButtonBox, SIGNAL( rejected() ), this, SLOT( reject() ) );
+}
+
+
+CShowInfoDialog::CShowInfoDialog( QWidget *parent, const CFormula *formula, const COperation *operation )
     : base_t( parent )
 {
     CreateWidgets( formula->GetDescription(), operation );
@@ -38,122 +161,6 @@ CShowInfoDialog::~CShowInfoDialog()
 {
     delete mInfoTable;
     delete mTableView;
-}
-
-
-void  CShowInfoDialog::CreateWidgets( const std::string& exprValue, COperation *operation)
-{
-    //	Create
-
-    std::string errorMsg;
-    CExpression expr;
-    CFormula::SetExpression(exprValue, expr, errorMsg);
-
-    std::string fieldName = "";
-    std::string orignalUnit = "";
-    std::string baseUnit = "";
-
-    const CStringArray* fieldNames = expr.GetFieldNames();
-
-
-    mInfoTable = new QStandardItemModel(1,2,this);
-    initializeModel(mInfoTable);
-
-    mInfoTable->setRowCount((int)fieldNames->size());
-    for (uint32_t i = 0 ; i < fieldNames->size() ; i++)
-    {
-     fieldName = fieldNames->at(i);
-
-  //    GetExprinfoGrid()->SetRowLabelValue(i, fieldName.c_str());
-
-      CProduct* product = operation->GetProduct();
-
-      if (product != nullptr)
-      {
-        CField* field = product->FindFieldByName(fieldName, operation->GetRecord().c_str(), false, nullptr, true);
-
-        if (field != nullptr)
-        {
-          orignalUnit = (field->GetUnit().empty() ? "count" : field->GetUnit().c_str());
-         // GetExprinfoGrid()->SetCellValue(i, 0, orignalUnit);
-
-
-          try
-          {
-            CUnit unit( field->GetUnit() );
-            if (unit.HasDateRef())
-            {
-              baseUnit = CUnit::m_DATE_REF_UNIT.c_str();
-            }
-            else
-            {
-              baseUnit = unit.BaseUnit().AsString().c_str();
-            }
-          }
-          catch (CException& e)
-          {
-            e.what();
-            baseUnit = "count";
-          }
-
-          //GetExprinfoGrid()->SetCellValue(i, 1, baseUnit);
-        }
-
-      }
-
-      QString inline_fieldName = t2q(fieldName);
-      QString inline_originalUnit = t2q(orignalUnit);
-      QString inline_baseUnit = t2q(baseUnit);
-      addEntry(i, inline_fieldName, inline_originalUnit, inline_baseUnit);
-
-    }
-
-
-    //	... Help
-
-    auto help = new CTextWidget;
-    help->SetHelpProperties(
-        "Provides information about the original units (the ones defined in the\n"
-        "data products) and the units used during computation or selection.",
-		0 , 6 );
-    auto help_group = CreateGroupBox( ELayoutType::Grid, { help }, "", nullptr, 6, 6, 6, 6, 6 );
-    help_group->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Maximum );
-
-    //	... Buttons
-
-    mButtonBox = new QDialogButtonBox( this );
-    mButtonBox->setObjectName( QString::fromUtf8( "mButtonBox" ) );
-    mButtonBox->setOrientation( Qt::Horizontal );
-    mButtonBox->setStandardButtons( QDialogButtonBox::Ok );
-    mButtonBox->button( QDialogButtonBox::Ok )->setDefault( true );
-    mButtonBox->button( QDialogButtonBox::Ok )->setText( "Close" );
-
-    mTableView = CreateTableView(mInfoTable, QObject::tr("Table Model (View 1)"));
-    QBoxLayout *main_l =
-            LayoutWidgets( Qt::Vertical,
-                            {
-                                mTableView,
-                                help_group,
-                                mButtonBox
-
-                            }, this, 6, 6, 6, 6, 6 );                       Q_UNUSED( main_l );
-
-
-    //	Wrap up dimensions
-
-    adjustSize();
-    setMinimumWidth( width() );
-
-    Wire();
-}
-
-
-void  CShowInfoDialog::Wire()
-{
-    //	Setup things
-
-    connect( mButtonBox, SIGNAL( accepted() ), this, SLOT( accept() ) );
-    connect( mButtonBox, SIGNAL( rejected() ), this, SLOT( reject() ) );
 }
 
 

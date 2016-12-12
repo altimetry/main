@@ -26,6 +26,7 @@
 #include "DataModels/MapTypeDisp.h"
 
 #include "new-gui/Common/GUI/TextWidget.h"
+#include "GUI/ProgressDialog.h"
 #include "GUI/DisplayEditors/MapEditor.h"
 #include "GUI/DisplayEditors/PlotEditor.h"
 #include "BratSettings.h"
@@ -96,15 +97,15 @@ inline std::string QuickCriteriaAlias( COperationControls::EPredefinedSelectionC
 
 
 //static 
-const std::string& COperationControls::QuickFindAliasValue( CProduct *product, EPredefinedVariables index )
+const std::string& COperationControls::QuickFindAliasValue( const CProductInfo &pi, EPredefinedVariables index )
 {
-    return CBratFilters::FindAliasValue( product, QuickVariableAlias( index ) );
+    return pi.FindAliasValue( QuickVariableAlias( index ) );
 }
 
 //static 
-const std::string& COperationControls::QuickFindAliasValue( CProduct *product, EPredefinedSelectionCriteria index )
+const std::string& COperationControls::QuickFindAliasValue( const CProductInfo &pi, EPredefinedSelectionCriteria index )
 {
-    return CBratFilters::FindAliasValue( product, QuickCriteriaAlias( index ) );
+    return pi.FindAliasValue( QuickCriteriaAlias( index ) );
 }
 
 
@@ -623,8 +624,10 @@ COperation* COperationControls::CreateQuickOperation( CMapTypeOp::ETypeOp type )
 		error_msg.clear();
 	}
 
-	CProduct *product = const_cast<const COperation*>( operation )->Dataset()->SafeOpenProduct();
-	if ( !product )
+	//CProduct *product = const_cast<const COperation*>( operation )->Dataset()->SafeOpenProduct();
+	CProductInfo pi( operation->OriginalDataset() );
+	if ( !pi.IsValid() )
+	//if ( !product )
 	{
 		std::string suggestion;
 		if ( operation->Filter() )
@@ -632,7 +635,7 @@ COperation* COperationControls::CreateQuickOperation( CMapTypeOp::ETypeOp type )
 		SimpleWarnBox( "There is no product for the operation to use." + suggestion );
 		return nullptr;
 	}
-	operation->SetProduct( product );
+	//operation->SetProduct( product );	operation->InvalidateProduct();
 
 
 
@@ -641,19 +644,21 @@ COperation* COperationControls::CreateQuickOperation( CMapTypeOp::ETypeOp type )
 	bool lon_alias_used, lat_alias_used;
 	std::string field_error_msg;
     std::pair<CField*, CField*> lon_lat_fields = 
-		CBratFilters::FindLonLatFields( product, mModel.Settings().mUseUnsupportedFields, lon_alias_used, lat_alias_used, field_error_msg );		assert__( lon_lat_fields.first && lon_lat_fields.second );
+		pi.FindLonLatFields( mModel.Settings().mUseUnsupportedFields, lon_alias_used, lat_alias_used, field_error_msg );		assert__( lon_lat_fields.first && lon_lat_fields.second );
+		//CBratFilters::FindLonLatFields( product, mModel.Settings().mUseUnsupportedFields, lon_alias_used, lat_alias_used, field_error_msg );		assert__( lon_lat_fields.first && lon_lat_fields.second );
 
 	if ( !operation->HasFormula() )
 	{
 		std::string field_record = lon_lat_fields.first->GetRecordName();
 		operation->SetRecord( field_record );
-		if ( operation->GetRecord().empty() && product->IsNetCdf() )
+//		if ( operation->GetRecord().empty() && product->IsNetCdf() )
+		if ( operation->GetRecord().empty() && pi.IsNetCdf() )
 			operation->SetRecord( CProductNetCdf::m_virtualRecordName );
 	}
-	CFormula* formula = operation->NewUserFormula( error_msg, lon_lat_fields.first, CMapTypeField::eTypeOpAsX, true, product );
+	CFormula* formula = operation->NewUserFormula( error_msg, lon_lat_fields.first, CMapTypeField::eTypeOpAsX, true, pi );
 	operation->ComputeInterval( formula, error_msg );
 
-	formula = operation->NewUserFormula( error_msg, lon_lat_fields.second, CMapTypeField::eTypeOpAsY, true, product );
+	formula = operation->NewUserFormula( error_msg, lon_lat_fields.second, CMapTypeField::eTypeOpAsY, true, pi );
 	operation->ComputeInterval( formula, error_msg );
 
   //Insert("asField", eTypeOpAsField);
@@ -676,7 +681,7 @@ COperation* COperationControls::CreateQuickOperation( CMapTypeOp::ETypeOp type )
 		{
 			EPredefinedVariables vi = (EPredefinedVariables)i;
 			add_selection_criteria |= vi == eSSH || vi == eSLA;
-			std::string expression = QuickFindAliasValue( product, vi );
+			std::string expression = QuickFindAliasValue( pi, vi );
 			if ( !expression.empty() )
 				fields.push_back( { expression, QuickVariableAlias( vi ) } );
 		}
@@ -687,8 +692,9 @@ COperation* COperationControls::CreateQuickOperation( CMapTypeOp::ETypeOp type )
 	for ( auto const &expression : fields )
     {
         std::string error_msg;
-        CField *field = product->FindFieldByName( expression.first, false, &error_msg );		//true: throw on failure
-        error_msg.clear();
+        CField *field = pi.FindFieldByName( expression.first, error_msg );
+		//CField *field = product->FindFieldByName( expression.first, false, &error_msg );		//true: throw on failure
+		error_msg.clear();
         CFormula *formula = operation->NewUserFormula( error_msg, expression.second, CMapTypeField::eTypeOpAsField, field ? field->GetUnit() : "", true );
 		if ( error_msg.empty() )
 			formula->SetDescription( expression.first );
@@ -699,7 +705,7 @@ COperation* COperationControls::CreateQuickOperation( CMapTypeOp::ETypeOp type )
 	std::string selection_criteria;
 	if ( add_selection_criteria )
 	{
-		selection_criteria = QuickFindAliasValue( product, eOceanEditing );
+		selection_criteria = QuickFindAliasValue( pi, eOceanEditing );
 	}
 	operation->GetSelect()->SetDescription( selection_criteria );
 

@@ -26,6 +26,134 @@
 #include "RadsDatasetsTreeWidget.h"
 
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//										CRadsDatasetsTreeWidget Items Class
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+CRadsDatasetsTreeWidgetItem::CRadsDatasetsTreeWidgetItem( const std::vector< CRadsMission > &missions, CRadsDataset *dataset, QTreeWidget *view )
+	: qobject_base_t( view )
+	, base_t( view )
+{
+	assert__( view );
+
+	view->blockSignals( true );
+
+	// I. Datasets column
+
+	const QString dataset_name = dataset->GetName().c_str();
+
+	setText(0, dataset_name );
+	setToolTip(0, dataset_name );
+	setIcon( 0, QIcon( ":/images/OSGeo/dataset.png" ) );
+	setFlags( flags() | Qt::ItemIsEditable );
+
+	view->addTopLevelItem( this );		//this is necessary before what follows
+
+
+	// II. Missions column
+
+
+	// II. 1. Missions combo box
+
+	mCombo = new QComboBox;
+
+	// ...fill with missions
+
+	auto const &selected_user_missions = dataset->Missions();
+	int index = 0, selected_index = -1;
+	for ( auto const &mission : missions )
+	{
+		mCombo->addItem(mission.mName.c_str());
+		bool selected = std::find( selected_user_missions.begin(), selected_user_missions.end(), mission ) != selected_user_missions.end();
+		if ( selected )
+			selected_index = index;
+		index++;
+	}
+	mCombo->setCurrentIndex( selected_index );
+
+	// ...aesthetics
+
+	QString sheet =
+		"\
+		QComboBox,										\
+		QLineEdit,										\
+		QListView {										\
+			selection-background-color: rgb(0, 0, 0);	\
+			selection-color: white;						\
+			border: 1px black;							\
+			border-radius: 5px;							\
+			padding: 2px 2px;							\
+			font: bold;									\
+			}											\
+		QComboBox::drop-down {							\
+			height: 12px;								\
+			subcontrol-origin: padding;					\
+			subcontrol-position: center right;			\
+			background: none;							\
+		}												\
+		";
+//width: 11px;								\
+
+	mCombo->setStyleSheet( sheet );
+	mCombo->setSizeAdjustPolicy( QComboBox::AdjustToContents );
+	mCombo->view()->setMinimumHeight( missions.size() * ( mCombo->fontMetrics().lineSpacing() + 1 ) );
+	//mCombo->model()->setData(mCombo->model()->index(0, 0), QSize(100, 100), Qt::SizeHintRole);
+
+	//...align center
+	mCombo->setEditable(true);				//otherwise there is no edit widget
+	mCombo->lineEdit()->setReadOnly(true);
+	mCombo->lineEdit()->setAlignment( Qt::AlignCenter );
+	for( int i = 0; i < mCombo->count(); i++ )
+		mCombo->setItemData( i, Qt::AlignCenter, Qt::TextAlignmentRole );
+
+	//...connect embedded combo signal
+	connect( mCombo, SIGNAL( currentIndexChanged( int ) ), this, SLOT( currentIndexChanged( int ) ) );
+
+	//...allow parent view to ignore wheel events
+	mCombo->installEventFilter( view );
+	mCombo->setFocusPolicy( Qt::StrongFocus );
+	mCombo->lineEdit()->installEventFilter( view );
+
+
+	// II. 2. Put missions combo in column 1
+
+	QFrame *frame = new QFrame;
+	LayoutWidgets( Qt::Horizontal, { mCombo }, frame, 4, 4, 4, 4, 4 );
+	view->setItemWidget( this, 1, frame );
+
+
+	view->blockSignals( false );
+}
+
+
+//virtual 
+bool CRadsDatasetsTreeWidgetItem::operator< ( const QTreeWidgetItem &o ) const
+{
+	if ( treeWidget()->sortColumn() == 0 )
+		return base_t::operator< ( o );
+
+	const auto &rads_o = dynamic_cast< const CRadsDatasetsTreeWidgetItem& >( o );
+
+	const QString &s1 = mCombo->currentText();
+	const QString &s2 = rads_o.mCombo->currentText();
+
+	return s1 < s2;
+}
+
+
+//slot
+void CRadsDatasetsTreeWidgetItem::currentIndexChanged( int index )
+{
+	emit itemChanged( this, index );
+}
+
+
+
+
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -33,21 +161,21 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-CRadsDatasetsTreeWidget::CRadsDatasetsTreeWidget( const CApplicationPaths &brat_paths, QWidget *parent )	//parent = nullptr 
+
+// Assumes a checked and valid all_available_missions
+//
+CRadsDatasetsTreeWidget::CRadsDatasetsTreeWidget( const std::vector< CRadsMission > &all_available_missions, QWidget *parent )	//parent = nullptr 
 	: base_t( parent )
-	, mBratPaths( brat_paths )
-	, mRadsServiceSettings( mBratPaths )
+	, mAllAvailableMissions( all_available_missions )
 {
-    QStringList labels;
-    labels << tr("Dataset") << tr("Mission");
-    setHeaderLabels(labels);
+    setHeaderLabels( QStringList() << tr("Dataset") << tr("Mission") );
     setHeaderHidden( false );
-	header()->setStretchLastSection(false);
-	header()->setSectionResizeMode(QHeaderView::ResizeToContents);
+	header()->setStretchLastSection( true );
+	header()->setSectionResizeMode( QHeaderView::Interactive );
+	header()->setDefaultAlignment( Qt::AlignCenter );
 
 	//setRootIsDecorated( false );	the problem with this: the highest level items have no node icon, can only be expanded/collapsed by double-clicking
-	setDragEnabled( true );
-	setDragDropMode( DragOnly );
+	setDragEnabled( false );
 	setToolTip( "Drag fields to the data expressions tree" );
 
 	setSortingEnabled( true );
@@ -57,22 +185,6 @@ CRadsDatasetsTreeWidget::CRadsDatasetsTreeWidget( const CApplicationPaths &brat_
 
     connect( mSortAscending,		SIGNAL(triggered()),	this, SLOT( HandleSortAscending() ) );
     connect( mSortDescending,		SIGNAL(triggered()),	this, SLOT( HandleSortDescending() ) );
-
-	std::string rads_error_msg;
-	bool result = mRadsServiceSettings.mValidRadsMissions;
-	if ( !result )
-		rads_error_msg = "An error occurred reading missions from rads configuration file.\nPlease check " + brat_paths.mRadsConfigurationFilePath;
-	else
-	{
-		result = mRadsServiceSettings.LoadConfig();
-		if ( !result )
-			rads_error_msg = "Could not read RADS Service configuration file.";
-	}
-	if ( !result )
-	{
-		SimpleErrorBox( rads_error_msg + "\nRADS settings will not be available." );
-		setEnabled( false );
-	}
 }
 
 
@@ -82,313 +194,75 @@ QTreeWidgetItem* CRadsDatasetsTreeWidget::AddDatasetToTree( const QString &datas
 
 	CRadsDataset *d = mWDataset->GetDataset< CRadsDataset >( q2a( dataset_name ) );				assert__( d );
 
-	QIcon dataset_icon = QIcon(":/images/OSGeo/dataset.png");
-
-	QTreeWidgetItem *dataset_item = new QTreeWidgetItem();
-	dataset_item->setText(0, dataset_name );
-	dataset_item->setToolTip(0, dataset_name );
-	dataset_item->setIcon(0, dataset_icon);
-	dataset_item->setFlags( dataset_item->flags() | Qt::ItemIsEditable );
-	addTopLevelItem( dataset_item );
+	CRadsDatasetsTreeWidgetItem *dataset_item = new CRadsDatasetsTreeWidgetItem( mAllAvailableMissions, d, this );
+	connect( dataset_item, &CRadsDatasetsTreeWidgetItem::itemChanged, this, &CRadsDatasetsTreeWidget::currentIndexChanged );
     
-    QComboBox *cb = new QComboBox;
-    auto const &selected_user_missions = d->Missions();
-    int index = 0, selected_index = -1;
-    auto &missions = mRadsServiceSettings.AllAvailableMissions();
-	for ( auto const &mission : missions )
-    {
-        cb->addItem(mission.mName.c_str());
-        bool selected = std::find( selected_user_missions.begin(), selected_user_missions.end(), mission ) != selected_user_missions.end();
-		if ( selected )
-            selected_index = index;
-		index++;
-    }
-    cb->setCurrentIndex( selected_index );
-	QFrame *frame = new QFrame;
+	resizeColumnToContents( 0 );
 
-	QString sheet =
-		//"QComboBox:item {			\
-		//	padding-left: 20px;		\
-		//}							\
-		//QComboBox:item:selected {	\
-		//	padding-left: 20px;		\
-		//	border: 2px solid black;\
-		//}							\
-		//QComboBox:item:checked {	\
-		//	padding-left: 20px;		\
-		//	font-weight: bold;		\
-		//}";
-
-
-"\
-QComboBox:hover,\
-QComboBox::drop-down:hover,\
-QPushButton:hover {\
-	border-image: url(:/images/button-hover.png) 16;\
-}													   \
-QComboBox:on,\
-QPushButton:pressed {	\
-	color: lightgray;			 \
-	border-image: url(:/images/button-pressed.png) 16;\
-	padding-top: -15px;									\
-	padding-bottom: -17px;								 \
-}\
-QComboBox,\
-QLineEdit,			\
-QListView {			 \
-	color: rgb(127, 0, 63);\
-	background-color: rgb(255, 255, 241);\
-	selection-color: white;				  \
-	selection-background-color: rgb(191, 31, 127);\
-	border: 2px groove gray;\
-	border-radius: 5px; \
-	padding: 2px 4px;\
-	}\
-";
-//
-	//QComboBox::drop-down {\
-	//	subcontrol-origin: padding;\
-	//	subcontrol-position: center right;\
-	//	width: 11px;\
-	//	height: 6px; \
-	//	background: none;\
-	//}				  \
-	//QComboBox {\
-	//	padding-right: 15px;\
-	//}\
-	//QListView {\
-	//	padding: 5px 4px;\
-	//}\
-//QComboBox:!editable,	\
-//	QPushButton {		\
-//	color: white;			\
-//	font: bold 10pt;		\
-//	border-image: url(:/images/button.png) 16;\
-//	border-width: 16px;\
-//	padding: -16px 0px;\
-//	min-height: 32px;\
-//	min-width: 60px;\
-//}\
-
-	cb->setStyleSheet( sheet );
-	cb->setSizeAdjustPolicy( QComboBox::AdjustToContents );
-
-	//LayoutWidgets( Qt::Horizontal, { cb }, frame, 2, 2, 2, 2, 2 );
-    setItemWidget( dataset_item, 1, cb );
-
-	// Fill tree with new dataset products	//FillFileTree( dataset_item );
-	QIcon file_icon = QIcon(":/images/OSGeo/file.png");
-
-	for ( auto const &mission : missions )
-	{
-		QTreeWidgetItem* item = new QTreeWidgetItem;
-		item->setText( 0, t2q( mission.mName ) );
-		item->setFlags( item->flags() | Qt::ItemIsUserCheckable );
-		bool selected = std::find( selected_user_missions.begin(), selected_user_missions.end(), mission ) != selected_user_missions.end();
-		item->setCheckState( 0, selected ? Qt::Checked : Qt::Unchecked );
-		item->setData( 0, Qt::UserRole, t2q( mission.mAbbr ) );
-		dataset_item->addChild( item );
-	}
-
-	cb->view()->setMinimumHeight( 6 + missions.size() * ( cb->fontMetrics().lineSpacing() + 2 ) );
-	//cb->model()->setData(cb->model()->index(0, 0), QSize(100, 100), Qt::SizeHintRole);
-	//resizeColumnToContents(1);
-    
 	return dataset_item;
 }
 
 
-
-bool CRadsDatasetsTreeWidget::MissionStateChanged( CWorkspaceOperation *wkso, const QString &dataset_name, QTreeWidgetItem *item )
+bool CRadsDatasetsTreeWidget::eventFilter( QObject *o, QEvent *e ) 
 {
-	assert__( mWDataset && wkso );
-
-	CRadsDataset *d = mWDataset->GetDataset< CRadsDataset >( q2a( dataset_name ) );				assert__( d );
-
-	const std::string rads_server_address = ReadRadsServerAddress( mBratPaths.mRadsConfigurationFilePath );
-	const std::string local_dir = FormatRadsLocalOutputPath( mBratPaths.UserDataDirectory() );
-	const std::string mission_name = q2a( item->text( 0 ) );
-
-	auto const &missions = mRadsServiceSettings.AllAvailableMissions();
-	CRadsMission mission = { mission_name, FindRadsMissionAbbr( mission_name, missions ) };
-	if ( mission.mAbbr.empty() )
+	if ( qobject_cast< QComboBox* >( o ) )
 	{
-		SimpleErrorBox( "Invalid RADS mission name." );
-		return false;
-	}
-
-	bool result = false;
-	if ( item->checkState( 0 ) == Qt::Checked )
-	{
-		// Get current files class and type
-		std::string old_product_class = d->ProductClass();
-		std::string old_product_type = d->ProductType();
-
-
-		std::string errors;
-		result = d->AddMission( rads_server_address, local_dir, mission, errors );
-		if ( !errors.empty() )
+		switch( e->type() )
 		{
+			case QEvent::Wheel:
+				e->ignore();
+				return true;
+				break;
 
-		}
-
-
-		// Check new files class and type
-		const bool is_same_product_class_and_type = 
-			str_icmp( old_product_class, d->ProductClass() ) &&
-			str_icmp( old_product_type, d->ProductType() );
-
-		CStringArray operation_names;
-		bool used_by_operations = wkso->UseDataset( d->GetName(), &operation_names );
-		if ( !is_same_product_class_and_type && used_by_operations )
-		{
-			std::string str = operation_names.ToString( "\n", false );
-			SimpleWarnBox( 
-				"Warning: Files contained in the dataset '"
-				+ d->GetName()
-				+ "' have been changed from '"
-				+ old_product_class
-				+ "/"
-				+ old_product_type
-				+ "' to '"
-				+ d->ProductClass()
-				+ "/"
-				+ d->ProductType()
-				+ "' product class/type.\n\nThis dataset is used by the operations below:\n"
-				+ str
-				+ "\n\nBe sure field's names used in these operations match the fields of the dataset files"
-			);
+			//case QEvent::MouseButtonPress:
+			//	mousePressEvent( dynamic_cast<QMouseEvent*>( e ) );
+			//	return true;
+			//	break;
 		}
 	}
-	else
+
+	if ( qobject_cast< QLineEdit* >( o ) )
 	{
-		result = d->RemoveMission( rads_server_address, local_dir, mission );
+		switch( e->type() )
+		{
+			//case QEvent::Wheel:
+			//	e->ignore();
+			//	return true;
+			//	break;
+
+			case QEvent::MouseButtonPress:
+			case QEvent::MouseButtonRelease:
+				e->ignore();
+				return true;
+				//mouseReleaseEvent( dynamic_cast<QMouseEvent*>( e ) );
+				//return true;
+				break;
+		}
 	}
 
-	return result;
+	return base_t::eventFilter( o, e );
 }
 
-
-
-//CField* CRadsDatasetsTreeWidget::ItemField( QTreeWidgetItem *item )
-//{
-//	return ItemData< CField* >( item );
-//}
-//
-//
-//void CRadsDatasetsTreeWidget::SetItemField( QTreeWidgetItem *item, CField *field )
-//{
-//	SetItemData( item, &field );
-//}
-
-
-std::string	CRadsDatasetsTreeWidget::GetCurrentFieldDescription() const
+bool CRadsDatasetsTreeWidgetItem::eventFilter( QObject *o, QEvent *e ) 
 {
-	std::string desc;
-
-    //auto *item = SelectedItem();	// can return null
-	//if ( item )
+	//if ( qobject_cast< QComboBox* >( o ) )
 	//{
-	//	auto *field = ItemField( item );
-	//	if ( field )
-	//		desc = field->GetDescription();
+	//	switch( e->type() )
+	//	{
+	//		case QEvent::Wheel:
+	//			e->ignore();
+	//			return true;
+
+	//		//case QEvent::MouseButtonPress:
+	//		//	e->ignore();
+	//		//	return true;
+	//	}
 	//}
 
-	return desc;
+	return qobject_base_t::eventFilter( o, e );
 }
 
 
-//QTreeWidgetItem* CRadsDatasetsTreeWidget::SetRootItem( CField *field )
-//{
-//	auto *item = invisibleRootItem();
-//	SetItemField( item, field );
-//	item->setExpanded( true );
-//	return item;
-//}
-
-
-QTreeWidgetItem* CRadsDatasetsTreeWidget::GetFirstRecordItem()
-{
-	auto *root = invisibleRootItem();
-	return root->childCount() > 0 ? root->child( 0 ) : nullptr;
-}
-
-void CRadsDatasetsTreeWidget::SelectRecord( const std::string &record )		//see COperationPanel::GetOperationRecord
-{
-	auto items = findItems( record.c_str(), Qt::MatchExactly );
-	QTreeWidgetItem *item = items.size() > 0 ? items[ 0 ] : nullptr;
-	if ( !item )
-	{
-		item = GetFirstRecordItem();
-    }									//assert__( item );
-
-	setCurrentItem( item );
-	if ( item )
-		item->setExpanded( true );
-}
-
-
-//QTreeWidgetItem* CRadsDatasetsTreeWidget::InsertField( QTreeWidgetItem *parent, CObjectTreeNode *node )
-//{
-//	CField *field = dynamic_cast<CField*>( node->GetData() );			assert__( field );
-//
-//	if ( ( typeid( *field ) == typeid( CFieldIndex ) ) && field->IsVirtual() )
-//	{
-//		return parent;
-//	}
-//
-//	if ( node->GetLevel() <= 1 )
-//	{
-//		return SetRootItem( field );
-//	}
-//
-//
-//	std::string str = field->GetName();
-//	if ( !field->GetUnit().empty() )
-//	{
-//		str += ( " (" + field->GetUnit() + ")" );
-//	}
-//
-//	// v3 note: at depth 1 elements won't have any more children
-//
-//	const bool bold = 
-//		( typeid( *field ) == typeid( CFieldRecord ) ) || 
-//		( typeid( *field ) == typeid( CFieldArray ) && !field->IsFixedSize() );
-//
-//	size_t num_children = node->ChildCount();
-//	bool hasChildren = num_children > 0;
-//
-//	QTreeWidgetItem *id = MakeItem( parent, str, field, bold, hasChildren );
-//
-//	QTreeWidgetItem *return_id;
-//
-//	if ( hasChildren )
-//	{
-//		return_id = id;
-//	}
-//	else
-//	{
-//		return_id = parent;
-//		CObjectTreeNode* parent_node = node->GetParent();
-//		while ( parent_node != nullptr )
-//		{
-//			if ( parent_node->m_current == parent_node->GetChildren().end() )
-//			{
-//				return_id = return_id->parent();
-//				if ( !return_id )
-//					return_id = invisibleRootItem();
-//				parent_node = parent_node->GetParent();
-//			}
-//			else
-//			{
-//				break;
-//			}
-//		}
-//	}
-//
-//	return return_id;
-//}
-//
 
 void CRadsDatasetsTreeWidget::HandleSortAscending()
 {

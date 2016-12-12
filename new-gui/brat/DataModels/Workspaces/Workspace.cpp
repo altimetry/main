@@ -316,19 +316,19 @@ bool CWorkspaceDataset::DeleteDataset( CDataset* dataset )
 }
 
 //----------------------------------------
-std::string CWorkspaceDataset::GetDatasetNewName()
+std::string CWorkspaceDataset::GetDatasetNewName( bool RADS )
 {
-  size_t i = m_datasets.size();
-  std::string key;
+	size_t i = m_datasets.size();
+	std::string key;
 
-  do
-  {
-    key = NAME + "_" + n2s< std::string >( i + 1 );
-    i++;
-  }
-  while ( m_datasets.Exists( key ) != nullptr);
+	do
+	{
+		key = ( RADS ? "RADS_" : "" ) + NAME + "_" + n2s< std::string >( i + 1 );
+		i++;
+	} 
+	while ( m_datasets.Exists( key ) != nullptr );
 
-  return key;
+	return key;
 }
 //----------------------------------------
 void CWorkspaceDataset::GetDatasetNames( std::vector< std::string >& array ) const
@@ -373,9 +373,9 @@ void CWorkspaceDataset::Dump(std::ostream& fOut /* = std::cerr */)
 //-------------------------------------------------------------
 
 //----------------------------------------
-void CWorkspaceFormula::AmendFormulas(const CStringArray& keys, CProduct* product, const std::string& record)
+void CWorkspaceFormula::AmendFormulas(const CStringArray& keys, const CProductInfo &pi, const std::string& record)
 {
-  m_formulas.Amend(keys, product, record);
+  m_formulas.Amend(keys, pi, record);
   //SaveConfigPredefinedFormula();			//commented out v3.1.0
   SaveConfigFormula();
 
@@ -589,59 +589,59 @@ void CWorkspaceFormula::Dump(std::ostream& fOut /* = std::cerr */)
 //------------------- CWorkspaceOperation class --------------------
 //-------------------------------------------------------------
 //----------------------------------------
-bool CWorkspaceOperation::Import( CWorkspace* wksi, std::string &errorMsg, CWorkspaceDataset *wks_data, CWorkspaceDisplay *wks_disp, CWorkspaceOperation *wks_op )
-{
-    UNUSED( wks_disp );
-
-	if ( wksi == nullptr )
-		return true;
-
-	CWorkspaceOperation* wksToImport = dynamic_cast<CWorkspaceOperation*>( wksi );
-	if ( wksToImport == nullptr )
-	{
-		return true;
-	}
-
-	if ( m_importBitSet == nullptr )
-	{
-		return true;
-	}
-
-	if ( m_importBitSet->m_bitSet.test( IMPORT_OPERATION_INDEX ) == false )
-	{
-		return true;
-	}
-
-
-	CObMap::iterator it;
-	for ( it = wksToImport->GetOperations()->begin(); it != wksToImport->GetOperations()->end(); it++ )
-	{
-		COperation* operationImport = dynamic_cast<COperation*>( it->second );
-		if ( operationImport == nullptr )
-		{
-			errorMsg += "ERROR in  CWorkspaceOperation::Import\ndynamic_cast<COperation*>(it->second) returns nullptr pointer"
-				"\nList seems to contain objects other than those of the class COperation\n";
-
-			return false;
-		}
-
-		COperation* operation = GetOperation( operationImport->GetName() );
-		if ( operation != nullptr )
-		{
-			errorMsg += 
-				"Operation to import '"
-				+ operationImport->GetName()
-				+ "':\nUnable to process, an operation with the same name already exists\n"
-				+ "Import cancelled\n";
-
-			return false;
-		}
-
-		m_operations.Insert( operationImport->GetName(), COperation::Copy( *operationImport, wks_op, wks_data ) );
-	}
-
-	return true;
-}
+//bool CWorkspaceOperation::Import( CWorkspace* wksi, std::string &errorMsg, CWorkspaceDataset *wks_data, CWorkspaceDisplay *wks_disp, CWorkspaceOperation *wks_op )
+//{
+//    UNUSED( wks_disp );
+//
+//	if ( wksi == nullptr )
+//		return true;
+//
+//	CWorkspaceOperation* wksToImport = dynamic_cast<CWorkspaceOperation*>( wksi );
+//	if ( wksToImport == nullptr )
+//	{
+//		return true;
+//	}
+//
+//	if ( m_importBitSet == nullptr )
+//	{
+//		return true;
+//	}
+//
+//	if ( m_importBitSet->m_bitSet.test( IMPORT_OPERATION_INDEX ) == false )
+//	{
+//		return true;
+//	}
+//
+//
+//	CObMap::iterator it;
+//	for ( it = wksToImport->GetOperations()->begin(); it != wksToImport->GetOperations()->end(); it++ )
+//	{
+//		COperation* operationImport = dynamic_cast<COperation*>( it->second );
+//		if ( operationImport == nullptr )
+//		{
+//			errorMsg += "ERROR in  CWorkspaceOperation::Import\ndynamic_cast<COperation*>(it->second) returns nullptr pointer"
+//				"\nList seems to contain objects other than those of the class COperation\n";
+//
+//			return false;
+//		}
+//
+//		COperation* operation = GetOperation( operationImport->GetName() );
+//		if ( operation != nullptr )
+//		{
+//			errorMsg += 
+//				"Operation to import '"
+//				+ operationImport->GetName()
+//				+ "':\nUnable to process, an operation with the same name already exists\n"
+//				+ "Import cancelled\n";
+//
+//			return false;
+//		}
+//
+//		m_operations.Insert( operationImport->GetName(), COperation::Copy( *operationImport, wks_op, wks_data ) );
+//	}
+//
+//	return true;
+//}
 
 //----------------------------------------
 bool CWorkspaceOperation::RenameOperation( COperation* operation, const std::string& new_name )
@@ -754,7 +754,7 @@ bool CWorkspaceOperation::InsertOperation(const std::string &name)
     return true;
 }
 //----------------------------------------
-bool CWorkspaceOperation::InsertOperation(const std::string &name, COperation* operationToCopy, CWorkspaceDataset *wksds)
+bool CWorkspaceOperation::InsertOperation( const std::string &name, COperation* operationToCopy, CWorkspaceDataset *wksds )
 {
     if (m_operations.Exists(name))
     {

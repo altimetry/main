@@ -25,7 +25,7 @@
 #include "common/+UtilsIO.h"
 #include "new-gui/Common/QtUtils.h"
 #include "new-gui/Common/DataModels/TaskProcessor.h"
-#include "new-gui/Common/System/Service/qtservice.h"
+#include "DataModels/Model.h"
 #include "DataModels/Workspaces/Operation.h"
 #include "GUI/LoginDialog.h"
 
@@ -119,7 +119,12 @@ void CBratApplication::Prologue( int argc, char *argv[] )
 
 	smApplicationPaths = &brat_paths;	LOG_TRACEstd( smApplicationPaths->ToString() );
 
-    smPrologueCalled = true;
+	// Qt MetaTypes ////////////////////////////////////
+
+	RegisterAsQtTypes();
+
+	
+	smPrologueCalled = true;
 
 	LOG_TRACE( "prologue tasks finished." );
 }
@@ -196,59 +201,6 @@ void CBratApplication::CheckOpenGL( bool extended )		//extended = false
 
 
 
-inline QString ServiceUserName()
-{
-#if defined (Q_OS_WIN) && defined(USE_LocalSystem_ACCOUNT)
-	return "";			// --> LocalSystem will have different settings file
-#else
-#if defined (Q_OS_MAC)
-    return UserName();
-#else
-    return UserName();
-#endif
-#endif
-}
-
-
-
-
-bool CBratApplication::InstallRadsService()
-{
-	static const QString rads_service_name = RADS_SERVICE_NAME;
-
-	QtServiceController controller( rads_service_name );
-	bool installed = controller.isInstalled();
-	bool running = controller.isRunning();
-
-#if defined (_DEBUG) || defined(DEBUG)
-	//installed = installed && !controller.uninstall();
-#endif
-
-	if ( !installed ) 
-	{
-		LoginDialog *dlg = new LoginDialog( QString( "Install " ) + RADS_SERVICE_NAME );
-		dlg->SetUsername( ServiceUserName(), true );
-		if ( dlg->exec() == QDialog::Accepted )
-		{
-			QString account = dlg->Username();
-			QString password = dlg->Password();
-			QString path = smApplicationPaths->mRadsServicePath.c_str();
-			installed = QtServiceController::install( path, account, password );
-		}
-	}
-
-	LOG_TRACE( rads_service_name + " is " + ( installed ? "installed" : "not installed") + " and " + ( running ? "running" : "not running") );
-	if ( installed ) 
-	{
-		LOG_TRACE( rads_service_name + " path: " + controller.serviceFilePath() );
-		LOG_TRACE( rads_service_name + " description: " + controller.serviceDescription() );
-		LOG_TRACE( rads_service_name + " startup: " + ( controller.startupType() == QtServiceController::AutoStartup ? "Auto" : "Manual") );
-	}
-
-	return installed;
-}
-
-
 void CBratApplication::CheckRunMode()
 {
 	LOG_TRACE( "Operating mode check..." );			assert__( !mOperatingInDisplayMode );
@@ -264,12 +216,18 @@ void CBratApplication::CheckRunMode()
 }
 
 
+
 CBratApplication::CBratApplication( int &argc, char **argv, bool GUIenabled, QString customConfigPath )	//customConfigPath = QString() 
 
 	: base_t( argc, argv, GUIenabled, customConfigPath.isEmpty() ? smApplicationPaths->mInternalDataDir.c_str() : customConfigPath )
 
 	, mSettings( *smApplicationPaths, q2a( QCoreApplication::organizationName() ), q2a( QgsApplication::applicationName() ) )
 
+	, mServiceController( RADS_SERVICE_NAME )
+
+    , mSocket( new QLocalSocket( this ) )
+
+	, mRadsServiceSettings( mSettings.BratPaths() )
 {
 	LOG_TRACE( "Starting application instance construction..." );
 
@@ -380,7 +338,7 @@ CBratApplication::CBratApplication( int &argc, char **argv, bool GUIenabled, QSt
     mDefaultAppStyle = t2q( mSettings.getNameOfStyle( new QCleanlooksStyle, true ) );	//(*)
 #endif
 #else
-	mDefaultAppStyle = getCurrentStyleName();											//(*)
+	mDefaultAppStyle = CurrentStyleName();											//(*)
 #endif
 
     mSettings.setApplicationStyle( *this, mDefaultAppStyle );
@@ -410,10 +368,26 @@ CBratApplication::CBratApplication( int &argc, char **argv, bool GUIenabled, QSt
 	}
 
 
-	// Install / Check rads service status
-	/////////////////////////////////////////////
-	// TODO mRadsServiceAvailable = InstallRadsService();
-	/////////////////////////////////////////////
+	// Create application core domain data
+
+	mModel = &CModel::CreateInstance( mSettings );
+
+
+	// RADS rsync status signals
+	//	- ResetRadsSocketConnection must be explicitly called to receive service notifications about the rsync status
+
+    connect( mSocket, SIGNAL( readyRead() ), this, SLOT( HandleSocketReadyRead() ) );
+	connect( mSocket, SIGNAL( error(QLocalSocket::LocalSocketError) ), this, SLOT( HandleLocalSocketError(QLocalSocket::LocalSocketError) ) );
+
+	bool config_result = false;
+	if ( IsFile( mRadsServiceSettings.FilePath() ) )
+		config_result = mRadsServiceSettings.LoadConfig();
+	else
+	{
+		config_result = mRadsServiceSettings.SaveConfig();		//save defaults for brat to read
+	}
+	if ( !config_result )
+		LOG_WARN( "An error occurred accessing the RADS Service settings file '" + mRadsServiceSettings.FilePath() + "'" );
 
 
 	//v4: remaining initialization in charge of the main window
@@ -435,10 +409,259 @@ CBratApplication::~CBratApplication()
 		LOG_TRACE( "Unable to save the BRAT application settings." );
 
     mSettings.Sync();
+
+	CModel::DestroyInstance();
+
+    if ( mSocket )
+		mSocket->disconnectFromServer();
 }
 
 
 
+
+inline QString ServiceUserName()
+{
+#if defined (Q_OS_WIN) && defined(USE_LocalSystem_ACCOUNT)
+	return "";			// --> LocalSystem will have different settings file
+#else
+#if defined (Q_OS_MAC)
+	return UserName();
+#else
+	return UserName();
+#endif
+#endif
+}
+
+
+
+bool CBratApplication::InstallRadsService( QWidget *parent )
+{
+	static const QString rads_service_name( RADS_SERVICE_NAME );
+
+	bool installed = mServiceController.isInstalled();
+	if ( !installed ) 
+	{
+		LoginDialog *dlg = new LoginDialog( "Install " + rads_service_name, parent );
+		dlg->SetUsername( ServiceUserName(), true );
+		if ( dlg->exec() == QDialog::Accepted )
+		{
+			QString account = dlg->Username();
+			QString password = dlg->Password();
+			QString path = smApplicationPaths->mRadsServicePath.c_str();
+			installed = QtServiceController::install( path, account, password );
+		}
+	}
+	bool running = mServiceController.isRunning();
+
+	LOG_TRACE( rads_service_name + " is " + ( installed ? "installed" : "not installed") + " and " + ( running ? "running" : "not running") );
+	if ( installed ) 
+	{
+		LOG_TRACE( rads_service_name + " path: " + mServiceController.serviceFilePath() );
+		LOG_TRACE( rads_service_name + " description: " + mServiceController.serviceDescription() );
+		LOG_TRACE( rads_service_name + " startup: " + ( mServiceController.startupType() == QtServiceController::AutoStartup ? "Auto" : "Manual") );
+	}
+
+	return installed;
+}
+
+
+bool CBratApplication::UninstallRadsService()
+{
+	bool result = mServiceController.uninstall();
+	if ( result && mSocket && mSocket->state() != mSocket->ConnectedState )
+		mSocket->disconnectFromServer();
+	return result;
+}
+
+
+bool CBratApplication::ResetRadsSocketConnection()
+{
+	if ( mServiceController.isInstalled() && mServiceController.isRunning() )
+	{    
+		mSocket->abort();
+		mSocket->connectToServer( RADS_SHARED_MEMORY_KEY.c_str() );
+		return true;
+	}
+
+	return false;
+}
+
+
+bool CBratApplication::StartRadsService()
+{
+	bool result = mServiceController.start();
+	if ( result && mSocket )
+	{
+		QBratThread::sleep( 4 );    //give some time for isRunning to return an accurate value (that is, for the executable to start)
+		ResetRadsSocketConnection();
+	}
+	return result;
+}
+
+
+bool CBratApplication::StopRadsService()
+{
+	mSocket->abort();
+	bool result = mServiceController.stop();
+	if ( result && mSocket )
+	{
+		QBratThread::sleep( 4 );    //same comment as for StartRadsService
+
+		//TODO: check this: at least in Windows, the broadcast made by the service cleanup (rsync client) 
+		//	does not arrive to clients... so, do it manually
+
+		auto prev_rsync_status = mRsyncStatus;
+		mRsyncStatus = eRsyncStopped;
+		if ( prev_rsync_status != mRsyncStatus )
+			emit RadsNotification( Convert( mRsyncStatus ) );
+	}
+	return result;
+}
+
+
+bool CBratApplication::PauseRadsService()
+{
+	return mServiceController.pause();
+}
+
+
+bool CBratApplication::ResumeRadsService()
+{
+	return mServiceController.resume();
+}
+
+
+bool CBratApplication::SendRadsServiceCommand( int code )
+{
+	return mServiceController.sendCommand( code );
+}
+
+
+
+
+
+
+
+
+bool CBratApplication::RegisterAlgorithms()
+{
+	std::string msg;
+    try
+    {
+		bool result = CBratEmbeddedPythonProcess::LoadPythonEngine( mSettings.BratPaths().mPythonDir );
+		LOG_TRACEstd( CBratEmbeddedPythonProcess::PythonMessages() );
+		LOG_TRACE( "Finished registering python algorithms." );
+        return result;
+    }
+    catch ( const CException &e )
+    {
+        msg = e.Message();
+    }
+    catch ( ... )
+    {
+        msg = "Unknown exception caught loading python algorithm.";
+    }
+
+	msg += ( "\n" + CBratEmbeddedPythonProcess::PythonMessages() );
+	LOG_WARN( msg );
+	SimpleErrorBox( msg );
+
+    return false;
+}
+
+
+
+/////////
+// Slots
+/////////
+
+//const std::string RSYNC_RUNNING_SIGN = "RUNNING";
+//const std::string RSYNC_STOPPED_SIGN = "STOPPED";
+
+
+void CBratApplication::HandleSocketReadyRead()
+{
+	QDataStream in( mSocket );
+	in.setVersion(QDataStream::Qt_4_0);
+
+	quint16 block_size = 0;
+
+	if ( mSocket->bytesAvailable() < (int)sizeof(quint16) )
+		return;
+
+	in >> block_size;
+
+	LOG_TRACEstd( "About to read " + n2s<std::string>(block_size) + " bytes from RADS socket." );
+
+	if ( in.atEnd() )
+		return;
+
+	QString rads_msg;
+	in >> rads_msg;
+
+    auto prev_rsync_status = mRsyncStatus;
+	auto notification = eNotificationUnknown;
+    
+	if ( rads_msg == RSYNC_STOPPED_SIGN.c_str() )
+    {
+		mRsyncStatus = Convert( ( notification = eNotificationRsyncStopped ) );
+    }
+	else        
+	if ( rads_msg == RSYNC_RUNNING_SIGN.c_str() )
+    {
+		mRsyncStatus = Convert( ( notification = eNotificationRsyncRunnig ) );
+    }
+	else        
+	if ( rads_msg == CONFIG_UPDATED_SIGN.c_str() )
+	{
+		notification = eNotificationConfigSaved;
+		mRadsServiceSettings.LoadConfig();		//FIXME : clients should be notified of notification reading errors
+	}
+	else
+    {
+		mRsyncStatus = Convert( ( notification = eNotificationUnknown ) );
+    }
+    
+    
+    if ( ( prev_rsync_status != mRsyncStatus ) || notification == eNotificationConfigSaved )
+        emit RadsNotification( notification );
+}
+
+
+void CBratApplication::HandleLocalSocketError( QLocalSocket::LocalSocketError error )
+{
+    mRsyncStatus = eRsyncUnknown;
+    
+	switch ( error )
+	{
+		case QLocalSocket::ServerNotFoundError:
+			LOG_WARN( "The RADS socket host was not found. Please check the host name and port settings." );
+			break;
+            
+		case QLocalSocket::ConnectionRefusedError:
+			LOG_WARN( "The connection was refused by the peer. \
+						Make sure the server is running, and check that the host name and port settings are correct." );
+			break;
+                    
+		case QLocalSocket::PeerClosedError:
+			break;
+            
+		default:
+			LOG_WARN( "The following error occurred: " + mSocket->errorString() );
+	}
+}
+
+
+void CBratApplication::UpdateSettings()
+{
+	mSettings.setApplicationStyle( *this, mDefaultAppStyle );
+}
+
+
+
+/////////
+// Splash
+/////////
 
 void CBratApplication::EndSplash( QWidget *w )
 {
@@ -472,41 +695,6 @@ void CBratApplication::CreateSplash()
     mSplash->show();
 }
 
-
-
-
-void CBratApplication::UpdateSettings()
-{
-	mSettings.setApplicationStyle( *this, mDefaultAppStyle );
-}
-
-
-
-bool CBratApplication::RegisterAlgorithms()
-{
-	std::string msg;
-    try
-    {
-		bool result = CBratEmbeddedPythonProcess::LoadPythonEngine( mSettings.BratPaths().mPythonDir );
-		LOG_TRACEstd( CBratEmbeddedPythonProcess::PythonMessages() );
-		LOG_TRACE( "Finished registering python algorithms." );
-        return result;
-    }
-    catch ( const CException &e )
-    {
-        msg = e.Message();
-    }
-    catch ( ... )
-    {
-        msg = "Unknown exception caught loading python algorithm.";
-    }
-
-	msg += ( "\n" + CBratEmbeddedPythonProcess::PythonMessages() );
-	LOG_WARN( msg );
-	SimpleErrorBox( msg );
-
-    return false;
-}
 
 
 

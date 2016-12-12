@@ -23,11 +23,98 @@
 #include "GenericTreeWidget.h"
 
 
-class CTextWidget;
 class CApplicationPaths;
 
 
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//										CRadsDatasetsTreeWidget Items Class
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+class CRadsDatasetsTreeWidgetItem : public QObject, public QTreeWidgetItem
+{
+#if defined (__APPLE__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Winconsistent-missing-override"
+#endif
+
+	Q_OBJECT;
+
+#if defined (__APPLE__)
+#pragma clang diagnostic pop
+#endif
+
+	//types
+
+	using qobject_base_t = QObject;
+	using base_t = QTreeWidgetItem;
+
+
+	//instance data
+
+	QComboBox *mCombo = nullptr;
+
+
+	//construction / destruction
+
+public:
+	CRadsDatasetsTreeWidgetItem( const std::vector< CRadsMission > &missions, CRadsDataset *dataset, QTreeWidget *view );
+
+	virtual ~CRadsDatasetsTreeWidgetItem()
+	{}
+
+
+	//access 
+
+	int currentIndex() const { return mCombo->currentIndex(); }
+
+	void setCurrentIndex( int index ) const { mCombo->setCurrentIndex( index ); }
+
+
+	QString DatasetName() const { return text( 0 ); }
+
+	QString CurrentMission() const { return mCombo->currentText(); }
+
+
+	//overrides / signals / slots
+
+	
+	// Disambiguate parent() function
+	//	- this is an erase, not an override (base function is not virtual)
+	//
+	QTreeWidgetItem* parent() const { return base_t::parent(); }	
+
+
+protected:
+
+	virtual bool operator<(const QTreeWidgetItem &other) const override;
+
+
+	virtual bool eventFilter( QObject *o, QEvent *e ) override;
+
+
+signals:
+	void itemChanged( CRadsDatasetsTreeWidgetItem*, int );
+
+
+protected slots:
+
+	void currentIndexChanged( int index );
+
+};
+
+
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//										CRadsDatasetsTreeWidget
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 class CRadsDatasetsTreeWidget : public CGenericTreeWidget
@@ -47,8 +134,6 @@ class CRadsDatasetsTreeWidget : public CGenericTreeWidget
 
 	using base_t = CGenericTreeWidget;
 
-	friend class CDataExpressionsTreeWidget;
-
 
 	// instance variables
 
@@ -58,21 +143,20 @@ class CRadsDatasetsTreeWidget : public CGenericTreeWidget
 
 	//...domain data
 
-	const CApplicationPaths &mBratPaths;
-	CSharedRadsSettings mRadsServiceSettings;
+	const std::vector< CRadsMission >& mAllAvailableMissions;
 	CWorkspaceDataset *mWDataset = nullptr;
 
 
 	//construction / destruction
 
-	//QTreeWidgetItem* SetRootItem( CField *field );
 public:
-	CRadsDatasetsTreeWidget( const CApplicationPaths &brat_paths, QWidget *parent = nullptr );
+	CRadsDatasetsTreeWidget( const std::vector< CRadsMission >& all_available_missions, QWidget *parent = nullptr );
 
 	virtual ~CRadsDatasetsTreeWidget()
 	{}
 
-	//
+
+	//operations
 
 	void WorkspaceChanged( CWorkspaceDataset *wksd )
 	{
@@ -81,38 +165,23 @@ public:
 
 	QTreeWidgetItem* AddDatasetToTree( const QString &dataset_name );
 
-	bool MissionStateChanged( CWorkspaceOperation *wkso, const QString &dataset_name, QTreeWidgetItem *item );
 
-	//const CField* ItemField( const QTreeWidgetItem *item ) const
-	//{
-	//	return const_cast<CRadsDatasetsTreeWidget*>( this )->ItemField( const_cast<QTreeWidgetItem*>( item ) );
-	//}
-
-
-	void SelectRecord( const std::string &record );		//see COperationPanel::GetOperationRecord
-
-	std::string	GetCurrentFieldDescription() const;
-
+	//overrides / signals / slots
 
 protected:
-
-	//CField* ItemField( QTreeWidgetItem *item );
-	
-	//void SetItemField( QTreeWidgetItem *item, CField *field );
-
-
-	QTreeWidgetItem* GetFirstRecordItem();
-
-	const QTreeWidgetItem* GetFirstRecordItem() const
-	{
-		return const_cast<CRadsDatasetsTreeWidget*>( this )->GetFirstRecordItem();
-	}
+	virtual bool eventFilter( QObject *o, QEvent *e ) override;
 
 
 	virtual void CustomContextMenu( QTreeWidgetItem *item ) override
     {
         Q_UNUSED( item );
     }
+
+
+signals:
+
+	void currentIndexChanged( CRadsDatasetsTreeWidgetItem *item, int index );
+
 
 protected slots:
 

@@ -47,8 +47,8 @@
 #include "GUI/OperationViewsDialog.h"
 #include "GUI/ActiveViewsDialog.h"
 #include "GUI/TabbedDock.h"
-#include "GUI/ControlPanels/DatasetBrowserControls.h"
-#include "GUI/ControlPanels/RadsBrowserControls.h"
+#include "GUI/ControlPanels/DatasetsBrowserControls.h"
+#include "GUI/ControlPanels/DatasetsRadsBrowserControls.h"
 #include "GUI/ControlPanels/BratFilterControls.h"
 #include "GUI/ControlPanels/OperationControls.h"
 #include "GUI/DisplayEditors/Dialogs/ExportImageDialog.h"
@@ -150,7 +150,7 @@ CControlPanel* CBratMainWindow::MakeWorkingPanel( ETabName tab )
 			return new ControlsPanelType< eDataset >::type( mModel, mDesktopManager );
 			break;
 		case eRADS:
-			return new ControlsPanelType< eRADS >::type( mModel, mDesktopManager );
+			return new ControlsPanelType< eRADS >::type( mApp, mDesktopManager );
 			break;
 		case eFilter:
 			return new ControlsPanelType< eFilter >::type( mModel, mDesktopManager );
@@ -172,7 +172,8 @@ void CBratMainWindow::CreateWorkingDock()
 
 	mMainWorkingDock = new CTabbedDock( "Workspace Elements", this );
 	mMainWorkingDock->setObjectName("mMainWorkingDock");
-	mMainWorkingDock->setAllowedAreas( Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea );	//mMainWorkingDock->setMaximumWidth( max_main_dock_width );
+	mMainWorkingDock->setAllowedAreas( Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea );	
+	mMainWorkingDock->setMinimumWidth( min_main_working_dock_width );	
 	addDockWidget( Qt::LeftDockWidgetArea, mMainWorkingDock, Qt::Vertical );
 
 	LOG_TRACE( "Added mMainWorkingDock..." );
@@ -183,7 +184,7 @@ void CBratMainWindow::CreateWorkingDock()
 
 	LOG_TRACE( "Added MakeWorkingPanel( eDataset )..." );
 
-	tab = mMainWorkingDock->AddTab( MakeWorkingPanel( eRADS ), "RADS" );	 			assert__( mMainWorkingDock->TabIndex( tab ) == eRADS );
+	tab = mMainWorkingDock->AddTab( MakeWorkingPanel( eRADS ), "RADS Datasets" );	 	assert__( mMainWorkingDock->TabIndex( tab ) == eRADS );
 	mMainWorkingDock->SetTabToolTip( tab, "RADS Browser" );
 
 	LOG_TRACE( "Added MakeWorkingPanel( eRADS )..." );
@@ -202,12 +203,16 @@ void CBratMainWindow::CreateWorkingDock()
 	connect( WorkingPanel< eOperations >(), SIGNAL( AsyncProcessExecution( bool ) ), this, SLOT( HandleAsyncProcessExecution( bool ) ) );
 
 	action_Satellite_Tracks->setChecked( WorkingPanel< eFilter >()->AutoSatelliteTrack() );
-	//notifications from datasets to filters
+
+	//notifications from datasets to filters (for track plot, not filtering)
 	connect( WorkingPanel< eDataset >(), SIGNAL( CurrentDatasetChanged(CDataset*) ), WorkingPanel< eFilter >(), SLOT( HandleDatasetChanged(CDataset*) ) );
 
 	//notifications from datasets to operations
     connect( WorkingPanel< eDataset >(), SIGNAL( DatasetsChanged(const CDataset*) ), WorkingPanel< eOperations >(), SLOT( HandleDatasetsChanged_Quick(const CDataset*) ) );
     connect( WorkingPanel< eDataset >(), SIGNAL( DatasetsChanged(const CDataset*) ), WorkingPanel< eOperations >(), SLOT( HandleDatasetsChanged_Advanced(const CDataset*) ) );
+
+	connect( WorkingPanel< eRADS >(), SIGNAL( DatasetsChanged(const CDataset*) ), WorkingPanel< eOperations >(), SLOT( HandleDatasetsChanged_Quick(const CDataset*) ) );
+	connect( WorkingPanel< eRADS >(), SIGNAL( DatasetsChanged(const CDataset*) ), WorkingPanel< eOperations >(), SLOT( HandleDatasetsChanged_Advanced(const CDataset*) ) );
 
 	//notifications from filters to operations
     connect( WorkingPanel< eFilter >(), SIGNAL( FiltersChanged() ),							WorkingPanel< eOperations >(), SLOT( HandleFiltersChanged() ) );
@@ -653,7 +658,7 @@ CBratMainWindow::CBratMainWindow( CBratApplication &app )
 
 	, mSettings( mApp.Settings() )
 
-	, mModel( CModel::CreateInstance( mSettings ) )
+	, mModel( mApp.DataModel() )
 
 {
 	LOG_TRACE( "Starting main window construction..." );
@@ -679,7 +684,7 @@ CBratMainWindow::CBratMainWindow( CBratApplication &app )
 
 	CGlobeWidget::SetOSGDirectories( mSettings.BratPaths().mGlobeDir );
 
-	CWorkspaceSettings::SetApplicationPaths( mSettings.BratPaths() );
+	CWorkspaceSettings::InitializeCommonData( mSettings.BratPaths(), mApp.RadsServiceSettings() );
 
     setupUi( this );
     setWindowIcon( QIcon("://images/BratIcon.png") );
@@ -758,13 +763,29 @@ CBratMainWindow::CBratMainWindow( CBratApplication &app )
 	//
 	mApp.LeakExceptions( true );	
 	if ( !mApp.SplashAvailable() )
-		QTimer::singleShot( 0, this, SLOT( LoadCmdLineFiles() ) );
+		QTimer::singleShot( 100, this, SLOT( LoadCmdLineFiles() ) );
 	else
 		LoadCmdLineFiles();
 
 	mApp.EndSplash( this );
 
 
+    // RADS service
+    //
+	if ( mSettings.mDisplayRadsInstallInformation && !mApp.RadsServiceController().isInstalled() )
+	{
+		QTimer::singleShot( 0, this, []() {
+			SimpleMsgBox( "For proper use and update of RADS datasets, the RADS service should be installed on your system.\n\n\
+The service can be installed and configured from the BRAT Options dialog, accessible in the Tools menu." );
+		}
+		);
+		mSettings.mDisplayRadsInstallInformation = false;
+	}
+
+    mApp.ResetRadsSocketConnection();
+	connect( &mApp, &CBratApplication::RadsNotification, this, &CBratMainWindow::HandleRsyncStatusChanged, Qt::QueuedConnection );
+    
+    
     RemoteCount();
 
 
@@ -1538,7 +1559,7 @@ void CBratMainWindow::on_action_Launch_Scheduler_triggered()
 
 void CBratMainWindow::on_action_Options_triggered()
 {
-    CApplicationSettingsDlg dlg( mSettings, this );
+    CApplicationSettingsDlg dlg( mApp, this );
 	if ( dlg.exec() == QDialog::Accepted )
 		emit SettingsUpdated();
 }
@@ -1606,7 +1627,7 @@ void CBratMainWindow::UpdateWindowMenu()
 
 void CBratMainWindow::on_action_About_triggered()
 {
-	SimpleAbout( BRAT_VERSION, PROCESSOR_ARCH, "CNES/ESA" );
+	SimpleAboutBox( BRAT_VERSION, PROCESSOR_ARCH, "CNES/ESA" );
 }
 
 
@@ -1651,6 +1672,32 @@ void CBratMainWindow::on_action_Test_triggered()
 //							UPDATE STATE
 /////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////
+
+
+void CBratMainWindow::HandleRsyncStatusChanged( CBratApplication::ERadsNotification notification )
+{
+    switch ( notification )
+    {
+		case CBratApplication::eNotificationRsyncRunnig:
+		{
+			mMainWorkingDock->SetTabTextColor( 1, Qt::red );
+		}
+		break;
+          
+		case  CBratApplication::eNotificationRsyncStopped:
+		{
+			mMainWorkingDock->SetTabTextColor( 1, Qt::black );
+		}
+		break;
+
+		case  CBratApplication::eNotificationUnknown:
+		{
+			mMainWorkingDock->SetTabTextColor( 1, Qt::yellow );
+		}
+		break;
+    }
+}
+
 
 
 void CBratMainWindow::WorkspaceChangedUpdateUI()

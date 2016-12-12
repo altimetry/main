@@ -92,11 +92,12 @@ private:
 
 	explicit CModel( const CBratSettings &settings );
 
+	virtual ~CModel();
+
 public:
 	static CModel& CreateInstance( const CBratSettings &settings );
 
-	virtual ~CModel();
-
+	static void DestroyInstance();
 
 
 	/////////////

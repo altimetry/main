@@ -209,8 +209,11 @@ bool CBratFilter::GetTimeBounds( CDate &Start, CDate &Stop, const std::string &p
 }
 
 
+// Argument product_label must be the value returned by CProduct::GetLabel()
+//	(or CProductInfo::Label)
+//
 //////// RCCC TODO /////////////////////////////////////
-std::string CBratFilter::GetSelectionCriteriaExpression( CProduct* product ) const
+std::string CBratFilter::GetSelectionCriteriaExpression( const std::string &product_label ) const
 {
     std::string expression;
 
@@ -261,7 +264,7 @@ std::string CBratFilter::GetSelectionCriteriaExpression( CProduct* product ) con
     // TIME filtering expression //
     CDate Start, Stop;
     std::string error_msg;
-    if ( GetTimeBounds( Start, Stop, product->GetLabel(), error_msg ) )
+    if ( GetTimeBounds( Start, Stop, product_label, error_msg ) )
     {
         double start_seconds, stop_seconds;
         Start.Convert2Second( start_seconds ); // NOTE: Although some products have time fields in seconds since 2000-01-01,
@@ -282,9 +285,9 @@ std::string CBratFilter::GetSelectionCriteriaExpression( CProduct* product ) con
 //////////////////////////////////////////////////
 
 
-bool CBratFilter::Apply( const CStringList& files_in, CStringList& files_out, std::string& error_msg ) const
+bool CBratFilter::Apply( const CStringList& files_in, CStringList& files_out, std::string& error_msg, CProgressInterface *pi ) const
 {
-    return CBratFilters::GetInstance().Apply( mName, files_in, files_out, error_msg );
+    return CBratFilters::GetInstance().Apply( mName, files_in, files_out, error_msg, pi );
 }
 
 
@@ -584,7 +587,7 @@ bool CBratFilters::Translate2SelectionCriteria( CProduct *product_ref, const std
 }
 
 
-bool CBratFilters::Apply( const std::string &name, const CStringList& files_in, CStringList& files_out, std::string& error_msg ) const
+bool CBratFilters::Apply( const std::string &name, const CStringList& files_in, CStringList& files_out, std::string& error_msg, CProgressInterface *pi ) const
 {
 #if defined(BRAT_V3)
     return true;
@@ -595,7 +598,7 @@ bool CBratFilters::Apply( const std::string &name, const CStringList& files_in, 
         return false;
 
     CProduct* product = nullptr;
-    bool no_exception_thrown = true;
+    bool filter_applied_complete = true;
 
     try
     {
@@ -675,29 +678,33 @@ bool CBratFilters::Apply( const std::string &name, const CStringList& files_in, 
 
         // 5. Add and apply Criteria (old Dataset Selection Criteria in Brat v.3) //
         product->AddCriteria( product_ref );
-        std::string log_path = mWorkspacesPath + "/" + DATASET_SELECTION_LOG_FILENAME;
-        product->ApplyCriteria( files_out, log_path );
-
+        std::string log_path = files_in.size() > 5000 ? empty_string() : mWorkspacesPath + "/" + DATASET_SELECTION_LOG_FILENAME;
+        if ( !product->ApplyCriteria( files_out, pi, log_path ) )
+		{
+			error_msg.append( "User canceled." );
+			filter_applied_complete = false;
+		}
+		else
         if ( files_out.size() < 1 )
         {
             error_msg.append( "No data available for filter criteria." );
-            return false;
-        }
+			filter_applied_complete = false;
+		}
 
     }
     catch ( CException e )
     {
-        no_exception_thrown = false;
+        filter_applied_complete = false;
     }
     catch ( ... )
     {
-        no_exception_thrown = false;
+        filter_applied_complete = false;
     }
 
 
     delete product;
 
-    return no_exception_thrown;
+    return filter_applied_complete;
 }
 
 

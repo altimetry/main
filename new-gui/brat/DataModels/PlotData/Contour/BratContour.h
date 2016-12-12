@@ -19,7 +19,7 @@
 #define AFX_CONTOUR_H__45A84754_43CD_414A_80A0_9211F954B0DA__INCLUDED_
 
 
-#include "DataModels/ProgressInterface.h"
+#include "common/ProgressInterface.h"
 
 
 // A structure used internally by CBratContour

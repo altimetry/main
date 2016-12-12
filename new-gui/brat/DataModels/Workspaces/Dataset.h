@@ -119,7 +119,7 @@ public:
 	bool CheckFilesExist( std::vector< std::string > &v );
 
 
-	bool ApplyFilter( const CBratFilter *filter, const CDataset *original_dataset, std::string &error_msg );
+	bool ApplyFilter( const CBratFilter *filter, const CDataset *original_dataset, std::string &error_msg, CProgressInterface *pi );
 
 
 	virtual const std::string& GetFirstFile() const { return *m_files.begin(); }
@@ -198,23 +198,43 @@ public:
 	CProduct* SafeOpenProduct( const std::string& fileName ) const;
 	CProduct* SafeOpenProduct() const;
 
+#if defined(BRAT_V3)
 
 	//Dump function
 
 	virtual void Dump( std::ostream& fOut = std::cerr );
+#endif
 };
 
 
 
 
-// Constructs and opens a product based on passed file or on the first file of the dataset
+// Constructs and opens a product based on 
+//	- passed file or 
+//	- the first file of the dataset or
+//	- existing product, when one is already at hand
 //
-//	- Centralizes most (if not all) uses made by brat v3 of CProduct, and those uses were 
+// Centralizes most (if not all) uses made by brat v3 of CProduct, and those uses were 
 //		always made based on a passed file (typically a dataset candidate) or on the first 
-//		file of the dataset
+//		file of the dataset.
 //
-class CProductInfo
+// When an unfiltered product is enough, use this class and not CProduct
+//
+class CProductInfo : public non_copyable
 {
+	//types
+
+	using base_t = non_copyable;
+
+	
+	//statics
+
+public:
+	static const CProductInfo smInvalidProduct;
+
+
+private:
+
 	//instance data 
 
 	bool mValid = false;
@@ -229,10 +249,16 @@ class CProductInfo
 
 	std::string mRecord;
 
+	
 	//construction / destruction
 
 	void ExtractInfo();
+
+	//	An always INVALID product (to be used where null product pointers were used
+	//
+	CProductInfo();
 public:
+
 	//	Always call Valid after construction and do not use if false
 	//	Construction errors retrieved in mErrorMessages
 	//
@@ -242,32 +268,80 @@ public:
 
 	virtual ~CProductInfo();
 
-	// properties
+
+	// Properties
 
 	const bool IsValid() const { return mValid; }
 
-	brathl_refDate GetRefDate() const;
-
 	const std::string& ErrorMessages() const { return mErrorMessages; }
+
+
+	//...ref date
+
+	brathl_refDate RefDate() const;
+
+
+	//...record
 
 	const std::string& Record() const { return mRecord; }
 
-	const std::vector< const CField* >& Fields() const { return mFields; }
 
-	bool IsNetCdf() const;
-	bool IsNetCdfOrNetCdfCF() const;
-	bool HasAliases() const;
+	//...classification
 
 	const std::string& Type() const;
 	const std::string& Class() const;
 	const std::string& Description() const;
+	std::string ProductClassAndType() const;
+	bool IsNetCdf() const;
+	bool IsNetCdfOrNetCdfCF() const;
+	const std::string Label() const;
 
 
-	const std::string& FindAliasValue( const std::string &alias_name );
+	//...aliases
 
-	std::pair<CField*, CField*> FindLonLatFields( bool try_unsupported, bool &lon_alias_used, bool &lat_alias_used, std::string &field_error_msg );
+	bool HasAliases() const;
 
-	CField* FindTimeField( bool try_unsupported, bool &alias_used, std::string &field_error_msg );
+	const std::string& FindAliasValue( const std::string &alias_name ) const;
+
+	void AliasKeys( CStringArray& keys ) const;
+
+	std::string AliasExpandedValue( const std::string &key ) const;
+
+	const CProductAlias* Alias( const std::string &key ) const;
+
+	const CStringMap* AliasesAsString() const;
+
+	void ReplaceNamesCaseSensitive( const std::string &in, std::string &out, bool force_reload = false ) const;
+	void ReplaceNamesCaseSensitive( const CExpression& expr_in, const CStringArray& fields_in, CExpression& expr_out, bool force_reload = false ) const;
+
+
+
+	//...fields
+
+	// Caution: this is a flattening of the tree structure (when you only need an unstructured list)
+	//
+	const std::vector< const CField* >& Fields() const { return mFields; }
+
+	bool IsLongitudeFieldName( const std::string& name ) const;
+	bool IsLatitudeFieldName( const std::string& name ) const;
+
+
+	std::pair<CField*, CField*> FindLonLatFields( bool try_unsupported, bool &lon_alias_used, bool &lat_alias_used, std::string &field_error_msg ) const;
+
+	CField* FindTimeField( bool try_unsupported, bool &alias_used, std::string &field_error_msg ) const;
+
+	CField* FindFieldByName( const std::string& field_name, const std::string& dataset_name, std::string &error_msg ) const;
+	CField* FindFieldByName( const std::string& field_name, std::string &error_msg ) const;
+
+	bool CheckFieldNames( const CExpression &expr, const std::string &dataset_name, CStringArray &field_names_not_found ) const;
+
+	bool AddRecordNameToField( const CExpression &expr, const std::string &dataset_name, CExpression &expr_out, std::string &error_msg ) const;
+	bool AddRecordNameToField( const std::string &in, const std::string &dataset_name, std::string &out, std::string &error_msg ) const;
+
+
+	//...dimensions
+
+	bool HasCompatibleDims( const std::string &value, const std::string &dataset_name, std::string &msg, bool use_virtual_dims, CUIntArray *common_dimensions = nullptr ) const;
 };
 
 

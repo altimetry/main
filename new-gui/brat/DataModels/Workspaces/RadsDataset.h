@@ -31,6 +31,8 @@ class CRadsDataset : public CDataset
 
 	//instance data
 
+	// See note in class declaration "access" section
+	//
 	std::vector< CRadsMission > mMissions;
 	std::string mPath;
 
@@ -74,16 +76,23 @@ public:
 
 	//access
 
+	//NOTE: the function names reflect the initial concept of multiple missions per dataset.
+	//	This naming concept was preserved, but in fact only one mission per dataset is 
+	//	implemented (rads missions have different product types). So, we have a RemoveAllMissions 
+	//	(which simply clears all), but not a RemoveMission (which would be more selective and time 
+	//	consuming, removing only a specific mission's files).	
+
 	const std::vector< CRadsMission >& Missions() const { return mMissions; }
 
-
-	bool AddMission( const std::string &rads_server_address, const std::string &local_rads_dir, const CRadsMission &mission, std::string &warnings );
-	bool RemoveMission( const std::string &rads_server_address, const std::string &local_rads_dir, const CRadsMission &mission );
+	bool SetMission( const std::string &rads_server_address, const std::string &local_rads_dir, const CRadsMission &mission, std::string &warnings );
 
     bool HasMission( const std::string &mission_name ) const;
     
 protected:
+	bool AddMission( const std::string &rads_server_address, const std::string &local_rads_dir, const CRadsMission &mission, std::string &warnings );
+	bool RemoveAllMissions( const std::string &rads_server_address, const std::string &local_rads_dir );
 	bool AddMissionFiles( const std::vector< std::string > &paths, std::string &warnings );
+	bool SetMissionFiles( const std::vector< std::string > &paths, std::string &warnings );
 };
 
 /** @} */

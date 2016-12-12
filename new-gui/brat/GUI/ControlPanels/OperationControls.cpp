@@ -19,6 +19,7 @@
 
 #include "libbrathl/TreeField.h"
 #include "libbrathl/Field.h"
+#include "process/BratProcessExportAscii.h"
 
 #include "new-gui/Common/QtUtils.h"
 #include "new-gui/Common/DataModels/TaskProcessor.h"
@@ -33,6 +34,7 @@
 #include "DataModels/Workspaces/Function.h"
 
 #include "GUI/ActionsTable.h"
+#include "GUI/ProgressDialog.h"
 #include "GUI/DisplayEditors/MapEditor.h"
 #include "GUI/DisplayEditors/PlotEditor.h"
 
@@ -44,8 +46,9 @@
 
 #include "DataExpressionsTreeWidgets.h"
 #include "OperationControls.h"
+#include "OperationControls.h"
 
-#include "process/BratProcessExportAscii.h"
+#include "new-gui/brat/BratSettings.h"
 
 
 
@@ -886,7 +889,7 @@ void COperationControls::HandleFilterCompositionChanged( std::string filter_name
 		if ( operation->FilterName() == filter_name )
 		{
 			applied = true;
-			if ( !operation->ReapplyFilter( error_msg ) )
+			if ( !operation->ReapplyFilter() )
 			{
 				global_error_msg += ( "Operation '" + operation->GetName() + "': " + error_msg );
 				result = false;
@@ -1053,14 +1056,14 @@ bool COperationControls::UpdateDatasetSelection( const CDataset *dataset )
 		std::string error_msg;
 		try
 		{
-			const CDataset *filtered_dataset = mCurrentOperation ? const_cast<const COperation*>( mCurrentOperation )->Dataset() : mCurrentOriginalDataset;
+			const CDataset *filtered_dataset = mCurrentOperation ? mCurrentOperation->OriginalDataset() : mCurrentOriginalDataset;
 			mProduct = filtered_dataset->OpenProduct();
-			if ( mCurrentOperation )
-			{
-				mCurrentOperation->SetProduct( mProduct );		assert__( filtered_dataset == const_cast<const COperation*>( mCurrentOperation )->Dataset() );
-			}
+			//if ( mCurrentOperation )
+			//{
+			//	mCurrentOperation->SetProduct( mProduct );		assert__( filtered_dataset == const_cast<const COperation*>( mCurrentOperation )->Dataset() );
+			//}
 		}
-		catch ( CException& e )
+		catch ( const CException& e )
 		{
 			error_msg = std::string( "Unable to process files.\nReason:\n" ) + e.what();
 			mProduct = nullptr;
@@ -1106,11 +1109,11 @@ bool COperationControls::UpdateSelectedDatasetAdvancedSelection()
 //		clearing operation dataset and product if null dataset
 // - Tries to open dataset product
 // - Keeps operation and (filtered) dataset association intact if anything above fails
-// - Makes SelectDataset( dataset ) if succeeds
+// - Makes UpdateDatasetSelection( dataset ) if succeeds
 //
 bool COperationControls::AssignDataset( const std::string &new_dataset_name, bool changing_used_dataset )
 {
-	CProduct *new_product = nullptr;
+	assert__( !changing_used_dataset || mCurrentOperation );
 
 	// Try to assign new dataset
 	//
@@ -1118,31 +1121,19 @@ bool COperationControls::AssignDataset( const std::string &new_dataset_name, boo
 	{
 		if ( mCurrentOperation )
 		{
-			mCurrentOperation->RemoveDataset();
-			mCurrentOperation->SetProduct( nullptr );
+			mCurrentOperation->RemoveOriginalDataset();		//calls InvalidateProduct();
 		}
 	}
 	else
 	{
-		const CDataset *filtered_dataset = nullptr;
-		std::string saved_dataset_name;
-		if ( mCurrentOperation )
-		{
-			saved_dataset_name = mCurrentOperation->OriginalDatasetName();
-			std::string error_msg;
-			if ( !mCurrentOperation->SetOriginalDataset( mWDataset, new_dataset_name, error_msg ) )
-				LOG_WARN( error_msg );															   	//failure means filter failure, not dataset assignment failure
-            filtered_dataset = const_cast<const COperation*>( mCurrentOperation )->Dataset();
-		}
-		else
-			filtered_dataset = mWDataset->GetDataset( new_dataset_name );
-
+		CProduct *new_product = nullptr;			
+		const CDataset *dataset = mWDataset->GetDataset( new_dataset_name );
 		std::string error_msg;
 		try
 		{
-			new_product = filtered_dataset->OpenProduct();
+			new_product = dataset->OpenProduct();
 		}
-		catch ( CException& e )
+		catch ( const CException &e )
 		{
 			error_msg = std::string( "Unable to process files.\nReason:\n" ) + e.what();
 			new_product = nullptr;
@@ -1150,33 +1141,43 @@ bool COperationControls::AssignDataset( const std::string &new_dataset_name, boo
 
 		if ( new_product == nullptr )
 		{
-			if ( error_msg.empty() )	//no exception, assume empty original or filtered dataset
+			if ( error_msg.empty() )	//no exception, assume empty original (not filtered) dataset
 			{
 				LOG_WARN( "Unable to set Product\nPerhaps dataset file list is empty or product file doesn't exist." );
 			}
 			else
 			{
 				SimpleErrorBox( error_msg );
-				if ( mCurrentOperation )
-				{
-					if ( !mCurrentOperation->SetOriginalDataset( mWDataset, saved_dataset_name, error_msg ) )
-						LOG_WARN( error_msg );
-				}
 				return false;
 			}
 		}
 
-		if ( changing_used_dataset && !CDataExpressionsTreeWidget::SelectRecord( this, mCurrentOperation, new_product ) )
+		std::string record;
+		if ( changing_used_dataset && new_product )	//&& new_product: SelectRecord always fails with null product. So, unlike v4.0, if changing_used_dataset allow empty dataset
 		{
-			SimpleErrorBox( "You have not selected a record name.\nDataset has not been changed.\nChanging operation dataset is canceled." );
-			if ( !mCurrentOperation->SetOriginalDataset( mWDataset, saved_dataset_name, error_msg ) )
-				LOG_WARN( error_msg );
-			delete new_product;
-			return false;
+			auto record_result = CDataExpressionsTreeWidget::SelectRecord( this, new_product );
+			if ( record_result.first )
+				record = record_result.second;
+			else
+			{
+				SimpleErrorBox( "You have not selected a record name.\nDataset has not been changed.\nChanging operation dataset is canceled." );
+				return false;
+			}
+		}
+
+		delete new_product;
+
+		if ( mCurrentOperation )
+		{
+			std::string error_msg;
+			if ( !mCurrentOperation->SetOriginalDataset( mWDataset, new_dataset_name, error_msg ) )
+			{
+				ResetFilterSelection();
+				LOG_WARN( error_msg );															   	//failure means filter failure, not dataset assignment failure
+			}
+			mCurrentOperation->SetRecord( record );
 		}
 	}
-
-	delete new_product;
 
 	// At this point, assume dataset assignment was OK. Update GUI and internal state
 
@@ -1343,6 +1344,7 @@ void COperationControls::ResetFilterActions()
 }
 
 
+//static
 bool COperationControls::AssignFilter( const CBratFilters &brat_filters, COperation *operation, const std::string &name )
 {
 	assert__( operation );
@@ -1814,206 +1816,224 @@ void COperationControls::UpdateSamplingGroup()
 
 
 // At old Brat -> CResolutionDlg::GetMinmax(CFormula* formula).
-void COperationControls::GetDataMinMax(CFormula* formula)
+void COperationControls::GetDataMinMax( CFormula* formula )
 {
-    if ( formula == nullptr )
-        return;
+	if ( formula == nullptr )
+		return;
 
-    CProduct* product = mCurrentOperation->GetProduct();
-    if ( product == nullptr )
-        return;
+	//RCCC: why ?!
+	//CProduct* product = mCurrentOperation->GetProduct();
+	//if ( product == nullptr )
+	//    return;
 
-    WaitCursor wait;
+	WaitCursor wait;
 
-    ///////////////////////////////
-    /// Get product temp object  //
-    ///////////////////////////////
-    // Don't use product of operation object to read data
-    // because reading reload fields info and then we get bad pointer
-    // So, we use a CProduct temporary object (Old Brat comment)
-    CProduct* productTmp = nullptr;
+	///////////////////////////////
+	/// Get product temp object  //
+	///////////////////////////////
+	// Don't use product of operation object to read data
+	// because reading reload fields info and then we get bad pointer
+	// So, we use a CProduct temporary object (Old Brat comment)
+	CProduct* product_tmp = nullptr;
 
-    QString errorMsg;
-    bool is_Ok = true;
-    try
-    {
-        const COperation *currentOperation = mCurrentOperation;
-        const CProductList *currentProductList = currentOperation->Dataset()->GetProductList();
+	std::string error_msg;
+	bool is_Ok = true;
+	const CDataset *filtered_dataset = nullptr;
 
-        productTmp = CProduct::Construct( *currentProductList );
-    }
-    catch ( const CException &e )
-    {
-        errorMsg = e.what();
-        is_Ok    = false;
-    }
-    catch ( const std::exception &e )
-    {
-        errorMsg = e.what();
-        is_Ok    = false;
-    }
-    catch ( ... )
-    {
-        errorMsg = " Unexpected error while getting product (runtime error).";
-        is_Ok    = false;
-    }
+	auto filtering_confirmation = ConfirmFiltering( mCurrentOperation );
+	if ( !filtering_confirmation.first )
+		is_Ok = false;
+	else
+	{
+		auto filtered_result = mCurrentOperation->FilteredDataset( error_msg, filtering_confirmation.second );
+		is_Ok = filtered_result.first;
+		//
+		// IMPORTANT: calling GetDataMinMax assumes mCurrentOperation->OriginalDataset exists, otherwise 
+		//	filtered_result.first can be true and filtered_result.second (the filtered dataset) can be null 
+		//
+		if ( is_Ok )
+			filtered_dataset = filtered_result.second;
+	}
 
-    if ( !is_Ok )
-    {
-        wait.Restore(); // restore wait cursor
-        SimpleWarnBox( QString("Unable to get min/max values - Reason:\n%1").arg( errorMsg ) );
-        return;
-    }
+	if ( is_Ok )
+	{
+		try
+		{
+			product_tmp = CProduct::Construct( *filtered_dataset->GetProductList() );
+		}
+		catch ( const CException &e )
+		{
+			error_msg = e.what();
+			is_Ok    = false;
+		}
+		catch ( const std::exception &e )
+		{
+			error_msg = e.what();
+			is_Ok    = false;
+		}
+		catch ( ... )
+		{
+			error_msg = " Unexpected error while getting product (runtime error).";
+			is_Ok    = false;
+		}
+	}
 
-    ///////////////////////////////
-    /// Get product Min and Max  //
-    ///////////////////////////////
-    bool resultGetCoverage = false;
-    try
-    {
-        if ( formula->IsTimeDataType() )  // Date time type
-        {
-            CDatePeriod datePeriod;
-            resultGetCoverage = productTmp->GetDateMinMax( datePeriod );
+	if ( !is_Ok )
+	{
+		wait.Restore(); // restore wait cursor
+		SimpleWarnBox( "Unable to get min/max values - Reason:\n" + error_msg );
+		return;
+	}
 
-            if ( formula->IsXType() )  // X formula
-            {
-                mXLonMinValue->setText( datePeriod.GetFrom().AsString().c_str() );
-                mXLonMaxValue->setText( datePeriod.GetTo().AsString().c_str() );
-            }
-            else if ( formula->IsYType() )  // Y formula
-            {
-                mYLatMinValue->setText( datePeriod.GetFrom().AsString().c_str() );
-                mYLatMaxValue->setText( datePeriod.GetTo().AsString().c_str() );
-            }
-        }
-        else if ( formula->IsLatLonDataType() )  // Latitude/Longitude type
-        {
-            double latMin, latMax, lonMin, lonMax;
-            resultGetCoverage = productTmp->GetLatLonMinMax( latMin, lonMin, latMax, lonMax );
+	///////////////////////////////
+	/// Get product Min and Max  //
+	///////////////////////////////
+	bool resultGetCoverage = false;
+	try
+	{
+		if ( formula->IsTimeDataType() )  // Date time type
+		{
+			CDatePeriod datePeriod;
+			resultGetCoverage = product_tmp->GetDateMinMax( datePeriod );
 
-            latMin = formula->ConvertToFormulaUnit( latMin );
-            latMax = formula->ConvertToFormulaUnit( latMax );
-            lonMin = formula->ConvertToFormulaUnit( lonMin );
-            lonMax = formula->ConvertToFormulaUnit( lonMax );
+			if ( formula->IsXType() )  // X formula
+			{
+				mXLonMinValue->setText( datePeriod.GetFrom().AsString().c_str() );
+				mXLonMaxValue->setText( datePeriod.GetTo().AsString().c_str() );
+			}
+			else if ( formula->IsYType() )  // Y formula
+			{
+				mYLatMinValue->setText( datePeriod.GetFrom().AsString().c_str() );
+				mYLatMaxValue->setText( datePeriod.GetTo().AsString().c_str() );
+			}
+		}
+		else if ( formula->IsLatLonDataType() )  // Latitude/Longitude type
+		{
+			double latMin, latMax, lonMin, lonMax;
+			resultGetCoverage = product_tmp->GetLatLonMinMax( latMin, lonMin, latMax, lonMax );
 
-            double valueMin = 0.0;
-            double valueMax = 0.0;
+			latMin = formula->ConvertToFormulaUnit( latMin );
+			latMax = formula->ConvertToFormulaUnit( latMax );
+			lonMin = formula->ConvertToFormulaUnit( lonMin );
+			lonMax = formula->ConvertToFormulaUnit( lonMax );
 
-            if ( formula->IsLonDataType() ) // Is Longitude
-            {
-                valueMin = lonMin;
-                valueMax = lonMax;
-            }
-            else                            // Is Latitude
-            {
-                if ( !isDefaultValue( productTmp->GetForceLatMinCriteriaValue() ) ) // Has Min Lat (Ex: Jason2 Min Lat=-67)
-                {
-                    CExpression expr = formula->GetDescription( true, &mMapFormulaString, productTmp->GetAliasesAsString() );
-                    productTmp->GetValueMinMax( expr,
-                                                mCurrentOperation->GetRecord(),
-                                                valueMin,
-                                                valueMax,
-                                                *(formula->GetUnit() ));
-                }
-                else
-                {
-                    valueMin = latMin;
-                    valueMax = latMax;
-                }
-            }
-            if (formula->IsXType())
-            {
-                mXLonMinValue->setText( n2q(valueMin) );
-                mXLonMaxValue->setText( n2q(valueMax) );
-            }
-            else if (formula->IsYType())
-            {
-                mYLatMinValue->setText( n2q(valueMin) );
-                mYLatMaxValue->setText( n2q(valueMax) );
-            }
-        }
+			double valueMin = 0.0;
+			double valueMax = 0.0;
 
-        if ( !resultGetCoverage ) // If failed in determining Max/min date or Lat/Lon or field has other type of info
-        {
-            double valueMin = 0.0;
-            double valueMax = 0.0;
-            CExpression expr = formula->GetDescription( true, &mMapFormulaString, productTmp->GetAliasesAsString() );
-            if ( formula->IsTimeDataType() )
-            {
-                CUnit unit;
-                productTmp->GetValueMinMax( expr,
-                                            mCurrentOperation->GetRecord(),
-                                            valueMin,
-                                            valueMax,
-                                            unit);
+			if ( formula->IsLonDataType() ) // Is Longitude
+			{
+				valueMin = lonMin;
+				valueMax = lonMax;
+			}
+			else                            // Is Latitude
+			{
+				if ( !isDefaultValue( product_tmp->GetForceLatMinCriteriaValue() ) ) // Has Min Lat (Ex: Jason2 Min Lat=-67)
+				{
+					CExpression expr = formula->GetDescription( true, &mMapFormulaString, product_tmp->GetAliasesAsString() );
+					product_tmp->GetValueMinMax( expr,
+						mCurrentOperation->GetRecord(),
+						valueMin,
+						valueMax,
+						*( formula->GetUnit() ) );
+				}
+				else
+				{
+					valueMin = latMin;
+					valueMax = latMax;
+				}
+			}
+			if ( formula->IsXType() )
+			{
+				mXLonMinValue->setText( n2q( valueMin ) );
+				mXLonMaxValue->setText( n2q( valueMax ) );
+			}
+			else if ( formula->IsYType() )
+			{
+				mYLatMinValue->setText( n2q( valueMin ) );
+				mYLatMaxValue->setText( n2q( valueMax ) );
+			}
+		}
 
-                CDatePeriod datePeriod( valueMin, valueMax );
+		if ( !resultGetCoverage ) // If failed in determining Max/min date or Lat/Lon or field has other type of info
+		{
+			double valueMin = 0.0;
+			double valueMax = 0.0;
+			CExpression expr = formula->GetDescription( true, &mMapFormulaString, product_tmp->GetAliasesAsString() );
+			if ( formula->IsTimeDataType() )
+			{
+				CUnit unit;
+				product_tmp->GetValueMinMax( expr,
+					mCurrentOperation->GetRecord(),
+					valueMin,
+					valueMax,
+					unit );
 
-                if ( formula->IsXType() )
-                {
-                    mXLonMinValue->setText( datePeriod.GetFrom().AsString().c_str() );
-                    mXLonMaxValue->setText( datePeriod.GetTo().AsString().c_str()   );
-                }
-                else if ( formula->IsYType() )
-                {
-                    mYLatMinValue->setText( datePeriod.GetFrom().AsString().c_str() );
-                    mYLatMaxValue->setText( datePeriod.GetTo().AsString().c_str() );
-                }
-            }
-            else
-            {
-                productTmp->GetValueMinMax( expr,
-                                            mCurrentOperation->GetRecord(),
-                                            valueMin,
-                                            valueMax,
-                                            *(formula->GetUnit()) );
+				CDatePeriod datePeriod( valueMin, valueMax );
 
-                if ( formula->IsXType() )
-                {
-                    mXLonMinValue->setText( n2q(valueMin) );
-                    mXLonMaxValue->setText( n2q(valueMax) );
-                }
-                else if ( formula->IsYType() )
-                {
-                    mYLatMinValue->setText( n2q(valueMin) );
-                    mYLatMaxValue->setText( n2q(valueMax) );
-                }
-            }
-        }
-    }
-    catch ( const CException &e )
-    {
-        errorMsg = e.what();
-        is_Ok    = false;
-    }
-    catch ( const std::exception &e )
-    {
-        errorMsg = e.what();
-        is_Ok    = false;
-    }
-    catch ( ... )
-    {
-        errorMsg = QString(" Unexpected error while getting product (runtime error).");
-        is_Ok    = false;
-    }
+				if ( formula->IsXType() )
+				{
+					mXLonMinValue->setText( datePeriod.GetFrom().AsString().c_str() );
+					mXLonMaxValue->setText( datePeriod.GetTo().AsString().c_str() );
+				}
+				else if ( formula->IsYType() )
+				{
+					mYLatMinValue->setText( datePeriod.GetFrom().AsString().c_str() );
+					mYLatMaxValue->setText( datePeriod.GetTo().AsString().c_str() );
+				}
+			}
+			else
+			{
+				product_tmp->GetValueMinMax( expr,
+					mCurrentOperation->GetRecord(),
+					valueMin,
+					valueMax,
+					*( formula->GetUnit() ) );
 
-    if ( productTmp != nullptr )
-    {
-        delete productTmp;
-        productTmp = nullptr;
-    }
+				if ( formula->IsXType() )
+				{
+					mXLonMinValue->setText( n2q( valueMin ) );
+					mXLonMaxValue->setText( n2q( valueMax ) );
+				}
+				else if ( formula->IsYType() )
+				{
+					mYLatMinValue->setText( n2q( valueMin ) );
+					mYLatMaxValue->setText( n2q( valueMax ) );
+				}
+			}
+		}
+	}
+	catch ( const CException &e )
+	{
+		error_msg = e.what();
+		is_Ok    = false;
+	}
+	catch ( const std::exception &e )
+	{
+		error_msg = e.what();
+		is_Ok    = false;
+	}
+	catch ( ... )
+	{
+		error_msg = " Unexpected error while getting product (runtime error).";
+		is_Ok    = false;
+	}
 
-    if ( !is_Ok )
-    {
-        SimpleWarnBox( QString("Unable to get min/max values - Reason:\n%1").arg( errorMsg ) );
-        return;
-    }
+	if ( product_tmp != nullptr )
+	{
+		delete product_tmp;
+		product_tmp = nullptr;
+	}
 
-    ///////////////////////////////////////////////////////
-    /// Verify values, compute interval, update mformula //
-    ///////////////////////////////////////////////////////
-    ValidateData();
+	if ( !is_Ok )
+	{
+		SimpleWarnBox( "Unable to get min/max values - Reason:\n" + error_msg );
+		return;
+	}
+
+	///////////////////////////////////////////////////////
+	/// Verify values, compute interval, update mformula //
+	///////////////////////////////////////////////////////
+	ValidateData();
 }
 
 
@@ -2050,7 +2070,8 @@ bool COperationControls::VerifyMinMaxAsDate( CFormula *formula, QLineEdit *LineE
     ////////////////////////////////////////////////////////////////////////
     /// GetCtrlMinMaxAsDate(formula, ctrlMin, ctrlMax) -> Old method BratV3
     ////////////////////////////////////////////////////////////////////////
-    CProduct* product = mCurrentOperation->GetProduct();
+    
+	CProductInfo pi( mCurrentOperation->OriginalDataset() );		//CProduct* product = mCurrentOperation->GetProduct();
 
     CDate dateMin, dateMax;
     double min = 0.0;
@@ -2058,9 +2079,9 @@ bool COperationControls::VerifyMinMaxAsDate( CFormula *formula, QLineEdit *LineE
 
     dateMin.InitDateZero();
 
-    if (product != nullptr)
+    if ( pi.IsValid() )
     {
-        dateMin.SetDate(0.0, product->GetRefDate());
+        dateMin.SetDate( 0.0, pi.RefDate() );
     }
 
     dateMax.SetDateNow();
@@ -2201,8 +2222,8 @@ bool COperationControls::VerifyMinMax( CFormula *formula, QLineEdit *LineEdit_Mi
         return true;
 
     // Chech if min>=max ////////////
-    std::string errorMsg = "Resolution for '" + formula->GetName() + "': ";
-    if ( !formula->CtrlMinMaxValue(errorMsg) )
+    std::string error_msg = "Resolution for '" + formula->GetName() + "': ";
+    if ( !formula->CtrlMinMaxValue(error_msg) )
     {
         // Set default values into formula and LineEdit //
         formula->SetMinValue( minDefault );
@@ -2211,7 +2232,7 @@ bool COperationControls::VerifyMinMax( CFormula *formula, QLineEdit *LineEdit_Mi
         LineEdit_Min->setText( isDefaultValue(minDefault) ? "" : n2q(minDefault) );
         LineEdit_Max->setText( isDefaultValue(maxDefault) ? "" : n2q(maxDefault) );
 
-        SimpleWarnBox( t2q(errorMsg) );
+        SimpleWarnBox( t2q(error_msg) );
         return false;
     }
 
@@ -2276,8 +2297,8 @@ void COperationControls::ComputeXYInterval()
 bool COperationControls::ComputeInterval( CFormula *formula, QLabel *IntervalsLabel, QLineEdit* StepLineEdit, QLabel *IconWarning )
 {
     // Compute interval of the formula
-    std::string errorMsg;
-    bool Ok = formula->ComputeInterval( errorMsg );
+    std::string error_msg;
+    bool Ok = formula->ComputeInterval( error_msg );
 
     // Update warning icon
     if ( !Ok )
@@ -2578,11 +2599,15 @@ void COperationControls::HandleNewOperation()
 		dataset_name = q2a( mAdvancedDatasetsCombo->itemText( dataset_index ) );
 		dataset = mWDataset->GetDataset( dataset_name );						assert__( dataset );
 	}
-	if ( dataset_index < 0 || dataset->IsEmpty() )
+	if ( dataset_index < 0 )
 	{
-		SimpleErrorBox( "Cannot create an operation without a dataset or with an empty one.\nPlease, select a valid dataset first." );
+		SimpleErrorBox( "Cannot create an operation without a dataset.\nPlease, select a valid dataset first." );
 		return;
 	}
+
+	auto result = ValidatedInputString( "Operation Name", mWOperation->GetOperationNewName(), "New Operation..." );
+	if ( !result.first )
+		return;
 
 	WaitCursor wait;
 
@@ -2594,7 +2619,7 @@ void COperationControls::HandleNewOperation()
 
 	// 1. create and insert operation
 
-	std::string op_name = mWOperation->GetOperationNewName();
+	std::string op_name = result.second;
 	if ( !mWOperation->InsertOperation( op_name ) )		//v4 this is weired: call to GetOperationNewName ensures not existing name
 	{
 		SimpleErrorBox( "Operation '" + op_name + "' already exists" );
@@ -2648,12 +2673,12 @@ void COperationControls::HandleNewOperation()
 	std::string error_msg;
 	if ( !mCurrentOperation->SetOriginalDataset( mWDataset, dataset_name, error_msg ) )
 		SimpleWarnBox( error_msg );
-	mCurrentOperation->SetProduct( mProduct );
+	//mCurrentOperation->SetProduct( mProduct );
 
 	// 6. Add new operation to GUI lits and select it (possibly triggers all handling operation change sequence)
 
-																			mOperationsCombo->addItem( op_name.c_str() );
-																			mOperationsCombo->setCurrentIndex( mOperationsCombo->findText( op_name.c_str() ) );
+	mOperationsCombo->addItem( op_name.c_str() );
+	mOperationsCombo->setCurrentIndex( mOperationsCombo->findText( op_name.c_str() ) );
 
 	// 7. Select and re-assign operation record (v3 technique: amounts to update GUI with operation record and assign one to operation if none assigned)
 
@@ -2772,7 +2797,7 @@ void COperationControls::HandleDuplicateOperation()
 
     std::string op_name = mWOperation->GetOperationCopyName( mCurrentOperation->GetName() );
 
-    if ( !mWOperation->InsertOperation( op_name, mCurrentOperation, mWDataset ) )
+	if ( !mWOperation->InsertOperation( op_name, mCurrentOperation, mWDataset ) )
     {
         SimpleMsgBox( "Operation '" + op_name + "' already exists" );
 //        GetOpnames()->SetStringSelection(mCurrentOperation->GetName());
@@ -3299,6 +3324,30 @@ void COperationControls::HandleProcessFinished( int exit_code, QProcess::ExitSta
 }
 
 
+std::pair< bool, CProgressInterface* > COperationControls::ConfirmFiltering( const COperation *operation )
+{
+	CProgressInterface *progress = nullptr;
+	if ( operation->Filter() && !operation->HasFilteredDataset() )
+	{ 
+		if ( operation->OriginalDataset()->GetProductList()->size() > mModel.Settings().MinimumFilesToWarnUser() && !SimpleQuestion(
+			"Dataset of operation '"
+			+ operation->GetName()
+			+ "' has " + n2s<std::string>( operation->OriginalDataset()->GetProductList()->size() ) + " files and the filter '"
+			+ operation->Filter()->Name()
+			+ "' is about to be applied to it. This operation can take a long time to execute.\n\nDo you want to proceed?" ) 
+			)
+			return{ false, nullptr };
+
+		CProgressDialog *progress_dlg = new CProgressDialog( "Applying filter...", "Cancel", 0, 100, parentWidget() );
+		progress_dlg->setAttribute( Qt::WA_DeleteOnClose );
+		progress = progress_dlg;
+		progress_dlg->show();
+	}
+
+	return{ true, progress };
+}
+
+
 bool COperationControls::Execute( EExecutionType type, COperation *operation, bool sync, post_execution_handler_t post_execution_handler )
 {
     //static int n = 0;
@@ -3354,8 +3403,16 @@ bool COperationControls::Execute( EExecutionType type, COperation *operation, bo
 
 
 	//BuildCmdFile(); == following 
+	CProgressInterface *progress = nullptr;
+	if ( type == EExecutionType::eOperation )
+	{
+		auto filtering_confirmation = ConfirmFiltering( operation );
+		if ( !filtering_confirmation.first )
+			return false;
+		progress = filtering_confirmation.second;
+	}
 	std::string error_msg;
-	if ( !operation->BuildCmdFile( type, mWFormula, mWOperation, error_msg ) )	//v3 didn't seem to care if this fails
+	if ( !operation->BuildCmdFile( type, mWFormula, mWOperation, error_msg, progress ) )	//v3 didn't seem to care if this fails
 	{
 		assert__( !error_msg.empty() );
 
@@ -3363,6 +3420,8 @@ bool COperationControls::Execute( EExecutionType type, COperation *operation, bo
 		return false;
 	}
 
+
+	//Confirm execution
 
 	if ( !SimpleQuestion(
 		"A process for the operation '"
@@ -3417,8 +3476,16 @@ CBratTask* COperationControls::Schedule( EExecutionType type, const QDateTime &a
 	WaitCursor wait;
 
 	//BuildCmdFile(); == following 
+	CProgressInterface *progress = nullptr;
+	if ( type == EExecutionType::eOperation )
+	{
+		auto filtering_confirmation = ConfirmFiltering( mCurrentOperation );
+		if ( !filtering_confirmation.first )
+			return false;
+		progress = filtering_confirmation.second;
+	}
 	std::string error_msg;
-	if ( !exporting_netcdf && !mCurrentOperation->BuildCmdFile( type, mWFormula, mWOperation, error_msg ) )	//v3 didn't seem to care if this fails
+	if ( !exporting_netcdf && !mCurrentOperation->BuildCmdFile( type, mWFormula, mWOperation, error_msg, progress ) )	//v3 didn't seem to care if this fails
 	{
 		assert__( !error_msg.empty() );
 

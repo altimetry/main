@@ -174,13 +174,13 @@ CActionInfo ActionsTable[ EActionTags_size ] =
 
     { eAction_DataDisplayProperties, "", CActionInfo::FormatTip("Vector Plot Properties\nSet selected field as East or North component."), ":images/OSGeo/vector_plot.png" },
 
-	{ eAction_InstallRadsService, "", CActionInfo::FormatTip("Install\nInstall/Uninstall RADS service in operating system."), ":images/ledoff.png", ":images/ledon.png" },
+	{ eAction_InstallRadsService, "Install service", CActionInfo::FormatTip("Installation\nInstall/Uninstall RADS service in operating system."), ":images/ledoff.png", ":images/ledon.png" },
 
-	{ eAction_StartRadsService, "", CActionInfo::FormatTip("Run\nStart/Stop checking RADS for updated data."), ":/images/themes/default/media/media-seek-forward-16.png", ":/images/themes/default/media/media-stop-16.png" },
+	{ eAction_StartRadsService, "Enable service", CActionInfo::FormatTip("Execution\nEnable or prevent RADS service from running."), ":/images/themes/default/media/media-play-16.png", ":/images/themes/default/media/media-stop-16.png" },		//:/images/themes/default/media/media-seek-forward-16.png
 
-	{ eAction_PauseRadsService, "", CActionInfo::FormatTip("Suspend\nPause/Resume data synchronization with RADS."), ":/images/themes/default/media/media-pause-16.png", ":/images/themes/default/media/media-play-16.png" },
+	{ eAction_PauseRadsService, "", CActionInfo::FormatTip("Suspend\nPause/Resume data synchronization with RADS."), ":/images/themes/default/media/media-play-16.png", ":/images/themes/default/media/media-pause-16.png" },
 
-	{ eAction_ExecuteRadsService, "", CActionInfo::FormatTip("Execute\nExecute immediate data synchronization with RADS."), ":/images/OSGeo/execute.png" },
+	{ eAction_ExecuteRadsService, "Synchronize now...", "Synchronize with RADS immediately.\n(To interrupt, disable and re-enable the service)", ":/images/OSGeo/execute.png" },
 
 };
 

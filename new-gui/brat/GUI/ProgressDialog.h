@@ -20,7 +20,7 @@
 
 #include <QProgressDialog>
 
-#include "DataModels/ProgressInterface.h"
+#include "common/ProgressInterface.h"
 
 
 

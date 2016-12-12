@@ -72,6 +72,7 @@
 #include <QResource>
 #include <QThread>
 #include <QUrl>
+#include <QTimer>
 
 
 #include "QtUtilsIO.h"	// QtUtilsIO.h => QtStringUtils.h => +Utils.h
@@ -170,27 +171,13 @@ public:
 //                  Simple Message Boxes
 ///////////////////////////////////////////////////////////////////
 
-// DO NOT DELETE: serve as reference for comparison with the implementation 
-//					style below	(better, see comment there)
-//
-inline void SimpleMsgBox2( const QString &msg )
-{
-    QMessageBox msgBox;
-	msgBox.setIcon( QMessageBox::Information );
-	msgBox.setText( msg );
-    msgBox.exec();
-}
-template< class STRING >
-inline void SimpleMsgBox2( const STRING &msg )
-{
-    SimpleMsgBox2( t2q( msg ) );
-}
-
-
-
 inline QWidget* SetApplicationWindow( QWidget *w = nullptr )
 {
     static QWidget *m = w;
+
+	if ( !m && w )		//allow reassignment if first call was made with nullptr
+		m = w;
+
     return m;
 }
 
@@ -200,7 +187,9 @@ inline QWidget* ApplicationWindow()
     return m ? m : qApp->activeWindow();
 }
 
-inline void SimpleAbout( const std::string &version, const std::string &proc_arch, const std::string &copy_right, std::string app_name = std::string() )
+
+
+inline void SimpleAboutBox( const std::string &version, const std::string &proc_arch, const std::string &copy_right, std::string app_name = std::string() )
 {
 	if ( app_name.empty() )
 		app_name = q2a( QCoreApplication::applicationName() );
@@ -217,12 +206,66 @@ inline bool SimpleSystemOpenFile( const std::string &path )
 	return QDesktopServices::openUrl( QUrl( ( "file:///" + path ).c_str(), QUrl::TolerantMode ) );
 }
 
+
+
+// DO NOT DELETE: serve as reference for comparison with the implementation 
+//	style below	(better, see comment there)
+//	However, auto-close can only be implemented with this style
+//
+inline void SimpleMsgBox2( const QString &msg )
+{
+	QMessageBox msgBox( ApplicationWindow() );
+	msgBox.setIcon( QMessageBox::Information );
+	msgBox.setText( msg );
+	msgBox.exec();
+}
+
+template< class STRING >
+inline void SimpleMsgBox2( const STRING &msg )
+{
+	SimpleMsgBox2( t2q( msg ) );
+}
+
+
+
+inline void AutoCloseMsgBox( QMessageBox::Icon icon, const QString &msg, int nseconds = 5 )
+{
+	QMessageBox msg_box( ApplicationWindow() );
+	msg_box.setIcon( icon );
+	msg_box.setText( msg );
+	QTimer::singleShot( nseconds * 1000, &msg_box, &QMessageBox::close );
+	msg_box.exec();
+}
+
+inline void AutoCloseMsgBox( const QString &msg, int nseconds = 5 )
+{
+	AutoCloseMsgBox( QMessageBox::Information, msg, nseconds );
+}
+template< class STRING >
+inline void AutoCloseMsgBox( const STRING &msg, int nseconds = 5 )
+{
+	AutoCloseMsgBox( t2q( msg ), nseconds );
+}
+
+
+inline void AutoCloseWarnBox( const QString &msg, int nseconds = 5 )
+{
+	AutoCloseMsgBox( QMessageBox::Warning, msg, nseconds );
+}
+template< class STRING >
+inline void AutoCloseWarnBox( const STRING &msg, int nseconds = 5 )
+{
+	AutoCloseWarnBox( t2q( msg ), nseconds );
+}
+
+
 //	The implementations style of these functions is preferable to the one above (SimpleMsgBox2),
 //	not only because they are simpler but also because the appropriate icon is automatically set 
 //	not only in the dialog body but also the application icon is set in the frame: the one above
 //	has the default NULL icon in the frame.
 //	If you get bored of having the redundant titles below in the dialogs frame, just pass nullptr 
 //	instead of the title string and you'll get the application name as title.
+//	However, auto-close can only be implemented with the SimpleMsgBox2 style
 //
 inline QMessageBox::StandardButton SimpleMsgBox( const QString &msg )
 {
@@ -1287,6 +1330,7 @@ inline QSize DefaultSizeHint( const QWidget *w )
 
 const int min_main_window_width = 1024;
 const int min_main_window_height = 728;
+const int min_main_working_dock_width = min_main_window_width / 2;
 
 const auto hchild_ratio = 2. / 3.;
 const auto aspect_ratio = 1. / 2.;	//latitude range == half longitude range

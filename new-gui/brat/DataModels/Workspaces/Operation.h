@@ -150,8 +150,9 @@ protected:
 
 	//instance data
 
-	CProduct *m_product = nullptr;
-	CDataset *mDataset = nullptr;
+//	CProduct *m_product = nullptr;							//v4.1	m_product -> mFilteredProduct
+	CProduct *mFilteredProduct = nullptr;					//v4.1	m_product -> mFilteredProduct
+	CDataset *mFilteredDataset = nullptr;	   				//v4.1: mDataset -> mFilteredDataset
 	const CDataset *mOriginalDataset = nullptr;				//v4
 	const CBratFilter *mFilter = nullptr;					//v4
 	std::string m_record;									//CFormula* m_formula;
@@ -227,7 +228,7 @@ public:
 	virtual ~COperation()
 	{
 		delete mSelectionCriteria;
-		delete mDataset;
+		delete mFilteredDataset;
 	}
 
 
@@ -273,28 +274,33 @@ public:
 	int32_t GetDataMode() const { return m_dataMode; }
 	void SetDataMode( int32_t value ) { m_dataMode = value; }
 
-#if !defined(BRAT_V3)
+#if defined(BRAT_V3)
+	CDataset* Dataset() { return mDataset; }
+#else
 protected:
 #endif
 
-	CDataset* Dataset() { return mDataset; }
-	bool SetFilteredDataset( std::string &error_msg );
+	bool CreateFilteredDataset( std::string &error_msg, CProgressInterface *progress );
+	bool RemoveFilteredDataset();
+	void CopyFilteredDatasetAndProduct( const COperation &o );
+	CDataset* NewFilteredDataset() const;
 
 public:
 	const CDataset* OriginalDataset() const { return mOriginalDataset; }
 	std::string OriginalDatasetName() const;
-	const CDataset* Dataset() const { return mDataset; }
 	bool SetOriginalDataset( const CWorkspaceDataset *wks, const std::string dataset_name, std::string &error_msg );
-	void RemoveDataset();
+	void RemoveOriginalDataset();
+
+	std::pair< bool, const CDataset* > FilteredDataset( std::string &error_msg, CProgressInterface *progress );
+	bool HasFilteredDataset() const { return mFilteredDataset; }
+
 	const CBratFilter* Filter() const { return mFilter; }
 	std::string FilterName() const;
 	bool SetFilter( const CBratFilter *filter, std::string &error_msg );
-	void RemoveFilter();							//always succeeds
-	bool ReapplyFilter( std::string &error_msg );
+	void RemoveFilter();	//always succeeds
+	bool ReapplyFilter();	//obsolete from v4.0: simply calls RemoveFilteredDataset
 
-    CProduct* GetProduct() { return m_product; }
-    CProduct* GetProduct() const { return m_product; }
-	void SetProduct( CProduct* value ) { m_product = value; }
+	//void SetProduct( CProduct* value ) { m_product = value; }
 
 	const CMapFormula* GetFormulas() const { return &m_formulas; }
 	CMapFormula* GetFormulas() { return &m_formulas; }
@@ -309,9 +315,9 @@ public:
 	const CFormula* GetFormula( CMapFormula::const_iterator it ) const;
 	void RemoveFormulas();
 
-	CFormula* NewUserFormula( std::string &error_msg, CField* field, CMapTypeField::ETypeField typeField, bool addToMap = true, const CProduct *product = nullptr );
+	CFormula* NewUserFormula( std::string &error_msg, CField* field, CMapTypeField::ETypeField typeField, bool addToMap = true, const CProductInfo &pi = CProductInfo::smInvalidProduct );
 	CFormula* NewUserFormula( std::string &error_msg, const std::string& name = "", CMapTypeField::ETypeField typeField = CMapTypeField::eTypeOpAsField, 
-		const std::string& strUnit = "", bool addToMap = true, const CProduct *product = nullptr );
+		const std::string& strUnit = "", bool addToMap = true, const CProductInfo &pi = CProductInfo::smInvalidProduct );
 
 	bool AddFormula( CFormula& value, std::string &error_msg );
 	bool DeleteFormula( const std::string& name );
@@ -405,12 +411,12 @@ public:
 public:
 	// build command files ////////////////////////////////////////////////////////////////
 	//
-	bool BuildCmdFile( EExecutionType type, CWorkspaceFormula *wks, CWorkspaceOperation *wkso, std::string &error_msg )
+	bool BuildCmdFile( EExecutionType type, CWorkspaceFormula *wks, CWorkspaceOperation *wkso, std::string &error_msg, CProgressInterface *progress )
 	{
 		switch ( type )
 		{
 			case eOperation:
-				return BuildCmdFile( wks, wkso, error_msg );
+				return BuildCmdFile( wks, wkso, error_msg, progress );
 			case eExportNetCDF:
 				assert__( false );
 				break;
@@ -426,7 +432,7 @@ public:
 		return false;
 	}
 protected:
-	bool BuildCmdFile( CWorkspaceFormula *wks, CWorkspaceOperation *wkso, std::string &error_msg );
+	bool BuildCmdFile( CWorkspaceFormula *wks, CWorkspaceOperation *wkso, std::string &error_msg, CProgressInterface *progress );
 	bool BuildExportAsciiCmdFile( CWorkspaceFormula *wks, CWorkspaceOperation *wkso, std::string &error_msg );
 	bool BuildExportGeoTIFFCmdFile( CWorkspaceFormula *wks, CWorkspaceOperation *wkso, std::string &error_msg );
 	bool BuildShowStatsCmdFile( CWorkspaceFormula *wks, CWorkspaceOperation *wkso, std::string &error_msg );
@@ -617,7 +623,6 @@ public:
 	bool IsExecuteAgain() const { return m_executeAgain; }
 	void SetExecuteAgain( bool value ) { m_executeAgain = value; }
 
-	bool CtrlLoessCutOff( std::string &msg );
 
 	bool UseDataset( const std::string& name );
 
@@ -630,14 +635,19 @@ public:
 	bool ComputeInterval( std::string &error_msg );
 	bool ComputeInterval( CFormula* f, std::string &error_msg );
 
-	bool ControlDimensions( CFormula* formula, std::string &error_msg, const CStringMap* aliases = nullptr );
-	bool ControlResolution( std::string &error_msg );
 	bool Control( CWorkspaceFormula *wks, std::string& msg, const CStringMap* aliases = nullptr );
 
-	bool GetXExpression( CExpression& expr, std::string& error_msg, const CStringMap* aliases = nullptr ) const;
-	bool GetYExpression( CExpression& expr, std::string& error_msg, const CStringMap* aliases = nullptr ) const;
+private:
+	bool CtrlLoessCutOff( std::string &msg );
+	bool ControlDimensions( const CProductInfo &pi, CFormula* formula, std::string &error_msg, const CStringMap* aliases = nullptr );
+	bool ControlResolution( std::string &error_msg );
 
-	bool ControlXYDataFields( std::string &error_msg, const CStringMap* aliases = nullptr );
+	bool GetXExpression_NOT_USED( const CProductInfo &pi, CExpression& expr, std::string& error_msg, const CStringMap* aliases = nullptr ) const;
+	bool GetYExpression_NOT_USED( const CProductInfo &pi, CExpression& expr, std::string& error_msg, const CStringMap* aliases = nullptr ) const;
+
+	bool ControlXYDataFields_NOT_USED( std::string &error_msg, const CStringMap* aliases = nullptr );
+
+public:
 
 	void ClearLogFile();
 
@@ -646,8 +656,11 @@ public:
 
 	const std::string& GetLogFile() const { return m_logFile; }
 
+#if defined(BRAT_V3)
+
 	///Dump fonction
 	virtual void Dump( std::ostream& fOut = std::cerr );
+#endif
 };
 
 /** @} */

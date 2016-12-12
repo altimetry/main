@@ -133,16 +133,20 @@ bool CRadsDataset::AddMission( const std::string &rads_server_address, const std
 }
 
 
-bool CRadsDataset::RemoveMission( const std::string &rads_server_address, const std::string &local_dir, const CRadsMission &mission )
+bool CRadsDataset::SetMission( const std::string &rads_server_address, const std::string &local_rads_dir, const CRadsMission &mission, std::string &warnings )
 {
-	auto it = std::find( mMissions.begin(), mMissions.end(), mission );
-	if ( it == mMissions.end() )
-		return false;
+	return
+		( Missions().empty() || RemoveAllMissions( rads_server_address, local_rads_dir ) )
+		&&
+		AddMission( rads_server_address, local_rads_dir, mission, warnings );
+}
 
-	mMissions.erase( it );
 
-	//remove files
-	const std::string input_path = MissionPath( rads_server_address, local_dir, mission.mAbbr );
+bool CRadsDataset::RemoveAllMissions( const std::string &rads_server_address, const std::string &local_dir )
+{
+	mMissions.clear();
+
+	GetProductList()->RemoveAll();
 
 	return true;
 }

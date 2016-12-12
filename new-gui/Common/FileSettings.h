@@ -94,6 +94,11 @@ inline QDateTime qv2type( const QVariant &v )
 {
 	return v.value< QDateTime >();
 }
+template<>
+inline size_t qv2type( const QVariant &v )
+{
+	return v.value< size_t >();
+}
 
 //GUI types: define in derived classes for GUI applications
 

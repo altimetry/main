@@ -1024,209 +1024,247 @@ void CProduct::LogSelectionResult(const std::string& fileName, bool result)
 
 }
 //----------------------------------------
-void CProduct::ApplyCriteria(CStringList& filteredFileList, const std::string& logFileName /* = "" */)
+bool CProduct::ApplyCriteria( CStringList& filteredFileList, CProgressInterface *pi, const std::string &log_file )	//log_file = ""
 {
-
-  if (!logFileName.empty())
-  {
-    CreateLogFile(logFileName);
-  }
-
-  InitApplyCriteriaStats();
-
-  int32_t iRecord = 0;
-
-  // Initializes files list corresponding to criteria (all files)
-  // then files that does not correspond to criteria will be removed from the list.
-  filteredFileList.Insert(m_fileList);
-
-  CRecordDataMap listRecord;
-
-  // Sets a list of fields to be read (fields of all criteria)
-  // To optimize reading data, fields are organized by data record
-  BuildCriteriaFieldsToRead(listRecord);
-
-  CProductList::iterator itFile;
-
-  m_indexProcessedFile = 0;
-
-  // Searches for each files if it corresponds to criteria
-  for ( itFile = m_fileList.begin(); itFile != m_fileList.end(); itFile++ )
-  {
-    bool fileOk = true;
-
-    m_indexProcessedFile++;
-    CTrace::Tracer(1,"Process file %ld of %ld", (long)m_indexProcessedFile, (long)m_fileList.size());
-
-    try
-    {
-      Log("---------------------------", true);
-      Log("File ", false);
-      Log(*itFile, true);
-      Log("---------------------------", true);
-
-      this->Open(*itFile);
-    }
-    catch (CException& e)
-    {
-      Log("Error while opening file:", false);
-      Log(e.what(), true);
-      continue;
-    }
-    catch (...)
-    {
-      Log("Unknown error while opening file", true);
-      continue;
-    }
-
-    // For each record, read data fields
-    CObMap::iterator itMapListRecord;
-    for ( itMapListRecord = listRecord.begin(); itMapListRecord != listRecord.end(); itMapListRecord++ )
-    {
-      try
-      {
-        m_dataSetNameToRead = itMapListRecord->first;
-
-        CObMap* fieldsInfo = listRecord.GetFields(itMapListRecord->first);
-
-        CStringList listFieldToRead;
-
-        fieldsInfo->GetKeys(listFieldToRead);
-
-        InitInternalFieldName(listFieldToRead, false);
-
-        Rewind();
-
-        ReadBratRecord(iRecord);
-
-        //m_dataSet.Dump();
-  //      DumpDictionary("dumpDict.txt");
+	const bool with_log = !log_file.empty();
+	bool canceled = false;
 
 
-        // If no data, it's an error
-        CRecordSet* recordSet = m_dataSet.GetRecordSet(iRecord);
-        if (recordSet == NULL)
-        {
-
-          std::string msg = CTools::Format("ERROR - CProduct::ApplyCriteria() - There is no data for record '%s' and fields '%s'. ",
-                                      m_dataSetNameToRead.c_str(),
-                                      listFieldToRead.ToString().c_str());
-          CProductException e(msg, m_currFileName, GetProductClass(), GetProductType(), BRATHL_INCONSISTENCY_ERROR);
-          CTrace::Tracer("%s", e.what());
-          throw (e);
-        }
-
-        // Tests each criteria
-        CObIntMap::iterator itMapCritInfo;
-        for ( itMapCritInfo = m_criteriaInfoMap.begin(); itMapCritInfo != m_criteriaInfoMap.end(); itMapCritInfo++ )
-        {
-
-          CCriteriaInfo* criteriaInfo = CCriteriaInfo::GetCriteriaInfo(itMapCritInfo->second);
-          // Criteria data record does not correspond to read record   --> next criteria
-          if (criteriaInfo->GetDataRecord().compare(m_dataSetNameToRead) != 0)
-          {
-            continue;
-          }
-
-          CStringList criteriaFieldNames;
-          criteriaInfo->GetFieldNames(criteriaFieldNames);
-
-          bool fieldsExists = true;
-
-          // Tests if criteria fields correspond to read fields
-          CStringList::iterator itCritFieldNames;
-          for ( itCritFieldNames = criteriaFieldNames.begin(); itCritFieldNames != criteriaFieldNames.end(); itCritFieldNames++ )
-          {
-            CFieldSet *fieldSet = m_dataSet.GetFieldSet( m_fieldNameEquivalence.Exists(*itCritFieldNames) );
-            if (fieldSet == NULL)
-            {
-              fieldsExists = false;
-              break;
-            }
-          }
-
-          // At least one fields does not correspond to --> next criteria
-          if (!fieldsExists)
-          {
-            continue;
-          }
+	auto log = [&with_log, this]( const char *s, bool crlf )
+	{
+		if ( with_log )
+		{
+			Log( s, crlf );
+		};
+	};
 
 
-          // Tests Lat/Lon criteria
-          bool latLonCriteriaOk = ApplyCriteriaLatLon(criteriaInfo);
+	auto progress = [pi]( int_t i )
+	{
+		if ( pi )
+		{
+			if ( pi->Cancelled() )
+				return false;
+			pi->SetCurrentValue( i );
+		}
+		return true;
+	};
 
-          if (!latLonCriteriaOk)
-          {
-            filteredFileList.Erase(*itFile);
-            fileOk = false;
-            break;
-          }
-          // Tests Datetime criteria
-          bool datetimeCriteriaOk = ApplyCriteriaDatetime(criteriaInfo);
 
-          if (!datetimeCriteriaOk)
-          {
-            filteredFileList.Erase(*itFile);
-            fileOk = false;
-            break;
-          }
+	//function body
 
-          // Tests Pass criteria
-          bool passCriteriaOk = ApplyCriteriaPass(criteriaInfo);
 
-          if (!passCriteriaOk)
-          {
-            filteredFileList.Erase(*itFile);
-            fileOk = false;
-            break;
-          }
+	if ( with_log )
+	{
+		CreateLogFile( log_file );
+	}
 
-          // Tests cycle criteria
-          bool cycleCriteriaOk = ApplyCriteriaCycle(criteriaInfo);
+	InitApplyCriteriaStats();
 
-          if (!cycleCriteriaOk)
-          {
-            filteredFileList.Erase(*itFile);
-            fileOk = false;
-            break;
-          }
+	int32_t iRecord = 0;
 
-        }
+	// Initializes files list corresponding to criteria (all files)
+	// then files that does not correspond to criteria will be removed from the list.
+	filteredFileList.Insert( m_fileList );
 
-        if (!fileOk)
-        {
-          // next file
-          break;
-        }
+	CRecordDataMap listRecord;
 
-      }
-      catch (CException& e)
-      {
-        Log("Error while processing file:", false);
-        Log(e.what(), true);
-        fileOk = false;
-        break;
-      }
-      catch (...)
-      {
-        Log("Unknown error while processing file", true);
-        fileOk = false;
-        break;
-      }
+	// Sets a list of fields to be read (fields of all criteria)
+	// To optimize reading data, fields are organized by data record
+	BuildCriteriaFieldsToRead( listRecord );
 
-    }
+	m_indexProcessedFile = 0;
+	if ( pi )
+		pi->SetRange( 0, m_fileList.size() );
 
-    LogSelectionResult(*itFile, fileOk);
+	// Searches for each files if it corresponds to criteria
+	for ( CProductList::iterator itFile = m_fileList.begin(); itFile != m_fileList.end(); itFile++ )
+	{
+		m_indexProcessedFile++;
+		if ( !progress( m_indexProcessedFile ) )
+			break;
 
-    this->Close();
-  }
+		if ( with_log )
+			CTrace::Tracer( 1, "Process file %ld of %ld", (long)m_indexProcessedFile, (long)m_fileList.size() );
 
-  m_indexProcessedFile = -1;
+		bool fileOk = true;
 
-  EndApplyCriteriaStats(filteredFileList);
+		try
+		{
+			if ( with_log )
+			{
+				Log( "---------------------------", true );
+				Log( "File ", false );
+				Log( *itFile, true );
+				Log( "---------------------------", true );
+			}
 
-  DeleteLogFile();
+			Open( *itFile );
+		}
+		catch ( CException& e )
+		{
+			log( "Error while opening file:", false );
+			log( e.what(), true );
+			continue;
+		}
+		catch ( ... )
+		{
+			log( "Unknown error while opening file", true );
+			continue;
+		}
 
+		// For each record, read data fields
+
+		for ( CObMap::iterator itMapListRecord = listRecord.begin(); itMapListRecord != listRecord.end(); itMapListRecord++ )
+		{
+			try
+			{
+				m_dataSetNameToRead = itMapListRecord->first;
+
+				CObMap* fieldsInfo = listRecord.GetFields( itMapListRecord->first );
+
+				CStringList listFieldToRead;
+
+				fieldsInfo->GetKeys( listFieldToRead );
+
+				InitInternalFieldName( listFieldToRead, false );
+
+				Rewind();
+
+				ReadBratRecord( iRecord );
+
+				//m_dataSet.Dump();
+		  //      DumpDictionary("dumpDict.txt");
+
+
+				// If no data, it's an error
+				CRecordSet* recordSet = m_dataSet.GetRecordSet( iRecord );
+				if ( recordSet == NULL )
+				{
+
+					std::string msg = CTools::Format( "ERROR - CProduct::ApplyCriteria() - There is no data for record '%s' and fields '%s'. ",
+						m_dataSetNameToRead.c_str(),
+						listFieldToRead.ToString().c_str() );
+					CProductException e( msg, m_currFileName, GetProductClass(), GetProductType(), BRATHL_INCONSISTENCY_ERROR );
+					CTrace::Tracer( "%s", e.what() );
+					throw ( e );
+				}
+
+				// Tests each criteria
+
+				for ( CObIntMap::iterator itMapCritInfo = m_criteriaInfoMap.begin(); itMapCritInfo != m_criteriaInfoMap.end(); itMapCritInfo++ )
+				{
+
+					CCriteriaInfo* criteriaInfo = CCriteriaInfo::GetCriteriaInfo( itMapCritInfo->second );
+					// Criteria data record does not correspond to read record   --> next criteria
+					if ( criteriaInfo->GetDataRecord().compare( m_dataSetNameToRead ) != 0 )
+					{
+						continue;
+					}
+
+					CStringList criteriaFieldNames;
+					criteriaInfo->GetFieldNames( criteriaFieldNames );
+
+					bool fieldsExists = true;
+
+					// Tests if criteria fields correspond to read fields
+					CStringList::iterator itCritFieldNames;
+					for ( itCritFieldNames = criteriaFieldNames.begin(); itCritFieldNames != criteriaFieldNames.end(); itCritFieldNames++ )
+					{
+						CFieldSet *fieldSet = m_dataSet.GetFieldSet( m_fieldNameEquivalence.Exists( *itCritFieldNames ) );
+						if ( fieldSet == NULL )
+						{
+							fieldsExists = false;
+							break;
+						}
+					}
+
+					// At least one fields does not correspond to --> next criteria
+					if ( !fieldsExists )
+					{
+						continue;
+					}
+
+
+					// Tests Lat/Lon criteria
+					bool latLonCriteriaOk = ApplyCriteriaLatLon( criteriaInfo );
+
+					if ( !latLonCriteriaOk )
+					{
+						filteredFileList.Erase( *itFile );
+						fileOk = false;
+						break;
+					}
+
+					// Tests Datetime criteria
+					bool datetimeCriteriaOk = ApplyCriteriaDatetime( criteriaInfo );
+
+					if ( !datetimeCriteriaOk )
+					{
+						filteredFileList.Erase( *itFile );
+						fileOk = false;
+						break;
+					}
+
+					// Tests Pass criteria
+					bool passCriteriaOk = ApplyCriteriaPass( criteriaInfo );
+
+					if ( !passCriteriaOk )
+					{
+						filteredFileList.Erase( *itFile );
+						fileOk = false;
+						break;
+					}
+
+					// Tests cycle criteria
+					bool cycleCriteriaOk = ApplyCriteriaCycle( criteriaInfo );
+
+					if ( !cycleCriteriaOk )
+					{
+						filteredFileList.Erase( *itFile );
+						fileOk = false;
+						break;
+					}
+
+				}
+
+				if ( !fileOk )
+				{
+					// next file
+					break;
+				}
+
+			}
+			catch ( CException& e )
+			{
+				log( "Error while processing file:", false );
+				log( e.what(), true );
+				fileOk = false;
+				break;
+			}
+			catch ( ... )
+			{
+				log( "Unknown error while processing file", true );
+				fileOk = false;
+				break;
+			}
+
+		}
+
+		if ( with_log )
+			LogSelectionResult( *itFile, fileOk );
+
+		Close();
+	}
+
+	m_indexProcessedFile = -1;
+
+	if ( with_log )
+		EndApplyCriteriaStats( filteredFileList );
+
+	DeleteLogFile();
+
+	return !canceled;
 }
 
 //----------------------------------------
@@ -2997,12 +3035,12 @@ void CProduct::DeleteLogFile()
   }
 }
 //----------------------------------------
-void CProduct::CreateLogFile(const std::string& logFileName, uint32_t mode /* = CFile::modeWrite|CFile::typeText */)
+void CProduct::CreateLogFile(const std::string& log_file, uint32_t mode /* = CFile::modeWrite|CFile::typeText */)
 {
   DeleteLogFile();
   try
   {
-    m_logFile = new CFile(logFileName, mode);
+    m_logFile = new CFile(log_file, mode);
   }
   catch (CException e)
   {

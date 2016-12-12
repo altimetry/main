@@ -81,7 +81,7 @@ private:
     void Wire();
 
 public:
-    CShowAliasesDialog( QWidget *parent, COperation* operation, CFormula* formula );
+    CShowAliasesDialog( QWidget *parent, const COperation* operation, CFormula* formula );
 
     virtual ~CShowAliasesDialog();
 

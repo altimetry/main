@@ -59,7 +59,7 @@ class CShowInfoDialog : public QDialog
     /////////////////////////////
 private:
 
-    void CreateWidgets( const std::string& exprValue, COperation *operation );
+    void CreateWidgets( const std::string& exprValue, const COperation *operation );
     void Wire();
 
     //Setup SqlTableDb
@@ -68,7 +68,7 @@ private:
     void addEntry(unsigned int i, QString& exp_name, QString& oUnit, QString& cUnit);
 
 public:
-    CShowInfoDialog( QWidget *parent, const CFormula *formula, COperation *operation );
+    CShowInfoDialog( QWidget *parent, const CFormula *formula, const COperation *operation );
 
     virtual ~CShowInfoDialog();
 

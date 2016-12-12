@@ -55,6 +55,19 @@ CModel& CModel::CreateInstance( const CBratSettings &settings )
 }
 
 
+//static 
+void CModel::DestroyInstance()
+{
+	assert__( smInstance );
+
+	delete smInstance;
+
+	assert__( !smInstance && !smBratFilters );
+}
+
+
+
+
 //explicit 
 CModel::CModel( const CBratSettings &settings ) 
 	: mSettings( settings )
@@ -66,7 +79,6 @@ CModel::~CModel()
 	mTree.Clear();
 
 	assert__( smInstance );
-	delete smInstance;
 	smInstance = nullptr;		//just in case
 	delete smBratFilters;
 	smBratFilters = nullptr;	//idem

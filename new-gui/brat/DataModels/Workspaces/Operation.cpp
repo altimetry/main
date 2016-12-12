@@ -107,12 +107,14 @@ public:
 
 	bool BuildCmdFileDataset()
 	{
+		assert__( mOp.mFilteredDataset );
+
 		WriteLn();
 		Comment( "----- DATASET -----" );
 		WriteLn();
 		WriteLn( kwRECORD + "=" + mOp.GetRecord() );
 		WriteLn();
-		std::vector< std::string > array = mOp.Dataset()->GetFiles( false );
+		std::vector< std::string > array = mOp.mFilteredDataset->GetFiles( false );
 		for ( size_t i = 0; i < array.size(); i++ )
 		{
 			WriteLn( kwFILE + "=" + array[ i ] );
@@ -122,7 +124,9 @@ public:
 
 	bool BuildCmdFileSpecificUnit()
 	{
-		const CDataset* dataset = mOp.Dataset();
+		assert__( mOp.mFilteredDataset );
+
+		const CDataset* dataset = mOp.mFilteredDataset;
 		if ( dataset == nullptr )
 			return false;
 
@@ -229,7 +233,7 @@ public:
 		return true;
 	}
 
-	bool BuildCmdFileSelect()
+	bool BuildCmdFileSelect( const CProductInfo &pi )
 	{
 		WriteLn();
 		Comment( "----- SELECT -----" );
@@ -245,7 +249,7 @@ public:
         if ( mOp.Filter() )
         {
             CritExpression.empty() ? CritExpression += "" : CritExpression += " && ";
-            CritExpression += mOp.Filter()->GetSelectionCriteriaExpression( mOp.m_product );
+            CritExpression += mOp.Filter()->GetSelectionCriteriaExpression( pi.Label() );
         }
         /////////////////////////////////////////////////////////////////
 
@@ -293,8 +297,10 @@ public:
 		return true;
 	}
 
-	bool BuildExportGeoTIFFProperties()
+	bool BuildExportGeoTIFFProperties( const CProductInfo &pi )
 	{
+		assert__( pi.IsValid() );
+
 		WriteLn();
 		Comment( "----- INPUT -----" );
 		WriteLn();
@@ -325,7 +331,7 @@ public:
 			WriteLn( kwOUTPUT_KML + "=" + kmlOutputFile );
 			WriteLn( kwDISPLAY_LOGO_URL + "=" + mOp.mBratLogoPath );
 			//v4: the following does not seem to be written in v3 when delaying
-			WriteLn( kwFILETYPE + "=" + mOp.m_product->GetProductClass() + " / " + mOp.m_product->GetProductType() );
+			WriteLn( kwFILETYPE + "=" + pi.Class() + " / " + pi.Type() );
 			WriteLn( kwPRODUCT_LIST + "=" + mOp.OriginalDataset()->GetProductList()->ToString( ", ", true ) );
 
 			if ( mOp.mCreateKMLTrackData )
@@ -475,7 +481,7 @@ public:
 
 public:
 
-	static bool BuildCmdFile( const std::string &path, const COperation &Op, CWorkspaceFormula *wks, std::string &error_msg )
+	static bool BuildCmdFile( const std::string &path, const COperation &Op, CWorkspaceFormula *wks, std::string &error_msg, const CProductInfo &pi )
 	{
 		COperationCmdFile f( path, Op );
 		//m_cmdFile.Normalize();
@@ -490,13 +496,13 @@ public:
 			f.BuildCmdFileDataset()				&&
 			f.BuildCmdFileSpecificUnit()		&&
 			f.BuildCmdFileFields( error_msg )	&&
-			f.BuildCmdFileSelect()				&&
+			f.BuildCmdFileSelect( pi )			&&
 			f.BuildCmdFileOutput()				&&
 			f.IsOk();
 	}
 
 
-	static bool BuildExportAsciiCmdFile( const std::string &path, const COperation &Op, CWorkspaceFormula *wks )
+	static bool BuildExportAsciiCmdFile( const std::string &path, const COperation &Op, CWorkspaceFormula *wks, const CProductInfo &pi )
 	{
 		COperationCmdFile f( path, Op );
 		//m_exportAsciiCmdFile.Normalize();
@@ -515,27 +521,27 @@ public:
 			// don't include the select expression in the command line,
 			// because the select expression has already been applied 
 			// and the fields contained in the select expression are not necessarily in the output file. 
-			( !Op.IsExportAsciiNoDataComputation() || f.BuildCmdFileSelect() )										&&
+			( !Op.IsExportAsciiNoDataComputation() || f.BuildCmdFileSelect( pi ) )									&&
 			f.BuildExportAsciiCmdFileOutput()																		&&
 			f.IsOk();
 	}
 
 
-    static bool BuildExportGeoTIFFCmdFile( const std::string &path, const COperation &Op )
+    static bool BuildExportGeoTIFFCmdFile( const std::string &path, const COperation &Op, const CProductInfo &pi )
 	{
 		COperationCmdFile f( path, Op );
 
 		return
 			f.IsOk() &&
-			f.BuildExportCmdFileHeader()		&&
-			f.BuildCmdFileVerbose( false )		&&
-			f.BuildExportGeoTIFFProperties()	&&
-			f.BuildExportGeoTIFFCmdFileOutput() &&
+			f.BuildExportCmdFileHeader()			&&
+			f.BuildCmdFileVerbose( false )			&&
+			f.BuildExportGeoTIFFProperties( pi )	&&
+			f.BuildExportGeoTIFFCmdFileOutput()		&&
 			f.IsOk();
 	}
 
 
-	static bool BuildShowStatsCmdFile( const std::string &path, const COperation &Op, CWorkspaceFormula *wks )
+	static bool BuildShowStatsCmdFile( const std::string &path, const COperation &Op, CWorkspaceFormula *wks, const CProductInfo &pi )
 	{
 		COperationCmdFile f( path, Op );
 		//m_showStatsCmdFile.Normalize();
@@ -549,7 +555,7 @@ public:
 			f.BuildCmdFileDataset()				&&
 			f.BuildCmdFileSpecificUnit()		&&
 			f.BuildShowStatsCmdFileFields()		&&
-			f.BuildCmdFileSelect()				&&
+			f.BuildCmdFileSelect( pi )			&&
 			f.BuildShowStatsCmdFileOutput()		&&
 			f.IsOk();
 	}
@@ -612,20 +618,20 @@ COperation* COperation::Copy( const COperation &o, CWorkspaceOperation *wkso, CW
 {
 	COperation *new_op = new COperation( o.m_name );
 	
-	assert__( new_op->Dataset() == nullptr && new_op->OriginalDataset() == nullptr );
+	assert__( new_op->mFilteredDataset == nullptr && new_op->mOriginalDataset == nullptr );
 
 	//assuming original operation is well formed, no reason to check filter and dataset assignment
 	std::string error_msg;
-	if ( o.mDataset != nullptr )
-	{
-		assert__( o.OriginalDataset() != nullptr );
+	//if ( o.mDataset != nullptr )
+	//{
+		assert__( o.OriginalDataset() != nullptr && new_op->Filter() == nullptr );
 
         new_op->SetOriginalDataset( wksd, o.OriginalDatasetName(), error_msg );	//NOTE: this clears formulas and can clear filter, don't assign them before
-	}
+	//}
 	new_op->SetFilter( o.Filter(), error_msg );
 
 	new_op->SetRecord( o.m_record );
-	new_op->SetProduct( o.m_product );
+	new_op->CopyFilteredDatasetAndProduct( o );	//new_op->SetProduct( o.m_product );
 
 
 	assert__( new_op->mSelectionCriteria && o.mSelectionCriteria );
@@ -665,9 +671,9 @@ COperation* COperation::Copy( const COperation &o, CWorkspaceOperation *wkso, CW
 
 void COperation::Clear()
 {
-	m_product = nullptr;
-	mOriginalDataset = nullptr;
-	RemoveFilter();					//makes SetDataset
+	//m_product = nullptr;
+	RemoveOriginalDataset();		//mOriginalDataset = nullptr && ReomveFormulas && RemoveFilteredDataset	
+	RemoveFilter();					//also RemoveFilteredDataset
 	m_record.clear();
 
 	CreateSelectionCriteria();
@@ -936,16 +942,16 @@ bool COperation::RenameFormula(CFormula* formula, const std::string &newName)
 }
 
 
-bool COperation::ReapplyFilter( std::string &error_msg )
+bool COperation::ReapplyFilter()
 { 
-	return SetFilteredDataset( error_msg );
+	return RemoveFilteredDataset();		// v4.0: SetFilteredDataset( error_msg, pi );
 }
 
 
 bool COperation::SetFilter( const CBratFilter *filter, std::string &error_msg )
 { 
 	mFilter = filter; 
-	return SetFilteredDataset( error_msg );
+	return RemoveFilteredDataset();;		// SetFilteredDataset( error_msg, pi );
 }
 
 // Always succeeds
@@ -954,7 +960,7 @@ void COperation::RemoveFilter()
 {
 	mFilter = nullptr; 
 	std::string error_msg;
-	SetFilteredDataset( error_msg );
+	RemoveFilteredDataset();	// SetFilteredDataset( error_msg, nullptr );
 }
 
 
@@ -964,23 +970,89 @@ bool COperation::IsRadsDataset() const
 }
 
 
-bool COperation::SetFilteredDataset( std::string &error_msg )
+// Can return true and null dataset, if original dataset is empty
+// Can return false and valid dataset, if filter could not be applied
+//
+std::pair< bool, const CDataset* > COperation::FilteredDataset( std::string &error_msg, CProgressInterface *progress )
+{ 
+	bool result = mFilteredDataset ? true : CreateFilteredDataset( error_msg, progress );
+
+	return { result, mFilteredDataset };
+}
+
+
+CDataset* COperation::NewFilteredDataset() const
 {
-	delete mDataset;
-	if ( !mOriginalDataset )
-	{
-		mDataset = nullptr;
-		return true;
-	}
+	assert__( mOriginalDataset );
 
 	const bool is_rads_dataset = dynamic_cast< const CRadsDataset* >( mOriginalDataset ) != nullptr;
 	auto const filtered_name = OriginalDatasetName() + "_filtered_" + m_name;
-	mDataset = 
+	CDataset *filtered_dataset = 
 		is_rads_dataset ? 
 		new CRadsDataset( filtered_name ) : 
 		new CDataset( filtered_name ) ;
 
-	bool result = mDataset->ApplyFilter( mFilter, mOriginalDataset, error_msg );
+	filtered_dataset->GetProductList()->mCodaProductClass = mOriginalDataset->GetProductList()->mCodaProductClass;
+	filtered_dataset->GetProductList()->mCodaProductType = mOriginalDataset->GetProductList()->mCodaProductType;
+	filtered_dataset->GetProductList()->m_productClass = mOriginalDataset->GetProductList()->m_productClass;
+	filtered_dataset->GetProductList()->m_productType = mOriginalDataset->GetProductList()->m_productType;
+	filtered_dataset->GetProductList()->m_productFormat = mOriginalDataset->GetProductList()->m_productFormat;
+
+	return filtered_dataset;
+}
+
+void COperation::CopyFilteredDatasetAndProduct( const COperation &o )
+{
+	assert__( mOriginalDataset == o.mOriginalDataset );
+
+	RemoveFilteredDataset();
+
+	if ( o.mFilteredDataset )
+	{
+		//copy filtered dataset
+
+		mFilteredDataset = NewFilteredDataset();
+		*mFilteredDataset->GetProductList() = *o.mFilteredDataset->GetProductList();	//copy and not simply insert files to preserve class and type
+
+		//copy filtered product
+		//	- absorb any errors; client code will have to rebuild the product when required 
+		//	in a more explicit place to publicize errors (mFilteredProduct is an "on demand" variable,
+		//	it is kept, as a cache, only for efficiency reasons)
+		//
+		if ( o.mFilteredProduct )
+		try
+		{
+			mFilteredProduct = CProduct::Construct( *o.mFilteredDataset->GetProductList() );
+		}
+		catch ( ... )
+		{
+			mFilteredProduct = nullptr;
+		}
+	}
+}
+
+bool COperation::RemoveFilteredDataset()
+{
+	delete mFilteredDataset;
+	mFilteredDataset = nullptr;
+	delete mFilteredProduct; 
+	mFilteredProduct = nullptr; 
+
+	return true;
+}
+
+bool COperation::CreateFilteredDataset( std::string &error_msg, CProgressInterface *progress )
+{
+	delete mFilteredDataset;
+	if ( !mOriginalDataset )
+	{
+		mFilteredDataset = nullptr;
+		return true;
+	}
+
+	mFilteredDataset = NewFilteredDataset();
+
+	bool result = mFilteredDataset->ApplyFilter( mFilter, mOriginalDataset, error_msg, progress );
 	if ( !result )
 	{
 		error_msg = "Filter '" + mFilter->Name() + "' could not be applied and was removed from operation '" + GetName() + "'.\nReason: " + error_msg;
@@ -996,11 +1068,11 @@ bool COperation::SetOriginalDataset( const CWorkspaceDataset *wks, const std::st
 	const CDataset *dataset = wks ? wks->GetDataset( dataset_name ) : nullptr;			assert__( !wks || dataset );
 	RemoveFormulas();
 	mOriginalDataset = dataset;
-	return SetFilteredDataset( error_msg );
+	return RemoveFilteredDataset();	// SetFilteredDataset( error_msg, pi );
 }
 
 
-void COperation::RemoveDataset()
+void COperation::RemoveOriginalDataset()
 {
 	std::string error_msg;
 	SetOriginalDataset( nullptr, "", error_msg );
@@ -1026,7 +1098,7 @@ std::string COperation::OriginalDatasetName() const
 }
 
 //----------------------------------------
-CFormula* COperation::NewUserFormula( std::string &error_msg, CField* field, CMapTypeField::ETypeField typeField, bool addToMap, const CProduct* product )
+CFormula* COperation::NewUserFormula( std::string &error_msg, CField* field, CMapTypeField::ETypeField typeField, bool addToMap, const CProductInfo &pi )	//pi = CProductInfo::smInvalidProduct
 {
   if (field == nullptr)
   {
@@ -1034,7 +1106,7 @@ CFormula* COperation::NewUserFormula( std::string &error_msg, CField* field, CMa
 
   }
 
-  CFormula* formula =  NewUserFormula( error_msg, field->GetName(), typeField, field->GetUnit(), addToMap, product);
+  CFormula* formula =  NewUserFormula( error_msg, field->GetName(), typeField, field->GetUnit(), addToMap, pi );
 
   //formula->SetUnit(field->GetUnit().c_str());
   if (m_record.compare(field->GetRecordName().c_str()) != 0)
@@ -1050,7 +1122,7 @@ CFormula* COperation::NewUserFormula( std::string &error_msg, CField* field, CMa
 }
 //----------------------------------------
 CFormula* COperation::NewUserFormula( std::string &error_msg, const std::string& name, CMapTypeField::ETypeField typeField, const std::string& strUnit, 
-	bool addToMap, const CProduct* product )	//name = "", CMapTypeField::ETypeField typeField = CMapTypeField::eTypeOpAsField, const std::string& strUnit = "", bool addToMap = true, const CProduct *product = nullptr );
+	bool addToMap, const CProductInfo &pi )	//name = "", typeField = CMapTypeField::eTypeOpAsField, strUnit = "", addToMap = true, pi = CProductInfo::smInvalidProduct 
 {
 	bool bOk = true;
 
@@ -1064,7 +1136,7 @@ CFormula* COperation::NewUserFormula( std::string &error_msg, const std::string&
 
 	const CUnit* unit = formula.GetUnit();
 
-	formula.SetDataType( typeField, *unit, product );
+	formula.SetDataType( typeField, *unit, pi );
 
 	if ( strUnit.empty() )
 	{
@@ -1323,12 +1395,25 @@ std::string COperation::GetShowStatsTaskName() const
 }
 
 //----------------------------------------
-bool COperation::BuildCmdFile( CWorkspaceFormula *wks, CWorkspaceOperation *wkso, std::string &error_msg )
+bool COperation::BuildCmdFile( CWorkspaceFormula *wks, CWorkspaceOperation *wkso, std::string &error_msg, CProgressInterface *progress )
 {
+	auto filtered_result = FilteredDataset( error_msg, progress );
+	if ( !filtered_result.first )
+		return false;
+
+	assert__( mFilteredDataset );
+
 	if ( m_output.empty() )
 		InitOperationOutput( wkso );
-	
-	return COperationCmdFile::BuildCmdFile( m_cmdFile, *this, wks, error_msg );
+
+	const CProductInfo pi( mFilteredDataset );
+	if ( !pi.IsValid() )
+	{
+		error_msg = pi.ErrorMessages();
+		return false;
+	}
+
+	return COperationCmdFile::BuildCmdFile( m_cmdFile, *this, wks, error_msg, pi );
 }
 //----------------------------------------
 bool COperation::BuildExportAsciiCmdFile( CWorkspaceFormula *wks, CWorkspaceOperation *wkso, std::string &error_msg )
@@ -1336,7 +1421,14 @@ bool COperation::BuildExportAsciiCmdFile( CWorkspaceFormula *wks, CWorkspaceOper
 	if ( m_exportAsciiOutput.empty() )
 		InitExportAsciiOutput( wkso );
 
-	if ( !COperationCmdFile::BuildExportAsciiCmdFile( m_exportAsciiCmdFile, *this, wks ) )
+	const CProductInfo pi( OriginalDataset() );
+	if ( !pi.IsValid() )
+	{
+		error_msg = pi.ErrorMessages();
+		return false;
+	}
+
+	if ( !COperationCmdFile::BuildExportAsciiCmdFile( m_exportAsciiCmdFile, *this, wks, pi ) )
 	{
 		error_msg = "There was an error composing the command file.\nOperation cannot be exported.";
 		return false;
@@ -1350,7 +1442,14 @@ bool COperation::BuildShowStatsCmdFile( CWorkspaceFormula *wks, CWorkspaceOperat
 	if ( m_showStatsOutput.empty() )
 		InitShowStatsOutput( wkso );
 
-	if ( !COperationCmdFile::BuildShowStatsCmdFile( m_showStatsCmdFile, *this, wks ) )
+	const CProductInfo pi( OriginalDataset() );
+	if ( !pi.IsValid() )
+	{
+		error_msg = pi.ErrorMessages();
+		return false;
+	}
+
+	if ( !COperationCmdFile::BuildShowStatsCmdFile( m_showStatsCmdFile, *this, wks, pi ) )
 	{
 		error_msg = "There was an error composing the command file.\nStatistics cannot be computed.";
 		return false;
@@ -1367,7 +1466,14 @@ bool COperation::BuildExportGeoTIFFCmdFile( CWorkspaceFormula *wks, CWorkspaceOp
 	if ( m_exportGeoTIFFOutput.empty() )
 		InitExportGeoTIFFOutput( wkso );
 
-    if ( !COperationCmdFile::BuildExportGeoTIFFCmdFile( m_exportGeoTIFFCmdFile, *this ) )
+	const CProductInfo pi( OriginalDataset() );
+	if ( !pi.IsValid() )
+	{
+		error_msg = pi.ErrorMessages();
+		return false;
+	}
+
+    if ( !COperationCmdFile::BuildExportGeoTIFFCmdFile( m_exportGeoTIFFCmdFile, *this, pi ) )
 	{
 		error_msg = "There was an error composing the command file.\nOperation cannot be exported.";
 		return false;
@@ -1692,15 +1798,15 @@ bool COperation::ComputeInterval( CFormula* f, std::string &error_msg )
 }
 
 //----------------------------------------
-bool COperation::GetXExpression( CExpression& expr, std::string& error_msg, const CStringMap* aliases ) const		//aliases = nullptr
+bool COperation::GetXExpression_NOT_USED( const CProductInfo &pi, CExpression& expr, std::string& error_msg, const CStringMap* aliases ) const		//aliases = nullptr
 {
 	const CFormula* formula = GetFormula( CMapTypeField::eTypeOpAsX );
 	if ( formula != nullptr )
 	{
 		const CStringMap* fieldAliases = nullptr;
-		if ( m_product != nullptr )
+		if ( pi.IsValid() )
 		{
-			fieldAliases = m_product->GetAliasesAsString();
+			fieldAliases = pi.AliasesAsString();
 		}
 
 		if ( !CFormula::SetExpression( formula->GetDescription( true, aliases, fieldAliases ), expr, error_msg ) )
@@ -1711,16 +1817,16 @@ bool COperation::GetXExpression( CExpression& expr, std::string& error_msg, cons
 }
 
 //----------------------------------------
-bool COperation::GetYExpression( CExpression& expr, std::string& error_msg, const CStringMap* aliases ) const		//aliases = nullptr
+bool COperation::GetYExpression_NOT_USED( const CProductInfo &pi, CExpression& expr, std::string& error_msg, const CStringMap* aliases ) const		//aliases = nullptr
 {
 	const CFormula* formula = GetFormula( CMapTypeField::eTypeOpAsY );
 
 	if ( formula != nullptr )
 	{
 		const CStringMap* fieldAliases = nullptr;
-		if ( m_product != nullptr )
+		if ( pi.IsValid() )
 		{
-			fieldAliases = m_product->GetAliasesAsString();
+			fieldAliases = pi.AliasesAsString();
 		}
 
 		if ( !CFormula::SetExpression( formula->GetDescription( true, aliases, fieldAliases ), expr, error_msg ) )
@@ -1731,8 +1837,11 @@ bool COperation::GetYExpression( CExpression& expr, std::string& error_msg, cons
 }
 
 //----------------------------------------
-bool COperation::ControlXYDataFields(std::string &error_msg, const CStringMap* aliases /* = nullptr*/)
+bool COperation::ControlXYDataFields_NOT_USED(std::string &error_msg, const CStringMap* aliases /* = nullptr*/)
 {
+
+	const CProductInfo pi( OriginalDataset() );
+
   bool bOk = true;
 
   CExpression xExpr;
@@ -1755,13 +1864,13 @@ bool COperation::ControlXYDataFields(std::string &error_msg, const CStringMap* a
   }
   */
   const CStringMap* fieldAliases = nullptr;
-  if (m_product != nullptr)
+  if ( pi.IsValid() )
   {
-    fieldAliases = m_product->GetAliasesAsString();
+    fieldAliases = pi.AliasesAsString();
   }
 
-  bOk = bOk && GetXExpression(xExpr, error_msg, aliases);
-  bOk = bOk && GetYExpression(yExpr, error_msg, aliases);
+  bOk = bOk && GetXExpression_NOT_USED(pi, xExpr, error_msg, aliases);
+  bOk = bOk && GetYExpression_NOT_USED(pi, yExpr, error_msg, aliases);
 
   CMapFormula::iterator it;
 
@@ -1848,17 +1957,17 @@ bool COperation::ControlResolution( std::string& error_msg )
 	return bOk;
 }
 //----------------------------------------
-bool COperation::ControlDimensions( CFormula* formula, std::string &error_msg, const CStringMap* aliases /* = nullptr*/ )
+bool COperation::ControlDimensions( const CProductInfo &pi, CFormula* formula, std::string &error_msg, const CStringMap* aliases )	//aliases = nullptr
 {
 	if ( formula == nullptr )
 		return true;
 
-	if ( m_product == nullptr )
+	if ( !pi.IsValid() )
 		return true;
 
 	std::string msg;
 
-	std::string stringExpr = formula->GetDescription( true, aliases, m_product->GetAliasesAsString() );
+	std::string stringExpr = formula->GetDescription( true, aliases, pi.AliasesAsString() );
 
 	if ( stringExpr.empty() )
 	{
@@ -1867,7 +1976,7 @@ bool COperation::ControlDimensions( CFormula* formula, std::string &error_msg, c
 
 
 	CUIntArray commonDimensions;
-	bool bOk = m_product->HasCompatibleDims( stringExpr, m_record, msg, true, &commonDimensions );
+	bool bOk = pi.HasCompatibleDims( stringExpr, m_record, msg, true, &commonDimensions );
 
 	error_msg += msg;
 
@@ -1893,7 +2002,7 @@ bool COperation::ControlDimensions( CFormula* formula, std::string &error_msg, c
 	{
 		fields.RemoveAll();
 
-		bOk = bOk && xFormula->GetFields( fields, error_msg, aliases, m_product->GetAliasesAsString() );
+		bOk = bOk && xFormula->GetFields( fields, error_msg, aliases, pi.AliasesAsString() );
 
 		axesFields.Insert( fields );
 	}
@@ -1904,7 +2013,7 @@ bool COperation::ControlDimensions( CFormula* formula, std::string &error_msg, c
 	{
 		fields.RemoveAll();
 
-		bOk = bOk && yFormula->GetFields( fields, error_msg, aliases, m_product->GetAliasesAsString() );
+		bOk = bOk && yFormula->GetFields( fields, error_msg, aliases, pi.AliasesAsString() );
 
 		axesFields.Insert( fields );
 	}
@@ -1912,7 +2021,7 @@ bool COperation::ControlDimensions( CFormula* formula, std::string &error_msg, c
 
 	fields.RemoveAll();
 
-	bOk = bOk && formula->GetFields( fields, error_msg, aliases, m_product->GetAliasesAsString() );
+	bOk = bOk && formula->GetFields( fields, error_msg, aliases, pi.AliasesAsString() );
 
 	CStringArray complement;
 	axesFields.Complement( fields, complement );
@@ -1931,9 +2040,20 @@ bool COperation::ControlDimensions( CFormula* formula, std::string &error_msg, c
 
 }
 
+//(*) If any of the CProduct member functions used in this validation needs the filtered dataset,
+//	then add a CProgressIntereface parameter for filtering and invoke CreateFilteredDataset; this 
+//	will also tell the client code that it must be prepared for a possibly heavy computation.
+//
 //----------------------------------------
-bool COperation::Control( CWorkspaceFormula *wks, std::string& msg, const CStringMap* aliases /* = nullptr*/ )
+bool COperation::Control( CWorkspaceFormula *wks, std::string &msg, const CStringMap *aliases )	//aliases = nullptr
 {
+	const CProductInfo pi( mOriginalDataset );	//(*)
+	if ( !pi.IsValid() )
+	{
+		msg = pi.ErrorMessages();
+		return false;
+	}
+
 	const bool basicControl = false;
 	int xCount = 0;
 	int yCount = 0;
@@ -1964,14 +2084,14 @@ bool COperation::Control( CWorkspaceFormula *wks, std::string& msg, const CStrin
 			default:
 				assert__( false );
 		}
-		bOk = value->CheckExpression( wks, msg, m_record, aliases, m_product );
+		bOk = value->CheckExpression( wks, msg, m_record, aliases, pi );
 		if ( !bOk )
 		{
 			errorCount++;
 		}
 		else
 		{
-			bOk = ControlDimensions( value, msg, aliases );
+			bOk = ControlDimensions( pi, value, msg, aliases );
 			if ( !bOk )
 			{
 				errorCount++;
@@ -1989,14 +2109,14 @@ bool COperation::Control( CWorkspaceFormula *wks, std::string& msg, const CStrin
 	}
 
 
-	bOk = mSelectionCriteria->CheckExpression( wks, msg, m_record, aliases, m_product );
+	bOk = mSelectionCriteria->CheckExpression( wks, msg, m_record, aliases, pi );
 	if ( !bOk )
 	{
 		errorCount++;
 	}
 	else
 	{
-		bOk = ControlDimensions( mSelectionCriteria, msg, aliases );
+		bOk = ControlDimensions( pi, mSelectionCriteria, msg, aliases );
 		if ( !bOk )
 		{
 			errorCount++;
@@ -2044,7 +2164,10 @@ bool COperation::Control( CWorkspaceFormula *wks, std::string& msg, const CStrin
 }
 
 
-//----------------------------------------
+
+
+#if defined(BRAT_V3)
+
 void COperation::Dump(std::ostream& fOut /* = std::cerr */)
 {
   if (CTrace::IsTrace() == false)
@@ -2061,3 +2184,5 @@ void COperation::Dump(std::ostream& fOut /* = std::cerr */)
   fOut << std::endl;
 
 }
+
+#endif

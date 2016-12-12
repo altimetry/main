@@ -122,19 +122,21 @@ void  CShowAliasesDialog::Wire()
 }
 
 
-CShowAliasesDialog::CShowAliasesDialog( QWidget *parent, COperation *operation, CFormula *formula )
+CShowAliasesDialog::CShowAliasesDialog( QWidget *parent, const COperation *operation, CFormula *formula )
 	: base_t( parent )
 {
 	CreateWidgets();
 
-	CProduct *product = operation->GetProduct();	assert__( product != nullptr );
+	CProductInfo pi( operation->OriginalDataset() );	assert__( pi.IsValid() );	//assuming that dialog is called only when there are fields and so the product was previously open
 
-	setWindowTitle( ( "Show '" + product->GetProductClassAndType() + "' aliases..." ).c_str() );
+	std::string class_and_type = pi.ProductClassAndType();
 
-	mHeaderLabel->setText( QString( "The list below shows the available aliases for the product\n" ) + product->GetProductClassAndType().c_str() );
+	setWindowTitle( ( "Show '" + class_and_type + "' aliases..." ).c_str() );
+
+	mHeaderLabel->setText( QString( "The list below shows the available aliases for the product\n" ) + class_and_type.c_str() );
 
 	CStringArray aliasesArray;
-	product->GetAliasKeys( aliasesArray );
+	pi.AliasKeys( aliasesArray );
 	std::sort( aliasesArray.begin(), aliasesArray.end(), CTools::StringCompare );
 
 	bool hasOpFieldSelected = formula != nullptr;
@@ -152,16 +154,16 @@ CShowAliasesDialog::CShowAliasesDialog( QWidget *parent, COperation *operation, 
 		mAliasesTable->setVerticalHeaderItem( i, new QTableWidgetItem( name.c_str() ) );
 		SetItemBold( mAliasesTable->verticalHeaderItem( i ), true );
 
-		mAliasesTable->setItem( i, eValue, new QTableWidgetItem( product->GetAliasExpandedValue( name ).c_str() ) );
+		mAliasesTable->setItem( i, eValue, new QTableWidgetItem( pi.AliasExpandedValue( name ).c_str() ) );
 		mAliasesTable->item( i, eValue )->setFlags( mAliasesTable->item( i, eValue )->flags() & ~Qt::ItemIsEditable );
 
 		mAliasesTable->setItem( i, eSyntax, new QTableWidgetItem( std::string( "%{" + name + "}").c_str() ) );
 		mAliasesTable->item( i, eSyntax )->setFlags( mAliasesTable->item( i, eSyntax )->flags() & ~Qt::ItemIsEditable );
 
-		const CProductAlias* productAlias = product->GetAlias( name );
-		if ( productAlias != nullptr )
+		const CProductAlias* product_alias = pi.Alias( name );
+		if ( product_alias != nullptr )
 		{
-			mAliasesTable->setItem( i, eDescription, new QTableWidgetItem( productAlias->GetDescription().c_str() ) );
+			mAliasesTable->setItem( i, eDescription, new QTableWidgetItem( product_alias->GetDescription().c_str() ) );
 			mAliasesTable->item( i, eDescription )->setFlags( mAliasesTable->item( i, eDescription )->flags() & ~Qt::ItemIsEditable );
 		}
 

@@ -19,7 +19,6 @@
 #define APPLICATION_SETTINGS_DLG_H
 
 
-#include "process/rads/RadsSettings.h"
 #include "GUI/StackedWidget.h"
 
 
@@ -76,12 +75,18 @@ class CApplicationSettingsDlg : public QDialog
 	QLineEdit *mRadsOutputEdit = nullptr;
 	QSpinBox *mRadsSpin = nullptr;
 	QListWidget *mRadsMissionsList = nullptr;
+	QLabel *mNextSyncLabel = nullptr;
+	QLabel *mRsyncStatusLabel = nullptr;
 	QGroupBox *mRadsCommandsBox = nullptr;
 	QToolButton *mRadsInstallButton = nullptr;
 	QToolButton *mRadsStartButton = nullptr;
+	QToolButton *mRadsStartButton_Test = nullptr;
 	QToolButton *mRadsPauseButton = nullptr;
 	QToolButton *mRadsExecuteNow = nullptr;
 	QPushButton *mRadsViewLogFile = nullptr;
+	QPushButton *mRadsViewRADSConfigurationFile = nullptr;
+	QPushButton *mRadsViewRADSServiceSettingsFile = nullptr;
+	QGroupBox *mRadsSettingsBox = nullptr;
 	QWidget *mRadsOptionsPage = nullptr;
 
     QListWidget *mStylesListWidget = nullptr;
@@ -92,9 +97,10 @@ class CApplicationSettingsDlg : public QDialog
 
     QDialogButtonBox *mButtonBox = nullptr;
 
+	CBratApplication &mApp;
 	CBratSettings &mSettings;
-	QtServiceController *mRadsController = nullptr;
-	CSharedRadsSettings mRadsServiceSettings;
+	const QtServiceController &mRadsController;
+	CSharedRadsSettings &mRadsServiceSettings;
 
 
 	//construction / destruction
@@ -102,7 +108,7 @@ class CApplicationSettingsDlg : public QDialog
 	void CreateWidgets();
 	void Wire();
 public:
-    explicit CApplicationSettingsDlg( CBratSettings &options, QWidget *parent );
+    explicit CApplicationSettingsDlg( CBratApplication &app, QWidget *parent );
 	virtual ~CApplicationSettingsDlg();
 
 	//remaining methods
@@ -111,22 +117,33 @@ protected:
     bool ValidateAndAssign();
 	bool ValidateAndSaveRadsValues( bool ask_user );
 
-	void EnableRadsButtons();
+	bool RadsStart( bool toggled, bool validate_and_save, bool check_buttons );
+	bool RadsPause( bool toggled, bool validate_and_save );
+
+	bool CheckRadsConfigStatus();
+
 	void DisplayRadsError( const std::string &action );
 
 private slots:
     virtual void accept();
 
-    void HandleBrowseDataDirectory();
+	void EnableRadsButtons();
+
+	void HandleBrowseDataDirectory();
     void HandleBrowseProjectsPath();
     void HandleMainLayerTypeChanged( bool toggled );
     void HandleViewsLayerTypeChanged( bool toggled );
 
 	void HandleRadsInstall( bool toggled );
 	void HandleRadsStart( bool toggled );
+	void HandleRadsUserStart( bool toggled );
 	void HandleRadsPause( bool toggled );
 	void HandleViewLogFile();
+	void HandleViewRADSConfigurationFile();
+	void HandleViewRADSServiceSettingsFile();
 	void HandleRadsExecuteNow();
+	void HandleRadsSpinValueChanged( int i );
+	void HandleRsyncStatusChanged( CBratApplication::ERadsNotification notification );
 };
 
 #endif // APPLICATION_SETTINGS_DLG_H

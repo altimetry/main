@@ -64,7 +64,12 @@ class CWorkspaceSettings : public CFileSettings
 
 public:
 
-	static void SetApplicationPaths( const CApplicationPaths &paths );
+	// Inherited v3 Workspaces have several configuration files, so
+	//	several instances of this class are created by several workspace 
+	//	object types. But all must share some properties/data, which makes
+	//	necessary this kind of global initialization.
+	//
+	static void InitializeCommonData( const CApplicationPaths &paths, const CSharedRadsSettings &rads_shared_settings );
 
 public:
 	CWorkspaceSettings( const std::string &path ) 

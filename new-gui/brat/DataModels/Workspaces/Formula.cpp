@@ -143,71 +143,69 @@ std::string CFormula::GetValueAsString( double value )
 	return CTools::TrailingZeroesTrim( SprintfFormat( GetFormatString(), value ) );
 }
 //----------------------------------------
-void CFormula::SetDataType(CMapTypeField::ETypeField typeField, const CUnit& unit, const CProduct *product)
+void CFormula::SetDataType( CMapTypeField::ETypeField typeField, const CUnit& unit, const CProductInfo &pi )
 {
+	switch ( typeField )
+	{
+		case CMapTypeField::eTypeOpAsX:
+		{
+			if ( unit.IsDate() )
+			{
+				SetDataType( CMapTypeData::eTypeOpT );
+			}
+			else if ( unit.IsCompatible( CLatLonPoint::m_DEFAULT_UNIT_LONGITUDE ) )
+			{
+				SetDataType( CMapTypeData::eTypeOpLongitude );
 
-  switch (typeField)
-  {
-  case CMapTypeField::eTypeOpAsX :
-    {
-      if (unit.IsDate())
-      {
-        SetDataType(CMapTypeData::eTypeOpT);
-      }
-      else if (unit.IsCompatible(CLatLonPoint::m_DEFAULT_UNIT_LONGITUDE))
-      {
-        SetDataType(CMapTypeData::eTypeOpLongitude);
+				if ( pi.IsValid() )
+				{
+					if ( ( pi.IsLatitudeFieldName( m_name ) ) || ( CTools::FindNoCase( m_name, "lat" ) == 0 ) )
+					{
+						SetDataType( CMapTypeData::eTypeOpLatitude );
+					}
+				}
+			}
+			else
+			{
+				SetDataType( CMapTypeData::eTypeOpX );
+			}
 
-        if (product != nullptr)
-        {
-          if ( (product->IsLatitudeFieldName(m_name)) || (CTools::FindNoCase(m_name, "lat") == 0) )
-          {
-            SetDataType(CMapTypeData::eTypeOpLatitude);
-          }
-        }
-      }
-      else
-      {
-        SetDataType(CMapTypeData::eTypeOpX);
-      }
+			break;
+		}
+		case CMapTypeField::eTypeOpAsY:
+		{
+			if ( unit.IsDate() )
+			{
+				SetDataType( CMapTypeData::eTypeOpT );
+			}
+			else if ( unit.IsCompatible( CLatLonPoint::m_DEFAULT_UNIT_LATITUDE ) )
+			{
+				SetDataType( CMapTypeData::eTypeOpLatitude );
+				if ( pi.IsValid() )
+				{
+					if ( pi.IsLongitudeFieldName( m_name ) || ( CTools::FindNoCase( m_name, "lon" ) == 0 ) )
+					{
+						SetDataType( CMapTypeData::eTypeOpLongitude );
+					}
+				}
 
-      break;
-    }
-  case CMapTypeField::eTypeOpAsY :
-    {
-      if (unit.IsDate())
-      {
-        SetDataType(CMapTypeData::eTypeOpT);
-      }
-      else if (unit.IsCompatible(CLatLonPoint::m_DEFAULT_UNIT_LATITUDE))
-      {
-        SetDataType(CMapTypeData::eTypeOpLatitude);
-        if (product != nullptr)
-        {
-          if ( product->IsLongitudeFieldName( m_name ) || ( CTools::FindNoCase(m_name, "lon") == 0) )
-          {
-            SetDataType(CMapTypeData::eTypeOpLongitude);
-          }
-        }
-
-      }
-      else
-      {
-        SetDataType(CMapTypeData::eTypeOpY);
-      }
-      break;
-    }
-  case CMapTypeField::eTypeOpAsField :
-      SetDataType(CMapTypeData::eTypeOpData);
-      break;
-  case CMapTypeField::eTypeOpAsSelect :
-      SetDataType(CMapTypeData::eTypeOpData);
-      break;
-  default :
-      SetDataType(CMapTypeData::eTypeOpData);
-      break;
-  }
-
+			}
+			else
+			{
+				SetDataType( CMapTypeData::eTypeOpY );
+			}
+			break;
+		}
+		case CMapTypeField::eTypeOpAsField:
+			SetDataType( CMapTypeData::eTypeOpData );
+			break;
+		case CMapTypeField::eTypeOpAsSelect:
+			SetDataType( CMapTypeData::eTypeOpData );
+			break;
+		default:
+			SetDataType( CMapTypeData::eTypeOpData );
+			break;
+	}
 }
 
 //----------------------------------------
@@ -282,7 +280,7 @@ std::string CFormula::GetResolutionAsLabel( bool hasFilter )
 }
 
 //----------------------------------------
-double CFormula::GetStepAsDouble( std::string &errorMsg )
+double CFormula::GetStepAsDouble( std::string &error_msg )
 {
 	CExpression expression;
 	CExpressionValue exprValue;
@@ -290,19 +288,19 @@ double CFormula::GetStepAsDouble( std::string &errorMsg )
 
 	SetStepToDefaultAsNecessary();
 
-	bool bOk = CFormula::SetExpression( m_step, expression, errorMsg );
+	bool bOk = CFormula::SetExpression( m_step, expression, error_msg );
 	if ( !bOk )
 	{
-		//wxMessageBox(errorMsg,		//             "Warning",		//              wxOK | wxCENTRE | wxICON_EXCLAMATION);
+		//wxMessageBox(error_msg,		//             "Warning",		//              wxOK | wxCENTRE | wxICON_EXCLAMATION);
 		SetStepToDefault();
-		SetExpression( m_step, expression, errorMsg );
+		SetExpression( m_step, expression, error_msg );
 	}
 
 	if ( expression.GetFieldNames()->size() != 0 )
 	{
-		//errorMsg = "Fieldnames are not allowed for step in formula";		//	wxMessageBox( errorMsg,		//	"Warning",		//	wxOK | wxCENTRE | wxICON_EXCLAMATION );
+		//error_msg = "Fieldnames are not allowed for step in formula";		//	wxMessageBox( error_msg,		//	"Warning",		//	wxOK | wxCENTRE | wxICON_EXCLAMATION );
 		SetStepToDefault();
-		SetExpression( m_step, expression, errorMsg );
+		SetExpression( m_step, expression, error_msg );
 	}
 
 	try
@@ -312,7 +310,7 @@ double CFormula::GetStepAsDouble( std::string &errorMsg )
 	}
 	catch ( CException& e )
 	{
-		errorMsg += 		
+		error_msg += 		
 			"Formula '"
 			+ m_name
 			+ "':\nSyntax for step ('"
@@ -321,13 +319,13 @@ double CFormula::GetStepAsDouble( std::string &errorMsg )
 			+ e.what()
 			+ "\n";
 
-		//wxMessageBox( errorMsg, "Warning", wxOK | wxICON_EXCLAMATION );
+		//wxMessageBox( error_msg, "Warning", wxOK | wxICON_EXCLAMATION );
 
 		result = CTools::m_defaultValueDOUBLE;
 	}
 	catch ( std::exception& e )
 	{
-		errorMsg = 		
+		error_msg = 		
 			"Formula '"
 			+ m_name
 			+ "':\nSyntax for step ('"
@@ -335,20 +333,20 @@ double CFormula::GetStepAsDouble( std::string &errorMsg )
 			+ "') is not valid\nReason:\n"
 			+ e.what(),
 
-		//wxMessageBox( errorMsg, "Warning", wxOK | wxICON_EXCLAMATION );
+		//wxMessageBox( error_msg, "Warning", wxOK | wxICON_EXCLAMATION );
 
 		result = CTools::m_defaultValueDOUBLE;
 	}
 	catch ( ... )
 	{
-		errorMsg = 		
+		error_msg = 		
 			"Formula '"
 			+ m_name
 			+ "':\nSyntax for step ('"
 			+ m_step
 			+ "') is not valid\n",
 
-		//wxMessageBox( errorMsg, 		//	"Warning",		//	wxOK | wxICON_EXCLAMATION );
+		//wxMessageBox( error_msg, 		//	"Warning",		//	wxOK | wxICON_EXCLAMATION );
 
 		result = CTools::m_defaultValueDOUBLE;
 	}
@@ -356,7 +354,7 @@ double CFormula::GetStepAsDouble( std::string &errorMsg )
 	return result;
 }
 //----------------------------------------
-double CFormula::GetStepAsDouble( const std::string& step, std::string errorMsg )
+double CFormula::GetStepAsDouble( const std::string& step, std::string error_msg )
 {
 	CExpression expression;
 	CExpressionValue exprValue;
@@ -366,22 +364,22 @@ double CFormula::GetStepAsDouble( const std::string& step, std::string errorMsg 
 		return CTools::m_defaultValueDOUBLE;
 	}
 
-	bool bOk = CFormula::SetExpression( step, expression, errorMsg );
+	bool bOk = CFormula::SetExpression( step, expression, error_msg );
 
 	if ( !bOk )
 	{
-		//wxMessageBox( errorMsg, "Warning", wxOK | wxCENTRE | wxICON_EXCLAMATION );
+		//wxMessageBox( error_msg, "Warning", wxOK | wxCENTRE | wxICON_EXCLAMATION );
 
-		SetExpression( DEFAULT_STEP_GENERAL_ASSTRING, expression, errorMsg );
+		SetExpression( DEFAULT_STEP_GENERAL_ASSTRING, expression, error_msg );
 	}
 
 	if ( expression.GetFieldNames()->size() != 0 )
 	{
-		errorMsg = "Fieldnames are not allowed for step in formula";
+		error_msg = "Fieldnames are not allowed for step in formula";
 
-		//wxMessageBox( errorMsg, "Warning", wxOK | wxCENTRE | wxICON_EXCLAMATION );
+		//wxMessageBox( error_msg, "Warning", wxOK | wxCENTRE | wxICON_EXCLAMATION );
 
-		SetExpression( DEFAULT_STEP_GENERAL_ASSTRING, expression, errorMsg );
+		SetExpression( DEFAULT_STEP_GENERAL_ASSTRING, expression, error_msg );
 	}
 
 	try
@@ -392,36 +390,36 @@ double CFormula::GetStepAsDouble( const std::string& step, std::string errorMsg 
 	}
 	catch ( CException& e )
 	{
-		errorMsg = 
+		error_msg = 
 			"Syntax for step ('"
 			+ step
 			+ "') is not valid\nReason:\n"
 			+ e.what(),
 
-		//wxMessageBox( errorMsg,			"Warning",			wxOK | wxICON_EXCLAMATION );
+		//wxMessageBox( error_msg,			"Warning",			wxOK | wxICON_EXCLAMATION );
 
 		result = CTools::m_defaultValueDOUBLE;
 	}
 	catch ( std::exception& e )
 	{
-		errorMsg = 
+		error_msg = 
 			"Syntax for step ('"
 			+ step
 			+ "') is not valid\nReason:\n"
 			+ e.what(),
 
-		//wxMessageBox( errorMsg, "Warning", wxOK | wxICON_EXCLAMATION );
+		//wxMessageBox( error_msg, "Warning", wxOK | wxICON_EXCLAMATION );
 
 		result = CTools::m_defaultValueDOUBLE;
 	}
 	catch ( ... )
 	{
-		errorMsg = 
+		error_msg = 
 			"Syntax for step ('"
 			+ step
 			+ "') is not valid\n",
 
-		//wxMessageBox( errorMsg, "Warning", wxOK | wxICON_EXCLAMATION );
+		//wxMessageBox( error_msg, "Warning", wxOK | wxICON_EXCLAMATION );
 
 		result = CTools::m_defaultValueDOUBLE;
 	}
@@ -462,107 +460,107 @@ std::string CFormula::GetDefaultUnit(int32_t dataType)
 }
 
 //----------------------------------------
-bool CFormula::CheckExpressionUnits(const std::string& exprStr, const std::string& record, const std::string& strUnitExpr, CProduct* product, std::string& errorMsg)
+bool CFormula::CheckExpressionUnits( const std::string& exprStr, const std::string& record, const std::string& strUnitExpr, const CProductInfo &pi, std::string& error_msg )
+{
+	bool bOk = true;
+
+	if ( !pi.IsValid() )
+	{
+		return bOk;
+	}
+
+
+	CExpression expr;
+	bOk = bOk && CFormula::SetExpression( exprStr, expr, error_msg );
+
+	if ( !bOk )
+	{
+		return bOk;
+	}
+
+	if ( !expr.HasFieldNames() )
+	{
+		return bOk;
+	}
+
+	if ( expr.HasConstants() )
+	{
+		return bOk;
+	}
+	if ( expr.GetNbFieldNames() > 1 )
+	{
+		return bOk;
+	}
+	//Expression contains only one field
+
+	std::string fieldName = expr.GetFieldNames()->at( 0 ).c_str();
+
+	CField* field = pi.FindFieldByName( fieldName, record, error_msg );
+
+	if ( field == nullptr )
+	{
+		return bOk;
+	}
+
+	CUnit unitExpr;
+
+	try
+	{
+		unitExpr = strUnitExpr;
+	}
+	catch ( CException& e )
+	{
+		error_msg += ( std::string( "The unit of the expression ('" ) + strUnitExpr + "') is not valid.\nReason\n'" + e.what() + "'" );
+		return false;
+	}
+
+	if ( CFormula::IsDefaultUnitData( unitExpr ) )
+	{
+		return bOk;
+	}
+
+	std::string msgErrorUnits;
+	if ( ! unitExpr.IsCompatible( field->GetUnit(), &msgErrorUnits ) )
+	{
+		if ( !msgErrorUnits.empty() )
+		{
+			error_msg += msgErrorUnits;
+		}
+		else
+		{
+			error_msg += (
+				std::string( "The unit of the field '" )
+				+ fieldName
+				+ "': '"
+				+ field->GetUnit()
+				+ "' is not compatible with the unit of the expression: '"
+				+ strUnitExpr
+				+ "'\n" );
+		}
+		bOk = false;
+
+	}
+
+	return bOk;
+}
+//----------------------------------------
+bool CFormula::CheckFieldNames( const CExpression& expr, const std::string& record, const CProductInfo &pi, CStringArray& fieldNamesNotFound )
+{
+	if ( !pi.IsValid() )
+	{
+		return true;
+	}
+
+	return pi.CheckFieldNames( expr, record, fieldNamesNotFound );
+}
+
+//----------------------------------------
+bool CFormula::CheckFieldNames(const std::string& exprStr, const std::string& record, const CProductInfo &pi, std::string& exprStrOut, std::string& error_msg)
 {
   bool bOk = true;
 
-  if (product == nullptr)
-  {
-    return bOk;
-  }
-
-
   CExpression expr;
-  bOk = bOk && CFormula::SetExpression(exprStr, expr, errorMsg);
-
-  if (!bOk)
-  {
-    return bOk;
-  }
-
-  if (!expr.HasFieldNames())
-  {
-    return bOk;
-  }
-
-  if (expr.HasConstants())
-  {
-    return bOk;
-  }
-  if (expr.GetNbFieldNames() > 1)
-  {
-    return bOk;
-  }
-  //Expression contains only one field
-
-  std::string fieldName = expr.GetFieldNames()->at(0).c_str();
-
-  CField* field = product->FindFieldByName((const char *)fieldName.c_str(), (const char *)record.c_str(), false, nullptr, true);
-
-  if (field == nullptr)
-  {
-    return bOk;
-  }
-
-  CUnit unitExpr;
-
-  try
-  {
-    unitExpr = strUnitExpr;
-  }
-  catch (CException& e)
-  {
-    errorMsg += ( std::string("The unit of the expression ('") + strUnitExpr + "') is not valid.\nReason\n'" + e.what() + "'" );
-    return false;
-  }
-
-  if (CFormula::IsDefaultUnitData(unitExpr))
-  {
-    return bOk;
-  }
-
-  std::string msgErrorUnits;
-  if (! unitExpr.IsCompatible(field->GetUnit(), &msgErrorUnits) )
-  {
-    if (!msgErrorUnits.empty())
-    {
-      errorMsg += msgErrorUnits;
-    }
-    else
-    {
-      errorMsg += (
-		  std::string("The unit of the field '") 
-		  + fieldName
-		  + "': '"
-		  + field->GetUnit()
-		  + "' is not compatible with the unit of the expression: '"
-		  + strUnitExpr
-		  + "'\n" );
-    }
-    bOk = false;
-
-  }
-
-  return bOk;
-}
-//----------------------------------------
-bool CFormula::CheckFieldNames(const CExpression& expr, const std::string& record, CProduct* product, CStringArray& fieldNamesNotFound)
-{
-  if (product == nullptr)
-  {
-    return true;
-  }
-
-  return product->CheckFieldNames(expr, record, fieldNamesNotFound);
-}
-
-//----------------------------------------
-bool CFormula::CheckFieldNames(const std::string& exprStr, const std::string& record, CProduct* product, std::string& exprStrOut, std::string& errorMsg)
-{
-  bool bOk = true;
-
-  CExpression expr;
-  bOk = bOk && CFormula::SetExpression(exprStr, expr, errorMsg);
+  bOk = bOk && CFormula::SetExpression(exprStr, expr, error_msg);
 
   if (!bOk)
   {
@@ -570,7 +568,7 @@ bool CFormula::CheckFieldNames(const std::string& exprStr, const std::string& re
   }
 
   CExpression exprOut;
-  bOk = bOk && CFormula::CheckFieldNames(expr, record, product, exprOut, errorMsg);
+  bOk = bOk && CFormula::CheckFieldNames(expr, record, pi, exprOut, error_msg);
 
   try
   {
@@ -578,7 +576,7 @@ bool CFormula::CheckFieldNames(const std::string& exprStr, const std::string& re
   }
   catch (CException& e)
   {
-    errorMsg += ( std::string( "Syntax is not valid\nReason:\n" ) + e.what() );
+    error_msg += ( std::string( "Syntax is not valid\nReason:\n" ) + e.what() );
     bOk = false;
 
   }
@@ -586,98 +584,97 @@ bool CFormula::CheckFieldNames(const std::string& exprStr, const std::string& re
   return bOk;
 }
 //----------------------------------------
-bool CFormula::CheckFieldNames(const CExpression& expr, const std::string& record, CProduct* product, CExpression& exprOut, std::string& errorMsg)
+bool CFormula::CheckFieldNames( const CExpression& expr, const std::string& record, const CProductInfo &pi, CExpression& exprOut, std::string& error_msg )
 {
-  if (product == nullptr)
-  {
-    return true;
-  }
+	if ( !pi.IsValid() )
+	{
+		return true;
+	}
 
-  try
-  {
-    exprOut = expr;
-  }
-  catch (CException& e)
-  {
-	  errorMsg += ( std::string("Syntax is not valid\nReason:\n") + e.what() );
-    return false;
+	try
+	{
+		exprOut = expr;
+	}
+	catch ( CException& e )
+	{
+		error_msg += ( std::string( "Syntax is not valid\nReason:\n" ) + e.what() );
+		return false;
 
-  }
-
-
-  CStringArray fieldNamesNotFound;
-  //Try to correct lower/upper case error in field names.
-  product->ReplaceNamesCaseSensitive(expr, fieldNamesNotFound, exprOut);
-
-  //Add record name to field names
-  std::string errorString;
-  bool recordNameAdded = product->AddRecordNameToField(expr, record, exprOut, errorString);
-
-  if (!recordNameAdded)
-  {
-    errorMsg += "\n";
-    errorMsg += errorString;
-    errorMsg += "\n";
-  }
+	}
 
 
-  fieldNamesNotFound.RemoveAll();
-  bool bOk = CFormula::CheckFieldNames(exprOut, record, product, fieldNamesNotFound);
+	CStringArray fieldNamesNotFound;
+	//Try to correct lower/upper case error in field names.
+	pi.ReplaceNamesCaseSensitive( expr, fieldNamesNotFound, exprOut );
+
+	//Add record name to field names
+	std::string errorString;
+	bool recordNameAdded = pi.AddRecordNameToField( expr, record, exprOut, errorString );
+
+	if ( !recordNameAdded )
+	{
+		error_msg += "\n";
+		error_msg += errorString;
+		error_msg += "\n";
+	}
 
 
-/*
-  CStringArray fieldNamesNotFound;
-  bool bOk = CFormula::CheckFieldNames(expr, record, product, fieldNamesNotFound);
+	fieldNamesNotFound.RemoveAll();
+	bool bOk = CFormula::CheckFieldNames( exprOut, record, pi, fieldNamesNotFound );
 
-  //Try to correct lower/upper case error in field names.
 
-  if (!bOk)
-  {
-    product->ReplaceNamesCaseSensitive(expr, fieldNamesNotFound, exprOut);
-    fieldNamesNotFound.RemoveAll();
-    bOk = CFormula::CheckFieldNames(exprOut, record, product, fieldNamesNotFound);
-  }
+	/*
+	  CStringArray fieldNamesNotFound;
+	  bool bOk = CFormula::CheckFieldNames(expr, record, product, fieldNamesNotFound);
 
-  std::string errorString;
+	  //Try to correct lower/upper case error in field names.
 
-  bool recordNameAdded = product->AddRecordNameToField(expr, record.c_str(), exprOut, errorString);
+	  if (!bOk)
+	  {
+		product->ReplaceNamesCaseSensitive(expr, fieldNamesNotFound, exprOut);
+		fieldNamesNotFound.RemoveAll();
+		bOk = CFormula::CheckFieldNames(exprOut, record, product, fieldNamesNotFound);
+	  }
 
-  if (!recordNameAdded)
-  {
-    errorMsg.Append("\n");
-    errorMsg.Append(errorString.c_str());
-    errorMsg.Append("\n");
-  }
+	  std::string errorString;
 
-  fieldNamesNotFound.RemoveAll();
-  bOk = CFormula::CheckFieldNames(exprOut, record, product, fieldNamesNotFound);
-*/
-  if (!bOk)
-  {
-    errorMsg += "Fields below are unknown:\n\n";
-    CStringArray::const_iterator it;
+	  bool recordNameAdded = product->AddRecordNameToField(expr, record.c_str(), exprOut, errorString);
 
-    for (it = fieldNamesNotFound.begin() ; it != fieldNamesNotFound.end() ; it++)
-    {
-      errorMsg += "\t";
-      errorMsg += *it;
-      errorMsg += "\n";
-    }
-  }
+	  if (!recordNameAdded)
+	  {
+		error_msg.Append("\n");
+		error_msg.Append(errorString.c_str());
+		error_msg.Append("\n");
+	  }
 
-  return bOk;
+	  fieldNamesNotFound.RemoveAll();
+	  bOk = CFormula::CheckFieldNames(exprOut, record, product, fieldNamesNotFound);
+	*/
+	if ( !bOk )
+	{
+		error_msg += "Fields below are unknown:\n\n";
+		CStringArray::const_iterator it;
+
+		for ( it = fieldNamesNotFound.begin(); it != fieldNamesNotFound.end(); it++ )
+		{
+			error_msg += "\t";
+			error_msg += *it;
+			error_msg += "\n";
+		}
+	}
+
+	return bOk;
 }
 //----------------------------------------
-bool CFormula::CheckExpression( CWorkspaceFormula *wks, const std::string& value, const std::string& record, std::string& errorMsg, std::string* strUnitExpr,
-                               const CStringMap* aliases /* = nullptr*/, CProduct* product /* = nullptr*/, std::string* valueOut /*= nullptr*/)
+bool CFormula::CheckExpression( CWorkspaceFormula *wks, const std::string &value, const std::string &record, std::string &error_msg, std::string *strUnitExpr, 
+	const CStringMap *aliases , const CProductInfo &pi, std::string *value_out )	//aliases = nullptr, pi = CProductInfo::smInvalidProduct, value_out nullptr
 {
-
   std::string tmp = value;
   rtrim( tmp );
   ltrim( tmp );
   if (tmp.empty())
   {
-    errorMsg += "Data expression is empty. You have to set it.";
+    error_msg += "Data expression is empty. You have to set it.";
     return false;
   }
 
@@ -692,7 +689,7 @@ bool CFormula::CheckExpression( CWorkspaceFormula *wks, const std::string& value
   //CStringMap allAliases;
   //CProduct::GroupAliases(product, aliases, allAliases);
 
-  const CStringMap* fieldAliases = CProduct::GetAliasesAsString(product);
+  const CStringMap* fieldAliases = pi.AliasesAsString();
 
 
   if ((aliases != nullptr) || (fieldAliases != nullptr))
@@ -706,7 +703,7 @@ bool CFormula::CheckExpression( CWorkspaceFormula *wks, const std::string& value
     }
     catch(CException& e)
     {
-      errorMsg += ( std::string("Unable to find aliases (formulas and fields) from:\n" ) + value + "\n.\nReason\n'" + e.what() + "'" );
+      error_msg += ( std::string("Unable to find aliases (formulas and fields) from:\n" ) + value + "\n.\nReason\n'" + e.what() + "'" );
       return false;
     }
     //CTrace::GetInstance()->SetTraceLevel(5);
@@ -717,7 +714,7 @@ bool CFormula::CheckExpression( CWorkspaceFormula *wks, const std::string& value
 
       if (wks != nullptr)
       {
-        wks->AmendFormulas(aliasesFoundUnique, product, record);
+        wks->AmendFormulas(aliasesFoundUnique, pi, record);
       }
 
     // Expand fields aliases and formulas aliases
@@ -725,47 +722,47 @@ bool CFormula::CheckExpression( CWorkspaceFormula *wks, const std::string& value
     str = CTools::ExpandVariables(value, aliases, fieldAliases, true, '%', &numberVarsExpanded, false, &errorString);
     if (!errorString.empty())
     {
-      errorMsg += ( std::string("Unable to expand aliases (formulas and fields) from:\n" ) + value + "\n.\nReason\n'" + errorString + "'" );    
+      error_msg += ( std::string("Unable to expand aliases (formulas and fields) from:\n" ) + value + "\n.\nReason\n'" + errorString + "'" );    
       return false;
     }
 
   }
 
   //CExpression expr;
-  //bOk = bOk && CFormula::SetExpression(str.c_str(), expr, errorMsg);
+  //bOk = bOk && CFormula::SetExpression(str.c_str(), expr, error_msg);
 
   //CExpression exprOut;
   std::string expStrOut;
-  bOk = bOk && CFormula::CheckFieldNames(str, record, product, expStrOut, errorMsg);
+  bOk = bOk && CFormula::CheckFieldNames(str, record, pi, expStrOut, error_msg);
 
   if (bOk)
   {
-    if (valueOut != nullptr)
+    if (value_out != nullptr)
     {
       if (numberVarsExpanded == 0)
       {
-        *valueOut = expStrOut;
+        *value_out = expStrOut;
       }
       else
       {
         //Try to correct lower/upper case error in field names.
         std::string out;
-        product->ReplaceNamesCaseSensitive(value, out);
+        pi.ReplaceNamesCaseSensitive(value, out);
 
         //Add record name to field names
         std::string out2 = out;
         std::string errorString;
-        product->AddRecordNameToField(out2, record, out, errorString);
+        pi.AddRecordNameToField(out2, record, out, errorString);
 
 
-        *valueOut = out.c_str();
+        *value_out = out.c_str();
       }
 
     }
   }
   if ((bOk) && (strUnitExpr != nullptr))
   {
-    bOk = bOk && CFormula::CheckExpressionUnits(expStrOut, record, *strUnitExpr, product, errorMsg);
+    bOk = bOk && CFormula::CheckExpressionUnits(expStrOut, record, *strUnitExpr, pi, error_msg);
   }
 
 
@@ -773,14 +770,14 @@ bool CFormula::CheckExpression( CWorkspaceFormula *wks, const std::string& value
 }
 
 //----------------------------------------
-bool CFormula::SetExpression(const char* value, CExpression& expr, std::string& errorMsg)
+bool CFormula::SetExpression(const char* value, CExpression& expr, std::string& error_msg)
 {
   std::string str(value);
-  return SetExpression(str, expr, errorMsg);
+  return SetExpression(str, expr, error_msg);
 
 }
 //----------------------------------------
-bool CFormula::SetExpression( const std::string& value, CExpression& expr, std::string& errorMsg )
+bool CFormula::SetExpression( const std::string& value, CExpression& expr, std::string& error_msg )
 {
 	bool bOk = true;
 
@@ -790,18 +787,18 @@ bool CFormula::SetExpression( const std::string& value, CExpression& expr, std::
 	}
 	catch ( CException& e )
 	{
-		errorMsg = errorMsg + "Syntax is not valid\nReason:\n" + e.what();
+		error_msg = error_msg + "Syntax is not valid\nReason:\n" + e.what();
 		bOk = false;
 	}
 
 	return bOk;
 }
 //----------------------------------------
-bool CFormula::GetFields( CStringArray& fields, std::string& errorMsg, const CStringMap* aliases, const CStringMap* fieldAliases ) const	//aliases = nullptr, const CStringMap* fieldAliases = nullptr
+bool CFormula::GetFields( CStringArray& fields, std::string& error_msg, const CStringMap* aliases, const CStringMap* fieldAliases ) const	//aliases = nullptr, const CStringMap* fieldAliases = nullptr
 {
 	CExpression expr;
 
-	if ( !CFormula::SetExpression( GetDescription( true, aliases, fieldAliases ), expr, errorMsg ) )
+	if ( !CFormula::SetExpression( GetDescription( true, aliases, fieldAliases ), expr, error_msg ) )
 		return false;
 
 	// Copy fields names contained in expression
@@ -811,8 +808,8 @@ bool CFormula::GetFields( CStringArray& fields, std::string& errorMsg, const CSt
 }
 
 //----------------------------------------
-bool CFormula::CheckExpression(CWorkspaceFormula *wks, std::string& errorMsg, const std::string& record,
-                               const CStringMap* aliases /* = nullptr*/, CProduct* product /* = nullptr*/, std::string* valueOut /*= nullptr*/)
+bool CFormula::CheckExpression(CWorkspaceFormula *wks, std::string &error_msg, const std::string &record, const CStringMap *aliases, const CProductInfo &pi, std::string *value_out )
+		//aliases = nullptr, const pi = CProductInfo::smInvalidProduct, value_out = nullptr
 {
 
   std::string stringExpr = GetDescription(true);
@@ -827,7 +824,7 @@ bool CFormula::CheckExpression(CWorkspaceFormula *wks, std::string& errorMsg, co
   std::string valueOutTemp;
   std::string strUnit = m_unit.AsString(false);
 
-  bool bOk = CFormula::CheckExpression(wks, stringExpr, record, str, &strUnit, aliases, product, &valueOutTemp);
+  bool bOk = CFormula::CheckExpression(wks, stringExpr, record, str, &strUnit, aliases, pi, &valueOutTemp);
 
   rtrim( valueOutTemp );
 
@@ -836,14 +833,14 @@ bool CFormula::CheckExpression(CWorkspaceFormula *wks, std::string& errorMsg, co
     SetDescription(valueOutTemp);
   }
 
-  if (valueOut != nullptr)
+  if (value_out != nullptr)
   {
-    *valueOut = GetDescription(true);
+    *value_out = GetDescription(true);
   }
 
   if (!bOk)
   {
-    errorMsg += ( std::string("\nFormula '") + m_name + "':\n\t" + str + "\n" );
+    error_msg += ( std::string("\nFormula '") + m_name + "':\n\t" + str + "\n" );
   }
 
   return bOk;
@@ -867,7 +864,7 @@ double CFormula::LonNormal360( double value ) const
 }
 //----------------------------------------
 
-bool CFormula::ControlResolution( std::string& errorMsg ) const
+bool CFormula::ControlResolution( std::string& error_msg ) const
 {
 	bool bOk = true;
 
@@ -895,18 +892,18 @@ bool CFormula::ControlResolution( std::string& errorMsg ) const
 
 	if ( !isDefaultValue( m_minValue ) || !isDefaultValue( m_maxValue ) )
 	{
-        bOk = bOk && CtrlMinMaxValue( errorMsg );
+        bOk = bOk && CtrlMinMaxValue( error_msg );
 	}
 
 	if ( !bOk )
 	{
-		errorMsg += ( std::string( "\nFormula '" ) + m_name + "' - Errors on resolution:" + str + "\n" );
+		error_msg += ( std::string( "\nFormula '" ) + m_name + "' - Errors on resolution:" + str + "\n" );
 	}
 
 	return bOk;
 }
 //----------------------------------------
-bool CFormula::CtrlMinMaxValue( std::string& errorMsg ) const
+bool CFormula::CtrlMinMaxValue( std::string& error_msg ) const
 {
 	bool bOk = true;
 	double min = m_minValue;
@@ -923,7 +920,7 @@ bool CFormula::CtrlMinMaxValue( std::string& errorMsg ) const
 	}
 	if ( min >= max )
 	{
-        errorMsg += "\n  Minimum value must be strictly less than Maximum value.",
+        error_msg += "\n  Minimum value must be strictly less than Maximum value.",
 			bOk = false;
 	}
 
@@ -987,13 +984,13 @@ bool CFormula::IsXYTime() const
 	return IsXYType() && IsTimeDataType();
 }
 //----------------------------------------
-bool CFormula::ControlUnitConsistency(std::string& errorMsg)
+bool CFormula::ControlUnitConsistency(std::string& error_msg)
 {
   bool bOk = IsUnitCompatible();
   if (!bOk)
   {
 
-    errorMsg += (
+    error_msg += (
 		std::string("\nFormula '" )
 		+ m_name
 		+ "': \nUnit '"
@@ -1114,11 +1111,11 @@ void CFormula::SetDefaultUnit()
 */
 }
 //----------------------------------------
-void CFormula::SetUnit( const std::string& value, std::string &errorMsg, const std::string& defaultValue, bool convertMinMax /*= false*/ )
+void CFormula::SetUnit( const std::string& value, std::string &error_msg, const std::string& defaultValue, bool convertMinMax /*= false*/ )
 {
 	if ( convertMinMax )
 	{
-		ConvertToMinMaxFormulaBaseUnit( errorMsg );
+		ConvertToMinMaxFormulaBaseUnit( error_msg );
 	}
 
 	try
@@ -1134,7 +1131,7 @@ void CFormula::SetUnit( const std::string& value, std::string &errorMsg, const s
 	}
 	catch ( CException& e )
 	{
-			errorMsg +=
+			error_msg +=
 				"Formula '"
 				+ m_name
 				+ "' - Invalid unit '"
@@ -1150,18 +1147,18 @@ void CFormula::SetUnit( const std::string& value, std::string &errorMsg, const s
 
 	if ( convertMinMax )
 	{
-		ConvertToMinMaxFormulaUnit( errorMsg );
+		ConvertToMinMaxFormulaUnit( error_msg );
 	}
 
 }
 //----------------------------------------
-void CFormula::SetUnit( const CUnit& value, std::string &errorMsg, const std::string& defaultValue, bool convertMinMax /*= false*/ )
+void CFormula::SetUnit( const CUnit& value, std::string &error_msg, const std::string& defaultValue, bool convertMinMax /*= false*/ )
 {
 	if ( convertMinMax )
 	{
 		if ( !IsTimeDataType() )
 		{
-			ConvertToMinMaxFormulaBaseUnit( errorMsg );
+			ConvertToMinMaxFormulaBaseUnit( error_msg );
 		}
 	}
 
@@ -1171,7 +1168,7 @@ void CFormula::SetUnit( const CUnit& value, std::string &errorMsg, const std::st
 	}
 	catch ( CException& e )
 	{
-		errorMsg =
+		error_msg =
 			"Formula '"
 			+ m_name
 			+ "' - Invalid unit '"
@@ -1189,7 +1186,7 @@ void CFormula::SetUnit( const CUnit& value, std::string &errorMsg, const std::st
 	{
 		if ( !IsTimeDataType() )
 		{
-			ConvertToMinMaxFormulaUnit( errorMsg );
+			ConvertToMinMaxFormulaUnit( error_msg );
 		}
 	}
 
@@ -1236,12 +1233,12 @@ bool CFormula::LoadConfigDesc( CWorkspaceSettings *config, const std::string& pa
 	return config->LoadConfigDesc( *this, path );
 }
 //----------------------------------------
-bool CFormula::LoadConfig( CWorkspaceSettings *config, std::string &errorMsg, const std::string& pathSuff )
+bool CFormula::LoadConfig( CWorkspaceSettings *config, std::string &error_msg, const std::string& pathSuff )
 {
 	assert__( config );	//v4
-	//return !config || config->LoadConfig( *this, errorMsg, pathSuff );
+	//return !config || config->LoadConfig( *this, error_msg, pathSuff );
 
-	return config->LoadConfig( *this, errorMsg, pathSuff );
+	return config->LoadConfig( *this, error_msg, pathSuff );
 }
 //----------------------------------------
 bool CFormula::SaveConfigDesc( CWorkspaceSettings *config, const std::string& path)
@@ -1342,7 +1339,7 @@ void CFormula::SetMaxValueFromDateString(const std::string& value)
   SetMaxValue(d);
 }
 //----------------------------------------
-void CFormula::ConvertToMinMaxFormulaBaseUnit( std::string &errorMsg )
+void CFormula::ConvertToMinMaxFormulaBaseUnit( std::string &error_msg )
 {
   if (!IsTimeDataType())
   {
@@ -1350,10 +1347,10 @@ void CFormula::ConvertToMinMaxFormulaBaseUnit( std::string &errorMsg )
     m_maxValue = ConvertToFormulaBaseUnit(m_maxValue);
   }
 
-  ComputeInterval( errorMsg );
+  ComputeInterval( error_msg );
 }
 //----------------------------------------
-void CFormula::ConvertToMinMaxFormulaUnit( std::string &errorMsg )
+void CFormula::ConvertToMinMaxFormulaUnit( std::string &error_msg )
 {
   if (!IsTimeDataType())
   {
@@ -1361,7 +1358,7 @@ void CFormula::ConvertToMinMaxFormulaUnit( std::string &errorMsg )
     m_maxValue = ConvertToFormulaUnit(m_maxValue);
   }
 
-  ComputeInterval( errorMsg );
+  ComputeInterval( error_msg );
 }
 //----------------------------------------
 bool CFormula::ConvertToFormulaBaseUnit(double in, double& out)
@@ -1396,7 +1393,7 @@ double CFormula::ConvertToFormulaUnit(double in)
 }
 
 //----------------------------------------
-bool CFormula::ComputeInterval( std::string &errorMsg )
+bool CFormula::ComputeInterval( std::string &error_msg )
 {
 	if ( !IsXYType() )
 	{
@@ -1430,7 +1427,7 @@ bool CFormula::ComputeInterval( std::string &errorMsg )
 
 	double interval = 0.0;
 	double intervalTmp = 0.0;
-	double step = GetStepAsDouble( errorMsg );
+	double step = GetStepAsDouble( error_msg );
 
 	if ( isDefaultValue( step ) )
 	{
@@ -1518,7 +1515,7 @@ bool CFormula::ComputeInterval( std::string &errorMsg )
 
 	if ( !areEqual( interval, intervalTmp ) )
 	{
-		errorMsg +=
+		error_msg +=
 			"Formula '"
 			+ m_name
 			+ "':\nInterval was round up or down to the nearest integer value.\n";
@@ -1623,14 +1620,14 @@ bool CMapFormula::ValidName(const char* name)
 }
 
 //----------------------------------------
-bool CMapFormula::LoadConfig( std::string &errorMsg, bool predefined )	//std::string& pathSuff = ""
+bool CMapFormula::LoadConfig( std::string &error_msg, bool predefined )	//std::string& pathSuff = ""
 {
-	return LoadConfig( m_config, errorMsg, predefined );
+	return LoadConfig( m_config, error_msg, predefined );
 }
 //----------------------------------------
-bool CMapFormula::LoadConfig( CWorkspaceSettings *config, std::string &errorMsg, bool predefined, const std::string& pathSuff )
+bool CMapFormula::LoadConfig( CWorkspaceSettings *config, std::string &error_msg, bool predefined, const std::string& pathSuff )
 {
-	return config && config->LoadConfig( *this, errorMsg, predefined, pathSuff );
+	return config && config->LoadConfig( *this, error_msg, predefined, pathSuff );
 }
 
 //----------------------------------------
@@ -1639,7 +1636,7 @@ bool CMapFormula::SaveConfig( CWorkspaceSettings *config, bool predefined, const
 	return config && config->SaveConfig( *this, predefined, pathSuff );
 }
 //----------------------------------------
-bool CMapFormula::InsertPredefined( const std::string &internal_data_path, std::string &errorMsg )
+bool CMapFormula::InsertPredefined( const std::string &internal_data_path, std::string &error_msg )
 {
 	std::string formulaPath = internal_data_path + "/" + CMapFormula::m_predefFormulaFile;		//TODO check this conversion from wxFileName to std::string
 	//wxFileName formulaPath;
@@ -1650,17 +1647,17 @@ bool CMapFormula::InsertPredefined( const std::string &internal_data_path, std::
 	//m_config = new CWorkspaceSettings( wxEmptyString, wxEmptyString, formulaPath.GetFullPath(), wxEmptyString, wxCONFIG_USE_LOCAL_FILE );
 	m_config = new CWorkspaceSettings( formulaPath );
 
-	return LoadConfig( errorMsg, true );
+	return LoadConfig( error_msg, true );
 }
 //----------------------------------------
-bool CMapFormula::InsertUserDefined( CFormula* formula, std::string &errorMsg )
+bool CMapFormula::InsertUserDefined( CFormula* formula, std::string &error_msg )
 {
 	std::string name = formula->GetName();
 
 	CFormula* value = dynamic_cast<CFormula*>( Exists( name ) );
 	if ( value != nullptr )
 	{
-		errorMsg +=
+		error_msg +=
 			"Formula '"
 			+ value->GetName()
 			+ "' already exists\nContent:\n"
@@ -1680,7 +1677,7 @@ bool CMapFormula::InsertUserDefined( CFormula* formula, std::string &errorMsg )
 	return true;
 }
 //----------------------------------------
-bool CMapFormula::InsertUserDefined_ReplacePredefinedNotAllowed( CFormula& formula, std::string &errorMsg )
+bool CMapFormula::InsertUserDefined_ReplacePredefinedNotAllowed( CFormula& formula, std::string &error_msg )
 {
 	std::string name = formula.GetName();
 
@@ -1689,7 +1686,7 @@ bool CMapFormula::InsertUserDefined_ReplacePredefinedNotAllowed( CFormula& formu
 	{
 		if ( value->IsPredefined() )
 		{
-			errorMsg +=
+			error_msg +=
 				"Formula '"
 				+ value->GetName()
 				+ "' already exists and is a predefined formula.\n"
@@ -1699,7 +1696,7 @@ bool CMapFormula::InsertUserDefined_ReplacePredefinedNotAllowed( CFormula& formu
 		}
 		else
 		{
-			return InsertUserDefined( &formula, errorMsg );
+			return InsertUserDefined( &formula, error_msg );
 		}
 	}
 	else
@@ -1719,9 +1716,9 @@ bool CMapFormula::InsertUserDefined_ReplacePredefinedNotAllowed( CFormula& formu
 //	return LoadConfig( false );
 //}
 //----------------------------------------
-bool CMapFormula::InsertUserDefined( CWorkspaceSettings *config, std::string &errorMsg )
+bool CMapFormula::InsertUserDefined( CWorkspaceSettings *config, std::string &error_msg )
 {
-	return LoadConfig( config, errorMsg, false );
+	return LoadConfig( config, error_msg, false );
 }
 //----------------------------------------
 std::string CMapFormula::GetDescFormula( const std::string& name, bool alias )
@@ -1835,42 +1832,39 @@ bool CMapFormula::HasFilters() const
 }
 //----------------------------------------
 
-void CMapFormula::Amend(const CStringArray& keys, CProduct* product, const std::string& record)
+void CMapFormula::Amend( const CStringArray& keys, const CProductInfo &pi, const std::string& record )
 {
-    UNUSED( record );
+	UNUSED( record );
 
-  if (product == nullptr)
-  {
-    return;
-  }
+	if ( !pi.IsValid() )
+		return;
 
-  CStringArray::const_iterator itKey;
+	CStringArray::const_iterator itKey;
 
-  for (itKey = keys.begin() ; itKey != keys.end() ; itKey++)
-  {
-    CFormula* value = dynamic_cast<CFormula*>(this->Exists(*itKey));
-    if (value == nullptr)
-    {
-      continue;
-    }
+	for ( itKey = keys.begin(); itKey != keys.end(); itKey++ )
+	{
+		CFormula* value = dynamic_cast<CFormula*>( this->Exists( *itKey ) );
+		if ( value == nullptr )
+		{
+			continue;
+		}
 
-    std::string out;
-    std::string errorMsg;
-    std::string str = value->GetDescription(true);
+		std::string out;
+		std::string error_msg;
+		std::string str = value->GetDescription( true );
 
-    product->ReplaceNamesCaseSensitive((const char *)str.c_str(), out);
+		pi.ReplaceNamesCaseSensitive( str, out );
 
-    if (out.empty())
-    {
-      continue;
-    }
+		if ( out.empty() )
+		{
+			continue;
+		}
 
-    if ( !str_cmp( str, out ) )
-    {
-      value->SetDescription(out);
-    }
-
-  }
+		if ( !str_cmp( str, out ) )
+		{
+			value->SetDescription( out );
+		}
+	}
 }
 
 

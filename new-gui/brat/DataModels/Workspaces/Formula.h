@@ -401,7 +401,7 @@ public:
 	std::string GetDataTypeAsString() const { return CMapTypeData::GetInstance().IdToName( m_dataType ); }
 	CMapTypeData::ETypeData GetDataType() const { return m_dataType; }
 	void SetDataType( CMapTypeData::ETypeData value ) { m_dataType = value; }
-	void SetDataType( CMapTypeField::ETypeField typeField, const CUnit& unit, const CProduct* product = nullptr );
+	void SetDataType( CMapTypeField::ETypeField typeField, const CUnit& unit, const CProductInfo &pi );
 
 
 	void SetDefaultMinMax();
@@ -437,21 +437,26 @@ public:
 
 	bool ControlUnitConsistency( std::string& errorMsg );
 
-	static bool CheckFieldNames( const CExpression& expr, const std::string& record, CProduct* product, CStringArray& fieldNamesNotFound );
-	static bool CheckFieldNames( const CExpression& expr, const std::string& record, CProduct* product, CExpression& exprOut, std::string& errorMsg );
-	static bool CheckFieldNames( const std::string& expr, const std::string& record, CProduct* product, std::string& exprOut, std::string& errorMsg );
-
-	static bool CheckExpression( CWorkspaceFormula *wks, const std::string& value, const std::string& record, std::string& errorMsg, std::string* strUnitExpr = nullptr,
-		const CStringMap* aliases = nullptr, CProduct* product = nullptr, std::string* valueOut = nullptr );
-	bool CheckExpression( CWorkspaceFormula *wks, std::string& errorMsg, const std::string& record,
-		const CStringMap* aliases = nullptr, CProduct* product = nullptr, std::string* valueOut = nullptr );
-
-	static bool CheckExpressionUnits( const std::string& exprStr, const std::string& record, const std::string& strUnitExpr, CProduct* product, std::string& errorMsg );
-
-	bool GetFields( CStringArray& fields, std::string& errorMsg, const CStringMap* aliases = nullptr, const CStringMap* fieldAliases = nullptr ) const;
-
 	static bool SetExpression( const std::string& value, CExpression& expr, std::string& errorMsg );
 	static bool SetExpression( const char* value, CExpression& expr, std::string& errorMsg );
+
+	static bool CheckExpression( CWorkspaceFormula *wks, const std::string& value, const std::string& record, std::string& errorMsg, std::string* strUnitExpr = nullptr,
+		const CStringMap* aliases = nullptr, const CProductInfo &pi = CProductInfo::smInvalidProduct, std::string* valueOut = nullptr );
+
+	bool CheckExpression( CWorkspaceFormula *wks, std::string& errorMsg, const std::string& record,
+		const CStringMap* aliases = nullptr, const CProductInfo &pi = CProductInfo::smInvalidProduct, std::string* valueOut = nullptr );
+
+protected:
+	static bool CheckFieldNames( const CExpression& expr, const std::string& record, const CProductInfo &pi, CStringArray& fieldNamesNotFound );
+	static bool CheckFieldNames( const CExpression& expr, const std::string& record, const CProductInfo &pi, CExpression& exprOut, std::string& errorMsg );
+	static bool CheckFieldNames( const std::string& expr, const std::string& record, const CProductInfo &pi, std::string& exprOut, std::string& errorMsg );
+
+	static bool CheckExpressionUnits( const std::string& exprStr, const std::string& record, const std::string& strUnitExpr, const CProductInfo &pi, std::string& errorMsg );
+
+protected:
+
+public:
+	bool GetFields( CStringArray& fields, std::string& errorMsg, const CStringMap* aliases = nullptr, const CStringMap* fieldAliases = nullptr ) const;
 
 	double LonNormal360( double lon ) const;
 
@@ -576,7 +581,7 @@ public:
 
 	bool HasFilters() const;
 
-	void Amend( const CStringArray& keys, CProduct* product, const std::string& record );
+	void Amend( const CStringArray& keys, const CProductInfo &pi, const std::string& record );
 
 	bool InsertPredefined( const std::string &internal_data_path, std::string &errorMsg );
 	//bool InsertUserDefined( const wxFileName& fileName );

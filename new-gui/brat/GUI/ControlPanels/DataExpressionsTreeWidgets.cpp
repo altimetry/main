@@ -632,27 +632,39 @@ void CDataExpressionsTreeWidget::HandleSelectionChanged()
 
 
 //static 
-bool CDataExpressionsTreeWidget::SelectRecord( QWidget *parent, COperation *operation, CProduct *product )
+std::pair< bool, std::string > CDataExpressionsTreeWidget::SelectRecord( QWidget *parent, CProduct *product )
 {
-	if ( product == nullptr )
+	if ( product )
 	{
-		return false;
+		CSelectRecordDialog dlg( parent, product );	//product cannot be const, product iteration is not read-only...
+		if ( dlg.exec() == QDialog::Accepted )
+		{
+			return{ true, dlg.SelectedRecord() };
+		}
 	}
 
-	CSelectRecordDialog dlg( parent, product );	//product cannot be const, product iteration is not read-only...
-	if ( dlg.exec() == QDialog::Accepted )
-	{
-		operation->SetRecord( dlg.SelectedRecord() );
-		return true;
-	}
-	return false;
+	return{ false, empty_string() };
 }
 
-bool CDataExpressionsTreeWidget::SelectRecord( CProduct *product )
+
+//static 
+bool CDataExpressionsTreeWidget::SelectAndAssignRecord( QWidget *parent, COperation *operation, CProduct *product )
+{
+	auto record = SelectRecord( parent, product );
+	if ( record.first )
+	{
+		operation->SetRecord( record.second );
+	}
+
+	return record.first;
+}
+
+
+bool CDataExpressionsTreeWidget::SelectAndAssignRecord( CProduct *product )
 {
 	assert__( mCurrentOperation );
 
-	return CDataExpressionsTreeWidget::SelectRecord( this, mCurrentOperation, product );
+	return CDataExpressionsTreeWidget::SelectAndAssignRecord( this, mCurrentOperation, product );
 }
 
 
@@ -774,7 +786,7 @@ void CDataExpressionsTreeWidget::AddField( QTreeWidgetItem *parent, CField *fiel
 	//if ( type != nullptr )
 	//{
 	std::string error_msg;
-	CFormula *formula = mCurrentOperation->NewUserFormula( error_msg, field, type, the_parent != mItemSelectionCriteria, mDragSource->Product() );
+	CFormula *formula = mCurrentOperation->NewUserFormula( error_msg, field, type, the_parent != mItemSelectionCriteria, CProductInfo( mDragSource->Product() ) );
 	if ( !error_msg.empty() )
 		SimpleWarnBox( error_msg );
 
@@ -829,7 +841,7 @@ void CDataExpressionsTreeWidget::AddEmptyExpression( QTreeWidgetItem *parent )
 	if ( record.empty() )
 	{
 		CProduct *product = const_cast<CProduct*>( mDragSource->Product() );		//ATTENTION to this
-		if ( !SelectRecord( product ) )
+		if ( !SelectAndAssignRecord( product ) )
 			return;
 	}
 
@@ -840,8 +852,7 @@ void CDataExpressionsTreeWidget::AddEmptyExpression( QTreeWidgetItem *parent )
 		auto type = ItemType( the_parent );
 
 		std::string error_msg;
-		CFormula *formula = mCurrentOperation->NewUserFormula( error_msg,
-			mCurrentOperation->GetFormulaNewName(), type, "", the_parent != mItemSelectionCriteria );
+		CFormula *formula = mCurrentOperation->NewUserFormula( error_msg, mCurrentOperation->GetFormulaNewName(), type, "", the_parent != mItemSelectionCriteria );
 
 		if ( !error_msg.empty() )
 			SimpleWarnBox( error_msg );

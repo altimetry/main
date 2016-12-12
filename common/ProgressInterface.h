@@ -18,6 +18,7 @@
 #if !defined DATA_MODELS_PROGRESS_INTERFACE_H
 #define DATA_MODELS_PROGRESS_INTERFACE_H
 
+#include "+Utils.h"
 
 class CProgressInterface
 {
@@ -34,6 +35,10 @@ public:
 		if ( m > M )
 			mCurrent = m = M;
 	}
+
+	virtual ~CProgressInterface()
+	{}
+
 
 	virtual void SetLabel( const std::string &label )
 	{

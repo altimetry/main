@@ -21,7 +21,7 @@
 #ifndef _brathl_matlab_h_
 #define _brathl_matlab_h_
 
-#include "new-gui/Common/tools/brathl_error.h" 
+#include "common/tools/brathl_error.h"
 #include "brathlc.h" 
 #include "brathl.h" 
 

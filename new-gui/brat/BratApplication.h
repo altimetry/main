@@ -19,18 +19,21 @@
 #define BRAT_APPLICATION_H
 
 
-
 #if QT_VERSION >= 0x050000
 #include <QtWidgets/QApplication>
 #else
 #include <QtGui/QApplication>
 #endif
 
+#include <QLocalSocket>
+
 #include <qgsapplication.h>
 
 #include "libbrathl/List.h"
 #include "libbrathl/FileParams.h"
 
+#include "process/rads/RadsSettings.h"
+#include "new-gui/Common/System/Service/qtservice.h"
 #include "new-gui/Common/QtStringUtils.h"
 
 #include "BratSettings.h"
@@ -38,7 +41,7 @@
 
 
 class PythonEngine;
-
+class CModel;
 
 
 using namespace brathl;
@@ -67,8 +70,30 @@ class CBratApplication : public QgsApplication
 
 	friend class CApplicationSettingsDlg;
 
+    
+	enum ERsyncStatus
+	{
+		eRsyncUnknown,
+		eRsyncRunnig,
+		eRsyncStopped,
+	};
 
-	//////////////////////////////////////
+
+public:
+    
+	enum ERadsNotification
+    {
+		eNotificationUnknown = eRsyncUnknown, eFirstRsyncNotification = eNotificationUnknown,
+        eNotificationRsyncRunnig = eRsyncRunnig,
+        eNotificationRsyncStopped = eRsyncStopped, eLastRsyncNotification = eNotificationRsyncStopped,
+		eNotificationConfigSaved,
+	};
+    
+
+
+private:
+    
+    //////////////////////////////////////
 	//	static members
 	//////////////////////////////////////
 
@@ -78,8 +103,32 @@ class CBratApplication : public QgsApplication
 	static CApplicationPaths *smApplicationPaths;	//initialized in Prologue
 
 
+	static void RegisterAsQtTypes()	//called in Prologue; see respective Q_DECLARE_METATYPE after class declaration
+	{
+		qRegisterMetaType< ERadsNotification >();
+	}
+
+
 	static void CheckOpenGL( bool extended = false );
 
+
+	static ERadsNotification Convert( ERsyncStatus status )
+	{
+		//As long as ERadsNotification is a superset of ERsyncStatus,
+		//	where common elements have common definitions, this is pacific
+		//
+		return (ERadsNotification)status;	
+	}
+
+	static ERsyncStatus Convert( ERadsNotification notification )
+	{
+		if ( notification >= eFirstRsyncNotification && notification <= eLastRsyncNotification )
+			return (ERsyncStatus)notification;
+
+		assert__( false );
+
+		return eRsyncUnknown;
+	}
 
 public:
 
@@ -90,14 +139,13 @@ public:
 
     static int OffGuiErrorDialog( int error_type, char const *error_msg );
 
-	static bool InstallRadsService();
 
 protected:
 	//	This is accurate only if(when) no style sheet was also assigned.
 	//	External clients should not rely on this, and use the name in options.
     //	Internal code can only rely on this before assigning a style sheet.
 	// 
-	static QString getCurrentStyleName()
+	static QString CurrentStyleName()
 	{
 		return style()->objectName().toLower();
 	}
@@ -108,12 +156,16 @@ protected:
 	//////////////////////////////////////
 
     CBratSettings mSettings;
+	CModel *mModel = nullptr;
 
 	bool mLeakExceptions = false;
 
 	bool mOperatingInDisplayMode = false;
     bool mOperatingInInstantPlotSaveMode = false;
-	bool mRadsServiceAvailable = false;
+	QtServiceController mServiceController;
+    QLocalSocket *mSocket = nullptr;
+	ERsyncStatus mRsyncStatus = eRsyncUnknown;
+	CSharedRadsSettings mRadsServiceSettings;
 
 	QSplashScreen *mSplash = nullptr;
 
@@ -141,6 +193,19 @@ public:
 
     const CBratSettings& Settings() const { return  mSettings; }
 
+	
+	const CModel& DataModel() const 
+	{ 
+		return const_cast<CBratApplication*>( this )->DataModel();
+	}
+
+	CModel& DataModel()
+	{ 
+		assert__( mModel );
+
+		return *mModel; 
+	}
+
 
 	void LeakExceptions( bool leak )
 	{
@@ -155,11 +220,32 @@ public:
 	void EndSplash( QWidget *w );
 	bool SplashAvailable() const { return mSplash != nullptr; }
 
+	bool InstallRadsService( QWidget *parent );
+	bool UninstallRadsService();
+
+	bool StartRadsService();
+	bool StopRadsService();
+
+	bool PauseRadsService();
+	bool ResumeRadsService();
+
+	bool SendRadsServiceCommand( int code );
+
+	bool RsyncIsActive() const { return mRsyncStatus == eRsyncRunnig; }
+	bool ResetRadsSocketConnection();
+    
+	const QtServiceController& RadsServiceController() const { return mServiceController; }
+
+	const CSharedRadsSettings& RadsServiceSettings() const { return mRadsServiceSettings; }
+
+
 
 	//////////////////////////////////////
 	//	operations
 	//////////////////////////////////////
 
+protected:
+    
 	virtual bool notify( QObject * receiver, QEvent * event ) override
 	{
 		if ( mLeakExceptions )
@@ -178,14 +264,30 @@ public:
 		QProcess::startDetached( arguments()[ 0 ], arguments() );
 	}
 
-protected:
 
     bool RegisterAlgorithms();
 
 
+signals:
+    void RadsNotification( ERadsNotification status );
+    
+
 public slots:
 	void UpdateSettings();
+
+    
+protected slots:
+    void HandleSocketReadyRead();
+	void HandleLocalSocketError( QLocalSocket::LocalSocketError error );
 };
+
+
+
+
+
+
+Q_DECLARE_METATYPE( CBratApplication::ERadsNotification );
+
 
 
 

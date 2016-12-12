@@ -44,11 +44,10 @@ const CSharedRadsSettings *CWorkspaceSettings::smRadsServiceSettings = nullptr;
 
 
 //static 
-void CWorkspaceSettings::SetApplicationPaths( const CApplicationPaths &paths )
+void CWorkspaceSettings::InitializeCommonData( const CApplicationPaths &paths, const CSharedRadsSettings &rads_shared_settings )
 {
 	smBratPaths = &paths;
-	delete smRadsServiceSettings;
-	smRadsServiceSettings = new CSharedRadsSettings( *smBratPaths );
+	smRadsServiceSettings = &rads_shared_settings;
 }
 
 
@@ -193,6 +192,7 @@ bool CWorkspaceSettings::LoadConfigDataset( CWorkspaceDataset &data, std::string
 	{
 		CDataset *dataset = dynamic_cast< CDataset* >( it->second );				assert__( dataset != nullptr );	//v3: an error msg box here
 		CRadsDataset *rads_dataset = dynamic_cast< CRadsDataset* >( it->second );
+        UNUSED( rads_dataset );
 
 		dataset->LoadConfig( this );
 		if ( data.m_ctrlDatasetFiles )
@@ -304,7 +304,7 @@ bool CWorkspaceSettings::LoadConfig( CRadsDataset *d )
 				else
 				{
 					std::string errors;
-					d->AddMission( rads_server_address, local_dir, mission, errors );
+					d->SetMission( rads_server_address, local_dir, mission, errors );
 				}
 				continue;
 			}
@@ -639,15 +639,15 @@ bool CWorkspaceSettings::SaveConfigOperation( const CWorkspaceOperation &op, std
 			if ( !operation->SaveConfig( this, &op ) )
 				return false;
 
-			if ( operation->Filter() )
-			{
-				QStringList files = operation->Dataset()->GetFiles<QStringList>( false );
+			//if ( operation->Filter() )
+			//{
+			//	QStringList files = operation->Dataset()->GetFiles<QStringList>( false );
 
-				WriteSection( GROUP_OPERATION_FILTERED_DATASETS,
+			//	WriteSection( GROUP_OPERATION_FILTERED_DATASETS,
 
-					k_v( operation->GetName(), files )
-				);
-			}
+			//		k_v( operation->GetName(), files )
+			//	);
+			//}
 		}
 	}
 	return Status() == QSettings::NoError;
@@ -763,6 +763,7 @@ bool CWorkspaceSettings::LoadConfig( COperation &op, std::string &error_msg, CWo
 	}
 	//assuming original operation is well formed, no reason to inspect SetFilter and SetDataset return values
 	std::string dataset_error_msg;
+	op.RemoveFilter();
 	op.SetOriginalDataset( wks, dsname, dataset_error_msg );	//NOTE: this clears formulas and can clear filter, don't load them before
 	op.SetFilter( filter, dataset_error_msg );
 	if ( !dataset_error_msg.empty() )

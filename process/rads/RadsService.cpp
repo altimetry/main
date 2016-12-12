@@ -17,6 +17,9 @@
 */
 #include "stdafx.h"
 
+#include <QLocalServer>
+#include <QLocalSocket>
+
 #include "new-gui/Common/QtUtils.h"
 #include "new-gui/Common/QtUtilsIO.h"
 #include "new-gui/Common/System/OsProcess.h"
@@ -25,6 +28,80 @@
 #include "RadsService.h"
 #include "RadsServiceLogger.h"
 #include "RadsSharedParameters.h"
+
+
+//#define WAIT_FOR_DEBUGGER
+
+// Ensure that WAIT_FOR_DEBUGGER is always undefined in release builds
+//
+#if !defined (DEBUG) && !defined (_DEBUG)
+#undef WAIT_FOR_DEBUGGER
+#endif
+
+
+
+//////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////
+//				Service Log Management
+//
+//		(must be called before any logging occurs;
+//		should be called periodically after that)
+//
+//////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////
+
+
+
+void CheckServiceLogging( const CApplicationStaticPaths &brat_paths )
+{
+	static const auto qgis_env_var = "QGIS_LOG_FILE";
+	static const signed log_files_time_to_live = 10;
+	static const signed log_files_size_to_backup = 10 * 1024 * 1024;
+
+	const std::string &log_path = brat_paths.mRadsServiceLogFilePath;
+
+	// Ensure file logging
+
+	if ( qgetenv( qgis_env_var ).isEmpty() )
+		qputenv( qgis_env_var, log_path.c_str() );
+
+
+	// Log file (re)creation
+
+	if ( IsFile( log_path ) )
+	{
+		QFileInfo info( log_path.c_str() );
+		if ( info.size() > log_files_size_to_backup )
+		{
+			std::string old_path = CreateUniqueFileName( log_path );			//old_path is a new path, to save old contents
+			if ( old_path.empty() || !DuplicateFile( log_path, old_path ) )		//save "old" file
+				LOG_WARN( "Could not create new log file. Trying to use existing one." );
+			else
+				RemoveFile( log_path );
+		}
+	}
+
+	// Old log files cleanup
+
+	QDir sourceDir( GetDirectoryFromPath( log_path ).c_str() );
+	QString filter = ( GetBaseFilenameFromPath( log_path ) + ".*" ).c_str();
+	QStringList files = sourceDir.entryList( QStringList() << filter, QDir::Files );
+	QDateTime log_files_end_date = QDateTime::currentDateTime().addDays( -log_files_time_to_live );
+	const std::string log_ext = GetLastExtensionFromPath( log_path );
+	for ( auto &file : files )
+	{
+		if ( log_ext == GetLastExtensionFromPath( q2a( file ) ) )
+			continue;
+
+		file = sourceDir.absolutePath() + "/" + file;
+		QFileInfo info( file );
+		if ( info.lastModified() <= log_files_end_date )
+		{
+			RemoveFile( file );
+		}
+	}
+}
+
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -147,15 +224,8 @@ int main_example(int argc, char **argv)
 	return result;
 }
 
-// temporary code/////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
-//////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////
 //						Password
-//////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////
 
 
@@ -193,82 +263,111 @@ qDebug() << "Decrypted rads_password to" << decrypt( to_decrypt, key );
 
 
 
+// temporary code/////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
 //////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////
-//						RadsDaemon
+//						RadsClient
 //////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////
 
 
-CRadsDaemon::CRadsDaemon( CRadsSettings &settings, QObject* parent )	//parent = nullptr 
+CRadsClient::CRadsClient( CRadsSettings &settings, QObject *parent )	//parent = nullptr 
 	: base_t( parent )
 	, mSettings( settings ) 
 	, mTimer( this )
 	, mDisabled( false )
 	, mRadsServerAddress( ReadRadsServerAddress( mSettings.RadsPaths().mRadsConfigurationFilePath ) )
+	, mSharedMemory( RADS_SHARED_MEMORY_KEY.c_str(), this )
+	, mSocketServer( new QLocalServer( this ) )
 {
+	//setup
+
+	const int periodic_check_in_seconds = mSettings.PeriodicCheckInMinutes() * 60;
+
+	if ( mSocketServer->listen( RADS_SHARED_MEMORY_KEY.c_str() ) )
+		connect( mSocketServer, SIGNAL( newConnection() ), this, SLOT( HandleNewConnection() ) );
+	else
+		LOG_WARN( "Unable to start the RADS socket server: " + mSocketServer->errorString() );
+
+	connect( &mTimer, &QTimer::timeout, this, &CRadsClient::HandleSynchronize );
+	mTimer.start( periodic_check_in_seconds * 1000 );
+
+
+	//startup (starting paused)
+
+#if !defined (WAIT_FOR_DEBUGGER)
+
 	Pause();
 
-	connect( &mTimer, &QTimer::timeout, this, &CRadsDaemon::HandleSynchronize );
-	mTimer.start( /*24 * 60 * 60 * */10000 );
+#endif
 
-	QTimer::singleShot( 0, this, &CRadsDaemon::HandleSynchronize );
+	QTimer::singleShot( 0, this, &CRadsClient::HandleSynchronize );
 }
 
 
 //virtual 
-CRadsDaemon::~CRadsDaemon()
+CRadsClient::~CRadsClient()
 {
 	if ( mCurrentProcess )
 	{
-		mCurrentProcess->Kill();
-		mCurrentProcess->deleteLater();
+		CleanRsyncProcess( true );
 		LOG_INFO( "Rads client is being deleted. A request was sent for existing rsync process to terminate." );
+	}
+
+	for ( auto *connection : mSocketConnections )
+	{
+		if ( !connection->isValid() )
+			continue;
+
+		connection->disconnectFromServer();
 	}
 }
 
 
 //////////////////////////////////////////////////////////
-//	RadsDaemon - what all this is about
+//	RadsClient - what all this is about
 //////////////////////////////////////////////////////////
 
-void CRadsDaemon::Pause()
+void CRadsClient::Pause()
 {
 	mDisabled = true;
 }
 
-void CRadsDaemon::Resume()
+
+void CRadsClient::Resume()
 {
+	LOG_INFO( "RadsClient: resuming." );
 	mDisabled = false;
 	Synchronize();
 }
 
 
-void CRadsDaemon::DelaySaveConfig()
+void CRadsClient::DelaySaveConfig()
 {
 	if ( mSettings.HasFileLocked() )
 	{
-		QTimer::singleShot( 3000, this, &CRadsDaemon::DelaySaveConfig );
+		QTimer::singleShot( 3000, this, &CRadsClient::DelaySaveConfig );
 		LOG_INFO( "Configuration file is locked. Delaying save." );
 	}
 	else
-	if ( !mSettings.SaveConfig() )
-		LOG_WARN( "RadsDaemon: Could not save the configuration to file." );
+	if ( mSettings.SaveConfig() )
+		BroadcastRsyncStatusToSocketClients( CONFIG_UPDATED_SIGN.c_str() );
+	else
+		LOG_WARN( "RadsClient: Could not save the configuration to file." );
 }
 
 
 //for easy parameterless slot connect
-void CRadsDaemon::ForceSynchronize()
+void CRadsClient::ForceSynchronize()
 {
 	Synchronize( true );
 }
 
 
-inline const char* DateTimeFormat()
-{
-	const char *s = "yyyy-MM-dd hh:mm:ss.zzz";
-	return s;
-}
 
 template< typename STRING >
 inline STRING QuotePath( const STRING &path )
@@ -276,23 +375,52 @@ inline STRING QuotePath( const STRING &path )
 	return "\"" + path + "\"";
 }
 
+//September 2016:
+//server: corads.tudelft.nl
+//user: radsuser
+//pass. rat@tu1
+
+//$RADS_ROOT/data/<sat>/<phase>/cycle/<sat>p<pass>c<cycle>.nc
+//rsync -avrz --password-file=/cygdrive/l/bin/v140_xp/x64/Debug/brat/data/rads_pass.txt --del radsuser@corads.tudelft.nl::rads/tables .
+//rsync -avrz --password-file=/cygdrive/l/bin/v140_xp/x64/Debug/brat/data/rads_pass.txt --del radsuser@corads.tudelft.nl::rads/data/j2 radsuser@corads.tudelft.nl::rads/data/c2 "/cygdrive/p/My Documents/brat/user-data/rads"
+//rsync -avrzR --no-p --password-file=/cygdrive/l/bin/v140_xp/x64/Debug/brat/data/rads_pass.txt --del 
+//radsuser@corads.tudelft.nl::rads/data/j2/a/c000 
+//radsuser@corads.tudelft.nl::rads/data/c2/a/c004 "/cygdrive/p/My Documents/brat/user-data/rads"
+//rd /q /s .\rads
+
+//"/usr/bin/rsync" -avrzR --del --password-file="/Users/brat/dev/bin/Qt-5.7.0/brat/x86_64/Debug/brat.app/Contents/MacOS/data/rads_pass.txt" radsuser@corads.tudelft.nl::rads/data/c2 radsuser@corads.tudelft.nl::rads/data/j2  "/Volumes/ext_My_Passport/user-data/rads"
+// /usr/bin/rsync -avrzR --del --password-file="/Users/brat/dev/bin/Qt-5.7.0/brat/x86_64/Debug/brat.app/Contents/MacOS/data/rads_pass.txt" radsuser@corads.tudelft.nl::'rads/data/c2 rads/data/j2'  "/Volumes/ext_My_Passport/user-data/rads"
 
 
-bool CRadsDaemon::Synchronize( bool force )		//force = false 
+bool CRadsClient::Synchronize( bool force )		//force = false 
 {
+	// ensure log is prepared
+
+	CheckServiceLogging( mSettings.RadsPaths() );
+
+	// ensure schedule
+
+	bool need_save_config = mSettings.CorrectLastSyncTime();					assert__( !need_save_config );
+	if ( need_save_config )
+	{
+		LOG_WARN( "Unexpected invalid synchronization time. It was corrected." );
+	}
+
 	if ( force )
 	{
 		LOG_INFO( "Trying to start immediate data synchronization with RADS." );
-		mSettings.mLastSync = QDateTime::currentDateTime().addDays( -mSettings.NumberOfDays() );
+		need_save_config = mSettings.SetNextSyncDateToday() || need_save_config;
 	}
 
-	if ( !mSettings.mLastSync.isValid() )
-		mSettings.mLastSync = QDateTime::currentDateTime().addDays( -mSettings.NumberOfDays() );
+	// ensure updated settings in file, if previous steps changed them
 
-	QString spec = mSettings.mLastSync.timeSpec() == Qt::LocalTime ? "LocalTime" : "UTC";
-	qDebug() << QString("%1 (%2)").arg( mSettings.mLastSync.toString( DateTimeFormat() ) ).arg( spec );
+	if ( need_save_config )
+		DelaySaveConfig();
 
-	if ( QDateTime::currentDateTime() < mSettings.mLastSync.addDays( mSettings.NumberOfDays() ) )
+
+	// check if it is not time to synchronize or it should otherwise be skipped
+
+	if ( QDate::currentDate() < mSettings.NextSyncDate() )
 	{
 		return true;
 	}
@@ -309,26 +437,18 @@ bool CRadsDaemon::Synchronize( bool force )		//force = false
 			msg += "-No output directory was specified.\n";
 		if ( mSettings.MissionNames().size() == 0 )             //see (*) below before changing
 			msg += "-No missions were specified.\n";
+
 		LOG_INFO( msg );
 		return false;
 	}
 
-	//September 2016:
-	//server: corads.tudelft.nl
-	//user: radsuser
-	//pass. rat@tu1
 
-	//$RADS_ROOT/data/<sat>/<phase>/cycle/<sat>p<pass>c<cycle>.nc
-	//rsync -avrz --password-file=/cygdrive/l/bin/v140_xp/x64/Debug/brat/data/rads_pass.txt --del radsuser@corads.tudelft.nl::rads/tables .
-	//rsync -avrz --password-file=/cygdrive/l/bin/v140_xp/x64/Debug/brat/data/rads_pass.txt --del radsuser@corads.tudelft.nl::rads/data/j2 radsuser@corads.tudelft.nl::rads/data/c2 "/cygdrive/p/My Documents/brat/user-data/rads"
-	//rsync -avrzR --no-p --password-file=/cygdrive/l/bin/v140_xp/x64/Debug/brat/data/rads_pass.txt --del 
-	//radsuser@corads.tudelft.nl::rads/data/j2/a/c000 
-	//radsuser@corads.tudelft.nl::rads/data/c2/a/c004 "/cygdrive/p/My Documents/brat/user-data/rads"
-	//rd /q /s .\rads
-    
-    //"/usr/bin/rsync" -avrzR --del --password-file="/Users/brat/dev/bin/Qt-5.7.0/brat/x86_64/Debug/brat.app/Contents/MacOS/data/rads_pass.txt" radsuser@corads.tudelft.nl::rads/data/c2 radsuser@corads.tudelft.nl::rads/data/j2  "/Volumes/ext_My_Passport/user-data/rads"
-    // /usr/bin/rsync -avrzR --del --password-file="/Users/brat/dev/bin/Qt-5.7.0/brat/x86_64/Debug/brat.app/Contents/MacOS/data/rads_pass.txt" radsuser@corads.tudelft.nl::'rads/data/c2 rads/data/j2'  "/Volumes/ext_My_Passport/user-data/rads"
-            
+	// time to synchronize...
+
+
+	//return BroadcastRsyncStatusToSocketClients();
+
+
     const std::string pass_file_path( mSettings.RadsPaths().mInternalDataDir + "/rads_pass.txt" );
     QFile pass_file( pass_file_path.c_str() );
     pass_file.setPermissions( QFile::ReadOwner | QFile::WriteOwner );
@@ -370,31 +490,155 @@ bool CRadsDaemon::Synchronize( bool force )		//force = false
 	connect( mCurrentProcess, SIGNAL( readyReadStandardOutput() ),				this, SLOT( HandleUpdateOutput() ) );
 	connect( mCurrentProcess, SIGNAL( readyReadStandardError() ),				this, SLOT( HandleUpdateOutput() ) );
 	connect( mCurrentProcess, SIGNAL( finished( int, QProcess::ExitStatus ) ),	this, SLOT( HandleProcessFinished( int, QProcess::ExitStatus ) ) );
-	connect( mCurrentProcess, SIGNAL( error( QProcess::ProcessError ) ),		this, SLOT( RsyncError( QProcess::ProcessError ) ) );
+	connect( mCurrentProcess, SIGNAL( error( QProcess::ProcessError ) ),		this, SLOT( HandleRsyncError( QProcess::ProcessError ) ) );
+	BroadcastRsyncStatusToSocketClients( RSYNC_RUNNING_SIGN.c_str() );
 	mCurrentProcess->Execute();
 
-	mSettings.mLastSync = QDateTime::currentDateTime();
 	const QString msg = "A RADS data synchronization request was processed.\nCommand line: " + t2q( cmd_line );
 	QtServiceBase::instance()->logMessage( msg );
 	LOG_INFO( msg );
+	DelaySaveConfig();
 
 	return true;
 }
 
 
+
 //////////////////////////////////////////////////////////
-//	RadsDaemon - rsync process handling
+//	RadsClient - rsync process handling
 //////////////////////////////////////////////////////////
 
-void CRadsDaemon::RsyncError( QProcess::ProcessError error )
+
+////////////////////////////////
+// socket notifications handling
+////////////////////////////////
+
+void CRadsClient::HandleNewConnection()
+{
+	QLocalSocket *connection = mSocketServer->nextPendingConnection();
+	mSocketConnections.push_back( connection );
+
+	connect( connection, SIGNAL( disconnected() ), this, SLOT( HandleSocketDisconnected() ) );
+	//connect( connection, SIGNAL( disconnected() ), connection, SLOT( deleteLater() ) );
+
+	//new client needs immediate knowledge of current status
+	//
+	BroadcastRsyncStatusToSocketClients( mCurrentProcess ? RSYNC_RUNNING_SIGN.c_str() : RSYNC_STOPPED_SIGN.c_str() );
+
+	LOG_WARN( "New socket connection received. " + connection->fullServerName() );
+}
+
+
+void CRadsClient::HandleSocketDisconnected()
+{
+	for ( auto it = mSocketConnections.begin(); it != mSocketConnections.end();  )
+	{
+		QLocalSocket *connection = *it;
+		if ( connection->isValid() )
+		{
+			++it;
+		}
+		else
+		{
+			it = mSocketConnections.erase( it );	// it remains valid, pointing to next item
+			connection->deleteLater();
+			LOG_WARN( "Erased socket connection reference. " + connection->fullServerName() );
+		}
+	}
+}
+
+
+//slot
+bool CRadsClient::BroadcastRsyncStatusToSocketClients( const char *msg )
+{
+	static bool test = false;
+
+	if ( mSocketConnections.empty() )
+		return true;
+
+	if ( mBroadcasting )	//this should never happen; mBroadcasting is more a development device than a real sync. mechanism
+	{
+		QTimer::singleShot( 5000, this, [this, msg]() 
+		{
+			BroadcastRsyncStatusToSocketClients( msg );
+		} );
+
+		LOG_WARN( "Delaying socket notifications." );
+		return false;
+	}
+
+	//test = !test;
+
+	LOG_INFO( "Broadcasting status..." );
+
+	mBroadcasting = true;
+
+	QByteArray block;
+	QDataStream out( &block, QIODevice::WriteOnly );
+	out.setVersion( QDataStream::Qt_4_0 );
+	out << (quint16)0;
+	out << QString( msg );			   //QString, not raw char*, is critical
+	out.device()->seek( 0 );
+	out << (quint16)( block.size() - sizeof(quint16) );
+
+	bool need_cleanup = false;					//apparently, a remote disconnection does not emit remotely...
+	for ( auto *connection : mSocketConnections )
+	{
+		if ( !connection->isValid() )
+		{
+			need_cleanup = true;
+			continue;
+		}
+
+		connection->write( block );
+		connection->flush();
+		//connection->disconnectFromServer();
+	}
+
+	if ( need_cleanup )
+		QTimer::singleShot( 5000, this, &CRadsClient::HandleSocketDisconnected );
+
+	mBroadcasting = false;
+
+	LOG_INFO( "Finished broadcasting status." );
+
+	return true;
+}
+
+
+//////////////////////
+// cleanup helper
+//////////////////////
+
+void CRadsClient::CleanRsyncProcess( bool kill )		//kill = false 
+{
+	if ( mCurrentProcess )
+	{
+		if ( kill )
+			mCurrentProcess->Kill();
+		mCurrentProcess->deleteLater();
+	}
+	mCurrentProcess = nullptr;
+	BroadcastRsyncStatusToSocketClients( RSYNC_STOPPED_SIGN.c_str() );
+}
+
+
+//////////////////////
+// rsync process slots
+//////////////////////
+
+//slot
+void CRadsClient::HandleRsyncError( QProcess::ProcessError error )
 {
 	auto message = "An error occurred launching " + mSettings.RadsPaths().mRsyncExecutablePath + "\n" + q2a( COsProcess::ProcessErrorMessage( error ) );
 	QtServiceBase::instance()->logMessage( message.c_str() );
 	LOG_FATAL( message.c_str() );
+	CleanRsyncProcess();
 }
 
 
-void CRadsDaemon::HandleProcessFinished( int exit_code, QProcess::ExitStatus exitStatus )
+//slot
+void CRadsClient::HandleProcessFinished( int exit_code, QProcess::ExitStatus exitStatus )
 {
     // data & lambdas: rsync exit codes translation mechanism 
     
@@ -462,22 +706,22 @@ void CRadsDaemon::HandleProcessFinished( int exit_code, QProcess::ExitStatus exi
 	} 
 	else 
 	{
-        mSettings.mLastSync = QDateTime::currentDateTime();
-        const QString msg = 
+        mSettings.SetLastSyncTimeNow();
+		auto next = mSettings.NextSyncDate();
+		const QString msg = 
             "A RADS data synchronization request was successfully processed.\nNext synchronization scheduled for "
-            + mSettings.mLastSync.addDays( mSettings.NumberOfDays() ).toString( DateTimeFormat() );
+            + next.toString( CRadsSettingsBase::RsyncDateFormat() );
         QtServiceBase::instance()->logMessage( msg );
         LOG_INFO( msg );
     
         DelaySaveConfig();
 	}
 
-	mCurrentProcess->deleteLater();
-	mCurrentProcess = nullptr;
+	CleanRsyncProcess();
 }
 
 
-void CRadsDaemon::HandleUpdateOutput()
+void CRadsClient::HandleUpdateOutput()
 {
 	COsProcess *process = qobject_cast<COsProcess*>( sender() );			assert__( process && mCurrentProcess == process );
 
@@ -519,7 +763,18 @@ CRadsService::CRadsService( int argc, char *argv[], const CApplicationStaticPath
 	setServiceFlags( QtServiceBase::CanBeSuspended );
 	setStartupType( auto_start ? QtServiceController::StartupType::AutoStartup : QtServiceController::StartupType::ManualStartup );
 
-	LOG_INFO( "Created a service object" );
+	LOG_INFO( "Created a service object." );
+}
+
+
+//virtual 
+CRadsService::~CRadsService()
+{
+	if ( mRadsClient )
+	{
+		delete mRadsClient;
+		LOG_WARN( "Deleted rads client object in service destructor." );
+	}
 }
 
 
@@ -554,14 +809,16 @@ int CRadsService::exec()
 void CRadsService::start()
 {
 
+#if defined (WAIT_FOR_DEBUGGER)
 #if defined (DEBUG) || defined (_DEBUG)
 #if defined (_MSC_VER)
-	LOG_INFO( "Waiting for debuuger to attach..." );
+	LOG_INFO( "Waiting for debugger to attach..." );
     while ( !RunningUnderDebugger() ) QBratThread::sleep( 10 );
-	LOG_INFO( "Debuuger attached." );
+	LOG_INFO( "Debugger attached." );
 #else
     //while ( !RunningUnderDebugger() ) QBratThread::sleep( 10 );
     QBratThread::sleep( 15 );
+#endif
 #endif
 #endif
 
@@ -577,17 +834,17 @@ void CRadsService::start()
 
 	LOG_INFO( "Entering CRadsService::start()" );
 
-	if ( mDaemon )
+	if ( mRadsClient )
 	{
-		delete mDaemon;
-		LOG_WARN( "Deleted existing rads-client daemon before starting." );
+		delete mRadsClient;
+		LOG_WARN( "Deleted rads client object before starting." );
 	}
 
-	mDaemon = new CRadsDaemon( mSettings, app );
+	mRadsClient = new CRadsClient( mSettings, app );
 
-	if ( !mDaemon->IsListening() )
+	if ( !mRadsClient->IsListening() )
 	{
-		const QString msg = "Failed to setup rads-client daemon. Quiting...";
+		const QString msg = "Failed to setup rads client. Quiting...";
 		logMessage( msg, QtServiceBase::Error );
 		LOG_FATAL( msg );
 		app->quit();
@@ -599,16 +856,26 @@ void CRadsService::start()
 
 
 //virtual 
+void CRadsService::stop()
+{
+	LOG_INFO( "Stop system command received." );
+	delete mRadsClient;
+	mRadsClient = nullptr;	
+	base_t::stop();		//only because; it does nothing
+}
+
+
+//virtual 
 void CRadsService::pause()
 {
-	QTimer::singleShot( 200, mDaemon, &CRadsDaemon::Pause );
+	QTimer::singleShot( 200, mRadsClient, &CRadsClient::Pause );
 }
 
 
 //virtual 
 void CRadsService::resume()
 {
-	QTimer::singleShot( 200, mDaemon, &CRadsDaemon::Resume );
+	QTimer::singleShot( 200, mRadsClient, &CRadsClient::Resume );
 }
 
 
@@ -621,7 +888,7 @@ void CRadsService::processCommand( int code )
 	{
 		case eRadsService_ExecNow:
 		{
-			QTimer::singleShot( 200, mDaemon, &CRadsDaemon::ForceSynchronize );
+			QTimer::singleShot( 200, mRadsClient, &CRadsClient::ForceSynchronize );
 		}
 		break;
 
@@ -665,6 +932,7 @@ void CRadsService::logMessage( const QString &message, MessageType type, int id,
 //#define LOCAL_DEBUG
 
 
+
 int main( int argc, char *argv[] )
 {
 #if defined (LOCAL_DEBUG)	
@@ -684,34 +952,30 @@ int main( int argc, char *argv[] )
 #endif
 #endif
 
+	// I. Application Paths
+
 	const CApplicationStaticPaths brat_paths( argv[ 0 ], RADS_SERVICE_NAME );
 
-	const std::string log_path = brat_paths.mRadsServiceLogFilePath;
-	qputenv( "QGIS_LOG_FILE", log_path.c_str() );
 
-	if ( IsFile( log_path ) )
-	{
-		QFileInfo info( log_path.c_str() );
-		if ( info.size() > 10000 )
-		{
-			std::string old_path = CreateUniqueFileName( log_path );			//old_path is a new path, to save old contents
-			if ( old_path.empty() || !DuplicateFile( log_path, old_path ) )		//save "old" file
-				LOG_WARN( "Could not create new log file. Trying to use existing one." );
-			else
-				RemoveFile( log_path );
-		}
-	}
+	// II. Log files management
+
+	CheckServiceLogging( brat_paths );
+
 	LOG_INFO( "" );		LOG_INFO( " *** Logging started *** " );
 
 
 #if defined (LOCAL_DEBUG)	
 	QCoreApplication service( argc, argv );
-	new CRadsDaemon( brat_paths );
+	new CRadsClient( brat_paths );
 	return service.exec();
 #else
 
+
+	// III. Service
+
 	CRadsService service( argc, argv, brat_paths, true );		//auto start
 	return service.exec();
+
 #endif
 }
 

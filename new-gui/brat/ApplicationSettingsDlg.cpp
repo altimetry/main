@@ -17,11 +17,12 @@
 */
 #include "stdafx.h"
 
+#include "process/rads/RadsSettings.h"
 #include "new-gui/Common/System/Service/qtservice.h"
 #include "new-gui/Common/QtUtils.h"
 #include "new-gui/Common/System/Service/qtservice.h"
-#include "GUI/ActionsTable.h"
 #include "new-gui/Common/GUI/TextWidget.h"
+#include "GUI/ActionsTable.h"
 #include "BratApplication.h"
 #include "BratSettings.h"
 #include "ApplicationSettingsDlg.h"
@@ -39,11 +40,16 @@ void CApplicationSettingsDlg::CreateWidgets()
 	mUsePortablePathsCheckBox = new QCheckBox( "Use portable paths" );
 	mUsePortablePathsCheckBox->setToolTip( "If checked, datasets in the data directory are stored as relative paths,\nallowing workspaces to be copied across machines" );
 
+	auto *rads_info_label = new CTextWidget;
+	rads_info_label->SetHelpProperties(
+		"If you enable RADS, data will be downloaded to\nthe \"rads\" folder in this directory."
+		,0 , 6 );
+
 	auto *data_l =
 		LayoutWidgets( Qt::Vertical, {
 			new QLabel( "Default Data Directory" ),
 			LayoutWidgets( Qt::Horizontal, { mDataDirectoryLineEdit, mBrowseDataDirectoryPushButton }, nullptr, 2, 2, 2, 2, 2 ),
-			mUsePortablePathsCheckBox
+			LayoutWidgets( Qt::Horizontal, { rads_info_label, nullptr, mUsePortablePathsCheckBox }, nullptr, 2, 2, 2, 2, 2 ),
 		}, nullptr, 2, 2, 2, 2, 2 );
 
 
@@ -124,35 +130,87 @@ void CApplicationSettingsDlg::CreateWidgets()
 
 	mRadsOutputEdit = new QLineEdit;
 	SetReadOnlyEditor( mRadsOutputEdit, true );
+	mRadsOutputEdit->setToolTip( "Change location by changing the default BRAT data directory" );
 	mRadsViewLogFile = new QPushButton( "Log..." );
+	mRadsViewRADSConfigurationFile = new QPushButton( "Configuration..." );
+	mRadsViewRADSServiceSettingsFile = new QPushButton( "Service Settings..." );
 	mRadsSpin = new QSpinBox;
-	mRadsSpin->setMinimum( 1 );
-	mRadsSpin->setMaximum( 31 );
+	mRadsSpin->setMinimum( CSharedRadsSettings::smMinNumberOfDays );
+	mRadsSpin->setMaximum( CSharedRadsSettings::smMaxNumberOfDays );
 	mRadsMissionsList = new QListWidget;
 
 	mRadsInstallButton = CActionInfo::CreateToolButton( eAction_InstallRadsService, true ); 	assert__( mRadsInstallButton->isCheckable() );
+	mRadsInstallButton->setToolButtonStyle( Qt::ToolButtonTextBesideIcon );
 	mRadsStartButton = CActionInfo::CreateToolButton( eAction_StartRadsService, true ); 		assert__( mRadsStartButton->isCheckable() );
+	mRadsStartButton->setToolButtonStyle( Qt::ToolButtonTextBesideIcon );
+	mRadsStartButton_Test = CActionInfo::CreateToolButton( eAction_StartRadsService, true ); 	assert__( mRadsStartButton_Test->isCheckable() );
+	mRadsStartButton_Test->setText( "" );
 	mRadsPauseButton = CActionInfo::CreateToolButton( eAction_PauseRadsService, true ); 		assert__( mRadsPauseButton->isCheckable() );
 	mRadsExecuteNow = CActionInfo::CreateToolButton( eAction_ExecuteRadsService, true ); 		
+	mRadsExecuteNow->setToolButtonStyle( Qt::ToolButtonTextBesideIcon );
+
+	mNextSyncLabel = new QLabel;
+	mNextSyncLabel->setToolTip( "This information is reliable only if the service is running" );
+	mNextSyncLabel->setAlignment( Qt::AlignCenter );
+	mRsyncStatusLabel = new QLabel;
+	mRsyncStatusLabel->setAlignment( Qt::AlignCenter );
+
+	auto *sync_date_box = CreateGroupBox( ELayoutType::Vertical,
+	{
+		LayoutWidgets( Qt::Horizontal, { nullptr, new QLabel( "Synchronize every" ), mRadsSpin, new QLabel( "days" ), nullptr }, nullptr, 2,2,2,2,2 ),
+		nullptr,
+		mNextSyncLabel, 
+		mRadsExecuteNow,
+		mRsyncStatusLabel,
+		nullptr
+	}, 
+	"Schedule", nullptr, 6,6,6,6,6 );
+	sync_date_box->setAlignment( Qt::AlignCenter );
+	sync_date_box->layout()->setAlignment( mRadsExecuteNow, Qt::AlignCenter );
+
+	auto *missions_box = CreateGroupBox( ELayoutType::Horizontal,
+	{
+		mRadsMissionsList
+	}, 
+	"Missions", nullptr, 6,6,6,6,6 );
+	missions_box->setAlignment( Qt::AlignCenter );
+	missions_box->layout()->setAlignment( mRadsMissionsList, Qt::AlignCenter );
 
 	auto *sync_settings_l = LayoutWidgets( Qt::Vertical,
 	{
 		LayoutWidgets( Qt::Horizontal, { new QLabel( "Destination Path" ), mRadsOutputEdit }, nullptr, 2,2,2,2,2 ),
-		LayoutWidgets( Qt::Horizontal, { new QLabel( "Sync data every" ), mRadsSpin, new QLabel( "days for mission(s)" ), mRadsMissionsList }, nullptr, 2,2,2,2,2 ),
+		LayoutWidgets( Qt::Horizontal, 
+		{ 
+			sync_date_box,
+			missions_box
+		}, nullptr, 6,2,2,2,2 )
 	}, 
-	nullptr, 2,2,2,2,2 );
+	nullptr, 6,2,2,2,2 );
+
 
 	mRadsCommandsBox = CreateGroupBox( ELayoutType::Vertical, 
 	{
-		CreateButtonRow( false, Qt::Horizontal, { mRadsInstallButton, mRadsStartButton, mRadsPauseButton, mRadsExecuteNow, mRadsViewLogFile }, 2, 2 ),
+		CreateButtonRow( false, Qt::Horizontal, { mRadsStartButton_Test, mRadsPauseButton, mRadsViewLogFile, mRadsViewRADSConfigurationFile, mRadsViewRADSServiceSettingsFile }, 2, 2 ),
 	},
 	"Service Control", nullptr, 2,2,2,2,2 );
 
-	mRadsOptionsPage = CreateGroupBox( ELayoutType::Vertical, 
+#if !defined(DEBUG_RADS_SERVICE)
+	mRadsCommandsBox->setVisible( false );
+#endif
+
+	mRadsSettingsBox = CreateGroupBox( ELayoutType::Vertical, 
 	{ 
 		nullptr, sync_settings_l, mRadsCommandsBox, nullptr 
 	}, 
-	"RADS Settings", this, 6, 6, 6, 6, 6 );
+	"Service Settings", this, 6, 6, 6, 6, 6 );
+
+	mRadsOptionsPage = new QWidget;
+	LayoutWidgets( Qt::Vertical, 
+	{ 
+		LayoutWidgets( Qt::Horizontal, { nullptr, mRadsInstallButton, nullptr, mRadsStartButton, nullptr }, nullptr, 2,2,2,2,2 ),
+		mRadsSettingsBox
+	}, 
+	mRadsOptionsPage, 6, 6, 6, 6, 6 );
 
 
 	//ApplicationStyles Page
@@ -211,7 +269,6 @@ void CApplicationSettingsDlg::CreateWidgets()
 }
 
 
-
 void CApplicationSettingsDlg::Wire()
 {
 	const CApplicationPaths* settings_paths = &mSettings.BratPaths();
@@ -257,31 +314,16 @@ void CApplicationSettingsDlg::Wire()
 
 	//RADS Page
 
-	std::string rads_error_msg, user_missions_str;
-	unsigned ndays = 1;
-
-	bool result = mRadsServiceSettings.mValidRadsMissions;
-	if ( !result )
-		rads_error_msg = "An error occurred reading missions from rads configuration file.\nPlease check " + settings_paths->mRadsConfigurationFilePath;
-	else
-	{
-		result = mRadsServiceSettings.LoadConfig();
-		if ( !result )
-			rads_error_msg = "Could not read RADS Service configuration file.";
-	}
-	if ( !result )
-	{
-		SimpleErrorBox( rads_error_msg + "\nRADS settings will not be available." );
-		mRadsOptionsPage->setEnabled( false );
-	}
-	else
+	if ( CheckRadsConfigStatus() )							//can disable page
 	{
 		mRadsOutputEdit->setText( FormatRadsLocalOutputPath( settings_paths->UserDataDirectory() ).c_str() );
-		mRadsSpin->setValue( ndays );
+		mRadsSpin->setValue( mRadsServiceSettings.NumberOfDays() );
 
+		size_t max_len = 0;
 		auto const &user_missions = mRadsServiceSettings.MissionNames();
 		for ( auto const &mission : mRadsServiceSettings.AllAvailableMissions() )
 		{
+			max_len = std::max( max_len, mission.mName.length() );
 			QListWidgetItem* item = new QListWidgetItem;
 			item->setText( t2q( mission.mName ) );
 			item->setFlags( item->flags() | Qt::ItemIsUserCheckable );
@@ -293,19 +335,35 @@ void CApplicationSettingsDlg::Wire()
 		// Sort items (ascending order)
 		mRadsMissionsList->sortItems();
 		SetMaximumVisibleItems( mRadsMissionsList, 7 );
+		mRadsMissionsList->setMaximumWidth( max_len * mRadsMissionsList->fontMetrics().width('W') + qApp->style()->pixelMetric( QStyle::PM_ScrollBarExtent ) );
 
-		const bool installed = mRadsController->isInstalled();
-		const bool running = installed && mRadsController->isRunning();
+		const bool installed = mRadsController.isInstalled();
+		const bool running = installed && mRadsController.isRunning();
 		mRadsInstallButton->setChecked( installed );
 		mRadsStartButton->setChecked( running );
+		mRadsStartButton_Test->setChecked( running );
 		mRadsPauseButton->setChecked( running );
 		EnableRadsButtons();
 
 		connect( mRadsInstallButton, SIGNAL( toggled( bool ) ), this, SLOT( HandleRadsInstall( bool ) ) );
-		connect( mRadsStartButton, SIGNAL( toggled( bool ) ), this, SLOT( HandleRadsStart( bool ) ) );
+		connect( mRadsStartButton, SIGNAL( toggled( bool ) ), this, SLOT( HandleRadsUserStart( bool ) ) );
+		connect( mRadsStartButton_Test, SIGNAL( toggled( bool ) ), this, SLOT( HandleRadsStart( bool ) ) );
 		connect( mRadsPauseButton, SIGNAL( toggled( bool ) ), this, SLOT( HandleRadsPause( bool ) ) );
 		connect( mRadsViewLogFile, SIGNAL( clicked() ), this, SLOT( HandleViewLogFile() ) );
+		connect( mRadsViewRADSConfigurationFile, SIGNAL( clicked() ), this, SLOT( HandleViewRADSConfigurationFile() ) );
+		connect( mRadsViewRADSServiceSettingsFile, SIGNAL( clicked() ), this, SLOT( HandleViewRADSServiceSettingsFile() ) );
 		connect( mRadsExecuteNow, SIGNAL( clicked() ), this, SLOT( HandleRadsExecuteNow() ) );
+		connect( mRadsSpin, (void (QSpinBox::*)(int))&QSpinBox::valueChanged, this, &CApplicationSettingsDlg::HandleRadsSpinValueChanged );
+
+		connect( &mApp, &CBratApplication::RadsNotification, this, &CApplicationSettingsDlg::HandleRsyncStatusChanged, Qt::QueuedConnection );
+
+		HandleRadsSpinValueChanged( mRadsSpin->value() );
+		HandleRsyncStatusChanged( 
+			running ? (
+				mApp.RsyncIsActive() ? 
+				CBratApplication::ERadsNotification::eNotificationRsyncRunnig : 
+				CBratApplication::ERadsNotification::eNotificationRsyncStopped )
+			: CBratApplication::ERadsNotification::eNotificationUnknown );
 	}
 
 
@@ -332,20 +390,20 @@ void CApplicationSettingsDlg::Wire()
 }
 
 
-CApplicationSettingsDlg::CApplicationSettingsDlg( CBratSettings &options, QWidget *parent )
+CApplicationSettingsDlg::CApplicationSettingsDlg( CBratApplication &app, QWidget *parent )
 	: QDialog( parent )
-	, mSettings( options )
-	, mRadsController( new QtServiceController( RADS_SERVICE_NAME ) )	//, mRadsServiceSettings( mSettings.BratPaths().mRadsServiceIniFilePath )
-	, mRadsServiceSettings( mSettings.BratPaths() )
+	, mApp( app )
+	, mSettings( mApp.Settings() )
+	, mRadsController( mApp.RadsServiceController() )
+	, mRadsServiceSettings( mApp.mRadsServiceSettings )
 {
 	CreateWidgets();
+	setWindowTitle( "BRAT Options" );
 }
 
 //virtual 
 CApplicationSettingsDlg::~CApplicationSettingsDlg()
-{
-	delete mRadsController;
-}
+{}
 
 
 
@@ -395,14 +453,99 @@ void CApplicationSettingsDlg::HandleViewsLayerTypeChanged( bool )
 //	RADS page
 //////////////////////////
 
+bool CApplicationSettingsDlg::CheckRadsConfigStatus()
+{
+	// mValidRadsMissions variable records the status of reading BRADS configuration file (not the service settings file); note
+	//	that it is const, therefore initialized in ctor, not depending of LoadConfig call (this one yes, uses the service settings file)
+	//
+	std::string rads_error_msg;
+	bool result = mRadsServiceSettings.mValidRadsMissions;
+	if ( !result )
+		rads_error_msg = "An error occurred reading missions from rads configuration file.\nPlease check " + mSettings.BratPaths().mRadsConfigurationFilePath;
+	else
+	{
+		result = mRadsServiceSettings.Status() == QSettings::Status::NoError;
+		if ( !result )
+			rads_error_msg = "Error reading RADS Service configuration file '" + mRadsServiceSettings.FilePath() + "'";
+		else
+		{
+			//result = mSharedMemory.create( sizeof( CRadsSharedMemory ) );
+			//if ( !result )
+			//{
+			//	rads_error_msg = "Unable to communicate with RADS service.";
+			//}
+		}
+	}
+
+	if ( !result )
+	{
+		SimpleErrorBox( rads_error_msg + "\nRADS settings will not be available." );
+		mRadsOptionsPage->setEnabled( false );
+	}
+
+	return result;
+}
+
+
+void CApplicationSettingsDlg::HandleRsyncStatusChanged( CBratApplication::ERadsNotification notification )
+{
+	QString text = mRsyncStatusLabel->text();	//preserve existing text in case notification is not related
+
+	switch ( notification )
+	{
+		case CBratApplication::eNotificationRsyncRunnig:
+		{
+			text = "The RADS service is synchronizing data";
+		}
+		break;
+
+		case CBratApplication::eNotificationRsyncStopped:
+		{
+#if defined(DEBUG) || defined(_DEBUG)
+			text = "The RADS service is idle.";
+#endif
+		}
+		break;
+
+		case CBratApplication::eNotificationUnknown:
+		{
+#if defined(DEBUG) || defined(_DEBUG)
+			text = "Cannot detect RADS service activity";
+#endif
+		}
+		//break;	no break!
+
+		case CBratApplication::eNotificationConfigSaved:
+		{
+			if ( CheckRadsConfigStatus() )							//can disable page
+				HandleRadsSpinValueChanged( mRadsSpin->value() );
+		}
+		break;
+
+		default:        
+			assert__( false );
+	}
+
+	mRsyncStatusLabel->setText( text );
+}
+
+
 void CApplicationSettingsDlg::EnableRadsButtons()
 {
-	const bool installed = mRadsController->isInstalled();		assert__( !installed || mRadsInstallButton->isChecked() );
-                                                                //assert__( installed || !mRadsInstallButton->isChecked() );
-	const bool running = installed && mRadsController->isRunning();
+	const bool installed = mRadsController.isInstalled();		assert__( !installed || mRadsInstallButton->isChecked() );		assert__( installed || !mRadsInstallButton->isChecked() );
+	const bool running = installed && mRadsController.isRunning();
+
+	mRadsInstallButton->setEnabled( !running );
+	//mRadsInstallButton->setVisible( !installed );
+	mRadsInstallButton->setText( installed ? "Uninstall service" : "Install service"  );
+	mRadsSettingsBox->setEnabled( installed );
+
+	mRadsStartButton->setText( running ? "Disable service" : "Enable service" );
 	mRadsStartButton->setEnabled( installed );
+	mRadsStartButton_Test->setEnabled( installed );
+
 	mRadsPauseButton->setEnabled( running );
-	mRadsExecuteNow->setEnabled( running );
+	mRadsExecuteNow->setEnabled( running && !mApp.RsyncIsActive() );
 }
 
 
@@ -414,95 +557,159 @@ void CApplicationSettingsDlg::DisplayRadsError( const std::string & action )
 
 void CApplicationSettingsDlg::HandleRadsInstall( bool toggled )
 {
-	const bool installed = mRadsController->isInstalled();
+	const bool installed = mRadsController.isInstalled();
 	std::string error_token;
+	bool user_canceled = false;
 
 	if ( toggled )
 	{
-		if ( !ValidateAndSaveRadsValues( true ) )
-			return;
-		if ( !installed && !CBratApplication::InstallRadsService() )
-			error_token = "install";
+		if ( !installed )
+		{
+			// do not call ValidateAndSaveRadsValues here: the settings must still be configured by the user
+			if ( !user_canceled && !mApp.InstallRadsService( this ) )
+				error_token = "install";
+		}
 	}
 	else
 	{
 		if ( installed )
 		{
-			HandleRadsStart( false );
-			if ( !mRadsController->uninstall() )
+			user_canceled = !SimpleQuestion( "Are you sure you want to uninstall the RADS service?" );
+			if ( !user_canceled && !mApp.UninstallRadsService() )
 				error_token = "uninstall";			//Windows 1072: "The specified service has been marked for deletion."
 		}
 	}
 
 	if ( !error_token.empty() )
-	{
 		DisplayRadsError( error_token );
-		mRadsInstallButton->setChecked( mRadsController->isInstalled() );
-	}
 
-	EnableRadsButtons();
+
+	QTimer::singleShot( 2000, this, [this, error_token, user_canceled]() 
+	{
+		if ( !error_token.empty() || user_canceled )
+			mRadsInstallButton->setChecked( mRadsController.isInstalled() );
+		else
+		{
+			if ( mRadsController.isInstalled() && !mRadsController.isRunning() )
+				SimpleMsgBox(
+					"Before starting periodic data synchronizations with the RADS server, please select your options in '" 
+					+ mRadsSettingsBox->title()
+					+ "' and activate the service with the '" 
+					+ mRadsStartButton->text() 
+					+ "' button when ready." 
+				);
+		}
+
+		EnableRadsButtons();
+	} );
 }
 
 
-void CApplicationSettingsDlg::HandleRadsStart( bool toggled )
+// Returns false if user canceled or operation failed
+//
+bool CApplicationSettingsDlg::RadsStart( bool toggled, bool validate_and_save, bool check_buttons )
 {
-	assert__( mRadsController->isInstalled() );
+	assert__( mRadsController.isInstalled() );
 
-	const bool running = mRadsController->isRunning();
+	const bool running = mRadsController.isRunning();
 	std::string error_token;
+	bool user_canceled = false;
 
 	if ( toggled )
 	{
-		if ( !ValidateAndSaveRadsValues( true ) )
-			return;
-		if ( !running && !mRadsController->start() )
-			error_token = "start";					//Windows 1069: "The service did not start due to a logon failure."
+		if ( !running )
+		{
+			user_canceled = validate_and_save && !ValidateAndSaveRadsValues( true );
+			if ( !user_canceled )
+			{
+				WaitCursor wait;
+
+				if ( !mApp.StartRadsService() )
+					error_token = "start";					//Windows 1069: "The service did not start due to a logon failure."
+			}
+		}
 	}
 	else
 	{
-		if ( running && !mRadsController->stop() )
-			error_token = "stop";
+		if ( running )
+		{
+			user_canceled = mApp.RsyncIsActive() && !SimpleQuestion( "This will stop any current downloads from the RADS server.\nDo you want to proceed?" );
+			if ( !user_canceled )
+			{
+				WaitCursor wait;
+
+				if ( !mApp.StopRadsService() )
+					error_token = "stop";
+			}
+		}
 	}
 
-    QBratThread::sleep( 2 );    //give some time for isRunning to return an accurate value
-    
 	if ( !error_token.empty() )
-	{
 		DisplayRadsError( error_token );
-		mRadsStartButton->setChecked( mRadsController->isRunning() );
+
+	if ( !error_token.empty() || user_canceled )
+	{
+		mRadsStartButton->setChecked( mRadsController.isRunning() );
+		mRadsStartButton_Test->setChecked( mRadsController.isRunning() );
 	}
 
-	EnableRadsButtons();
+	if ( check_buttons )
+		EnableRadsButtons();
+
+	return error_token.empty() && !user_canceled;
+}
+
+void CApplicationSettingsDlg::HandleRadsStart( bool toggled )
+{
+	RadsStart( toggled, true, true );
+}
+
+// The service stars with rads client paused. In production mode
+//	it should be immediately active.
+//
+void CApplicationSettingsDlg::HandleRadsUserStart( bool toggled )
+{
+	if ( RadsStart( toggled, true, true ) )
+		RadsPause( false, false );
 }
 
 
-void CApplicationSettingsDlg::HandleRadsPause( bool toggled )
+bool CApplicationSettingsDlg::RadsPause( bool toggled, bool validate_and_save )
 {
-	assert__( mRadsController->isInstalled() );
+	assert__( mRadsController.isInstalled() );
 
 	std::string error_token;
-	//TODO:  the controller has no flag for paused state
+	bool user_canceled = false;	
 
 	if ( toggled )
 	{
-		if ( !mRadsController->pause() )
+		if ( !mApp.PauseRadsService() )
 			error_token = "pause";
 	}
 	else
 	{
-		if ( !ValidateAndSaveRadsValues( true ) )
-			return;
-		if ( !mRadsController->resume() )
+		user_canceled = validate_and_save && !ValidateAndSaveRadsValues( true );
+
+		if ( !user_canceled && !mApp.ResumeRadsService() )
 			error_token = "resume";
 	}
 
 	if ( !error_token.empty() )
-	{
 		DisplayRadsError( error_token );
+
+	if ( !error_token.empty() || user_canceled )
+	{
 		mRadsPauseButton->blockSignals( true );
-		mRadsPauseButton->setChecked( !toggled );	//Guessing: without flag for paused state, we can only assume that, on failure, the current state did not change
+		mRadsPauseButton->setChecked( !toggled );	//Guessing: without a flag for paused state, we can only assume that, on failure, the current state did not change
 		mRadsPauseButton->blockSignals( false );
 	}
+
+	return !error_token.empty() || user_canceled;
+}
+
+void CApplicationSettingsDlg::HandleRadsPause( bool toggled )
+{
+	RadsPause( toggled, true );
 }
 
 
@@ -510,14 +717,38 @@ void CApplicationSettingsDlg::HandleRadsExecuteNow()
 {
 	if ( !ValidateAndSaveRadsValues( true ) )
 		return;
-	if ( !mRadsController->sendCommand( eRadsService_ExecNow ) )
+
+	if ( !mApp.SendRadsServiceCommand( eRadsService_ExecNow ) )
 		DisplayRadsError( "execute" );
+}
+
+
+void CApplicationSettingsDlg::HandleRadsSpinValueChanged( int i )
+{
+	assert__( i = mRadsSpin->value() );
+
+	mNextSyncLabel->setText( "Next synchronization will be scheduled for\n" 
+		+ mRadsServiceSettings.NextSyncDateForPeriodWithDays( i ).toString( CSharedRadsSettings::RsyncDateFormat() ) );
 }
 
 
 void CApplicationSettingsDlg::HandleViewLogFile()
 {
 	QDesktopServices::openUrl( QUrl( mSettings.BratPaths().mRadsServiceLogFilePath.c_str() ) );
+}
+
+
+void CApplicationSettingsDlg::HandleViewRADSConfigurationFile()
+{
+	QDesktopServices::openUrl( QUrl( mSettings.BratPaths().mRadsConfigurationFilePath.c_str() ) );
+}
+
+
+void CApplicationSettingsDlg::HandleViewRADSServiceSettingsFile()
+{
+	assert__( mRadsServiceSettings.FilePath() == CSharedRadsSettings::RadsSettingsFilePath() );
+
+	QDesktopServices::openUrl( QUrl( mRadsServiceSettings.FilePath().c_str() ) );
 }
 
 
@@ -537,6 +768,8 @@ void CApplicationSettingsDlg::HandleViewLogFile()
 ///////////////////////////////////////////////////////////////////////////////////
 
 
+// Returns false only when the user cancels
+//
 bool CApplicationSettingsDlg::ValidateAndSaveRadsValues( bool ask_user )
 {
 	if ( ask_user && !SimpleQuestion( "This will save your current RADS settings.\nDo you want to proceed?" ) )
@@ -553,21 +786,24 @@ bool CApplicationSettingsDlg::ValidateAndSaveRadsValues( bool ask_user )
 			{
 				const std::string &abbr = q2a( item->data( Qt::UserRole ).toString() );		assert__( FindRadsMissionAbbr( q2a( item->text() ), mRadsServiceSettings.AllAvailableMissions() ) == abbr );
 				if ( !missions_str.empty() )
-					missions_str += " ";
+					missions_str += missions_separator;
 				missions_str += abbr;
 			}
 		}
 
 		int ndays = mRadsSpin->value();
-		const bool running = mRadsController->isRunning();
+		const bool running = mRadsController.isRunning();
 
-		bool cmd_success = !running || mRadsController->sendCommand( eRadsService_LockConfig );
+		bool cmd_success = !running || mApp.SendRadsServiceCommand( eRadsService_LockConfig );
 		if ( cmd_success )
 		{
+			// This validity (valid_values truth) must be ensured by the programmer, not the user
+			//
+			bool valid_values = mRadsServiceSettings.SetApplicationParameterValues( missions_str, ndays, q2a( mRadsOutputEdit->text() ) );		assert__( valid_values );
 			cmd_success = 
-				mRadsServiceSettings.SetApplicationParameters( missions_str, ndays, q2a( mRadsOutputEdit->text() ) )
+				valid_values
 				&&
-				( !running || mRadsController->sendCommand( eRadsService_UnlockConfig ) );
+				( !running || mApp.SendRadsServiceCommand( eRadsService_UnlockConfig ) );
 		}
 		if ( !cmd_success )
 		{
@@ -583,6 +819,8 @@ bool CApplicationSettingsDlg::ValidateAndSaveRadsValues( bool ask_user )
 
 
 
+// IMPORTANT: call this only after validating user data path
+//
 bool CApplicationSettingsDlg::ValidateAndAssign()
 {
 	// lambda

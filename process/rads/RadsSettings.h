@@ -37,12 +37,26 @@ class CRadsSettingsBase : public CFileSettings
     //	static members
     //////////////////////////////////////
 
-	static unsigned smNumberOfDays;
 
+public:
+
+	static const unsigned smDefaultNumberOfDays;
+	static const unsigned smMinNumberOfDays;
+	static const unsigned smMaxNumberOfDays;
+
+
+	static inline const char* RsyncDateFormat()
+	{
+		const char *date_s = "yyyy-MM-dd";		//const char *date_time_s = "yyyy-MM-dd hh:mm:ss.zzz";
+
+		return date_s;
+	}
+
+	
 protected:
 
     //////////////////////////////////////
-    //	data
+    //	instance data
     //////////////////////////////////////
 
 	const CApplicationStaticPaths &mRadsPaths;
@@ -53,12 +67,18 @@ protected:
 	std::vector< std::string > mMissionNames;
 	std::string mOutputDirectory;
 
-	int mNumberOfDays = smNumberOfDays;		//signed: we must be able to do arithmetic with negative mNumberOfDays
+	int mNumberOfDays = smDefaultNumberOfDays;					//signed: we must be able to do arithmetic with negative mNumberOfDays
 
-	std::vector< CRadsMission > mAllAvailableMissions;
+	std::vector< CRadsMission > mAllAvailableMissions;	//initialized by CommonConstruct
+
+
+	// This parameter is for rads client private use
+	//
+	QDateTime mLastSync;
+
 
 public:
-	// This variable records the status of reading brads configuration file (missions, not to be confused with service settings file)
+	// This variable records the status of reading RADS configuration file (missions, not to be confused with service settings file)
 	// It should be inspected before using the class instances
 	//
 	const bool mValidRadsMissions = false;
@@ -68,25 +88,17 @@ public:
     //	construction / destruction
     //////////////////////////////////////
 
-	bool ReadAvailableRadsMissions();
+	bool CommonConstruct();
 
 protected:
 
 	// for rads application settings derived class
 
-	CRadsSettingsBase( const CApplicationStaticPaths &brat_paths, const std::string &org_name, const std::string &exec_name ) 
-		: base_t( org_name, exec_name, "" )
-		, mRadsPaths( brat_paths )
-		, mValidRadsMissions( ReadAvailableRadsMissions() )
-	{}
+	CRadsSettingsBase( const CApplicationStaticPaths &brat_paths, const std::string &org_name, const std::string &exec_name );
 
 	// for rads clients shared settings access derived class
 
-	CRadsSettingsBase( const CApplicationStaticPaths &brat_paths, const std::string &path ) 
-		: base_t( path )
-		, mRadsPaths( brat_paths )
-		, mValidRadsMissions( ReadAvailableRadsMissions() )
-	{}
+	CRadsSettingsBase( const CApplicationStaticPaths &brat_paths, const std::string &path );
 
 public:
 
@@ -103,8 +115,38 @@ public:
 
 	const std::string& OutputDirectory() const { return mOutputDirectory; }
 
+
+	//... time related
+
 	int NumberOfDays() const { return mNumberOfDays; }
 
+	// Given the instance last synchronization time and an arbitrary period of ndays,
+	//	returns the next synchronization date. If last synchronization is so old that
+	//	even after a period of ndays it is in the past, returns the current date
+	//
+	QDate NextSyncDateForPeriodWithDays( int ndays );
+
+
+protected:
+
+	// Synchronization time computations
+
+	// Function effectively used to trigger a synchronization
+	//
+	QDate NextSyncDate();
+
+	// Next 2 functions return true if configuration in file needs to be updated
+
+	// Corrects invalid numeric values or (over/out)dated reference times:
+	//	(mLastSync + period < today || mLastSync > today).
+	// To be used when values could externally be modified (so, in LoadConfig); 
+	//	called as runtime precaution in time checks before triggering a synchronization
+	//
+	bool CorrectLastSyncTime();
+
+	// to be used when a synchronization is requested immediately
+	//
+	bool SetNextSyncDateToday();
 
 public:
 
@@ -123,7 +165,8 @@ public:
 
 //////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////
-//				RadsService class application settings
+//					RadsService class application settings
+//			(do NOT instantiate or inherit outside the RADS service)
 //////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////
 
@@ -141,20 +184,18 @@ class CRadsSettings : public CRadsSettingsBase
 	//	static members
 	//////////////////////////////////////
 
+	static const unsigned smDefaultPeriodicCheckInMinutes;
 
 protected:
 
 	//////////////////////////////////////
-	//	data
+	//	instance data
 	//////////////////////////////////////
 
 	bool mLockedFile = false;
+	unsigned mPeriodicCheckInMinutes = smDefaultPeriodicCheckInMinutes;
 
 public:
-
-	// This parameter is for daemon private use
-	//
-	QDateTime mLastSync;
 
 
 	//////////////////////////////////////
@@ -177,12 +218,25 @@ public:
 
 	bool LockFile( bool lock );
 
+	unsigned PeriodicCheckInMinutes() const { return mPeriodicCheckInMinutes; }
 
 public:
 
 	//////////////////////////////////////
 	//	operations
 	//////////////////////////////////////
+
+	
+	using base_t::NextSyncDate;
+	using base_t::CorrectLastSyncTime;
+	using base_t::SetNextSyncDateToday;
+
+
+	// Returns true if configuration in file needs to be updated
+	// To be used when a synchronization just finished
+	//
+	bool SetLastSyncTimeNow();
+
 
 	virtual bool LoadConfig() override;
 
@@ -198,6 +252,7 @@ public:
 //////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////
 //			Foreign access to RadsService settings by external application
+//				(do NOT instantiate or inherit in the RADS service)
 //////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////
 
@@ -230,7 +285,10 @@ public:
 
 	// Calls to this function should be enveloped in lock/unlock command calls to the rads service
 	//
-	bool SetApplicationParameters( const std::string &missions_str, int ndays, const std::string &output_dir );
+	bool SetApplicationParameterValues( const std::string &missions_str, int ndays, const std::string &output_dir );
+
+
+	virtual bool SaveConfig() override;
 };
 
 

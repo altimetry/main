@@ -2671,7 +2671,7 @@ if(BRAT_BUILD_GUI)
 		new-gui/Common/GUI/TextWidget.cpp
 		new-gui/brat/GUI/TabbedDock.cpp
 		new-gui/Common/GUI/ControlPanel.cpp
-		new-gui/brat/GUI/ControlPanels/DatasetBrowserControls.cpp
+		new-gui/brat/GUI/ControlPanels/DatasetsBrowserControls.cpp
 		new-gui/brat/DataModels/Model.cpp
 		new-gui/brat/GUI/ActionsTable.cpp
 		new-gui/Common/ConfigurationKeywords.cpp
@@ -2753,7 +2753,7 @@ if(BRAT_BUILD_GUI)
 		new-gui/Common/System/Service/qtservice.cpp
 		new-gui/brat/GUI/LoginDialog.cpp
 		new-gui/Common/System/OsProcess.cpp
-		new-gui/brat/GUI/ControlPanels/RadsBrowserControls.cpp
+		new-gui/brat/GUI/ControlPanels/DatasetsRadsBrowserControls.cpp
 		new-gui/brat/GUI/ControlPanels/GenericTreeWidget.cpp
 	    new-gui/brat/GUI/ControlPanels/RadsDatasetsTreeWidget.cpp
 	    new-gui/brat/DataModels/Workspaces/RadsDataset.cpp
@@ -2794,7 +2794,7 @@ if(BRAT_BUILD_GUI)
 		new-gui/Common/GUI/TextWidget.h
 		new-gui/brat/GUI/TabbedDock.h
 		new-gui/Common/GUI/ControlPanel.h
-		new-gui/brat/GUI/ControlPanels/DatasetBrowserControls.h
+		new-gui/brat/GUI/ControlPanels/DatasetsBrowserControls.h
 		new-gui/brat/DataModels/Model.h
 		new-gui/brat/GUI/ActionsTable.h
 		new-gui/Common/ConfigurationKeywords.h
@@ -2871,13 +2871,13 @@ if(BRAT_BUILD_GUI)
 		new-gui/brat/DataModels/PlotData/Plots.h
 		new-gui/brat/DataModels/PlotData/WidgetField.h
 		new-gui/brat/GUI/ProgressDialog.h
-		new-gui/brat/DataModels/ProgressInterface.h
+		common/ProgressInterface.h
 		new-gui/Common/SingleApplication/qtlockedfile.h
 		new-gui/Common/System/Service/qtservice.h
 		new-gui/Common/System/Service/qtservice_p.h
 		new-gui/brat/GUI/LoginDialog.h
 		new-gui/Common/System/OsProcess.h
-		new-gui/brat/GUI/ControlPanels/RadsBrowserControls.h
+		new-gui/brat/GUI/ControlPanels/DatasetsRadsBrowserControls.h
 		process/rads/RadsSharedParameters.h
 		new-gui/brat/GUI/ControlPanels/GenericTreeWidget.h
 	    new-gui/brat/GUI/ControlPanels/RadsDatasetsTreeWidget.h

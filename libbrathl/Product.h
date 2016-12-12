@@ -20,6 +20,7 @@
 
 #include <string>
 
+#include "common/ProgressInterface.h"
 #include "common/tools/brathl_error.h"
 #include "brathl.h" 
 
@@ -234,7 +235,7 @@ public:
 	void AddCriteria( CCriteria* criteria, bool erase = true );
 	void AddCriteria( CProduct* product );
 
-	virtual void ApplyCriteria( CStringList& filteredFileList, const std::string& logFileName = "" );
+	virtual bool ApplyCriteria( CStringList& filteredFileList, CProgressInterface *pi, const std::string& log_file = "" );
 
 	virtual bool ApplyCriteriaLatLon( CCriteriaInfo* criteriaInfo );
 	virtual bool ApplyCriteriaDatetime( CCriteriaInfo* criteriaInfo );
@@ -686,7 +687,7 @@ protected:
 
 	void BuildCriteriaFieldsToRead( CRecordDataMap& listRecord );
 
-	void CreateLogFile( const std::string& logFileName, uint32_t mode = CFile::modeWrite | CFile::typeText );
+	void CreateLogFile( const std::string& log_file, uint32_t mode = CFile::modeWrite | CFile::typeText );
 	void DeleteLogFile();
 
 	template< typename T >
@@ -843,7 +844,7 @@ protected:
 	CFile* m_logFile;
 	CDate m_dateProcessBegin;
 	CDate m_dateProcessEnd;
-	int32_t m_indexProcessedFile;
+	int_t m_indexProcessedFile;
 
 	CStringArray m_fieldsToTranspose;
 

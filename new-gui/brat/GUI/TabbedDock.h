@@ -123,7 +123,17 @@ public:
 		return mTabWidget->setCurrentIndex( index );
 	}
 
+    virtual void SetTabTextColor( int index, const QColor &color )
+    {
+        mTabWidget->tabBar()->setTabTextColor( index, color );
+    }
 
+    virtual void SetTabIcon( int index, const QIcon &icon )
+    {
+        mTabWidget->tabBar()->setTabIcon( index, icon );
+    }
+
+    
 	// operations
 
 	void SetTabShape( QTabWidget::TabShape s );

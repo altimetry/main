@@ -255,14 +255,16 @@ public:
 	/////////////////////////////
 
 	void BoundingArea( double &lon1, double &lat1, double &lon2, double &lat2 ) const;
-    ///// TODO RCCC //////////////////////////////////
-    bool GetTimeBounds(CDate &Start, CDate &Stop, const std::string &product_label , std::string &error_msg) const;
-    ////////////////////////////////////////////////////
 
-    bool Apply(const CStringList& files_in, CStringList& files_out, std::string &error_msg) const;
-    //////// RCCC TODO /////////////////////////////////////
-    std::string GetSelectionCriteriaExpression( CProduct *product ) const;
-    /////////////////////////////////////////////////////////
+    bool GetTimeBounds(CDate &Start, CDate &Stop, const std::string &product_label , std::string &error_msg) const;
+
+    bool Apply( const CStringList& files_in, CStringList& files_out, std::string &error_msg, CProgressInterface *pi ) const;
+
+	// Argument product_label must be the value returned by CProduct::GetLabel()
+	//	(or CProductInfo::Label)
+	//
+    std::string GetSelectionCriteriaExpression( const std::string &product_label ) const;
+
 
     void Relative2AbsoluteTimes();
     void SetDefaultValues();
@@ -379,8 +381,8 @@ public:
 
     bool DeleteFilter( const std::string &name );
 
-    bool Apply(const std::string &name, const CStringList& files_in, CStringList& files_out, std::string& error_msg) const;
-    bool Translate2SelectionCriteria(CProduct *product_ref, const std::string &name , std::string &error_msg) const;
+    bool Apply( const std::string &name, const CStringList& files_in, CStringList& files_out, std::string& error_msg, CProgressInterface *pi ) const;
+    bool Translate2SelectionCriteria( CProduct *product_ref, const std::string &name , std::string &error_msg ) const;
 
     // persistence
 

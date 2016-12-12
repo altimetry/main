@@ -45,19 +45,24 @@ void CDataset::SetFieldSpecificUnit( const std::string& key, const std::string& 
 
 // If filtering fails, all files of the original dataset are inserted
 //
-bool CDataset::ApplyFilter( const CBratFilter *filter, const CDataset *original_dataset, std::string &error_msg )
+bool CDataset::ApplyFilter( const CBratFilter *filter, const CDataset *original_dataset, std::string &error_msg, CProgressInterface *pi )
 {
-	bool result = true;
+	assert__( GetProductList()->mCodaProductClass == original_dataset->GetProductList()->mCodaProductClass );
+	assert__( GetProductList()->mCodaProductType == original_dataset->GetProductList()->mCodaProductType );
+	assert__( GetProductList()->m_productClass == original_dataset->GetProductList()->m_productClass );
+	assert__( GetProductList()->m_productType == original_dataset->GetProductList()->m_productType );
+	assert__( GetProductList()->m_productFormat == original_dataset->GetProductList()->m_productFormat );
 
-	CStringList all_files_list = *original_dataset->GetProductList();
+
+	bool result = true;
 
 	if ( filter )
 	{
-		result = filter->Apply( all_files_list, *GetProductList(), error_msg );
+		result = filter->Apply( *original_dataset->GetProductList(), *GetProductList(), error_msg, pi );
 	}
 
 	if ( !filter || !result )
-		GetProductList()->Insert( all_files_list );
+		GetProductList()->Insert( *original_dataset->GetProductList() );
 
 	return result;
 }
@@ -116,6 +121,22 @@ CProduct* CDataset::OpenProduct( const std::string& fileName ) const
 }
 
 
+
+
+//static 
+const CProductInfo CProductInfo::smInvalidProduct;
+
+
+// (*) The purpose of this ctor is to have a !IsValid() instance (that in consequence 
+//	cannot be used), where product parameters are required with default null
+//
+CProductInfo::CProductInfo()
+	: base_t()
+	, mErrorMessages( "Null product" )	//never displayed (*)
+{
+	assert__( !IsValid() );				//(*) 
+}
+
 void CProductInfo::ExtractInfo()
 {
 	assert__( mProduct );
@@ -142,16 +163,28 @@ void CProductInfo::ExtractInfo()
 }
 
 CProductInfo::CProductInfo( CProduct *product )
-	: mProduct( product )
+	: base_t()
+	, mProduct( product )
 	, mExternalProduct( true )
 {
-	ExtractInfo();
+	assert__( !IsValid() );
+
+	if ( !mProduct )
+		mErrorMessages = "There is no product.";
+	else
+		ExtractInfo();
 }
 
 CProductInfo::CProductInfo( const CDataset *dataset, const std::string &file_path )
-	: mExternalProduct( false )
+	: base_t()
+	, mExternalProduct( false )
 {
-	const std::string& path = file_path.empty() ? dataset->GetFirstFile() : file_path;
+	assert__( !IsValid() );
+
+	const std::string& path = 
+		file_path.empty() ? 
+		( dataset->IsEmpty() ? file_path : dataset->GetFirstFile() ) :
+		file_path;
 
 	try
 	{
@@ -179,29 +212,141 @@ CProductInfo::~CProductInfo()
 }
 
 
-const std::string& CProductInfo::FindAliasValue( const std::string &alias_name )
+bool CProductInfo::IsLongitudeFieldName( const std::string &name ) const 
+{ 
+	assert__( mProduct );
+
+	return mProduct->IsLongitudeFieldName( name );
+}
+
+bool CProductInfo::IsLatitudeFieldName( const std::string &name ) const 
+{ 
+	assert__( mProduct );
+
+	return mProduct->IsLatitudeFieldName( name );
+}
+
+
+const std::string& CProductInfo::FindAliasValue( const std::string &alias_name ) const
 {
 	assert__( mProduct );
 
 	return CBratFilters::FindAliasValue( mProduct, alias_name );
 }
 
-std::pair<CField*, CField*> CProductInfo::FindLonLatFields( bool try_unsupported, bool &lon_alias_used, bool &lat_alias_used, std::string &field_error_msg )
+std::pair<CField*, CField*> CProductInfo::FindLonLatFields( bool try_unsupported, bool &lon_alias_used, bool &lat_alias_used, std::string &field_error_msg ) const
 {
     assert__( mProduct );
 
 	return CBratFilters::FindLonLatFields( mProduct, try_unsupported, lon_alias_used, lat_alias_used, field_error_msg );
 }
 
-CField* CProductInfo::FindTimeField( bool try_unsupported, bool &alias_used, std::string &field_error_msg )
+CField* CProductInfo::FindTimeField( bool try_unsupported, bool &alias_used, std::string &field_error_msg ) const
 {
 	assert__( mProduct );
 
 	return CBratFilters::FindTimeField( mProduct, try_unsupported, alias_used, field_error_msg );
 }
 
+CField* CProductInfo::FindFieldByName( const std::string& field_name, const std::string& dataset_name, std::string &error_msg ) const
+{
+	assert__( mProduct );
 
-brathl_refDate CProductInfo::GetRefDate() const 
+	return mProduct->FindFieldByName( field_name, dataset_name, false, &error_msg, false );
+}
+
+CField* CProductInfo::FindFieldByName( const std::string& field_name, std::string &error_msg ) const
+{
+	assert__( mProduct );
+
+	const bool with_except = false;
+
+	return mProduct->FindFieldByName( field_name, with_except, &error_msg, false );
+}
+
+bool CProductInfo::CheckFieldNames( const CExpression &expr, const std::string &dataset_name, CStringArray &field_names_not_found ) const
+{
+	assert__( mProduct );
+
+	return mProduct->CheckFieldNames( expr, dataset_name, field_names_not_found );
+}
+
+bool CProductInfo::AddRecordNameToField( const CExpression &expr, const std::string &dataset_name, CExpression &expr_out, std::string &error_msg ) const
+{
+	assert__( mProduct );
+
+	return mProduct->AddRecordNameToField( expr, dataset_name, expr_out, error_msg );
+}
+
+bool CProductInfo::AddRecordNameToField( const std::string &in, const std::string &dataset_name, std::string &out, std::string &error_msg ) const
+{
+	assert__( mProduct );
+
+	return mProduct->AddRecordNameToField( in, dataset_name, out, error_msg );
+}
+
+
+
+void CProductInfo::AliasKeys( CStringArray& keys ) const
+{
+	assert__( mProduct );
+
+	return mProduct->GetAliasKeys( keys );
+}
+
+std::string CProductInfo::AliasExpandedValue( const std::string &key ) const
+{
+	assert__( mProduct );
+
+	return mProduct->GetAliasExpandedValue( key );
+}
+
+const CProductAlias* CProductInfo::Alias( const std::string &key ) const
+{
+	assert__( mProduct );
+
+	return mProduct->GetAlias( key );
+}
+
+bool CProductInfo::HasAliases() const
+{
+	assert__( mProduct );
+
+	return mProduct->HasAliases();
+}
+const CStringMap* CProductInfo::AliasesAsString() const 
+{ 
+	assert__( mProduct );
+
+	return mProduct->GetAliasesAsString(); 
+}
+
+void CProductInfo::ReplaceNamesCaseSensitive( const std::string &in, std::string &out, bool force_reload ) const		//force_reload = false 
+{
+	assert__( mProduct );
+
+	return mProduct->ReplaceNamesCaseSensitive( in, out, force_reload );
+}
+
+void CProductInfo::ReplaceNamesCaseSensitive( const CExpression &expr_in, const CStringArray &fields_in, CExpression &expr_out, bool force_reload ) const		//force_reload = false 
+{
+	assert__( mProduct );
+
+	return mProduct->ReplaceNamesCaseSensitive( expr_in, fields_in, expr_out, force_reload );
+}
+
+
+bool CProductInfo::HasCompatibleDims( const std::string &value, const std::string &dataset_name, std::string &msg, bool use_virtual_dims, CUIntArray *common_dimensions ) const	//common_dimensions = nullptr 
+{
+	assert__( mProduct );
+
+	return mProduct->HasCompatibleDims( value, dataset_name, msg, use_virtual_dims, common_dimensions );
+}
+
+
+
+
+brathl_refDate CProductInfo::RefDate() const 
 { 
 	assert__( mProduct );
 
@@ -220,12 +365,13 @@ bool CProductInfo::IsNetCdfOrNetCdfCF() const
 
 	return mProduct->IsNetCdfOrNetCdfCFProduct();
 }
-bool CProductInfo::HasAliases() const
+const std::string CProductInfo::Label() const
 {
 	assert__( mProduct );
 
-	return mProduct->HasAliases();
+	return mProduct->GetLabel();
 }
+
 
 
 const std::string& CProductInfo::Type() const
@@ -245,6 +391,12 @@ const std::string& CProductInfo::Description() const
 	assert__( mProduct );
 
 	return mProduct->GetDescription();
+}
+std::string CProductInfo::ProductClassAndType() const
+{ 
+	assert__( mProduct );
+
+	return mProduct->GetProductClassAndType();
 }
 
 
@@ -289,6 +441,9 @@ bool CDataset::LoadConfig( CWorkspaceSettings *config )
 
 	return config->LoadConfig( this );
 }
+
+#if defined(BRAT_V3)
+
 //----------------------------------------
 void CDataset::Dump( std::ostream& fOut /* = std::cerr */ )
 {
@@ -303,3 +458,4 @@ void CDataset::Dump( std::ostream& fOut /* = std::cerr */ )
 	fOut << std::endl;
 }
 
+#endif

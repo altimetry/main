@@ -70,14 +70,14 @@ public:
 
   virtual bool HasCriteriaInfo() { return true; }
 
-  virtual void ApplyCriteria(CStringList& filteredFileList, const std::string& logFileName = "");
+  virtual bool ApplyCriteria( CStringList& filteredFileList, CProgressInterface *pi, const std::string& log_file = "" ) override;
 
-  virtual bool ApplyCriteriaLatLon(CCriteriaInfo* criteriaInfo);
-  virtual bool ApplyCriteriaDatetime(CCriteriaInfo* criteriaInfo);
-  virtual bool ApplyCriteriaPass(CCriteriaInfo* criteriaInfo);
-  virtual bool ApplyCriteriaPassInt(CCriteriaInfo* criteriaInfo);
-  virtual bool ApplyCriteriaPassString(CCriteriaInfo* criteriaInfo);
-  virtual bool ApplyCriteriaCycle(CCriteriaInfo* criteriaInfo);
+  virtual bool ApplyCriteriaLatLon(CCriteriaInfo* criteriaInfo) override;
+  virtual bool ApplyCriteriaDatetime(CCriteriaInfo* criteriaInfo) override;
+  virtual bool ApplyCriteriaPass(CCriteriaInfo* criteriaInfo) override;
+  virtual bool ApplyCriteriaPassInt(CCriteriaInfo* criteriaInfo) override;
+  virtual bool ApplyCriteriaPassString(CCriteriaInfo* criteriaInfo) override;
+  virtual bool ApplyCriteriaCycle(CCriteriaInfo* criteriaInfo) override;
 
   CFieldNetCdf* ReadDateCriteriaValue(CFieldInfo& fieldInfo, CDate& date, bool wantMin = true);
   CFieldNetCdf* ReadDoubleCriteriaValue(CFieldInfo& fieldInfo, double& value, bool wantMin = true);

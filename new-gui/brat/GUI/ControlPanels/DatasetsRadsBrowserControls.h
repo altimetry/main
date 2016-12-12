@@ -21,6 +21,7 @@
 
 #include "DesktopControlPanel.h"
 #include "RadsDatasetsTreeWidget.h"
+#include "BratApplication.h"
 
 
 class CTextWidget;
@@ -52,20 +53,10 @@ class CRadsBrowserControls : public CDesktopControlsPanel
 
 	//instance data
 
-#if defined(TEST_RADS)
-	CStackedWidget *mBrowserStakWidget = nullptr;
-    QAbstractButton *m_BrowseFilesButton = nullptr;
-    QAbstractButton *m_BrowseRadsButton = nullptr;
-#endif
-
 	CRadsDatasetsTreeWidget *mDatasetTree = nullptr;
 
     QToolButton *mNewDataset = nullptr;
     QToolButton *mDeleteDataset = nullptr;
-    QToolButton *mAddDir = nullptr;
-    QToolButton *mAddFiles = nullptr;
-    QToolButton *mRemove = nullptr;
-    QToolButton *mClear = nullptr;
 
     CTextWidget *mFileDesc = nullptr;
     QGroupBox   *mFileDescGroup = nullptr;
@@ -75,19 +66,22 @@ class CRadsBrowserControls : public CDesktopControlsPanel
 
 	//...doamin data
 
+    CBratApplication &mApp;
 	const CApplicationPaths &mBratPaths;
-    CWorkspaceDataset *mWDataset = nullptr;
+	const CSharedRadsSettings &mRadsServiceSettings;
+	CWorkspaceDataset *mWDataset = nullptr;
+	QSharedMemory mSharedMemory;
 
+   
 
     //construction / destruction
 
     void Wire();
 
 public:
-    explicit CRadsBrowserControls( CModel &model, CDesktopManagerBase *manager, QWidget *parent = nullptr, Qt::WindowFlags f = 0 );
+    explicit CRadsBrowserControls( CBratApplication &app, CDesktopManagerBase *manager, QWidget *parent = nullptr, Qt::WindowFlags f = 0 );
 
-    virtual ~CRadsBrowserControls()
-    {}
+	virtual ~CRadsBrowserControls();
 
     // access
 
@@ -95,14 +89,18 @@ public:
     void AddFiles(QStringList &paths_list);
 
     void DatasetChanged( QTreeWidgetItem *tree_item );
-    virtual void FileChanged( QTreeWidgetItem *file_or_mission_item );
+    virtual void FileChanged( QTreeWidgetItem *tree_item );
 
     QTreeWidgetItem *AddDatasetToTree(const QString &dataset_name);
-    void FillFileTree( QTreeWidgetItem *current_dataset_item);
+
     void FillFieldList( CDataset *current_dataset, const std::string &current_file_or_mission );
     void ClearFieldList();
 
 	bool RenameDataset( QTreeWidgetItem *dataset_item );
+
+protected:
+
+	bool CheckRadsConfigStatus();
 
 signals:
     void CurrentDatasetChanged( CDataset* );
@@ -114,16 +112,15 @@ public slots:
     void HandleFieldChanged();
     void HandleNewDataset();
     void HandleDeleteDataset();
-    void HandleAddFiles();
-    void HandleAddDir();
-    void HandleRemoveFile();
-    void HandleClearFiles();
     void HandleTreeItemChanged();
 
 protected slots:
 
     void HandleDatasetExpanded(); // Resizes DatasetTree when datasets are expanded
     void HandleItemChanged( QTreeWidgetItem *item, int col );
+	void HandleCurrentIndexChanged( CRadsDatasetsTreeWidgetItem*, int index );
+    
+    void HandleRsyncStatusChanged( CBratApplication::ERadsNotification notification );
 };
 
 

@@ -28,29 +28,8 @@
 //_NO_DEBUG_HEAP=1
 
 
-const std::string mRadsServerAddress = "radsuser@corads.tudelft.nl::rads/data";
-        // /usr/bin/rsync -avrzR --del --password-file="/Users/brat/dev/bin/Qt-5.7.0/brat/x86_64/Debug/brat.app/Contents/MacOS/data/rads_pass.txt" radsuser@corads.tudelft.nl::'rads/data/c2 rads/data/j2'  "/Volumes/ext_My_Passport/user-data/rads"
-
 int main( int argc, char *argv[] )
 try {
-    
-    
-//    std::string src_missions;
-//    auto v = String2Vector( mRadsServerAddress, std::string( "::" ) );
-//    src_missions += v[0] + "::" + "'";
-//    std::vector<std::string> MissionNames = { "c2" };
-//    for ( auto const &mission : MissionNames )
-//	{
-//		src_missions += ( v[1] + "/" + mission + " " );
-//	}
-//    src_missions.back() = '\'';
-    
-//    std::cout << src_missions << std::endl;
-
-//    return 0;
-
-	//CBratLogger::Instance().SetEnabled( false );
-
 	LOG_TRACE( "\n*** Entering main." );
 
 	CBratApplication::Prologue( argc, argv );

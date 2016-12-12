@@ -230,7 +230,7 @@ public:
 	bool RenameDataset( CDataset* dataset, const std::string& newName );
 	bool DeleteDataset( CDataset* dataset );
 
-	std::string GetDatasetNewName();
+	std::string GetDatasetNewName( bool RADS );
 
 	size_t GetDatasetCount() const
 	{
@@ -322,7 +322,7 @@ public:
 
 	bool IsFormulaToImport( const std::string& name );
 
-	void AmendFormulas( const CStringArray& key, CProduct* product, const std::string& record );
+	void AmendFormulas( const CStringArray& key, const CProductInfo &pi, const std::string& record );
 
     virtual void Dump( std::ostream& fOut = std::cerr ) override;
 
@@ -374,7 +374,7 @@ public:
 
 	virtual bool SaveConfig( std::string &errorMsg, CWorkspaceOperation *wkso, CWorkspaceDisplay *wksd, bool flush = true ) override;
 	virtual bool LoadConfig( std::string &errorMsg, CWorkspaceDataset *wks, CWorkspaceDisplay *wksd, CWorkspaceOperation *wkso ) override;
-	virtual bool Import(CWorkspace* wksi, std::string &errorMsg, CWorkspaceDataset *wks_data, CWorkspaceDisplay *wks_disp, CWorkspaceOperation *wks_op) override;
+	//virtual bool Import(CWorkspace* wksi, std::string &errorMsg, CWorkspaceDataset *wks_data, CWorkspaceDisplay *wks_disp, CWorkspaceOperation *wks_op) override;
 
 	void GetOperationNames( std::vector< std::string >& array );
 

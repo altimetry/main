@@ -291,6 +291,8 @@ protected slots:
     void UpdateToolsMenu();
     void UpdateWindowMenu();
 
+    void HandleRsyncStatusChanged( CBratApplication::ERadsNotification notification );
+    
 
 private slots:
 
