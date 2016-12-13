@@ -103,11 +103,7 @@ private:
 	static CApplicationPaths *smApplicationPaths;	//initialized in Prologue
 
 
-	static void RegisterAsQtTypes()	//called in Prologue; see respective Q_DECLARE_METATYPE after class declaration
-	{
-		qRegisterMetaType< ERadsNotification >();
-	}
-
+	static void RegisterAsQtTypes();	//called in Prologue; see respective Q_DECLARE_METATYPE after class declaration
 
 	static void CheckOpenGL( bool extended = false );
 
@@ -286,7 +282,7 @@ protected slots:
 
 
 
-Q_DECLARE_METATYPE( CBratApplication::ERadsNotification );
+Q_DECLARE_METATYPE( CBratApplication::ERadsNotification )
 
 
 

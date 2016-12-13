@@ -118,6 +118,11 @@ inline QVariant type2qv( const std::string &v )
 	return t2q( v );
 }
 
+template<>
+inline QVariant type2qv( const size_t &v )
+{
+	return QVariant::fromValue( v );
+}
 
 
 

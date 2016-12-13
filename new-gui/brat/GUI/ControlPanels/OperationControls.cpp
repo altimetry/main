@@ -3481,7 +3481,7 @@ CBratTask* COperationControls::Schedule( EExecutionType type, const QDateTime &a
 	{
 		auto filtering_confirmation = ConfirmFiltering( mCurrentOperation );
 		if ( !filtering_confirmation.first )
-			return false;
+			return nullptr;
 		progress = filtering_confirmation.second;
 	}
 	std::string error_msg;

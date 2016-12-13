@@ -200,6 +200,15 @@ void CBratApplication::CheckOpenGL( bool extended )		//extended = false
 }
 
 
+// Called in Prologue; see Q_DECLARE_METATYPE after class declaration
+// Linux prevents this before the Q_DECLARE_METATYPE 
+//
+//static 
+void CBratApplication::RegisterAsQtTypes()
+{
+    qRegisterMetaType< ERadsNotification >();
+}
+
 
 void CBratApplication::CheckRunMode()
 {
