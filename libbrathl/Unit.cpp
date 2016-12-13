@@ -134,42 +134,44 @@ void CUnit::Set(const CUnit& u)
   m_Offset	= u.m_Offset;
 }
 //----------------------------------------
-void CUnit::Set(const std::string& text)
+void CUnit::Set( const std::string& text )
 {
-  //try
-  //{
-    if (text == "")
-    {
-      m_Text	= "count";
-    }
-    else
-
+	//try
+	//{
+	if ( text == "" )
+	{
+		m_Text	= "count";
+	}
+	else
 	if ( text == "seconds in the day" )
 		m_Text = "seconds_in_the_day";
 	else
-	if (text == "FFT power unit")
+	if ( text == "FFT power unit" )
 		m_Text = "FFT_power_unit";
 	else
-	if (text == "/")
+	if ( text == "/" )
 		m_Text = "meter";
-    else
-    {
-      m_Text	= text;
-    }
-    Compile();
-    //}
+	else
+	if ( text == "Watt/#" )
+		m_Text = "watt";
+	else
+	{
+		m_Text	= text;
+	}
+	Compile();
+	//}
 
-    /*
+	/*
   catch (CException &e)
   {
-    if (m_smartCleaner.m_Initialized)
-    {
-      throw; // Main program has been called
-    }
-    m_smartCleaner.m_ErrInit.append(e.what());
-    m_smartCleaner.m_ErrInit.append("\n");
+	if (m_smartCleaner.m_Initialized)
+	{
+	  throw; // Main program has been called
+	}
+	m_smartCleaner.m_ErrInit.append(e.what());
+	m_smartCleaner.m_ErrInit.append("\n");
   }
-    */
+	*/
 
 }
 /*

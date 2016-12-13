@@ -36,7 +36,7 @@ CDesktopManagerBase::CDesktopManagerBase( const CBratSettings &settings, QMainWi
 #endif
 	, mPaths( settings.BratPaths() )
 {
-	setAttribute( Qt::WA_DeleteOnClose );
+	//setAttribute( Qt::WA_DeleteOnClose );		//the question is, why was this here in previous versions
 
 	setObjectName( QString::fromUtf8( "centralWidget" ) );
 

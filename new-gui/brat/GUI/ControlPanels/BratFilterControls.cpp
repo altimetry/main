@@ -1222,10 +1222,11 @@ enum AliasIndex
 //Expressions[1] = "exec(\"BratAlgoFilterMedianAtp\", %{sig_wave_height}, 7, 1, 0)";
 //Units[1]		= "count";
 //
-int ReadTrack( const std::vector< unsigned char > &can_use_alias, const std::string &path, const std::string &record, double *&x, size_t &sizex, double *&y, size_t &sizey, double *&z, size_t &sizez, int nfields )
+int ReadTrack( const std::vector< unsigned char > &can_use_alias, 
+	const std::string &path, const std::string &record, double *&x, size_t &sizex, double *&y, size_t &sizey, double *&z, size_t &sizez, int nfields = -1 )
 {
-    static const char *Units[] = { "count", "count", "second" };
-    static const int default_nfields = 3;
+	static const int default_nfields = 3;
+	static const char *Units[ default_nfields ] = { "count", "count", "second" };
 
     const char *Expressions[] =
     {
@@ -1239,7 +1240,8 @@ int ReadTrack( const std::vector< unsigned char > &can_use_alias, const std::str
     int32_t	Sizes[ default_nfields ]	= { -1, -1, -1 };
 
     size_t	ActualSize;
-    //int nfields = default_nfields;
+    if ( nfields < 0 )
+		nfields = default_nfields;
 
 
     int ReturnCode = CProduct::ReadData(
@@ -1318,8 +1320,6 @@ void CBratFilterControls::HandleDatasetChanged( CDataset *dataset )
 
 		long expected_lon_dim = 0, expected_lat_dim = 0; auto expected_time_dim = 0;                Q_UNUSED( expected_time_dim );
 
-		CField *time = nullptr;
-
 		{
 			CProductInfo product_info( mDataset, path );
 			if ( !product_info.IsValid() )
@@ -1338,17 +1338,17 @@ void CBratFilterControls::HandleDatasetChanged( CDataset *dataset )
 
 			record = product_info.Record();
 
-			std::string field_error_msg;
+			std::string lonlat_error_msg, time_error_msg;
 			std::pair<CField*, CField*> fields = product_info.FindLonLatFields( mModel.Settings().mUseUnsupportedFields, 
-				(bool&)alias_used[ eAliasIndexLon ], (bool&)alias_used[ eAliasIndexLat ], field_error_msg );
+				(bool&)alias_used[ eAliasIndexLon ], (bool&)alias_used[ eAliasIndexLat ], lonlat_error_msg );
 			CField *lon = fields.first;
 			CField *lat = fields.second;
-			if ( !lon || !lat )
+			CField *time = product_info.FindTimeField( mModel.Settings().mUseUnsupportedFields, (bool&)alias_used[ eAliasIndexTime ], time_error_msg );
+			if ( !lon || !lat || !time )
 			{
-				skip_iteration = true;
-				LOG_WARN( field_error_msg + " - File " + path );
+				skip_iteration = true;				
+				LOG_WARN( "File - " + path + "\n" + replace( lonlat_error_msg, "\n", " - " ) + " - " + time_error_msg );
 			}
-			time = product_info.FindTimeField( mModel.Settings().mUseUnsupportedFields, (bool&)alias_used[ eAliasIndexTime ], field_error_msg );
 
 			expected_lon_dim = lon ? lon->GetDim()[ 0 ] : 0;
 			expected_lat_dim = lat ? lat->GetDim()[ 0 ] : 0;
@@ -1358,16 +1358,11 @@ void CBratFilterControls::HandleDatasetChanged( CDataset *dataset )
 				skip_iteration = true;
 				LOG_WARN( "Different latitude/longitude dimensions in file " + path );
 			}
-			if ( !time )
-			{
-				skip_iteration = true;
-				LOG_WARN( "No time data found in file " + path + "; cannot display track." );
-			}
 
-			info = 
-				( alias_used[ eAliasIndexLon ]	? lon_alias() : lon_name() )	+ "==" + (( lon ? lon->GetName() : unknown ) + " " ) +
-				( alias_used[ eAliasIndexLat ]	? lat_alias() : lat_name() )	+ "==" + (( lat ? lat->GetName() : unknown ) + " " ) +
-				( alias_used[ eAliasIndexTime ]	? time_alias() : time_name() )	+ "==" + (( time ? time->GetName() : unknown ) );
+			info =
+				( alias_used[ eAliasIndexLon ] ?	lon_alias() : lon_name() ) +	"==" + ( ( lon ? lon->GetName() : unknown ) + " " ) +
+				( alias_used[ eAliasIndexLat ] ?	lat_alias() : lat_name() ) +	"==" + ( ( lat ? lat->GetName() : unknown ) + " " ) +
+				( alias_used[ eAliasIndexTime ] ?	time_alias() : time_name() ) +	"==" + ( ( time ? time->GetName() : unknown ) );
 
 		}	//delete product;
 
@@ -1391,7 +1386,7 @@ void CBratFilterControls::HandleDatasetChanged( CDataset *dataset )
 
         //https://decs.deimos.com.pt/pages/viewpage.action?spaceKey=S3ALTB&title=Aliases+Products+IDs
 
-        int ReturnCode = ReadTrack( alias_used, path, record, lonv, lon_dim, latv, lat_dim, timev, time_dim, time ? 3 : 2 );
+        int ReturnCode = ReadTrack( alias_used, path, record, lonv, lon_dim, latv, lat_dim, timev, time_dim );
         if ( ReturnCode == BRATHL_SUCCESS )
         {
             assert__( lon_dim == lat_dim );

@@ -692,7 +692,20 @@ void CBratApplication::CreateSplash()
 		LOG_TRACE( "Null splash image" );
 	mSplash = new QSplashScreen( pix );
     mSplash->setMask( pix.mask() );
-    mSplash->show();
+	QIcon icon( "://../../../data/BratIcon.ico" );
+	if ( icon.isNull() )
+		LOG_TRACE( "Null splash icon" );	
+	mSplash->setWindowIcon( icon );
+	mSplash->show();
+
+	mSplash->activateWindow();
+	mSplash->raise();
+
+#if defined (Q_OS_WIN)
+	int exstyle = GetWindowLong( (HWND)mSplash->winId(), GWL_EXSTYLE );
+	SetWindowLong( (HWND)mSplash->winId(), GWL_EXSTYLE, exstyle & ~WS_EX_TOOLWINDOW
+	);
+#endif
 }
 
 

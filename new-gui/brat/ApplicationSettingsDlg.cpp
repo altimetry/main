@@ -204,13 +204,19 @@ void CApplicationSettingsDlg::CreateWidgets()
 	}, 
 	"Service Settings", this, 6, 6, 6, 6, 6 );
 
-	mRadsOptionsPage = new QWidget;
-	LayoutWidgets( Qt::Vertical, 
+	//mRadsOptionsPage = new QWidget;
+	//LayoutWidgets( Qt::Vertical, 
+	//{ 
+	//	LayoutWidgets( Qt::Horizontal, { nullptr, mRadsInstallButton, nullptr, mRadsStartButton, nullptr }, nullptr, 2,2,2,2,2 ),
+	//	mRadsSettingsBox
+	//}, 
+	//mRadsOptionsPage, 6, 6, 6, 6, 6 );
+	mRadsOptionsPage = CreateGroupBox( ELayoutType::Vertical, 
 	{ 
 		LayoutWidgets( Qt::Horizontal, { nullptr, mRadsInstallButton, nullptr, mRadsStartButton, nullptr }, nullptr, 2,2,2,2,2 ),
 		mRadsSettingsBox
 	}, 
-	mRadsOptionsPage, 6, 6, 6, 6, 6 );
+	"RADS", this, 6, 6, 6, 6, 6 );
 
 
 	//ApplicationStyles Page
@@ -669,7 +675,7 @@ void CApplicationSettingsDlg::HandleRadsStart( bool toggled )
 //
 void CApplicationSettingsDlg::HandleRadsUserStart( bool toggled )
 {
-	if ( RadsStart( toggled, true, true ) )
+	if ( RadsStart( toggled, true, true ) && toggled )
 		RadsPause( false, false );
 }
 
@@ -768,7 +774,7 @@ void CApplicationSettingsDlg::HandleViewRADSServiceSettingsFile()
 ///////////////////////////////////////////////////////////////////////////////////
 
 
-bool ask_create_dir( const std::string &dir_name, const std::string &dir )
+bool AskCreateDir( const std::string &dir_name, const std::string &dir )
 {
 	QMessageBox msg_userdir;
 	msg_userdir.setText( t2q( dir_name + " does not exist." ) );
@@ -819,7 +825,7 @@ bool CApplicationSettingsDlg::ValidateAndSaveRadsValues( bool ask_user )
 		const bool running = mRadsController.isRunning();
 
 		std::string rads_dir = FormatRadsLocalOutputPath( mSettings.BratPaths().UserDataDirectory() );
-		if ( !IsDir( rads_dir ) && !ask_create_dir( "RADS data download directory", rads_dir ) )
+		if ( !IsDir( rads_dir ) && !AskCreateDir( "RADS data download directory", rads_dir ) )
 		{
 			return false;
 		}
@@ -858,12 +864,12 @@ bool CApplicationSettingsDlg::ValidateAndAssign()
     std::string user_dir = q2a(mDataDirectoryLineEdit->text());
     std::string workspace_dir = q2a(mProjectsDirectoryLineEdit->text());
 
-    if ( !IsDir( user_dir ) && !ask_create_dir( "User data working directory", user_dir ) )
+    if ( !IsDir( user_dir ) && !AskCreateDir( "User data working directory", user_dir ) )
     {
 		return false;
     }
 
-    if ( !IsDir(workspace_dir) && !ask_create_dir( "Workspaces directory.", workspace_dir ) )
+    if ( !IsDir(workspace_dir) && !AskCreateDir( "Workspaces directory.", workspace_dir ) )
     {
 		return false;
     }

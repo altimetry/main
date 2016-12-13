@@ -626,6 +626,11 @@ void CRadsBrowserControls::FillFieldList( CDataset *current_dataset, const std::
         LOG_WARN( "No files were found for mission " + current_file_or_mission );
         return;
     }
+	else
+	{
+		LOG_WARN( n2s<std::string >(  current_rads_dataset->GetProductList()->size() ) + " files found for mission " + current_file_or_mission );
+		return;
+	}
 	CProductInfo product( current_dataset, *current_rads_dataset->GetProductList()->begin() );
     if ( product.IsValid() )
     {

@@ -3573,7 +3573,7 @@ void CNetCDFVarDef::SetUnit(const CUnit& value)
 //----------------------------------------
 void CNetCDFVarDef::SetUnit(const std::string& value)
 { 
-  m_unit = value; 
+  m_unit = value;								//warning: this is an overloaded assignment operator
   AddAttribute(new CNetCDFAttrString(UNITS_ATTR, m_unit));
 }
 
@@ -4756,98 +4756,99 @@ bool CNetCDFFiles::LoadDimensions()
 //----------------------------------------
 bool CNetCDFFiles::LoadVariables()
 {
-  m_mapNetCDFVarDefs.RemoveAll();
+	m_mapNetCDFVarDefs.RemoveAll();
 
-  char name[NC_MAX_NAME+1];
-  int32_t nDims;
-  int32_t nAttrs;
-  nc_type type = NC_NAT;
-  int32_t	dimIds[NC_MAX_VAR_DIMS];
-
-
-  for (int32_t i = 0 ; i < m_nVars ; i++)
-  {
-    memset(name, '\0', NC_MAX_NAME+1); 
-
-    CheckNetcdfError(nc_inq_var(m_file, i, name, &type, &nDims, dimIds, &nAttrs));
-    // Ensure that \0 is at the end and remove all trailing blanks
-    name[NC_MAX_NAME] = '\0';
-    CTools::Trim(name);
-
-    CNetCDFVarDef* netCDFVarDef = NULL;
-    
-    CNetCDFDimension* netCDFDim = dynamic_cast<CNetCDFDimension*>(m_mapNetCDFDims.Exists(name));
-    
-    if (netCDFDim != NULL)
-    {
-      NetCDFVarKind axisType = GetVarKind(i);
-      netCDFVarDef = new CNetCDFCoordinateAxis(name, axisType, type);
-    }
-    else
-    {
-      netCDFVarDef = new CNetCDFVarDef(name, type);
-    }
-       
-    netCDFVarDef->SetVarId(i);
-
-    m_mapNetCDFVarDefs.Insert(name, netCDFVarDef);
-  
-    for (int32_t idim = 0 ; idim < nDims ; idim++)
-    {
-      std::string dimName = GetDimName(dimIds[idim]);
-      
-      CNetCDFDimension* netCDFDim = dynamic_cast<CNetCDFDimension*>(m_mapNetCDFDims.Exists(dimName));
-      
-      if (netCDFDim == NULL)
-      {
-        throw CException(CTools::Format("ERROR - CNetCDFFiles::LoadVariables - Unable to find dimension '%s' for variable '%s'.",
-                                        dimName.c_str(), 
-                                        netCDFVarDef->GetName().c_str()),
-                         BRATHL_LOGIC_ERROR);
-      }
-
-      netCDFVarDef->AddNetCDFDim(*netCDFDim);
-      netCDFDim->AddCoordinateVariable(netCDFVarDef->GetName());
-    }
-
-    bool con = true;
-    do {
-  try {
-    LoadAttributes(netCDFVarDef);
-
-    CNetCDFAttrString* netCDFAttrString = CNetCDFAttr::GetNetCDFAttrString(netCDFVarDef->GetAttribute(UNITS_ATTR));
-    if (netCDFAttrString != NULL)
-    {
-      netCDFVarDef->SetUnit(netCDFAttrString->GetValue());
-    }
-
-    CNetCDFAttrDouble* netCDFAttrDouble = CNetCDFAttr::GetNetCDFAttrDouble(netCDFVarDef->GetAttribute(SCALE_FACTOR_ATTR));
-    if (netCDFAttrDouble != NULL)
-    {
-      netCDFVarDef->SetScaleFactor(netCDFAttrDouble->GetValue()->at(0));
-    }
-
-    netCDFAttrDouble = CNetCDFAttr::GetNetCDFAttrDouble(netCDFVarDef->GetAttribute(ADD_OFFSET_ATTR));
-    if (netCDFAttrDouble != NULL)
-    {
-      netCDFVarDef->SetAddOffset(netCDFAttrDouble->GetValue()->at(0));
-    }
-
-    }
-    catch( ... )
-    {
-        std::cout << i << " <======== " << std::endl;
-        con = false;
-    }
-  } while(!con);
-  }
+	char name[ NC_MAX_NAME + 1 ];
+	int32_t nDims;
+	int32_t nAttrs;
+	nc_type type = NC_NAT;
+	int32_t	dimIds[ NC_MAX_VAR_DIMS ];
 
 
-  // Loads global attributes
-  LoadAttributes();
+	for ( int32_t i = 0; i < m_nVars; i++ )
+	{
+		memset( name, '\0', NC_MAX_NAME + 1 );
 
-  return true;
+		CheckNetcdfError( nc_inq_var( m_file, i, name, &type, &nDims, dimIds, &nAttrs ) );
+		// Ensure that \0 is at the end and remove all trailing blanks
+		name[ NC_MAX_NAME ] = '\0';
+		CTools::Trim( name );
 
+		CNetCDFVarDef* netCDFVarDef = NULL;
+
+		CNetCDFDimension* netCDFDim = dynamic_cast<CNetCDFDimension*>( m_mapNetCDFDims.Exists( name ) );
+
+		if ( netCDFDim != NULL )
+		{
+			NetCDFVarKind axisType = GetVarKind( i );
+			netCDFVarDef = new CNetCDFCoordinateAxis( name, axisType, type );
+		}
+		else
+		{
+			netCDFVarDef = new CNetCDFVarDef( name, type );
+		}
+
+		netCDFVarDef->SetVarId( i );
+
+		m_mapNetCDFVarDefs.Insert( name, netCDFVarDef );
+
+		for ( int32_t idim = 0; idim < nDims; idim++ )
+		{
+			std::string dimName = GetDimName( dimIds[ idim ] );
+
+			CNetCDFDimension* netCDFDim = dynamic_cast<CNetCDFDimension*>( m_mapNetCDFDims.Exists( dimName ) );
+
+			if ( netCDFDim == NULL )
+			{
+				throw CException( CTools::Format( "ERROR - CNetCDFFiles::LoadVariables - Unable to find dimension '%s' for variable '%s'.",
+					dimName.c_str(),
+					netCDFVarDef->GetName().c_str() ),
+					BRATHL_LOGIC_ERROR );
+			}
+
+			netCDFVarDef->AddNetCDFDim( *netCDFDim );
+			netCDFDim->AddCoordinateVariable( netCDFVarDef->GetName() );
+		}
+
+		bool con;
+		do {
+			con = true;
+			try {
+				LoadAttributes( netCDFVarDef );
+
+				CNetCDFAttrString* netCDFAttrString = CNetCDFAttr::GetNetCDFAttrString( netCDFVarDef->GetAttribute( UNITS_ATTR ) );
+				if ( netCDFAttrString != NULL )
+				{
+					netCDFVarDef->SetUnit( netCDFAttrString->GetValue() );
+				}
+
+				CNetCDFAttrDouble* netCDFAttrDouble = CNetCDFAttr::GetNetCDFAttrDouble( netCDFVarDef->GetAttribute( SCALE_FACTOR_ATTR ) );
+				if ( netCDFAttrDouble != NULL )
+				{
+					netCDFVarDef->SetScaleFactor( netCDFAttrDouble->GetValue()->at( 0 ) );
+				}
+
+				netCDFAttrDouble = CNetCDFAttr::GetNetCDFAttrDouble( netCDFVarDef->GetAttribute( ADD_OFFSET_ATTR ) );
+				if ( netCDFAttrDouble != NULL )
+				{
+					netCDFVarDef->SetAddOffset( netCDFAttrDouble->GetValue()->at( 0 ) );
+				}
+
+			}
+			catch ( ... )
+			{
+				std::cout << i << " <======== " << std::endl;
+				con = false;
+			}
+		} 
+		while ( !con );
+	}
+
+
+	// Loads global attributes
+	LoadAttributes();
+
+	return true;
 }
 //----------------------------------------
 void CNetCDFFiles::LoadAttributes(CNetCDFVarDef* netCDFVarDef /*= NULL*/)
