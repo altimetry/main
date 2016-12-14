@@ -41,7 +41,20 @@ class CProductRiverLake : public CProduct
 {
 
 public:
-    
+
+  static const std::string m_TIME_NAME;
+  static const std::string m_TIME_DESC;
+  static const std::string m_TIME_UNIT;
+
+  static const std::string m_YEAR_NAME;
+  static const std::string m_MONTH_NAME;
+  static const std::string m_DAY_NAME;
+  static const std::string m_HOUR_NAME;
+  static const std::string m_MINUTE_NAME;
+
+  static const std::string m_PROD_TYPE_RLH;
+  static const std::string m_PROD_TYPE_RLA;
+
   /// Empty CProductRiverLake ctor
   CProductRiverLake();
 
@@ -70,15 +83,11 @@ protected:
 private:
   void Init();
 
-public:
-    
+  void AddCombinedVariableToTree();
 
-protected:
+  void initInternalFieldNamesForCombinedVariable(CStringList& listField);
 
-  
-private:
-  
-
+  bool computeCombinedField(CField *field);
 };
 
 /** @} */

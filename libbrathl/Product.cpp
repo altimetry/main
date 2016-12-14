@@ -1948,6 +1948,9 @@ bool CProduct::Open()
 
   FillDescription();
 
+  // Adds any combined variable to the parameters tree
+  AddCombinedVariableToTree();
+
   return true;
 }
 
@@ -3657,6 +3660,12 @@ void CProduct::InitInternalFieldName(const std::string& dataSetName, CStringList
 
   std::string internalFieldName;
 
+  /*
+   * Initialises the internal field names that will combine to
+   * create any combined variable
+   */
+  initInternalFieldNamesForCombinedVariable(listField);
+
   for (itField = listField.begin() ; itField != listField.end() ; itField++)
   {
     CField* field = FindFieldByName(*itField, dataSetName);
@@ -4792,9 +4801,16 @@ void CProduct::ReadBratFieldRecord(CField::CListField::iterator it, bool& skipRe
 
   CField *field = static_cast<CField*>(*(it));
 
-  SetCursor(field, skipRecord);
-
   it++;
+
+  bool returnNeeded = computeCombinedField(field);
+
+  if (returnNeeded) {
+
+      return;
+  }
+
+  SetCursor(field, skipRecord);
 
   if (it == m_listFields.end())
   {

@@ -605,6 +605,10 @@ protected:
 	void CreateFieldIndexes( CFieldArray* field );
 	void CreateFieldIndexData();
 
+    virtual void AddCombinedVariableToTree() {}
+    virtual void initInternalFieldNamesForCombinedVariable(CStringList& listField) {}
+    virtual bool computeCombinedField(CField *field) {return false;}
+
 	void CheckFields( bool convertDate = false );
 
 	bool GetInfoRecord( int32_t nbDims = 1, const long dim[] = DEFAULT_DIM );
@@ -639,7 +643,7 @@ protected:
 	void SetDynInfo();
 	void RemoveUnusedFields();
 
-	void SetCursor( CField* field, bool& skipRecord );
+    void SetCursor( CField* field, bool& skipRecord );
 
 	//virtual void ReadBratField(const std::string& key);
 	//virtual void ReadBratField(CField::CListField::iterator it);
