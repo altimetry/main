@@ -203,7 +203,7 @@ void CBratProcessZFXY::GetParameters()
 
   CFileParams& params = *m_fileParams;
 
-  // Verify keyword occurences
+  // Verify keyword occurrences
   uint32_t nbFields = params.CheckCount(kwFIELD,  1, base_t::NB_MAX_Y);
 
   params.CheckCount(kwOUTPUT);

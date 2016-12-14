@@ -427,7 +427,7 @@ public:
 	void GetAliasKeys( CStringArray& keys );
 	std::string GetAliasExpandedValue( const std::string& key );
 
-	int32_t GetIndexProcessedFile() { return m_indexProcessedFile; }
+	int_t GetIndexProcessedFile() { return m_indexProcessedFile; }
 
 	bool CheckFieldNames( const CExpression& expr, const std::string& dataSetName, CStringArray& fieldNamesNotFound );
 	bool CheckFieldNames( const CExpression& expr, CStringArray& fieldNamesNotFound );

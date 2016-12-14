@@ -200,13 +200,13 @@ void GetLoessCutoff
 }
 //----------------------------------------
 
-CBratProcess::MergeDataMode GetDataMode
+CBratProcess::EMergeDataMode GetDataMode_NOT_USED
 		(CFileParams	&params,
 		 int32_t	minOccurences	/*= 0*/,
 		 int32_t	maxOccurences	/*= 1*/,
 		 const std::string	&keyword	/*= "DATA_MODE"*/,
 		 int32_t	index		/*= 0*/,
-		 CBratProcess::MergeDataMode	Default		/*= CBratProcess::pctMEAN*/)
+		 CBratProcess::EMergeDataMode	Default		/*= CBratProcess::pctMEAN*/)
 {
   return CBratProcess::GetDataMode(params, minOccurences, maxOccurences, keyword, index, Default);
 
@@ -214,21 +214,21 @@ CBratProcess::MergeDataMode GetDataMode
 
 //----------------------------------------
 
-CBratProcess::MergeDataMode GetDataMode
+CBratProcess::EMergeDataMode GetDataMode_NOT_USED
 		(CFileParams	&params,
 		 const std::string	&prefix,
 		 int32_t	minOccurences	/*= 0*/,
 		 int32_t	maxOccurences	/*= 1*/,
 		 int32_t	index		/*= 0*/,
-		 CBratProcess::MergeDataMode	Default		/*= CBratProcess::pctMEAN*/)
+		 CBratProcess::EMergeDataMode	Default		/*= CBratProcess::pctMEAN*/)
 {
   return CBratProcess::GetDataMode(params, prefix, minOccurences, maxOccurences, index, Default);
 
 }
 //----------------------------------------
 
-std::string DataModeStr
-		(CBratProcess::MergeDataMode Mode)
+std::string DataModeStr_NOT_USED
+		(CBratProcess::EMergeDataMode Mode)
 {
   return CBratProcess::DataModeStr(Mode);
 
@@ -335,8 +335,8 @@ bool IsLongitudeCircular
 ** Determines how many values are needed to compute the incremental operation
 ** defined by 'Mode'
 */
-int32_t GetMergedDataSlices
-		(CBratProcess::MergeDataMode mode)
+int32_t GetMergedDataSlices_NOT_USED
+		(CBratProcess::EMergeDataMode mode)
 {
   return CBratProcess::GetMergedDataSlices(mode);
 }
@@ -360,7 +360,7 @@ void InitMergedData
   }
 }
 */
-void InitMergedData
+void InitMergedData_NOT_USED
 		(double			*Data,
 		 uint32_t		DataCount)
 {
@@ -377,12 +377,12 @@ void InitMergedData
 ** Add a new value to data and computes the partial result
 ** according to the operation asked
 */
-void MergeDataValue
+void MergeDataValue_NOT_USED
 		(double			*Data,
 		 double			Value,
 		 uint32_t		CountValueOffset,
 		 uint32_t		MeanValueOffset,
-		 CBratProcess::MergeDataMode		Mode)
+		 CBratProcess::EMergeDataMode		Mode)
 {
   if (isDefaultValue(Value))
     return;
@@ -460,7 +460,14 @@ void MergeDataValue
 				1.0 :
 				*Data + 1);
 	    break;
-    default:
+	case CBratProcess::pctTIME:
+
+		//!!! GORKA !!!
+		*Data = 0.0;		//Fernando: please delete this line
+
+		break;
+
+	default:
 	    throw CException(CTools::Format("PROGRAM ERROR: DataMode %d unknown",
 					    Mode),
 			     BRATHL_LOGIC_ERROR);
@@ -472,11 +479,11 @@ void MergeDataValue
 ** All values for data have been integrated. Computes
 ** the final value.
 */
-void FinalizeMergingOfDataValues
+void FinalizeMergingOfDataValues_NOT_USED
 		(double			*Data,
 		 uint32_t		CountValueOffset,
 		 uint32_t		MeanValueOffset,
-		 CBratProcess::MergeDataMode		Mode)
+		 CBratProcess::EMergeDataMode		Mode)
 {
   double Dummy	= 0.0;
 

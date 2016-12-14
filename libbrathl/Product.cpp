@@ -27,6 +27,7 @@
 
 
 #include "common/tools/brathl_error.h"
+#include "brathl_c/brathlc.h"
 #include "brathl.h"
 //#define BRAT_INTERNAL
 

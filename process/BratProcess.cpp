@@ -72,21 +72,6 @@ const CParameter::KWValueListEntry	CBratProcess::FilterKeywords[] =
 	};
 
 
-const CParameter::KWValueListEntry	CBratProcess::DataModeKeywords[] =
-{
-	{ "FIRST",	pctFIRST	},
-	{ "LAST",	pctLAST		},
-	{ "MIN",	pctMIN		},
-	{ "MAX",	pctMAX		},
-	{ "MEAN",	pctMEAN		},
-	{ "STDDEV",	pctSTDDEV	},
-	{ "COUNT",	pctCOUNT	},
-	{ "SUM",	pctSUM		},
-	{ "SUBTRACTION",pctSUBSTRACT	},
-	{ "PRODUCT",	pctPRODUCT	},
-	{ nullptr, 0 }
-};
-
 const CParameter::KWValueListEntry	CBratProcess::OutSideModeKeywords[] =
 {
 	{ "STRICT",	pctSTRICT	},
@@ -560,13 +545,13 @@ void CBratProcess::AdjustValidMinMax(double value)
 
 //----------------------------------------
 
-CBratProcess::MergeDataMode CBratProcess::GetDataMode
+CBratProcess::EMergeDataMode CBratProcess::GetDataMode
 		(CFileParams	&params,
 		 int32_t	minOccurences	/* = 0 */,
 		 int32_t	maxOccurences	/* = 1 */,
 		 const std::string	&Keyword	/* = "DATA_MODE" */,
 		 int32_t	index		/* = 0 */,
-		 MergeDataMode defaultValue /* = pctMEAN */)
+		 EMergeDataMode defaultValue /* = pctMEAN */)
 {
 
   CTrace::GetInstance();
@@ -581,11 +566,11 @@ CBratProcess::MergeDataMode CBratProcess::GetDataMode
 
   params.m_mapParam[Keyword]->GetValue(tmpVal,
 				                               tmp,
-				                               CBratProcess::DataModeKeywords,
+				                               DataModeKeywords(),
 				                               index,
 				                               defaultValue);
 
-  CBratProcess::MergeDataMode val = static_cast<CBratProcess::MergeDataMode>(tmpVal);
+  CBratProcess::EMergeDataMode val = static_cast<CBratProcess::EMergeDataMode>(tmpVal);
 
   CTrace::Tracer(1, CBratProcess::PCT_StrFmt2, "Data mode",  CBratProcess::DataModeStr(val).c_str());
 
@@ -594,67 +579,19 @@ CBratProcess::MergeDataMode CBratProcess::GetDataMode
 
 //----------------------------------------
 
-CBratProcess::MergeDataMode CBratProcess::GetDataMode
+CBratProcess::EMergeDataMode CBratProcess::GetDataMode
 		(CFileParams	&params,
 		 const std::string	&prefix,
 		 int32_t	minOccurences	/*= 0*/,
 		 int32_t	maxOccurences	/*= 1*/,
 		 int32_t	index		/*= 0*/,
-		 MergeDataMode	defaultValue		/*= pctMEAN*/)
+		 EMergeDataMode	defaultValue		/*= pctMEAN*/)
 {
 
   std::string tmpKey	= prefix + "_DATA_MODE";
 
   return CBratProcess::GetDataMode(params, minOccurences, maxOccurences, tmpKey, index, defaultValue);
 
-}
-
-//----------------------------------------
-
-std::string CBratProcess::DataModeStr
-		(MergeDataMode	mode)
-{
-  std::string result;
-
-  switch (mode)
-  {
-    case CBratProcess::pctFIRST:
-      result = "FIRST";
-      break;
-    case CBratProcess::pctLAST:
-      result =  "LAST";
-      break;
-    case CBratProcess::pctMIN:
-      result =  "MIN";
-      break;
-    case CBratProcess::pctMAX:
-      result =  "MAX";
-      break;
-    case CBratProcess::pctMEAN:
-      result =  "MEAN";
-      break;
-    case CBratProcess::pctSTDDEV:
-      result =  "STDDEV";
-      break;
-    case CBratProcess::pctCOUNT:
-      result =  "COUNT";
-      break;
-    case CBratProcess::pctSUM:
-      result =  "SUM";
-      break;
-    case CBratProcess::pctSUBSTRACT:
-      result =	"SUBTRACTION";
-      break;
-    case CBratProcess::pctPRODUCT:
-      result =  "PRODUCT";
-      break;
-    default:
-	    throw CException(CTools::Format("PROGRAM ERROR: merge data mode %d unknown",
-					    mode),
-			     BRATHL_LOGIC_ERROR);
-  }
-
-  return result;
 }
 
 //----------------------------------------
@@ -1393,27 +1330,37 @@ void CBratProcess::GetSelectParameter(CFileParams& params)
 ** Determines how many values are needed to compute the incremental operation
 ** defined by 'mode'
 */
-int32_t CBratProcess::GetMergedDataSlices(CBratProcess::MergeDataMode	mode)
+int32_t CBratProcess::GetMergedDataSlices( EMergeDataMode mode )
 {
-/*
-** Data itself and count for mean (==> 2)
-** Data itself, mean and count for stddev (==> 3)
-** Data only for the others (==> 1)
-*/
-  int32_t dataSlices = 1;
-  switch (mode)
-  {
-    case CBratProcess::pctMEAN:
-      dataSlices = 2;
-      break;
-    case CBratProcess::pctSTDDEV:
-      dataSlices = 3;
-      break;
-    default:
-      break;
-  }
+	/*
+	** Data itself and count for mean (==> 2)
+	** Data itself, mean and count for stddev (==> 3)
+	** Data only for the others (==> 1)
+	*/
+	int32_t dataSlices = 1;
 
-  return dataSlices;
+	switch ( mode )
+	{
+		case pctMEAN:
+			dataSlices = 2;
+			break;
+
+		case pctSTDDEV:
+			dataSlices = 3;
+			break;
+
+		case pctTIME:
+
+			//!!! GORKA !!!
+			//Please delete the whole case if 1 is good for pctTIME
+
+			break;
+
+		default:
+			break;
+	}
+
+	return dataSlices;
 }
 //----------------------------------------
 /*
@@ -1435,7 +1382,7 @@ bool CBratProcess::CheckCommandLineOptions
 	bool			help		= false;
 	bool			keywords	= false;
 	std::ostream	*out		= &std::cerr;
-	checked_dataset				= argv[ 1 ] == std::string( "-rads" );
+	checked_dataset				= argv[ 1 ] == CHECKED_DATASET_CMD_LINE_PARAMETER;
 
 	int nfilearg = 1;
 	int nargs = 2;
@@ -3029,21 +2976,21 @@ void CBratProcess::MergeDataValue
 }
 
 //----------------------------------------
-void CBratProcess::MergeDataValue
-		(double& data,
-		 double value,
-		 uint32_t nbValues,
-     uint32_t indexExpr,
-		 double* countValue,
-		 double* meanValue)
-{
-    UNUSED(nbValues);
-
-  double valueTmp = CBratProcess::CheckLongitudeValue(value, -180.0, m_types[indexExpr]);
-  CBratProcess::MergeDataValue(data, valueTmp, countValue, meanValue, m_dataMode[indexExpr]);
-
-
-}
+//void CBratProcess::MergeDataValue
+//		(double& data,
+//		 double value,
+//		 uint32_t nbValues,
+//     uint32_t indexExpr,
+//		 double* countValue,
+//		 double* meanValue)
+//{
+//    UNUSED(nbValues);
+//
+//  double valueTmp = CBratProcess::CheckLongitudeValue(value, -180.0, m_types[indexExpr]);
+//  CBratProcess::MergeDataValue(data, valueTmp, countValue, meanValue, m_dataMode[indexExpr]);
+//
+//
+//}
 
 
 
@@ -3059,7 +3006,7 @@ void CBratProcess::MergeDataValue
 		 double value,
 		 double*	countValue,
 		 double*	meanValue,
-		 CBratProcess::MergeDataMode	mode)
+		 EMergeDataMode	mode)
 {
   if (isDefaultValue(value))
   {
@@ -3154,7 +3101,7 @@ void CBratProcess::MergeDataValue
     //--------------------------
       if (countValue == nullptr)
       {
-        throw CException(CTools::Format("ERROR: CBratProcessZFXY::MergeDataValue() - count value  is nullptr, but mode is '%s'\n",
+        throw CException(CTools::Format("ERROR: CBratProcess::MergeDataValue() - count value  is nullptr, but mode is '%s'\n",
                                         CBratProcess::DataModeStr(mode).c_str()),
 			                   BRATHL_LOGIC_ERROR);
 
@@ -3177,14 +3124,14 @@ void CBratProcess::MergeDataValue
     //--------------------------
       if (countValue == nullptr)
       {
-        throw CException(CTools::Format("ERROR: CBratProcessZFXY::MergeDataValue() - count value  is nullptr, but mode is '%s'\n",
+        throw CException(CTools::Format("ERROR: CBratProcess::MergeDataValue() - count value  is nullptr, but mode is '%s'\n",
                                         CBratProcess::DataModeStr(mode).c_str()),
 			                   BRATHL_LOGIC_ERROR);
 
       }
       if (meanValue == nullptr)
       {
-        throw CException(CTools::Format("ERROR: CBratProcessZFXY::MergeDataValue() - mean value  is nullptr, but mode is '%s'\n",
+        throw CException(CTools::Format("ERROR: CBratProcess::MergeDataValue() - mean value  is nullptr, but mode is '%s'\n",
                                         CBratProcess::DataModeStr(mode).c_str()),
 			                   BRATHL_LOGIC_ERROR);
 
@@ -3207,10 +3154,20 @@ void CBratProcess::MergeDataValue
     //--------------------------
 	    data	= (data == CBratProcess::MergeIdentifyUnsetData ? 1.0 : data + 1);
 	    break;
-    //--------------------------
+
+	//--------------------------
+	case CBratProcess::pctTIME:
+	//--------------------------
+
+		//!!! GORKA !!!
+		data = 0.0;		//Please replace this line
+
+		break;
+
+	//--------------------------
     default:
     //--------------------------
-	    throw CException(CTools::Format("PROGRAM ERROR: DataMode %d unknown (CBratProcessZFXY::MergeDataValue)",
+	    throw CException(CTools::Format("PROGRAM ERROR: DataMode %d unknown (CBratProcess::MergeDataValue)",
 					    mode),
 			     BRATHL_LOGIC_ERROR);
   }
@@ -3248,29 +3205,30 @@ void CBratProcess::FinalizeMergingOfDataValues
 		(double& data,
 		 double*	countValue,
 		 double*	meanValue,
-		 CBratProcess::MergeDataMode	mode)
+		 EMergeDataMode	mode)
 {
   double dummy	= 0.0;
 
   switch (mode)
   {
     //--------------------------
-    case CBratProcess::pctFIRST:
-    case CBratProcess::pctLAST:
-    case CBratProcess::pctMIN:
-    case CBratProcess::pctMAX:
-    case CBratProcess::pctCOUNT:
-    case CBratProcess::pctSUM:
-    case CBratProcess::pctSUBSTRACT:
-    case CBratProcess::pctPRODUCT:
-    //--------------------------
+    case pctFIRST:
+    case pctLAST:
+    case pctMIN:
+    case pctMAX:
+    case pctCOUNT:
+    case pctSUM:
+    case pctSUBSTRACT:
+    case pctPRODUCT:
+	case pctTIME:			//!!! GORKA !!! Please check if this is enough
+		//--------------------------
 	    if (data == CBratProcess::MergeIdentifyUnsetData)
 	    {
 	      setDefaultValue(data);
 	    }
 	    break;
     //--------------------------
-    case CBratProcess::pctMEAN:
+    case pctMEAN:
     //--------------------------
 	    if (data == CBratProcess::MergeIdentifyUnsetData)
 	    {
@@ -3281,7 +3239,7 @@ void CBratProcess::FinalizeMergingOfDataValues
 
         if (countValue == nullptr)
         {
-          throw CException(CTools::Format("ERROR: CBratProcessZFXY::FinalizeMergingOfDataValues() - count value  is nullptr, but mode is '%s'\n",
+          throw CException(CTools::Format("ERROR: CBratProcess::FinalizeMergingOfDataValues() - count value  is nullptr, but mode is '%s'\n",
                                           CBratProcess::DataModeStr(mode).c_str()),
 			                     BRATHL_LOGIC_ERROR);
 
@@ -3296,7 +3254,7 @@ void CBratProcess::FinalizeMergingOfDataValues
 	    }
 	    break;
     //--------------------------
-    case CBratProcess::pctSTDDEV:
+    case pctSTDDEV:
     //--------------------------
 	    if (data == CBratProcess::MergeIdentifyUnsetData)
 	    {
@@ -3306,14 +3264,14 @@ void CBratProcess::FinalizeMergingOfDataValues
 	    {
         if (countValue == nullptr)
         {
-          throw CException(CTools::Format("ERROR: CBratProcessZFXY::FinalizeMergingOfDataValues() - count value  is nullptr, but mode is '%s'\n",
+          throw CException(CTools::Format("ERROR: CBratProcess::FinalizeMergingOfDataValues() - count value  is nullptr, but mode is '%s'\n",
                                           CBratProcess::DataModeStr(mode).c_str()),
 			                     BRATHL_LOGIC_ERROR);
 
         }
         if (meanValue == nullptr)
         {
-          throw CException(CTools::Format("ERROR: CBratProcessZFXY::MergeDataValue() - mean value  is nullptr, but mode is '%s'\n",
+          throw CException(CTools::Format("ERROR: CBratProcess::MergeDataValue() - mean value  is nullptr, but mode is '%s'\n",
                                           CBratProcess::DataModeStr(mode).c_str()),
 			                     BRATHL_LOGIC_ERROR);
 
@@ -3326,8 +3284,9 @@ void CBratProcess::FinalizeMergingOfDataValues
 					                               dummy);
 	    }
 	    break;
-    default:
-	    throw CException(CTools::Format("PROGRAM ERROR: DataMode %d unknown (CBratProcessZFXY::MergeDataValue)",
+
+	default:
+	    throw CException(CTools::Format("PROGRAM ERROR: DataMode %d unknown (CBratProcess::MergeDataValue)",
 					    mode),
 			     BRATHL_LOGIC_ERROR);
   }

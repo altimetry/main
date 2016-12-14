@@ -2241,10 +2241,10 @@ CMapTypeField::ETypeField CMapTypeField::NameToId(const std::string& name)
 
 CMapDataMode::CMapDataMode()
 {
-  for (int32_t mode = CBratProcess::pctFIRST; mode <= CBratProcess::pctLAST; mode++)
-  {
-    Insert(CBratProcess::DataModeStr(CBratProcess::MergeDataMode(mode)), mode);
-  }
+	for ( int mode = CBratProcess::pctFIRST; mode <= CBratProcess::pctLAST; mode++ )
+	{
+		Insert( CBratProcess::DataModeStr( static_cast< CBratProcess::EMergeDataMode >( mode ) ), mode );
+	}
 }
 
 //----------------------------------------
@@ -2268,10 +2268,9 @@ bool CMapDataMode::ValidName(const std::string& name)
   return ValidName(name.c_str());
 }
 //----------------------------------------
-bool CMapDataMode::ValidName(const char* name)
+bool CMapDataMode::ValidName( const char* name )
 {
-  uint32_t value = Exists(name);
-  return (!isDefaultValue(value));
+	return ( !isDefaultValue( Exists( name ) ) );
 }
 
 //----------------------------------------

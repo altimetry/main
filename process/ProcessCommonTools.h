@@ -1,5 +1,4 @@
 /*
-* 
 *
 * This file is part of BRAT
 *
@@ -45,7 +44,7 @@ namespace processes
 
 
 /*
-** Print help about a list of keywords which can be foun in a parameter file
+** Print help about a list of keywords which can be found in a parameter file
 ** definitions are in ParametersDictionary.h
 */
 void PrintParameterHelp
@@ -55,7 +54,7 @@ void PrintParameterHelp
 /*
 ** Checks the command line parameters (with -h -k or parameter file)
 ** and return true if command line is invalid
-** Last entry of KeywordList MUST BE NULL or result is unpredictible
+** Last entry of KeywordList MUST BE NULL or result is unpredictable
 ** (and maybe a core dump)
 */
 bool CheckCommandLineOptions
@@ -130,24 +129,24 @@ void GetLoessCutoff
 		 int32_t		Occurences	= 1,
 		 bool			PrintTrace	= true);
 
-CBratProcess::MergeDataMode GetDataMode
+CBratProcess::EMergeDataMode GetDataMode_NOT_USED
 		(CFileParams	&Params,
 		 int32_t	MinOccurences	= 0,
 		 int32_t	MaxOccurences	= 1,
 		 const std::string	&Keyword	= "DATA_MODE",
 		 int32_t	Index		= 0,
-		 CBratProcess::MergeDataMode	Default		= CBratProcess::pctMEAN);
+		 CBratProcess::EMergeDataMode	Default		= CBratProcess::pctMEAN);
 
-CBratProcess::MergeDataMode GetDataMode
+CBratProcess::EMergeDataMode GetDataMode_NOT_USED
 		(CFileParams	&Params,
 		 const std::string	&Prefix,
 		 int32_t	MinOccurences	= 0,
 		 int32_t	MaxOccurences	= 1,
 		 int32_t	Index		= 0,
-		 CBratProcess::MergeDataMode	Default		= CBratProcess::pctMEAN);
+		 CBratProcess::EMergeDataMode	Default		= CBratProcess::pctMEAN);
 
-std::string DataModeStr
-		(CBratProcess::MergeDataMode	Mode);
+std::string DataModeStr_NOT_USED
+		(CBratProcess::EMergeDataMode	Mode);
 
 
 CBratProcess::OutsideMode GetOutsideMode
@@ -199,8 +198,8 @@ bool IsLongitudeCircular
 		 NetCDFVarKind		Kind);
 
 
-int32_t GetMergedDataSlices
-		(CBratProcess::MergeDataMode		Mode);
+int32_t GetMergedDataSlices_NOT_USED
+		(CBratProcess::EMergeDataMode		Mode);
 /*
 void InitMergedData
 		(double			*Data,
@@ -208,22 +207,22 @@ void InitMergedData
 		 uint32_t		DataSlices,
 		 MergeDataMode		Mode);
 */
-void InitMergedData
+void InitMergedData_NOT_USED
 		(double			*Data,
 		 uint32_t		DataCount);
 
-void MergeDataValue
+void MergeDataValue_NOT_USED
 		(double			*Data,
 		 double			Value,
 		 uint32_t		CountValueOffset,
 		 uint32_t		MeanValueOffset,
-		 CBratProcess::MergeDataMode		Mode);
+		 CBratProcess::EMergeDataMode		Mode);
 
-void FinalizeMergingOfDataValues
+void FinalizeMergingOfDataValues_NOT_USED
 		(double			*Data,
 		 uint32_t		CountValueOffset,
 		 uint32_t		MeanValueOffset,
-		 CBratProcess::MergeDataMode		Mode);
+		 CBratProcess::EMergeDataMode		Mode);
 
 // If Result is NULL, Data is modified upon exit.
 // If Result is not NULL it must point to an area

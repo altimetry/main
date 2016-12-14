@@ -1346,7 +1346,7 @@ const std::string& COperation::GetExportAsciiSystemCommand() const
 std::string COperation::GetFullCmd() const
 {
 	//return "\"" + GetSystemCommand() + "\" \"" + GetCmdFile() + "\"";
-	return "\"" + GetSystemCommand() + "\" " + std::string( IsRadsDataset() ? "-rads " : "" ) + "\"" + GetCmdFile() + "\"";
+	return "\"" + GetSystemCommand() + "\" " + std::string( IsRadsDataset() ? CHECKED_DATASET_CMD_LINE_PARAMETER + " " : "" ) + "\"" + GetCmdFile() + "\"";
 }
 
 std::string COperation::GetExportAsciiFullCmd() const

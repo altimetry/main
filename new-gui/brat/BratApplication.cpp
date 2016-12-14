@@ -712,8 +712,7 @@ void CBratApplication::CreateSplash()
 
 #if defined (Q_OS_WIN)
 	int exstyle = GetWindowLong( (HWND)mSplash->winId(), GWL_EXSTYLE );
-	SetWindowLong( (HWND)mSplash->winId(), GWL_EXSTYLE, exstyle & ~WS_EX_TOOLWINDOW
-	);
+	SetWindowLong( (HWND)mSplash->winId(), GWL_EXSTYLE, exstyle & ~WS_EX_TOOLWINDOW	);
 #endif
 }
 

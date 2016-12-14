@@ -38,6 +38,12 @@
 using namespace brathl;
 //using namespace processes;
 
+
+
+const std::string CHECKED_DATASET_CMD_LINE_PARAMETER = "-rads";
+
+
+
 namespace processes
 {
 
@@ -50,6 +56,11 @@ namespace processes
 #endif
 
 
+
+
+
+
+
 //-------------------------------------------------------------
 //------------------- CBratProcess class --------------------
 //-------------------------------------------------------------
@@ -60,8 +71,10 @@ namespace processes
 
 	public:
 
-		enum MergeDataMode {
-			pctFIRST,	// Must also be first of enum
+		//...MergeDataMode
+
+		enum EMergeDataMode {
+			pctFIRST,		// Must also be first of enum (v3 note)
 			pctMIN,
 			pctMAX,
 			pctMEAN,
@@ -70,14 +83,82 @@ namespace processes
 			pctSUM,
 			pctSUBSTRACT,
 			pctPRODUCT,
-			pctLAST		// Must also be last of enum
+			pctTIME,		// Dataset Interpolation
+			pctLAST,		// Must also be last of enum (v3 note)
+
+			eMergeDataMode_size
 		};
+
+
+	private:
+		static const std::string* DataModeNames()
+		{
+			static std::string names_list[ eMergeDataMode_size ];
+
+			names_list[ pctFIRST ] =		"FIRST";
+			names_list[ pctMIN ] =			"MIN";
+			names_list[ pctMAX ] =			"MAX";
+			names_list[ pctMEAN ] =			"MEAN";
+			names_list[ pctSTDDEV ] =		"STDDEV";
+			names_list[ pctCOUNT ] =		"COUNT";
+			names_list[ pctSUM ] =			"SUM";
+			names_list[ pctSUBSTRACT ] =	"SUBTRACTION";
+			names_list[ pctPRODUCT ] =		"PRODUCT";
+			names_list[ pctTIME ] =			"TIME";
+			names_list[ pctLAST ] =			"LAST";
+
+			return names_list;
+		}
+
+	public:
+
+		static const std::string& DataModeStr( EMergeDataMode mode )
+		{
+			static const std::string* names_list = DataModeNames();		//call DataModeNames only once
+			static const std::vector< std::string > names_vector{ &names_list[pctFIRST], &names_list[pctLAST + 1] };
+
+			assert__( names_vector.size() == eMergeDataMode_size );
+
+			assert__( mode >= pctFIRST && mode <= pctLAST );
+
+			return names_vector[ mode ];
+		}
+
+	private:
+		static const CParameter::KWValueListEntry* DataModeKeywords()
+		{
+			static const CParameter::KWValueListEntry list[ eMergeDataMode_size + 1 ] =	//+1: null terminator
+			{
+				{ DataModeStr( pctFIRST ).c_str(),		pctFIRST },
+				{ DataModeStr( pctMIN ).c_str(),		pctMIN },
+				{ DataModeStr( pctMAX ).c_str(),		pctMAX },
+				{ DataModeStr( pctMEAN ).c_str(),		pctMEAN },
+				{ DataModeStr( pctSTDDEV ).c_str(),		pctSTDDEV },
+				{ DataModeStr( pctCOUNT ).c_str(),		pctCOUNT },
+				{ DataModeStr( pctSUM ).c_str(),		pctSUM },
+				{ DataModeStr( pctSUBSTRACT ).c_str(),	pctSUBSTRACT },
+				{ DataModeStr( pctPRODUCT ).c_str(),	pctPRODUCT },
+				{ DataModeStr( pctTIME ).c_str(),		pctTIME },
+				{ DataModeStr( pctLAST ).c_str(),		pctLAST },
+				{ nullptr, 0 }
+			};
+
+			return list;
+		}
+
+	public:
+
+
+		//...OutsideMode
 
 		enum OutsideMode {
 			pctSTRICT,
 			pctRELAXED,
 			pctBLACK_HOLE
 		};
+
+
+		//...PositionMode
 
 		enum PositionMode {
 			pctEXACT,
@@ -130,8 +211,8 @@ namespace processes
 
 		bool m_expandArray;
 
-		MergeDataMode m_dataModeGlobal;
-		std::vector<MergeDataMode> m_dataMode;
+		EMergeDataMode m_dataModeGlobal;
+		std::vector< EMergeDataMode > m_dataMode;
 
 		std::string m_commandFileName;
 
@@ -222,23 +303,21 @@ namespace processes
 		static CDoubleArrayOb* GetDoubleArrayOb( CBratObject* ob, bool withExcept = true );
 
 
-		static CBratProcess::MergeDataMode GetDataMode
+		static EMergeDataMode GetDataMode
 		( CFileParams	&params,
 			int32_t	minOccurences	= 0,
 			int32_t	maxOccurences	= 1,
 			const std::string	&keyword	= "DATA_MODE",
 			int32_t	index		= 0,
-			MergeDataMode defaultValue	= pctMEAN );
+			EMergeDataMode defaultValue	= pctMEAN );
 
-		static CBratProcess::MergeDataMode GetDataMode
+		static EMergeDataMode GetDataMode
 		( CFileParams	&params,
 			const std::string	&prefix,
 			int32_t	minOccurences	= 0,
 			int32_t	maxOccurences	= 1,
 			int32_t	index		= 0,
-			MergeDataMode defaultValue	= pctMEAN );
-
-		static std::string DataModeStr( MergeDataMode mode );
+			EMergeDataMode defaultValue	= pctMEAN );
 
 		static int32_t GetFileList
 		( CFileParams		&params,
@@ -332,7 +411,7 @@ namespace processes
 			int32_t		maxOccurences	= 1,
 			bool			printTrace	= true );
 
-		static int32_t GetMergedDataSlices( CBratProcess::MergeDataMode mode );
+		static int32_t GetMergedDataSlices( EMergeDataMode mode );
 		/*
 		** Checks the command line parameters (with -h -k or parameter file)
 		** and return true if command line is invalid
@@ -445,7 +524,6 @@ namespace processes
 		static const char* PCT_QStrFmt2;
 		static const char* PCT_FltFmt2BaseUnit;
 
-		static const CParameter::KWValueListEntry	DataModeKeywords[];
 		static const CParameter::KWValueListEntry	FilterKeywords[];
 		static const CParameter::KWValueListEntry	OutSideModeKeywords[];
 		static const CParameter::KWValueListEntry	PositionModeKeywords[];
@@ -457,14 +535,14 @@ namespace processes
 			double value,
 			double*	countValue,
 			double*	meanValue,
-			CBratProcess::MergeDataMode	mode );
+			EMergeDataMode	mode );
 
 
 		static void FinalizeMergingOfDataValues
 		( double& data,
 			double*	countValue,
 			double*	meanValue,
-			CBratProcess::MergeDataMode	mode );
+			EMergeDataMode	mode );
 
 
 		/*
@@ -559,13 +637,13 @@ namespace processes
 			double* countValues,
 			double* meanValues );
 
-		void MergeDataValue
-		( double& data,
-			double value,
-			uint32_t nbValues,
-			uint32_t indexExpr,
-			double* countValue,
-			double* meanValue );
+		//void MergeDataValue
+		//( double& data,
+		//	double value,
+		//	uint32_t nbValues,
+		//	uint32_t indexExpr,
+		//	double* countValue,
+		//	double* meanValue );
 
 		void FinalizeMergingOfDataValues
 		( double* data,
