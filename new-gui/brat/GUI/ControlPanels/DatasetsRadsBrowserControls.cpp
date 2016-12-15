@@ -621,17 +621,17 @@ void CRadsBrowserControls::FillFieldList( CDataset *current_dataset, const std::
     if ( !current_rads_dataset->HasMission( current_file_or_mission ) )
         return;
     
-    if ( current_rads_dataset->GetProductList()->empty() )
+    if ( current_rads_dataset->IsEmpty() )
     {
         LOG_WARN( "No files were found for mission " + current_file_or_mission );
         return;
     }
 	else
 	{
-		LOG_WARN( n2s<std::string >(  current_rads_dataset->GetProductList()->size() ) + " files found for mission " + current_file_or_mission );
+		LOG_WARN( n2s<std::string >(  current_rads_dataset->Size() ) + " files found for mission " + current_file_or_mission );
 		return;
 	}
-	CProductInfo product( current_dataset, *current_rads_dataset->GetProductList()->begin() );
+	CProductInfo product( current_dataset, current_rads_dataset->GetFirstFile() );
     if ( product.IsValid() )
     {
         // GetDictlist()->InsertProduct(m_product); //////////////////////////////////////////////

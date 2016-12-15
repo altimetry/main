@@ -21,7 +21,6 @@
 
 #include <QDialog>
 
-//class BBBB;
 
 
 class CInsertFunctionDialog : public QDialog
@@ -53,13 +52,13 @@ class CInsertFunctionDialog : public QDialog
 
 	CTextWidget *mHelpText = nullptr;
     QDialogButtonBox *mButtonBox = nullptr;
-	QComboBox *mFunctionCategories = new QComboBox;
-	QListWidget *mFunctionList = new QListWidget;
+	QComboBox *mFunctionCategories = nullptr;
+	QListWidget *mFunctionList = nullptr;
 
 	std::string mResultFunction;		//dialog output in Ok case
 
     /////////////////////////////
-    //construction / destructuion
+    //construction / destruction
     /////////////////////////////
 
 	void Setup();

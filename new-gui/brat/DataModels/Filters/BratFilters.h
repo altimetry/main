@@ -103,11 +103,36 @@ class CBratFilter
 
     friend class CBratFilters;
 
-protected:
+
+public:
 
 	/////////////////////////////
     //		static members
 	/////////////////////////////
+
+	static inline CDate q2brat( const QDateTime &q )
+	{
+		if ( !q.isValid() )
+			return CDate();
+
+		return CDate( 
+			q.date().year(), q.date().month(), q.date().day(), 
+			q.time().hour(), q.time().minute(), q.time().second(), q.time().msec() );
+	}
+
+
+	static inline QDateTime brat2q( const CDate &b )
+	{
+		if ( b.IsDefaultValue() )
+			return QDateTime();
+
+		return QDateTime( 
+			QDate( b.GetYear(), b.GetMonth(), b.GetDay() ), 
+			QTime( b.GetHour(), b.GetMinute(), b.GetSecond(), b.GetMuSecond() ) );
+	}
+
+
+protected:
 
 	//	NOTE mRelativeReferenceTime and mStopTime default
 	//	to current time, and so have no matching static variable
@@ -122,17 +147,6 @@ protected:
 	static const bool smUseCurrentTime;
     static const int smRelativeStartDays;
     static const int smRelativeStopDays;
-
-
-	static inline CDate q2brat( const QDateTime &q )
-	{
-		if ( !q.isValid() )
-			return CDate();
-
-		return CDate( 
-			q.date().year(), q.date().month(), q.date().day(), 
-			q.time().hour(), q.time().minute(), q.time().second(), q.time().msec() );
-	}
 
 
 	/////////////////////////////

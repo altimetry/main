@@ -263,6 +263,8 @@ protected:
 	bool m_predefined = false;
 
 	int32_t m_dataMode = CMapDataMode::GetInstance().GetDefault();
+	std::string mDataModeDITimeName;
+	CDate mDataModeDIDateTime;
 
     bool mNorthComponent = false;
     bool mEastComponent = false;
@@ -502,8 +504,13 @@ public:
 	static std::string GetAsDateString( double seconds );
 
 	std::string GetDataModeAsString() const { return CMapDataMode::GetInstance().IdToName( m_dataMode ); }
-	int32_t GetDataMode() { return m_dataMode; }
+	int32_t GetDataMode() const { return m_dataMode; }
 	void SetDataMode( int32_t value ) { m_dataMode = value; }
+
+	const std::string& DataModeDITimeName() const { return mDataModeDITimeName; }
+	void SetDataModeDITimeName( const std::string &name ) { mDataModeDITimeName = name; }
+	const CDate& DataModeDIDateTime() const { return mDataModeDIDateTime; }
+	void SetDataModeDIDateTime( const CDate &date_time ) { mDataModeDIDateTime = date_time; }
 
 	///Dump fonction
 	virtual void Dump( std::ostream& fOut = std::cerr );

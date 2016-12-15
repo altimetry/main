@@ -181,7 +181,8 @@ protected:
 	QToolButton *mInsertFormula = nullptr;
 	QToolButton *mSaveAsFormula = nullptr;
     QToolButton *mDataDisplayProperties = nullptr;
-    QToolButton *mShowInfoButton = nullptr;
+	QToolButton *mDatasetInterpolationButton = nullptr;
+	QToolButton *mShowInfoButton = nullptr;
 	QGroupBox *mExpressionGroup = nullptr;
 
 	QToolButton *mDataComputation = nullptr;
@@ -327,11 +328,18 @@ protected:
 
 	//advanced
 
-	void SelectDataComputationMode();
     void SelectDataSmoothingMode();
     std::string GetOpunit();
     
+
+	/// Data Mode methods ////////////////
+
+	void SelectDataComputationMode();
+	bool DatasetInterpolationRequested();
+
+
 	/// Sampling methods ////////////////
+
     void UpdateSamplingGroup();
     void GetDataMinMax(CFormula *formula);
     void ValidateData();
@@ -344,6 +352,8 @@ protected:
                          double min = defaultValue<double>(), double max = defaultValue<double>() );
     void ComputeXYInterval();
     bool ComputeInterval( CFormula *formula, QLabel *IntervalsLabel, QLineEdit *StepLineEdit, QLabel *IconWarning );
+
+
     /////////////////////////////////////
 
     bool MapPlotSelected() const;
@@ -430,6 +440,7 @@ protected slots:
 	void HandleInsertFormula();
 	void HandleSaveAsFormula();
     void HandleDataDisplayProperties();
+	void HandleDatasetInterpolationRequested();
 
 	void HandleDataComputation();
     void HandleDataSmoothing();

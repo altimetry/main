@@ -222,7 +222,10 @@ void CBratProcessYFX::GetParameters()
 	      index,
 	      nbFields);
 
-    m_dataMode[index] = base_t::GetDataMode(params, kwFIELD, 0, nbFields, index, m_dataModeGlobal);
+    m_dataMode[index] = GetDataMode(params, kwFIELD, 0, nbFields, index, m_dataModeGlobal);
+	mDataInterpolationTimeFieldName[index] = GetDataModeDTTimeName(params, kwFIELD, 0, nbFields, index );
+	mDataInterpolationDateTime[index] = GetDataModeDTDateTime(params, kwFIELD, 0, nbFields, index );
+
 
     // The stored values are:
     // X (1 double)

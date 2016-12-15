@@ -33,6 +33,7 @@ class CDataset : public CBratObject
 	// types
 
 	using base_t = CBratObject;
+
 	friend class CWorkspaceSettings;
 
 
@@ -104,6 +105,7 @@ protected:
 
 	// dataset files
 
+
 protected:
 
 	virtual bool CheckFiles( bool onlyFirstFile = false, bool onlyFirstNetcdf = false )
@@ -114,29 +116,38 @@ protected:
 
 public:
 
-	bool IsEmpty() const { return m_files.empty(); }
-
-	bool CheckFilesExist( std::vector< std::string > &v );
-
-
-	bool ApplyFilter( const CBratFilter *filter, const CDataset *original_dataset, std::string &error_msg, CProgressInterface *pi );
-
-
-	virtual const std::string& GetFirstFile() const { return *m_files.begin(); }
-	const CProductList* GetProductList() const { return &m_files; }		
 	CProductList* GetProductList() { return &m_files; }
 
+	const CProductList* GetProductList() const { return &m_files; }
 
 	const std::string& ProductClass() const
 	{
-		return GetProductList()->m_productClass;
+		return m_files.m_productClass;
 	}
 
 	std::string ProductType() const
 	{
-		return GetProductList()->m_productType;
+		return m_files.m_productType;
 	}
 
+
+	size_t Size() const { return m_files.size(); }
+
+	bool IsEmpty() const { return m_files.empty(); }
+
+	bool CheckFilesExist( std::vector< std::string > &v );
+
+	virtual const std::string& GetFirstFile() const { return *m_files.begin(); }
+
+	std::string ToString( const std::string& delim ) const
+	{
+		return m_files.ToString( delim );
+	}
+
+	bool ApplyFilter( const CBratFilter *filter, const CDataset *original_dataset, std::string &error_msg, CProgressInterface *pi );
+
+
+public:
 
 	void InsertProduct( const std::string &file ) 
 	{ 

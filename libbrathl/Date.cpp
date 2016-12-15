@@ -223,7 +223,7 @@ double CDate::ValueJulian()
 }
 
 //----------------------------------------
-std::string CDate::AsString(const std::string& format /*= ""*/, bool withMuSecond /* = false */)
+std::string CDate::AsString(const std::string& format /*= ""*/, bool withMuSecond /* = false */) const
 {
   size_t	strSize	= format.length()*10;
   std::string	result = "";
@@ -1644,7 +1644,7 @@ uint32_t CDate::GetYear() const
 
 //----------------------------------------
 
-uint32_t CDate::GetMonth()
+uint32_t CDate::GetMonth() const
 {
   int32_t result = BRATHL_SUCCESS;
 
@@ -1662,7 +1662,7 @@ uint32_t CDate::GetMonth()
 
 //----------------------------------------
 
-uint32_t CDate::GetDay()
+uint32_t CDate::GetDay() const
 {
   int32_t result = BRATHL_SUCCESS;
 
@@ -1680,7 +1680,7 @@ uint32_t CDate::GetDay()
 
 //----------------------------------------
 
-uint32_t CDate::GetHour()
+uint32_t CDate::GetHour() const
 {
   int32_t result = BRATHL_SUCCESS;
 
@@ -1697,7 +1697,7 @@ uint32_t CDate::GetHour()
 }
 //----------------------------------------
 
-uint32_t CDate::GetMinute()
+uint32_t CDate::GetMinute() const
 {
   int32_t result = BRATHL_SUCCESS;
 
@@ -1715,7 +1715,7 @@ uint32_t CDate::GetMinute()
 
 //----------------------------------------
 
-uint32_t CDate::GetSecond()
+uint32_t CDate::GetSecond() const
 {
   int32_t result = BRATHL_SUCCESS;
 
@@ -1732,7 +1732,7 @@ uint32_t CDate::GetSecond()
 }
 //----------------------------------------
 
-uint32_t CDate::GetMuSecond()
+uint32_t CDate::GetMuSecond() const
 {
   int32_t result = BRATHL_SUCCESS;
 

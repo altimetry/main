@@ -207,7 +207,7 @@ public:
 		const CMapFormula &formulas = *mOp.GetFormulas();
 		for ( CMapFormula::const_iterator it = formulas.begin(); it != formulas.end(); it++ )
 		{
-			CFormula* value = dynamic_cast<CFormula*>( it->second );
+			CFormula *value = dynamic_cast<CFormula*>( it->second );
 			if ( value == nullptr )
 				continue;
 
@@ -219,7 +219,11 @@ public:
 			WriteLn( value->GetFieldPrefix() + "_UNIT=" + value->GetUnitAsText() );
 
 			if ( value->IsFieldType() )
-				WriteLn( value->GetFieldPrefix() + "_DATA_MODE=" + std::string( value->GetDataModeAsString().c_str() ) );
+			{
+				WriteLn( value->GetFieldPrefix() + DATA_MODE_SUFFIX +				"=" + value->GetDataModeAsString() );
+				WriteLn( value->GetFieldPrefix() + DATA_MODE_DI_TIME_NAME_SUFFIX +	"=" + value->DataModeDITimeName() );
+				WriteLn( value->GetFieldPrefix() + DATA_MODE_DI_DATE_TIME_SUFFIX +	"=" + value->DataModeDIDateTime().AsString() );
+			}
 
 			std::string valueString = ( value->GetTitle().empty() ) ? value->GetName() : value->GetTitle();
 			WriteLn( value->GetFieldPrefix() + "_TITLE=" + valueString );
@@ -332,7 +336,7 @@ public:
 			WriteLn( kwDISPLAY_LOGO_URL + "=" + mOp.mBratLogoPath );
 			//v4: the following does not seem to be written in v3 when delaying
 			WriteLn( kwFILETYPE + "=" + pi.Class() + " / " + pi.Type() );
-			WriteLn( kwPRODUCT_LIST + "=" + mOp.OriginalDataset()->GetProductList()->ToString( ", ", true ) );
+			WriteLn( kwPRODUCT_LIST + "=" + mOp.OriginalDataset()->ToString( ", " ) );
 
 			if ( mOp.mCreateKMLTrackData )
 				WriteLn( kwEXPORT_KML_TRACKS + "=Y" );

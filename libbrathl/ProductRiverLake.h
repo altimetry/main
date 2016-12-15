@@ -83,7 +83,7 @@ protected:
 private:
   void Init();
 
-  void AddCombinedVariableToTree();
+  void AddCombinedVariableToTree() override;
 
   void initInternalFieldNamesForCombinedVariable(CStringList& listField);
 

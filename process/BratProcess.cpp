@@ -509,7 +509,11 @@ void CBratProcess::ResizeArrayDependOnFields(uint32_t size)
   m_titles.resize(size);
   m_comments.resize(size);
   m_types.resize(size);
+
   m_dataMode.resize(size);
+  mDataInterpolationTimeFieldName.resize(size);
+  mDataInterpolationDateTime.resize(size);
+
   m_countOffsets.resize(size);
   m_meanOffsets.resize(size);
 
@@ -580,19 +584,82 @@ CBratProcess::EMergeDataMode CBratProcess::GetDataMode
 //----------------------------------------
 
 CBratProcess::EMergeDataMode CBratProcess::GetDataMode
-		(CFileParams	&params,
-		 const std::string	&prefix,
-		 int32_t	minOccurences	/*= 0*/,
-		 int32_t	maxOccurences	/*= 1*/,
-		 int32_t	index		/*= 0*/,
-		 EMergeDataMode	defaultValue		/*= pctMEAN*/)
+( CFileParams	&params,
+	const std::string	&prefix,
+	int32_t	minOccurences	/*= 0*/,
+	int32_t	maxOccurences	/*= 1*/,
+	int32_t	index		/*= 0*/,
+	EMergeDataMode	defaultValue		/*= pctMEAN*/ )
 {
+	std::string tmpKey	= prefix + DATA_MODE_SUFFIX;
 
-  std::string tmpKey	= prefix + "_DATA_MODE";
-
-  return CBratProcess::GetDataMode(params, minOccurences, maxOccurences, tmpKey, index, defaultValue);
-
+	return GetDataMode( params, minOccurences, maxOccurences, tmpKey, index, defaultValue );
 }
+
+//std::vector< std::string > mDataInterpolationTimeFieldName;
+//std::vector< CDate > mDataInterpolationDateTime;
+
+
+//CDate d( 2020, 12, 25, 2, 3, 4 );
+//qDebug() << d.AsString().c_str();
+//
+//CDate d2( d.AsString().c_str() );
+//qDebug() << d2.GetYear();
+//qDebug() << d2.GetMonth();
+//qDebug() << d2.GetDay();
+//qDebug() << d2.GetHour();
+//qDebug() << d2.GetMinute();
+//qDebug() << d2.GetSecond();
+//
+//CDate d3( d2.GetYear(), d2.GetMonth(), d2.GetDay(), d2.GetHour(), d2.GetMinute(), d2.GetSecond() );
+//qDebug() << d3.AsString().c_str();
+//
+//return 0;
+//
+
+
+//static 
+std::string CBratProcess::GetDataModeDTTimeName( CFileParams &params, const std::string	&prefix, int32_t minOccurences,	int32_t	maxOccurences, int32_t index )	//minOccurences = 0,	int32_t	maxOccurences = 1, int32_t index = 0 
+{
+	CTrace::GetInstance();
+
+	const std::string Keyword = prefix + DATA_MODE_DI_TIME_NAME_SUFFIX;
+
+	if ( params.CheckCount( Keyword, minOccurences, maxOccurences ) == 0 )
+	{
+		return "";
+	}
+
+	std::string	val;
+	params.m_mapParam[Keyword]->GetValue( val, index );
+
+	CTrace::Tracer( 1, CBratProcess::PCT_StrFmt2, "DI time field name",  val.c_str() );
+
+	return val;
+}
+
+//static 
+CDate CBratProcess::GetDataModeDTDateTime( CFileParams &params, const std::string &prefix, int32_t minOccurences, int32_t maxOccurences, int32_t index ) //minOccurences = 0, int32_t maxOccurences	= 1, int32_t index = 0
+{
+	CTrace::GetInstance();
+
+	const std::string Keyword = prefix + DATA_MODE_DI_DATE_TIME_SUFFIX;
+
+	if (params.CheckCount( Keyword, minOccurences, maxOccurences ) == 0)
+	{
+		return CDate();
+	}
+
+	std::string	str_val;
+	params.m_mapParam[Keyword]->GetValue( str_val, index );
+	CDate val( str_val.c_str() );
+
+	CTrace::Tracer( 1, CBratProcess::PCT_StrFmt2, "DI date-time ", val.AsString().c_str() );
+
+	return val;
+}
+
+
 
 //----------------------------------------
 int32_t CBratProcess::GetFileList
@@ -1352,7 +1419,7 @@ int32_t CBratProcess::GetMergedDataSlices( EMergeDataMode mode )
 		case pctTIME:
 
 			//!!! GORKA !!!
-			//Please delete the whole case if 1 is good for pctTIME
+			//Please delete the whole case statement if 1 is good for pctTIME
 
 			break;
 
@@ -2513,6 +2580,8 @@ void CBratProcess::AddDimensionsFromNetCdf( CStringArray& dimNames )
 		m_types.push_back( Data );
 
 		m_dataMode.push_back( CBratProcess::pctFIRST );
+		mDataInterpolationTimeFieldName.push_back( "" );
+		mDataInterpolationDateTime.push_back( CDate() );
 
 		//----------------------------------
 		m_listFieldsToRead.InsertUnique( netCDFDim->GetName() );
@@ -2782,6 +2851,8 @@ void CBratProcess::AddVarsFromNetCdf()
             m_types.push_back(Data);
 
             m_dataMode.push_back(CBratProcess::pctFIRST);
+			mDataInterpolationTimeFieldName.push_back( "" );
+			mDataInterpolationDateTime.push_back( CDate() );
 
             //----------------------------------
             m_listFieldsToRead.InsertUnique(addedVarDimIndex->GetName());
@@ -3160,7 +3231,7 @@ void CBratProcess::MergeDataValue
 	//--------------------------
 
 		//!!! GORKA !!!
-		data = 0.0;		//Please replace this line
+		data = 0.0;
 
 		break;
 

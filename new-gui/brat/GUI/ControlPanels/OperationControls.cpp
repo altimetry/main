@@ -43,6 +43,7 @@
 #include "Dialogs/EditExportAsciiDialog.h"
 #include "Dialogs/ShowInfoDialog.h"
 #include "Dialogs/DataDisplayPropertiesDialog.h"
+#include "Dialogs/DatasetInterpolationDialog.h"
 
 #include "DataExpressionsTreeWidgets.h"
 #include "OperationControls.h"
@@ -357,6 +358,7 @@ void COperationControls::CreateAdvancedOperationsPage()
 	mDataComputationGroup = CreateActionGroup( this, CreateDataComputationActions(), true );
     mDataComputation = CreateMenuButton(  "", ":/images/OSGeo/processing.png", "Set how data are stored/computed", mDataComputationGroup->actions() );
     mDataComputation->setToolButtonStyle( Qt::ToolButtonTextBesideIcon );
+	mDatasetInterpolationButton = CreateToolButton( "", ":/images/OSGeo/processing.png", "Enter dataset interpolation parameters" );
 
     mDataSmoothingGroup = CreateActionGroup( this, CreateDataSmoothingActions(), true );
     mDataSmoothing = CreateMenuButton(  "", ":/images/OSGeo/brat_smoothing.png", "Set how data are filled between tracks.\nDon't forget to set 'Loess cut-off' on sampling section.", mDataSmoothingGroup->actions() );
@@ -367,7 +369,7 @@ void COperationControls::CreateAdvancedOperationsPage()
 
 	auto *expression_buttons = CreateButtonRow( false, Qt::Horizontal, 
 	{ 
-        mInsertFunction, mInsertFormula, mSaveAsFormula, mInsertAlgorithm, nullptr, mDataDisplayProperties, mDataComputation, mDataSmoothing, nullptr,
+        mInsertFunction, mInsertFormula, mSaveAsFormula, mInsertAlgorithm, nullptr, mDataDisplayProperties, mDataComputation, mDatasetInterpolationButton, mDataSmoothing, nullptr,
                                                     mShowInfoButton, mShowAliasesButton
 	} );
 
@@ -539,6 +541,7 @@ void COperationControls::Wire()
 	connect( mInsertFormula, SIGNAL( clicked() ), this, SLOT( HandleInsertFormula() ) );
 	connect( mSaveAsFormula, SIGNAL( clicked() ), this, SLOT( HandleSaveAsFormula() ) );
     connect( mDataDisplayProperties, SIGNAL( clicked() ), this, SLOT( HandleDataDisplayProperties() ) );
+	connect( mDatasetInterpolationButton, SIGNAL( clicked() ), this, SLOT( HandleDatasetInterpolationRequested() ) );
 
 
 	connect( mShowAliasesButton, SIGNAL( clicked() ), this, SLOT( HandleShowAliases() ) );
@@ -1530,6 +1533,8 @@ void COperationControls::HandleOperationFilterButton_Quick( QAction *a )
 //
 void COperationControls::SelectDataComputationMode()		//from COperationPanel::GetDataMode()
 {
+	mDatasetInterpolationButton->setEnabled( false );
+
 	if ( mCurrentOperation == nullptr )
 	{
 		return;
@@ -1555,6 +1560,8 @@ void COperationControls::SelectDataComputationMode()		//from COperationPanel::Ge
     }
     else
         mDataComputation->setText( "" );
+
+	mDatasetInterpolationButton->setEnabled( CMapDataMode::GetInstance().IdToName( CBratProcess::pctTIME ).c_str() == action->text() );
 }
 
 // Assigns data computation mode to mUserFormula using caller (action) id
@@ -1566,23 +1573,56 @@ void COperationControls::HandleDataComputation()
 
 	auto a = qobject_cast<QAction*>( sender() );	assert__( a );
 
-	//CFormula *formula = mUserFormula;	// == GetCurrentFormula();	== GetOperationtreectrl()->GetCurrentFormula();
-	if ( mUserFormula == nullptr )
-	{
-		return;
-	}
-
 	// if same pointer
 	if ( mCurrentOperation->GetSelect() == mUserFormula )	//== IsCriteriaSelection( formula ) in old OperationPanel
 	{
 		return;
 	}
 
-	auto id   = CMapDataMode::GetInstance().NameToId( q2a( a->text() ) );
+	auto old_id = mUserFormula->GetDataMode();
+	auto id = CMapDataMode::GetInstance().NameToId( q2a( a->text() ) );
 	mUserFormula->SetDataMode( id );
+	if ( old_id != id && id == CBratProcess::pctTIME && !DatasetInterpolationRequested() )
+	{
+		mUserFormula->SetDataMode( old_id );
+	}
 
 	SelectDataComputationMode();
 }
+
+
+bool COperationControls::DatasetInterpolationRequested()
+{
+	assert__( mCurrentOperation && mProduct && mUserFormula && mUserFormula == mDataExpressionsTree->SelectedFormula() );
+	assert__( mCurrentOperation->GetSelect() != mUserFormula );
+	assert__( mUserFormula->GetDataMode() == CBratProcess::pctTIME );
+
+	CProductInfo pi( mProduct );
+	std::vector< std::string > list;
+	std::for_each( pi.Fields().begin(), pi.Fields().end(), [&list]( auto const *field )
+	{
+		list.push_back( field->GetName() );
+	}
+	);
+
+	CDatasetInterpolationDialog dlg( list, mUserFormula->DataModeDITimeName(), CBratFilter::brat2q( mUserFormula->DataModeDIDateTime() ), this );
+	if ( dlg.exec() == QDialog::Accepted )
+	{
+		mUserFormula->SetDataModeDIDateTime( CBratFilter::q2brat( dlg.DataModeDIDateTime() ) );
+		mUserFormula->SetDataModeDITimeName( dlg.DataModeDITimeName() );
+		return true;
+	}
+
+	return false;
+}
+
+
+void COperationControls::HandleDatasetInterpolationRequested()
+{
+	DatasetInterpolationRequested();
+}
+
+
 
 
 
@@ -2560,7 +2600,6 @@ void COperationControls::HandleDataDisplayProperties()
 }
 
 
-
 void COperationControls::HandleShowInfo()
 {
 	assert__( mCurrentOperation && mUserFormula );
@@ -3329,10 +3368,10 @@ std::pair< bool, CProgressInterface* > COperationControls::ConfirmFiltering( con
 	CProgressInterface *progress = nullptr;
 	if ( operation->Filter() && !operation->HasFilteredDataset() )
 	{ 
-		if ( operation->OriginalDataset()->GetProductList()->size() > mModel.Settings().MinimumFilesToWarnUser() && !SimpleQuestion(
+		if ( operation->OriginalDataset()->Size() > mModel.Settings().MinimumFilesToWarnUser() && !SimpleQuestion(
 			"Dataset of operation '"
 			+ operation->GetName()
-			+ "' has " + n2s<std::string>( operation->OriginalDataset()->GetProductList()->size() ) + " files and the filter '"
+			+ "' has " + n2s<std::string>( operation->OriginalDataset()->Size() ) + " files and the filter '"
 			+ operation->Filter()->Name()
 			+ "' is about to be applied to it. This operation can take a long time to execute.\n\nDo you want to proceed?" ) 
 			)

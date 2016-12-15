@@ -629,7 +629,7 @@ void CDatasetBrowserControls::AddFiles( QStringList &paths_list )
 	}
 
 
-	auto const &files = *current_dataset->GetProductList();
+	auto const &files = *const_cast< const CDataset* >( current_dataset )->GetProductList();
 	if ( ( files.IsYFX() || files.IsZFXY() || files.IsGenericNetCdf() ) && files.size() > 1 )
 	{
 		std::string msg = "Warning - You have to check that all the files in the list : "

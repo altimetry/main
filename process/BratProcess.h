@@ -42,6 +42,9 @@ using namespace brathl;
 
 const std::string CHECKED_DATASET_CMD_LINE_PARAMETER = "-rads";
 
+const std::string DATA_MODE_SUFFIX = "_DATA_MODE";
+const std::string DATA_MODE_DI_TIME_NAME_SUFFIX = "_DATA_MODE_DI_TIME_NAME_SUFFIX";
+const std::string DATA_MODE_DI_DATE_TIME_SUFFIX = "_DATA_MODE_DI_DATE_TIME";
 
 
 namespace processes
@@ -213,6 +216,8 @@ namespace processes
 
 		EMergeDataMode m_dataModeGlobal;
 		std::vector< EMergeDataMode > m_dataMode;
+		std::vector< std::string > mDataInterpolationTimeFieldName;
+		std::vector< CDate > mDataInterpolationDateTime;
 
 		std::string m_commandFileName;
 
@@ -318,6 +323,20 @@ namespace processes
 			int32_t	maxOccurences	= 1,
 			int32_t	index		= 0,
 			EMergeDataMode defaultValue	= pctMEAN );
+
+		static std::string GetDataModeDTTimeName
+		( CFileParams	&params,
+			const std::string	&prefix,
+			int32_t	minOccurences	= 0,
+			int32_t	maxOccurences	= 1,
+			int32_t	index		= 0 );
+
+		static CDate GetDataModeDTDateTime
+		( CFileParams	&params,
+			const std::string	&prefix,
+			int32_t	minOccurences	= 0,
+			int32_t	maxOccurences	= 1,
+			int32_t	index		= 0 );
 
 		static int32_t GetFileList
 		( CFileParams		&params,

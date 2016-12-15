@@ -90,22 +90,22 @@ public:
   uint32_t GetYear() const;
 
   /// Gets the month of the date
-  uint32_t GetMonth();
+  uint32_t GetMonth() const;
 
   /// Gets the day of the date
-  uint32_t GetDay();
+  uint32_t GetDay() const;
 
   /// Gets the hour of the date
-  uint32_t GetHour();
+  uint32_t GetHour() const;
 
   /// Gets the minutes of the date
-  uint32_t GetMinute();
+  uint32_t GetMinute() const;
 
   /// Gets the seconds of the date
-  uint32_t GetSecond();
+  uint32_t GetSecond() const;
 
   /// Gets the microseconds of the date 
-  uint32_t GetMuSecond();
+  uint32_t GetMuSecond() const;
   
   /// returns the date in a number of seconds since internal reference date, ie 1950)
   double Value() {return GetNbSeconds();}
@@ -160,7 +160,7 @@ public:
         \param withMuSecond [in] : add the microseconds of the date at the end of the std::string
         (format ".%06u")
 	\return Formatted std::string */
-  std::string AsString(const std::string& format = "",  bool withMuSecond = false);
+  std::string AsString(const std::string& format = "",  bool withMuSecond = false) const;
 
   /**  Convert a date std::string to a number of seconds since internal reference year (ie 1950)
     Allowed format are  :
