@@ -2758,6 +2758,7 @@ if(BRAT_BUILD_GUI)
 	    new-gui/brat/GUI/ControlPanels/RadsDatasetsTreeWidget.cpp
 	    new-gui/brat/DataModels/Workspaces/RadsDataset.cpp
 	    process/rads/RadsSettings.cpp
+		new-gui/brat/GUI/ControlPanels/Dialogs/DatasetInterpolationDialog.cpp
 	)
 
 		
@@ -2883,6 +2884,7 @@ if(BRAT_BUILD_GUI)
 	    new-gui/brat/GUI/ControlPanels/RadsDatasetsTreeWidget.h
 	    new-gui/brat/DataModels/Workspaces/RadsDataset.h
 	    process/rads/RadsSettings.h
+		new-gui/brat/GUI/ControlPanels/Dialogs/DatasetInterpolationDialog.h
 	)
 
 

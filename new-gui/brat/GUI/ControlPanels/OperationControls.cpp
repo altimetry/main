@@ -1599,7 +1599,7 @@ bool COperationControls::DatasetInterpolationRequested()
 
 	CProductInfo pi( mProduct );
 	std::vector< std::string > list;
-	std::for_each( pi.Fields().begin(), pi.Fields().end(), [&list]( auto const *field )
+    std::for_each( pi.Fields().begin(), pi.Fields().end(), [&list]( const CField *field )
 	{
 		list.push_back( field->GetName() );
 	}

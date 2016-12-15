@@ -3231,7 +3231,7 @@ void CBratProcess::MergeDataValue
 	//--------------------------
 
 		//!!! GORKA !!!
-		data = 0.0;
+        data = 1.0;
 
 		break;
 

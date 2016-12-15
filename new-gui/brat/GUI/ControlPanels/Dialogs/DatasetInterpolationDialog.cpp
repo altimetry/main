@@ -28,7 +28,7 @@ void CDatasetInterpolationDialog::Setup()
 {
 	mDateTimeEdit->setDateTime( mDataModeDIDateTime );
 	int selected = -1, index = 0;
-	std::for_each( mFieldMNamesList.begin(), mFieldMNamesList.end(), [this, &selected, &index]( auto const &name )
+    std::for_each( mFieldMNamesList.begin(), mFieldMNamesList.end(), [this, &selected, &index]( const std::string &name )
 	{
 		QListWidgetItem *item = new QListWidgetItem;
 		item->setText( name.c_str() );

@@ -356,8 +356,11 @@ void CBratProcessZFXY::GetParameters()
     oneFilter	|= smoothTmp || extrapolateTmp;
 
     m_dataMode[index] = GetDataMode( params, kwFIELD, 0, nbFields, index, m_dataModeGlobal );
-	mDataInterpolationTimeFieldName[index] = GetDataModeDTTimeName( params, kwFIELD, 0, nbFields, index );
-	mDataInterpolationDateTime[index] = GetDataModeDTDateTime( params, kwFIELD, 0, nbFields, index );
+    if ( m_dataMode[index] == pctTIME )
+    {
+        mDataInterpolationTimeFieldName[index] = GetDataModeDTTimeName( params, kwFIELD, 0, nbFields, index );
+        mDataInterpolationDateTime[index] = GetDataModeDTDateTime( params, kwFIELD, 0, nbFields, index );
+    }
   }
 
 
