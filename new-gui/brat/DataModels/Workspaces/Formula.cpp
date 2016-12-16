@@ -1767,26 +1767,6 @@ CFormula* CMapFormula::GetFormula( int32_t type )
 
 	return nullptr;
 }
-//----------------------------------------
-void CMapFormula::InitFormulaDataMode(int32_t dataMode)
-{
-  CMapFormula::iterator it;
-
-  for (it = begin() ; it != end() ; it++)
-  {
-    CFormula* value = dynamic_cast<CFormula*>(it->second);
-    if (value == nullptr)
-    {
-      continue;
-    }
-
-    if (value->GetDataMode() < 0)
-    {
-      value->SetDataMode(dataMode);
-    }
-  }
-
-}
 
 //----------------------------------------
 size_t CMapFormula::CountDataFields()
@@ -2235,6 +2215,8 @@ CMapTypeField::ETypeField CMapTypeField::NameToId(const std::string& name)
 	return (CMapTypeField::ETypeField)type;
 }
 
+
+
 //-------------------------------------------------------------
 //------------------- CMapDataMode class --------------------
 //-------------------------------------------------------------
@@ -2250,9 +2232,7 @@ CMapDataMode::CMapDataMode()
 //----------------------------------------
 
 CMapDataMode::~CMapDataMode()
-{
-
-}
+{}
 
 //----------------------------------------
 CMapDataMode& CMapDataMode::GetInstance()
@@ -2260,17 +2240,6 @@ CMapDataMode& CMapDataMode::GetInstance()
  static CMapDataMode instance;
 
  return instance;
-}
-
-//----------------------------------------
-bool CMapDataMode::ValidName(const std::string& name)
-{
-  return ValidName(name.c_str());
-}
-//----------------------------------------
-bool CMapDataMode::ValidName( const char* name )
-{
-	return ( !isDefaultValue( Exists( name ) ) );
 }
 
 //----------------------------------------

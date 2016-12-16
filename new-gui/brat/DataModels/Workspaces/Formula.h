@@ -208,10 +208,6 @@ public:
 
 	static CMapDataMode&  GetInstance();
 
-
-	bool ValidName( const char* name );
-	bool ValidName( const std::string& name );
-
 	std::string IdToName( uint32_t id );
 	uint32_t NameToId( const std::string& name );
 
@@ -575,8 +571,6 @@ public:
 	{
 		return const_cast<CMapFormula*>( this )->GetFormula( type );
 	}
-
-	void InitFormulaDataMode( int32_t dataMode );
 
 	std::string GetCommentFormula( const std::string& name ) const;
 	bool SetCommentFormula( const std::string& name, const std::string& comment );

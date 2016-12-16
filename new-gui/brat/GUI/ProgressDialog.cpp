@@ -21,27 +21,6 @@
 #include "new-gui/Common/QtUtils.h"
 #include "ProgressDialog.h"
 
-//void f()
-//{
-//	const int numFiles = 10000;
-//	QWidget *parent = nullptr;
-//	CProgressDialog progress( "Computing contours...", "Cancel", 0, numFiles, parent );
-//	//progress.setr
-//	progress.setWindowModality( Qt::WindowModal );
-//	progress.show();
-//	int i = 0;
-//	for ( ; i < numFiles; i++ )
-//	{
-//		progress.setValue( i );
-//
-//		if ( progress.wasCanceled() )
-//			break;
-//		qDebug() << "... copy one file";
-//	}
-//	progress.setValue( numFiles );
-//	qDebug() << "copied files==" << i;
-//}
-
 
 
 

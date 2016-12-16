@@ -19,6 +19,7 @@
 
 #include "new-gui/Common/QtUtils.h"
 #include "new-gui/Common/GUI/TextWidget.h"
+#include "new-gui/brat/DataModels/Filters/BratFilters.h"
 
 #include "DatasetInterpolationDialog.h"
 
@@ -26,6 +27,7 @@
 
 void CDatasetInterpolationDialog::Setup()
 {
+	mDateTimeEdit->setMinimumDateTime( CBratFilter::brat2q( CDate() ) );
 	mDateTimeEdit->setDateTime( mDataModeDIDateTime );
 	int selected = -1, index = 0;
     std::for_each( mFieldMNamesList.begin(), mFieldMNamesList.end(), [this, &selected, &index]( const std::string &name )

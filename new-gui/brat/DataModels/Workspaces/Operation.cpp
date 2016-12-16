@@ -77,6 +77,7 @@ public:
 		WriteLn();
 		Comment( "----- GENERAL PROPERTIES -----" );
 		WriteLn();
+		//v3 comment
 		// Data mode is no more for a operation, but for each formula (data expression)
 		//WriteLine(std::string::Format("DATA_MODE=%s", CMapDataMode::GetInstance().IdToName(m_dataMode).c_str()));
 
@@ -646,7 +647,6 @@ COperation* COperation::Copy( const COperation &o, CWorkspaceOperation *wkso, CW
 	new_op->m_formulas = o.m_formulas;
 
 	new_op->m_type = o.m_type;
-	new_op->m_dataMode = o.m_dataMode;
 	new_op->m_exportAsciiDateAsPeriod = o.m_exportAsciiDateAsPeriod;
 
 	new_op->InitOutputs( wkso );				//assigns all output and cmd files
@@ -684,7 +684,6 @@ void COperation::Clear()
 
 	m_formulas.clear();
 	m_type = CMapTypeOp::eTypeOpYFX;
-	m_dataMode = CMapDataMode::GetInstance().GetDefault();
 
 	m_output.clear();
 	m_exportAsciiOutput.clear();

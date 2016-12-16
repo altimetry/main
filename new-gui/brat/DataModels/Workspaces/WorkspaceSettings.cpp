@@ -503,6 +503,8 @@ bool CWorkspaceSettings::SaveConfig( const CFormula &f, const std::string& pathS
 			WriteValue( section, ENTRY_LOESSCUTOFF, f.m_loessCutOff );
 		}
 		WriteValue( section, ENTRY_DATA_MODE, f.GetDataModeAsString() );
+		WriteValue( section, ENTRY_DATA_MODE_DI_TIME_FIELD_NAME, f.DataModeDITimeName() );
+		WriteValue( section, ENTRY_DATA_MODE_DI_DATE_TIME, f.DataModeDIDateTime().AsString() );
 	}
 
 	return Status() == QSettings::NoError;
@@ -565,20 +567,23 @@ bool CWorkspaceSettings::LoadConfig( CFormula &f, std::string &error_msg, const 
 	// if value is not read and the default is used, we have a failed assertion. This was not changed, to
 	// avoid unknown implications.
 
-	std::string data_mode;
+	std::string data_mode, data_mode_di_date_time;
 
 	ReadSection( path,
 
-		k_v( ENTRY_INTERVAL,	&f.m_interval,		defaultValue< int32_t >() ),
-		k_v( ENTRY_STEP,		&f.m_step,			f.DEFAULT_STEP_GENERAL_ASSTRING ),
-		k_v( ENTRY_LOESSCUTOFF, &f.m_loessCutOff,	defaultValue< int32_t >() ),
-		k_v( ENTRY_DATA_MODE,	&data_mode			)
+		k_v( ENTRY_INTERVAL,						&f.m_interval,				defaultValue< int32_t >() ),
+		k_v( ENTRY_STEP,							&f.m_step,					f.DEFAULT_STEP_GENERAL_ASSTRING ),
+		k_v( ENTRY_LOESSCUTOFF,						&f.m_loessCutOff,			defaultValue< int32_t >() ),
+		k_v( ENTRY_DATA_MODE,						&data_mode					),
+		k_v( ENTRY_DATA_MODE_DI_TIME_FIELD_NAME,	&f.mDataModeDITimeName,		empty_string() ),
+		k_v( ENTRY_DATA_MODE_DI_DATE_TIME,			&data_mode_di_date_time,	CDate().AsString() )
 	);
 
 	if ( f.m_step.empty() )
 		f.m_step = f.DEFAULT_STEP_GENERAL_ASSTRING;
 
-	f.m_dataMode = data_mode.empty() ? -1 : CMapDataMode::GetInstance().NameToId( data_mode );
+	f.m_dataMode = data_mode.empty() ? CMapDataMode::GetInstance().GetDefault() : CMapDataMode::GetInstance().NameToId( data_mode );
+	f.mDataModeDIDateTime = CDate( data_mode_di_date_time.c_str() );
 
 	return Status() == QSettings::NoError;
 }
@@ -745,7 +750,6 @@ bool CWorkspaceSettings::LoadConfig( COperation &op, std::string &error_msg, CWo
 
 		k_v( ENTRY_DSNAME,					&dsname					),
 		k_v( ENTRY_TYPE,					&type,					CMapTypeOp::GetInstance().IdToName( op.m_type ) ),
-		k_v( ENTRY_DATA_MODE,				&data_mode,				CMapDataMode::GetInstance().IdToName( op.m_dataMode ) ),
 		k_v( ENTRY_RECORDNAME,				&op.m_record			),
 		k_v( ENTRY_OUTPUT,					&output					),
 		k_v( ENTRY_EXPORT_ASCII_OUTPUT,		&ascii_export_output	),
@@ -769,7 +773,6 @@ bool CWorkspaceSettings::LoadConfig( COperation &op, std::string &error_msg, CWo
 	if ( !dataset_error_msg.empty() )
 		error_msg += ( "\n" + dataset_error_msg );
 	op.m_type = type.empty() ? CMapTypeOp::eTypeOpYFX : CMapTypeOp::GetInstance().NameToId( type );
-	op.m_dataMode = data_mode.empty() ? CMapDataMode::GetInstance().GetDefault() : CMapDataMode::GetInstance().NameToId( data_mode );
 	if ( op.m_record.empty() )
 	{
 		op.m_record = CProductNetCdf::m_virtualRecordName;
@@ -810,7 +813,7 @@ bool CWorkspaceSettings::LoadConfig( COperation &op, std::string &error_msg, CWo
 	}
 
 	// We don't use Group(), like v3 with the equivalent GetPath(), because, 
-	//	given the open/close policy of QSttings, the current group is indeed 
+	//	given the open/close policy of QSettings, the current group is indeed 
 	//	the parent of what we want. The "current" group in v3 was opened at 
 	//	the beginning of this function.	!!! TODO !!!: test this and consider 
 	//	the v3 note below
@@ -821,8 +824,6 @@ bool CWorkspaceSettings::LoadConfig( COperation &op, std::string &error_msg, CWo
 		!op.m_formulas.LoadConfig( this, error_msg, false, op.GetName() )	// Warning after formulas Load config conig path has changed	(v3 note)
 		)
 		return false;
-
-	op.m_formulas.InitFormulaDataMode( op.m_dataMode );
 
 	LOG_TRACEstd( "Finished loading operation " + op.GetName() );
 

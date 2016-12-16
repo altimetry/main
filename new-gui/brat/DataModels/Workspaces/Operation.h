@@ -159,7 +159,6 @@ protected:
 	CFormula *mSelectionCriteria = nullptr;
 	CMapFormula m_formulas;
 	CMapTypeOp::ETypeOp m_type = CMapTypeOp::eTypeOpYFX;
-	int32_t m_dataMode = CMapDataMode::GetInstance().GetDefault();
 
 	std::string m_output;
 	std::string m_exportAsciiOutput;
@@ -270,9 +269,6 @@ public:
 	CMapTypeOp::ETypeOp GetType() const { return m_type; }
 	void SetType( CMapTypeOp::ETypeOp value ) { m_type = value; }
 
-	std::string GetDataModeAsString() { return CMapDataMode::GetInstance().IdToName( m_dataMode ); }
-	int32_t GetDataMode() const { return m_dataMode; }
-	void SetDataMode( int32_t value ) { m_dataMode = value; }
 
 #if defined(BRAT_V3)
 	CDataset* Dataset() { return mDataset; }
