@@ -299,7 +299,7 @@ CRadsClient::CRadsClient( CRadsSettings &settings, QObject *parent )	//parent = 
 
 	//startup (starting paused)
 
-#if !defined (WAIT_FOR_DEBUGGER)
+#if !defined (WAIT_FOR_DEBUGGER) && defined(PAUSE_ON_START)
 
 	Pause();
 
