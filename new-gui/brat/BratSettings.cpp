@@ -19,7 +19,7 @@
 
 #include "libbrathl/Product.h"
 #include "common/+UtilsIO.h"
-#include "new-gui/Common/QtUtilsIO.h"
+#include "common/QtUtilsIO.h"
 #include "DataModels/Workspaces/Workspace.h"
 
 #include "BratSettings.h"
@@ -52,7 +52,7 @@ const std::string ENTRY_MINIMUM_FILES_TO_WARN_USER		 =	"minimum_files_to_warn_us
 //static 
 const CMapWidget::ELayerBaseType CBratSettings::smDefaultLayerBaseType =
 #if defined(BRAT_ARCHITECTURE_64)
-    CMapWidget::ELayerBaseType::eRasterLayer;
+    CMapWidget::ELayerBaseType::eVectorLayer;
 #else
     CMapWidget::ELayerBaseType::eVectorLayer;
 #endif

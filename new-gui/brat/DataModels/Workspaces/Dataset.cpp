@@ -20,7 +20,7 @@
 
 #include "common/tools/Trace.h"
 #include "common/tools/Exception.h"
-#include "new-gui/Common/QtUtilsIO.h"
+#include "common/QtUtilsIO.h"
 
 #include "libbrathl/Tools.h"
 #include "libbrathl/ProductNetCdf.h"

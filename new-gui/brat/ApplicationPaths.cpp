@@ -148,7 +148,7 @@ bool CApplicationPaths::operator == ( const CApplicationPaths &o ) const
 
 	assert__( mRsyncExecutablePath == o.mRsyncExecutablePath );
 
-	assert__( mRadsServiceLogFilePath == o.mRadsServiceLogFilePath );
+	assert__( mRadsServicePanicLogFilePath == o.mRadsServicePanicLogFilePath );
 	assert__( mRadsConfigurationFilePath == o.mRadsConfigurationFilePath );
 
 	// from this

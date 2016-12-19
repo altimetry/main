@@ -27,8 +27,8 @@
 #include "libbrathl/Tools.h"
 
 #include "common/BratVersion.h"
+#include "common/ApplicationStaticPaths.h"
 #include "new-gui/Common/QtUtils.h"
-#include "new-gui/Common/GUI/ApplicationUserPaths.h"
 #include "new-gui/Common/GUI/BasicLogShell.h"
 
 #include "new-gui/Common/DataModels/TaskProcessor.h"
@@ -881,7 +881,7 @@ void CSchedulerMainWindow::action_UserManual_slot()
 {
     if ( !SimpleSystemOpenFile( mAppPaths->mUserManualPath ) )
 //	if ( !QDesktopServices::openUrl( QUrl::fromLocalFile( mAppPaths->mUserManualPath.c_str() ) ) )
-		SimpleErrorBox( "Could not open " + mAppPaths->mUserManualPath );
+		SimpleErrorBox( "Could not open " + mAppPaths->mUserManualPath.mPath );
 }
 
 

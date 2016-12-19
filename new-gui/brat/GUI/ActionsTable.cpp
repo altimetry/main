@@ -67,6 +67,8 @@ CActionInfo ActionsTable[ EActionTags_size ] =
     { eAction_About, "&About...", CActionInfo::FormatTip("About"), ":/images/BratIcon.png" },
 
 	{ eAction_User_s_Manual, "User's &Manual...", CActionInfo::FormatTip("User's Manual"), "" },
+    
+    { eAction_Video_Tutorials, "Video Tutorials...", CActionInfo::FormatTip("Open BRAT video tutorials page in your browser"), "" },
 
     { eAction_Close_All, "Close &All", CActionInfo::FormatTip("Close All"), "" },
 
@@ -180,7 +182,7 @@ CActionInfo ActionsTable[ EActionTags_size ] =
 
 	{ eAction_PauseRadsService, "", CActionInfo::FormatTip("Suspend\nPause/Resume data synchronization with RADS."), ":/images/themes/default/media/media-play-16.png", ":/images/themes/default/media/media-pause-16.png" },
 
-	{ eAction_ExecuteRadsService, "Synchronize now...", "Synchronize with RADS immediately.\n(To interrupt, disable and re-enable the service)", ":/images/OSGeo/execute.png" },
+	{ eAction_ExecuteOrStopRadsService, "Synchronize now...", "Immediately start or stop synchronization with RADS .", ":/images/OSGeo/execute.png", ":/images/themes/default/media/media-stop-16.png" },
 
 };
 

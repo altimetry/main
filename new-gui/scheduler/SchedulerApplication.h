@@ -21,7 +21,7 @@
 #include "stdafx.h"
 
 
-class CApplicationUserPaths;
+class CApplicationStaticPaths;
 
 
 
@@ -47,7 +47,7 @@ class CSchedulerApplication : public QtSingleApplication
 
     // static members
 
-    static const CApplicationUserPaths *smApplicationPaths;	//initialized in Prologue
+    static const CApplicationStaticPaths *smApplicationPaths;	//initialized in Prologue
 
 	static bool smPrologueCalled;							//initialized in Prologue
 
@@ -67,7 +67,7 @@ public:
 
     static int OffGuiErrorDialog( int error_code, char const *error_msg );
 
-    static const CApplicationUserPaths* ApplicationPaths()
+    static const CApplicationStaticPaths* ApplicationPaths()
     {
         return smApplicationPaths;
     }

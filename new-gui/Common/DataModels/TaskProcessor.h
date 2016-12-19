@@ -20,13 +20,13 @@
 
 #include <functional>
 
+#include "common/QtUtilsIO.h"
 #include "BratTask.h"
 #include "new-gui/Common/ScheduledTasksList.hxx"
 #include "new-gui/Common/XmlSerializer.h"
-#include "new-gui/Common/QtUtilsIO.h"
 
 
-class CApplicationUserPaths;
+class CApplicationStaticPaths;
 
 
 // for serialization
@@ -82,7 +82,7 @@ public:
 	    return smInstance;
 	}
 
-	static CTasksProcessor* CreateInstance( const std::string&scheduler_name, const CApplicationUserPaths &app_paths );
+	static CTasksProcessor* CreateInstance( const std::string&scheduler_name, const CApplicationStaticPaths &app_paths );
 
 	static void DestroyInstance()
 	{

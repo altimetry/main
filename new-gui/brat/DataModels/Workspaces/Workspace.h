@@ -19,7 +19,7 @@
 #ifndef WORKSPACES_WORKSPACE_H
 #define WORKSPACES_WORKSPACE_H
 
-#include "new-gui/Common/QtUtilsIO.h"
+#include "common/QtUtilsIO.h"
 
 #include "libbrathl/BratObject.h"
 

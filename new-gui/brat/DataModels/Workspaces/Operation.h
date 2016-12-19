@@ -51,7 +51,7 @@ const std::string SHOWSTAT_COMMANDFILE_EXTENSION = "stats.par";
 
 #if !defined(BRAT_V3)
 
-#include "new-gui/Common/QtUtilsIO.h"
+#include "common/QtUtilsIO.h"
 
 inline std::string GetFileName( const std::string &path )
 {

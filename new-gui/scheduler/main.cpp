@@ -20,7 +20,7 @@
 #include "SchedulerApplication.h"
 #include "SchedulerMainWindow.h"
 #include "SchedulerLogger.h"
-#include "new-gui/Common/GUI/ApplicationUserPaths.h"
+#include "common/ApplicationStaticPaths.h"
 
 
 

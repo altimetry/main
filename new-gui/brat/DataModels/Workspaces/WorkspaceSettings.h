@@ -19,7 +19,7 @@
 #ifndef WORKSPACES_WORKSPACE_SETTINGS_H
 #define WORKSPACES_WORKSPACE_SETTINGS_H
 
-#include "new-gui/Common/QtUtilsIO.h"
+#include "common/QtUtilsIO.h"
 #include "new-gui/Common/ApplicationSettings.h"
 
 

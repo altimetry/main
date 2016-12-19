@@ -104,6 +104,8 @@ public slots:
 
 	void ForceSynchronize();
 
+	void ForceRsyncEnd();
+
 
 private slots:
 

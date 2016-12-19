@@ -25,8 +25,8 @@
 
 #include <QCoreApplication>
 
-#include "common/+UtilsIO.h"
-#include "new-gui/Common/QtUtilsIO.h"
+#include "+UtilsIO.h"
+#include "QtUtilsIO.h"
 
 #include "BratVersion.h"
 #include "ApplicationStaticPaths.h"
@@ -111,6 +111,59 @@ const std::string CApplicationStaticPaths::smPythonExecutableName =
 const std::string RSYNC_EXE	= setExecExtension( "rsync" );
 
 
+//
+
+CBratPath::CBratPath( const std::string &path, bool must_exist, const char *name )
+	: mPath( NormalizedPath( path ) )
+	, mMustExist( must_exist )
+	, mName( name )
+{}
+
+
+CBratPath::operator const std::string& ( ) const
+{
+	return mPath;
+}
+
+CBratPath::operator std::string ( ) const
+{
+	return mPath;
+}
+
+bool CBratPath::operator == ( const CBratPath &o ) const
+{
+	return 
+		mPath == o.mPath
+		&&	mMustExist == o.mMustExist
+		&&	mName == o.mName
+		;
+}
+
+std::string CBratPath::ToString() const
+{
+	return mName + " == " + mPath + ( Valid() ? "" : " [INVALID]" );
+}
+
+
+
+std::string CFolderPath::operator + ( const std::string &str ) const
+{
+	return mPath + str;
+}
+
+bool CFolderPath::Valid() const
+{
+	return !mMustExist || IsDir( mPath );
+}
+
+bool CFilePath::Valid() const
+{
+	return !mMustExist || IsFile( mPath );
+}
+
+
+
+//
 
 
 //static
@@ -146,6 +199,13 @@ bool CApplicationStaticPaths::ValidPath( std::string &error_msg, const std::stri
 }
 
 
+//static 
+bool CApplicationStaticPaths::ValidPath( std::string &error_msg, const CBratPath &path )
+{
+	return ValidPath( error_msg, path, dynamic_cast< const CFilePath* >( &path ), path.mName );
+}
+
+
 
 
 CApplicationStaticPaths::CApplicationStaticPaths( const std::string &exec_path, const std::string &app_name )
@@ -157,35 +217,66 @@ CApplicationStaticPaths::CApplicationStaticPaths( const std::string &exec_path, 
     , mPlatform( PLATFORM_SUBDIR )
     , mConfiguration( CONFIG_SUBDIR )
 
-    , mExecutablePath( exec_path )
-	, mApplicationName( app_name )
-    , mExecutableDir( GetDirectoryFromPath( mExecutablePath ) )			// (*)
-    , mDeploymentRootDir( GetDirectoryFromPath( mExecutableDir ) )
-    , mQtPluginsDir( mExecutableDir + "/" + QT_PLUGINS_SUBDIR )
-	, mPythonDir( mExecutableDir + "/Python" )
-	, mUserManualPath( mDeploymentRootDir + "/doc/brat_user_manual_" + BRAT_VERSION + ".pdf" )
+    , mExecutablePath		( exec_path , true, "Executable File" )
+	, mApplicationName		( app_name )
+    , mExecutableDir		( GetDirectoryFromPath( mExecutablePath.mPath ), true, "Executable Folder" )			// (*)
+    , mDeploymentRootDir	( GetDirectoryFromPath( mExecutableDir.mPath ), true, "Deployment Root Folder" )
+    , mQtPluginsDir			( mExecutableDir + "/" + QT_PLUGINS_SUBDIR, true, "Qt Plug-ins Folder" )
+	, mPythonDir			( mExecutableDir + "/Python", true, "Python Folder" )
+	, mUserManualPath		( mDeploymentRootDir + "/doc/brat_user_manual_" + BRAT_VERSION + ".pdf", true, "User Manual" )
 
-    , mInternalDataDir( ComputeInternalDataDirectory( mExecutableDir ) )
+    , mInternalDataDir		( ComputeInternalDataDirectory( mExecutableDir ), true, "Private Data Folder" )
 
 #if defined(Q_OS_WIN)
-    , mRsyncExecutablePath(	EscapePath( mExecutableDir + "/rsync/" + RSYNC_EXE ) )
+    , mRsyncExecutablePath	(	EscapePath( mExecutableDir + "/rsync/" + RSYNC_EXE ), 
 #else
-    , mRsyncExecutablePath(	"/usr/bin/rsync" )
+    , mRsyncExecutablePath(	"/usr/bin/rsync", 
 #endif
-	, mRadsServiceLogFilePath( mExecutableDir + "/RadsServiceLog.txt" )
-	, mRadsConfigurationFilePath( mInternalDataDir + "/rads.ini" )
+	true, "Rsync Executable" )
+
+	, mRadsConfigurationFilePath	( mInternalDataDir + "/rads.ini", true, "RADS Configuration File" )
+	, mRadsServicePanicLogFilePath	( DefaultUserDocumentsPath() + "/brat/RadsServiceCriticalLog.txt", false, "RADS Service Panic Log File" )
+
 {
 	// Set Qt plug-ins path before anything else
 	//
 	//	- Use QCoreApplication::libraryPaths(); to inspect Qt library (plug-ins) directories
 
-    QCoreApplication::setLibraryPaths( QStringList() << mQtPluginsDir.c_str() );
+    QCoreApplication::setLibraryPaths( QStringList() << mQtPluginsDir.mPath.c_str() );
 
 
     ValidatePaths();
 }
-// (*) this achieves the same (but, among other problems, needs
-//	an instance and is not Qt 5 portable): qApp->argv()[ 0 ]
+// (*) the following achieves the same (but, among other problems,
+//	needs an instance and is not Qt 5 portable): qApp->argv()[ 0 ]
+
+
+
+std::string CApplicationStaticPaths::DefaultUserDocumentsPath() const
+{
+	return ::SystemUserDocumentsPath() + "/" + mApplicationName;
+}
+
+
+std::string CApplicationStaticPaths::DefaultUserSettingsPath4Application( const std::string&application_name, bool create ) const        //create = true
+{
+	std::string data = ::SystemUserSettingsPath();  //"/Users/brat/Library/Application Support/ESA"
+	if ( !EndsWith( data, application_name ) )
+	{
+		if ( EndsWith( data, mApplicationName ) )
+			data = GetDirectoryFromPath( data );
+
+		data += ( "/" + application_name );
+	}
+
+	if ( create && !IsDir( data ) && !MakeDirectory( data ) )
+	{
+		mValid = false;
+		mErrorMsg += ( "\nCould not create " +  data );
+	}
+
+	return data;
+}
 
 
 //virtual
@@ -200,23 +291,22 @@ std::string CApplicationStaticPaths::ToString() const
     s += ( "\nPlatform == " + mPlatform );
     s += ( "\nConfiguration == " + mConfiguration );
 
-    s += ( "\nExecutable Path == " + mExecutablePath );
-    s += ( "\nExecutable Dir == " + mExecutableDir );
-    s += ( "\nDeployment Root Dir == " + mDeploymentRootDir );
+    s += ( "\n" + mExecutablePath.ToString() );
+    s += ( "\n" + mExecutableDir.ToString() );
+    s += ( "\n" + mDeploymentRootDir.ToString() );
 
-    s += ( "\nQt Plugins Dir == " + mQtPluginsDir );
-    s += ( "\nmPython Dir == " + mPythonDir );
-	s += ( "\nUser Manual Path == " + mUserManualPath );
-    s += ( "\nInternalData Dir == " + mInternalDataDir );
+    s += ( "\n" + mQtPluginsDir.ToString() );
+    s += ( "\n" + mPythonDir.ToString() );
+	s += ( "\n" + mUserManualPath.ToString() );
+    s += ( "\n" + mInternalDataDir.ToString() );
 
-	s += ( "\nRsync Executable == " + mRsyncExecutablePath );
+	s += ( "\n" + mRsyncExecutablePath.ToString() );
 
-	s += ( "\nRadsServiceLogFilePath == " + mRadsServiceLogFilePath );
-	s += ( "\nmRadsConfigurationFilePath == " + mRadsConfigurationFilePath );
+	s += ( "\n" + mRadsServicePanicLogFilePath.ToString() );
+	s += ( "\n" + mRadsConfigurationFilePath.ToString() );
 
     return s;
 }
-
 
 // Test here mandatory paths only. User changeable paths are not tested, because
 //	by definition they are not critical
@@ -224,10 +314,26 @@ std::string CApplicationStaticPaths::ToString() const
 bool CApplicationStaticPaths::ValidatePaths() const
 {
 	mValid =
-			ValidPath( mErrorMsg, mQtPluginsDir, false, "Qt Plugins directory" ) 
-		&&	ValidPath( mErrorMsg, mInternalDataDir, false, "BRAT resources directory" ) 
-		&&	ValidPath( mErrorMsg, mRsyncExecutablePath, true, "rsync executable path" )
-		&&	ValidPath( mErrorMsg, mRadsConfigurationFilePath, true, "RADS configuration file" )
+			mExecutablePath.Valid()
+		&&	mExecutableDir.Valid()
+		&&	mDeploymentRootDir.Valid()
+
+		&&	mQtPluginsDir.Valid()
+
+		&&	mPythonDir.Valid()
+
+		&&	mUserManualPath.Valid()
+
+		&&	mInternalDataDir.Valid()
+
+		&&	mRsyncExecutablePath.Valid()
+		&&	mRadsServicePanicLogFilePath.Valid()
+		&&	mRadsConfigurationFilePath.Valid()
+
+		//	ValidPath( mErrorMsg, mQtPluginsDir, false, "Qt Plugins directory" ) 
+		//&&	ValidPath( mErrorMsg, mInternalDataDir, false, "BRAT resources directory" ) 
+		//&&	ValidPath( mErrorMsg, mRsyncExecutablePath, true, "rsync executable path" )
+		//&&	ValidPath( mErrorMsg, mRadsConfigurationFilePath, true, "RADS configuration file" )
 		;
 
     return mValid;

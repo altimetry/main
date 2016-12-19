@@ -24,7 +24,7 @@
 #include <QDateTime>
 
 #include "common/tools/Trace.h"
-#include "new-gui/Common/QtStringUtils.h"
+#include "common/QtStringUtils.h"
 
 #include "libbrathl/brathl.h" 
 #include "libbrathl/BratAlgorithmBase.h" 

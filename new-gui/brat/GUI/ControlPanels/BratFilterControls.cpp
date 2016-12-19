@@ -460,6 +460,17 @@ void CBratFilterControls::ShowOnlyAreasInRegion(int region_index)
 }
 
 
+//virtual 
+void CBratFilterControls::SelectionChanged( bool selected )
+{
+	if ( isEnabled() && !selected )
+	{
+		mSelectionButton->setChecked( false );
+		mActionSelectFeatures->setChecked( false );
+	}
+}
+
+
 void CBratFilterControls::HandleCurrentLayerSelectionChanged( QRectF box /*= QRectF()*/ )
 {
     // Clear Selected area in areas list

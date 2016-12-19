@@ -11,6 +11,8 @@
 #include <QtCore/QFileInfo>
 #include <QtCore/QDir>
 #include <QTemporaryFile>
+#include <QStandardPaths>
+#include <QCoreApplication>
 
 #include "common/ccore-types.h"
 #include "common/+UtilsIO.h"		// => +Utils.h
@@ -441,6 +443,60 @@ inline bool SafeDuplicateFile( const std::string &SourcePath, const std::string 
 }
 
 #endif
+
+
+//////////////////////////////////////////////////////////////////
+//						OS Standard Paths
+//////////////////////////////////////////////////////////////////
+//
+//For Qt4, this section should be in QtUtils and not here because 
+//	QDesktopServices include GUI
+
+
+inline const std::string& SystemUserDocumentsPath()
+{
+#if QT_VERSION >= 0x050000
+	static const std::string docs = q2a( QStandardPaths::writableLocation( QStandardPaths::DocumentsLocation ) );
+#else
+	static const std::string docs = q2a( QDesktopServices::storageLocation( QDesktopServices::DocumentsLocation ) );
+#endif
+
+	assert__( IsDir( docs ) );
+
+	return docs;
+}
+
+// If applicationName and/or organizationName are set, are used by the framework as sub-directories.
+// If parameter root is false (the default), this function always removes the application 
+//  sub-directory, if it exists; so, for different applications of the same "organization" 
+//	(or of "no organization") the returned path is the same in the same machine.
+//
+inline std::string ComputeSystemUserSettingsPath( bool root = false )
+{
+#if QT_VERSION >= 0x050000
+
+	std::string data = q2a( QStandardPaths::writableLocation( QStandardPaths::GenericDataLocation ) );
+	if ( !root && !QCoreApplication::organizationName().isEmpty() )
+		data += ( "/" + q2a( QCoreApplication::organizationName() ) );
+
+#else
+	std::string data = q2a( QDesktopServices::storageLocation( QDesktopServices::DataLocation ) );
+
+	if ( !QCoreApplication::applicationName().isEmpty() )
+		data = GetDirectoryFromPath( data );
+	if ( root && !QCoreApplication::organizationName().isEmpty() && !QCoreApplication::applicationName().isEmpty() )
+		data = GetDirectoryFromPath( data );
+
+#endif
+
+	return data;
+}
+
+inline const std::string& SystemUserSettingsPath()
+{
+	static const std::string data = ComputeSystemUserSettingsPath();		assert__( IsDir( GetDirectoryFromPath( data ) ) );
+	return data;
+}
 
 
 #endif		//BRAT_QT_UTILS_IO_H

@@ -82,6 +82,13 @@ public:
     virtual ~CDatasetBrowserControls()
     {}
 
+
+	// overrides
+
+	virtual void SelectionChanged( bool selected ) override
+	{}
+
+
     // access
 
     // operations

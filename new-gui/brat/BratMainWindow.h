@@ -309,6 +309,10 @@ private slots:
 	void openRecentWorkspace_triggered( QAction *action );
     void on_action_Close_Workspace_triggered();
 
+    void on_action_Import_Workspace_triggered();
+    void on_action_Rename_Workspace_triggered();
+    void on_action_Delete_Workspace_triggered();
+    
 
 	////////////////
 	//Menu View
@@ -345,13 +349,11 @@ private slots:
 	////////////////
 	//Menu Help
 
-    void on_action_About_triggered();
     void on_action_User_s_Manual_triggered();
+    void on_action_Youtube_Video_Tutorials_triggered();
+    void on_action_About_triggered();
     void on_action_Test_triggered();
 
-    void on_action_Import_Workspace_triggered();
-    void on_action_Rename_Workspace_triggered();
-    void on_action_Delete_Workspace_triggered();
 
 
 	///////////////////////////////
@@ -360,6 +362,14 @@ private slots:
 
 
 	void OutputDockVisibilityChanged( bool );
+
+
+	///////////////////////////////
+	// Main dock slots
+	///////////////////////////////
+
+
+	void TabSelected( int index );
 
 
 	///////////////////////////////

@@ -115,7 +115,7 @@ void CBratApplication::Prologue( int argc, char *argv[] )
 
     static CApplicationPaths brat_paths( argv[0], BRAT_APPLICATION_NAME );		// (*)
     if ( !brat_paths.IsValid() )
-		throw CException( "One or more path directories are invalid:\n" + brat_paths.GetErrorMsg() );
+		throw CException( "One or more path directories are invalid:\n" + brat_paths.ErrorMsg() );
 
 	smApplicationPaths = &brat_paths;	LOG_TRACEstd( smApplicationPaths->ToString() );
 
@@ -228,7 +228,7 @@ void CBratApplication::CheckRunMode()
 
 CBratApplication::CBratApplication( int &argc, char **argv, bool GUIenabled, QString customConfigPath )	//customConfigPath = QString() 
 
-	: base_t( argc, argv, GUIenabled, customConfigPath.isEmpty() ? smApplicationPaths->mInternalDataDir.c_str() : customConfigPath )
+	: base_t( argc, argv, GUIenabled, customConfigPath.isEmpty() ? smApplicationPaths->mInternalDataDir.mPath.c_str() : customConfigPath )
 
 	, mSettings( *smApplicationPaths, q2a( QCoreApplication::organizationName() ), q2a( QgsApplication::applicationName() ) )
 
@@ -251,12 +251,12 @@ CBratApplication::CBratApplication( int &argc, char **argv, bool GUIenabled, QSt
 
 	// QGIS paths
 	//
-	setPkgDataPath( mSettings.BratPaths().mInternalDataDir.c_str() ); // returned by QgsApplication::srsDbFilePath();	variable: mPkgDataPath
+	setPkgDataPath( mSettings.BratPaths().mInternalDataDir.mPath.c_str() ); // returned by QgsApplication::srsDbFilePath();	variable: mPkgDataPath
 	LOG_TRACE( "srsDbFilePath==" + srsDbFilePath() );
 	LOG_TRACE( "showSettings==" + showSettings() );
 	LOG_TRACE( "qgisSettingsDirPath==" + qgisSettingsDirPath() );
 	LOG_TRACE( "qgisUserDbFilePath==" + qgisUserDbFilePath() );		//variable mConfigPath
-    LOG_TRACEstd( "Qt plugins==" + mSettings.BratPaths().mQtPluginsDir );
+    LOG_TRACEstd( "Qt plugins==" + mSettings.BratPaths().mQtPluginsDir.mPath );
     LOG_TRACEstd( "QGIS plugins==" + mSettings.BratPaths().mQgisPluginsDir );
 
 

@@ -2165,11 +2165,11 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 
 set(PROCESS_LIB_SOURCES
-  process/BratProcess.cpp
-  process/BratProcessExportAscii.cpp
-  process/BratProcessStats.cpp
-  process/ProcessCommonTools.cpp
-  common/ApplicationStaticPaths.cpp
+	process/BratProcess.cpp
+	process/BratProcessExportAscii.cpp
+	process/BratProcessStats.cpp
+	process/ProcessCommonTools.cpp
+	common/ApplicationStaticPaths.cpp
   )
 
 
@@ -2501,7 +2501,6 @@ if(BRAT_BUILD_GUI)
 		new-gui/Common/DataModels/TaskProcessor.cpp
 		new-gui/Common/DataModels/BratTask.cpp
 		common/ApplicationStaticPaths.cpp
-		new-gui/Common/GUI/ApplicationUserPaths.cpp
 		new-gui/Common/ApplicationLogger.cpp
 		new-gui/scheduler/SchedulerLogger.cpp
 		new-gui/Common/GUI/TextWidget.cpp
@@ -2523,8 +2522,8 @@ if(BRAT_BUILD_GUI)
 	    new-gui/scheduler/stdafx.h
 		common/BratVersion.h
 		common/+Utils.h
-		new-gui/Common/QtUtilsIO.h
-		new-gui/Common/QtStringUtils.h
+		common/QtUtilsIO.h
+		common/QtStringUtils.h
 		new-gui/Common/QtUtils.h
 		new-gui/scheduler/SchedulerMainWindow.h
 		new-gui/scheduler/SchedulerApplication.h
@@ -2533,7 +2532,6 @@ if(BRAT_BUILD_GUI)
 		new-gui/Common/DataModels/TaskProcessor.h
 		new-gui/Common/DataModels/BratTask.h
 		common/ApplicationStaticPaths.h
-		new-gui/Common/GUI/ApplicationUserPaths.h
 		new-gui/Common/ApplicationLogger.h
 		new-gui/scheduler/SchedulerLogger.h
 		new-gui/Common/XmlSerializer.h
@@ -2682,7 +2680,6 @@ if(BRAT_BUILD_GUI)
 		new-gui/brat/GUI/WorkspaceDialog.cpp
 		new-gui/brat/GUI/WorkspaceElementsDialog.cpp
 		new-gui/brat/ApplicationSettingsDlg.cpp
-		new-gui/Common/GUI/ApplicationUserPaths.cpp
 		new-gui/brat/ApplicationPaths.cpp
 		new-gui/Common/ApplicationLogger.cpp
 		new-gui/brat/BratLogger.cpp
@@ -2788,8 +2785,8 @@ if(BRAT_BUILD_GUI)
 		new-gui/brat/DataModels/Workspaces/TreeWorkspace.h
 		common/+Utils.h
 		common/+UtilsIO.h
-		new-gui/Common/QtUtilsIO.h
-		new-gui/Common/QtStringUtils.h
+		common/QtUtilsIO.h
+		common/QtStringUtils.h
 		new-gui/Common/QtUtils.h
 		new-gui/brat/GUI/DesktopManager.h
 		new-gui/Common/GUI/TextWidget.h
@@ -2806,7 +2803,6 @@ if(BRAT_BUILD_GUI)
 		new-gui/brat/GUI/WorkspaceDialog.h
 		new-gui/brat/GUI/WorkspaceElementsDialog.h
 		new-gui/brat/ApplicationSettingsDlg.h
-		new-gui/Common/GUI/ApplicationUserPaths.h
 		new-gui/brat/ApplicationPaths.h
 		new-gui/Common/ApplicationLogger.h
 		new-gui/brat/BratLogger.h

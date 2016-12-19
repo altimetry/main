@@ -65,11 +65,11 @@ int main( int argc, char *argv[] )
 	const CApplicationStaticPaths brat_paths( argv[ 0 ], app_name );
     if (brat_paths.IsValid())
     {
-        std::cout << "Using data directory: " << brat_paths.mInternalDataDir << std::endl;
+        std::cout << "Using data directory: " << brat_paths.mInternalDataDir.mPath << std::endl;
     }
     else
     {
-        std::cerr << brat_paths.GetErrorMsg() << std::endl;
+        std::cerr << brat_paths.ErrorMsg() << std::endl;
         return BRATHL_ERROR;
     }
 

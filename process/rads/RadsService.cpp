@@ -21,7 +21,6 @@
 #include <QLocalSocket>
 
 #include "new-gui/Common/QtUtils.h"
-#include "new-gui/Common/QtUtilsIO.h"
 #include "new-gui/Common/System/OsProcess.h"
 
 #include "simplecrypt.h"
@@ -50,21 +49,60 @@
 //////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////
 
-
-
-void CheckServiceLogging( const CApplicationStaticPaths &brat_paths )
+bool InitializeServiceLogging( const std::string &log_path )
 {
-	static const auto qgis_env_var = "QGIS_LOG_FILE";
+	static const auto log_to_file_env_var = CApplicationLoggerBase::LogToFileEnvVar().c_str();
+	static const auto full_log_env_var = CApplicationLoggerBase::FullLogEnvVar().c_str();
+	static const char *full_log_env_var_value = "1";
+
+	// Ensure file logging and full log (as in debug mode), otherwise no log will be available
+	//	because by design we do not want to capture signals from ProductionLog 
+
+	bool log_ok = true;
+
+	if ( qgetenv( log_to_file_env_var ).isEmpty() )
+	{
+		qputenv( log_to_file_env_var, log_path.c_str() );
+
+		if ( qgetenv( log_to_file_env_var ).isEmpty() )
+		{
+			std::cerr << "Could not set " << log_to_file_env_var << std::endl;
+			log_ok = false;
+		}
+		else
+			std::cout << "Set " << log_to_file_env_var << " as " << log_path + " for logging to file." << std::endl;
+	}
+
+
+	if ( qgetenv( full_log_env_var ).isEmpty() )
+	{
+		qputenv( full_log_env_var, full_log_env_var_value );
+
+		if ( qgetenv( full_log_env_var ).isEmpty() )
+		{
+			std::cerr << "Could not set " << full_log_env_var << std::endl;
+			log_ok = false;
+		}
+		else
+			std::cout << "Set " << full_log_env_var << " to " << full_log_env_var_value << " to enable log." << std::endl;
+	}
+
+
+	if ( !log_ok )
+	{
+		std::cerr << "Logging may not be available." << std::endl;
+		return false;
+	}
+
+	return true;
+}
+
+
+void CheckServiceLogging( const std::string &log_path )
+{
+	static const bool log_ok = InitializeServiceLogging( log_path );	UNUSED( log_ok  );		//ignore, user was already warned in the console
 	static const signed log_files_time_to_live = 10;
 	static const signed log_files_size_to_backup = 10 * 1024 * 1024;
-
-	const std::string &log_path = brat_paths.mRadsServiceLogFilePath;
-
-	// Ensure file logging
-
-	if ( qgetenv( qgis_env_var ).isEmpty() )
-		qputenv( qgis_env_var, log_path.c_str() );
-
 
 	// Log file (re)creation
 
@@ -75,7 +113,7 @@ void CheckServiceLogging( const CApplicationStaticPaths &brat_paths )
 		{
 			std::string old_path = CreateUniqueFileName( log_path );			//old_path is a new path, to save old contents
 			if ( old_path.empty() || !DuplicateFile( log_path, old_path ) )		//save "old" file
-				LOG_WARN( "Could not create new log file. Trying to use existing one." );
+				std::cerr << "Could not create new log file. Trying to use existing one." << std::endl;
 			else
 				RemoveFile( log_path );
 		}
@@ -288,6 +326,8 @@ CRadsClient::CRadsClient( CRadsSettings &settings, QObject *parent )	//parent = 
 
 	const int periodic_check_in_seconds = mSettings.PeriodicCheckInMinutes() * 60;
 
+	mSocketServer->setSocketOptions( QLocalServer::WorldAccessOption );
+
 	if ( mSocketServer->listen( RADS_SHARED_MEMORY_KEY.c_str() ) )
 		connect( mSocketServer, SIGNAL( newConnection() ), this, SLOT( HandleNewConnection() ) );
 	else
@@ -368,6 +408,21 @@ void CRadsClient::ForceSynchronize()
 }
 
 
+void CRadsClient::ForceRsyncEnd()
+{
+	if ( mCurrentProcess )
+	{
+		//"Console applications on Windows that do not run an event loop, or whose event 
+		//loop does not handle the WM_CLOSE message, can only be terminated by calling kill()."
+		//
+		LOG_INFO( "Received request to terminate any current synchronization." );
+		mCurrentProcess->Kill();
+		LOG_INFO( "The request to terminate any current synchronization was processed." );
+	}
+}
+
+
+
 
 template< typename STRING >
 inline STRING QuotePath( const STRING &path )
@@ -396,7 +451,7 @@ bool CRadsClient::Synchronize( bool force )		//force = false
 {
 	// ensure log is prepared
 
-	CheckServiceLogging( mSettings.RadsPaths() );
+	CheckServiceLogging( mSettings.LogFilePath() );
 
 	// ensure schedule
 
@@ -453,7 +508,7 @@ bool CRadsClient::Synchronize( bool force )		//force = false
     QFile pass_file( pass_file_path.c_str() );
     pass_file.setPermissions( QFile::ReadOwner | QFile::WriteOwner );
 
-	std::string cmd_line = QuotePath( mSettings.RadsPaths().mRsyncExecutablePath );
+	std::string cmd_line = QuotePath( mSettings.RadsPaths().mRsyncExecutablePath.mPath );
 	cmd_line += " ";
 	cmd_line += "-avrzR --del --password-file=";
     cmd_line += QuotePath( win2cygwin( pass_file_path ) );		//TODO encrypt/decode: write unencrypted to temporary file passed here
@@ -630,10 +685,10 @@ void CRadsClient::CleanRsyncProcess( bool kill )		//kill = false
 //slot
 void CRadsClient::HandleRsyncError( QProcess::ProcessError error )
 {
-	auto message = "An error occurred launching " + mSettings.RadsPaths().mRsyncExecutablePath + "\n" + q2a( COsProcess::ProcessErrorMessage( error ) );
+	auto message = "An error occurred launching " + mSettings.RadsPaths().mRsyncExecutablePath.mPath + "\n" + q2a( COsProcess::ProcessErrorMessage( error ) );
 	QtServiceBase::instance()->logMessage( message.c_str() );
 	LOG_FATAL( message.c_str() );
-	CleanRsyncProcess();
+	CleanRsyncProcess();		//TODO consider removing this: apparently, HandleProcessFinished is always called, even when HandleRsyncError is called
 }
 
 
@@ -690,7 +745,7 @@ void CRadsClient::HandleProcessFinished( int exit_code, QProcess::ExitStatus exi
     
     // function body
     
-    COsProcess *process = qobject_cast<COsProcess*>( sender() );	Q_UNUSED(process);		assert__( process && mCurrentProcess == process );
+    COsProcess *process = qobject_cast<COsProcess*>( sender() );	Q_UNUSED(process);		assert__( process && ( !mCurrentProcess || mCurrentProcess == process ) );
 
 	if (exitStatus == QProcess::CrashExit) 
 	{
@@ -892,6 +947,12 @@ void CRadsService::processCommand( int code )
 		}
 		break;
 
+		case eRadsService_StopExec:
+		{
+			QTimer::singleShot( 200, mRadsClient, &CRadsClient::ForceRsyncEnd );
+		}
+		break;
+
 		case eRadsService_LockConfig:
 		{
 			mSettings.LockFile( true );
@@ -957,21 +1018,49 @@ int main( int argc, char *argv[] )
 	const CApplicationStaticPaths brat_paths( argv[ 0 ], RADS_SERVICE_NAME );
 
 
-	// II. Log files management
+	// II. Application Settings
 
-	CheckServiceLogging( brat_paths );
+	CRadsSettings settings( brat_paths );
+
+	bool config_result = false;
+	if ( IsFile( settings.FilePath() ) )
+		config_result = settings.LoadConfig();
+	else
+		config_result = settings.SaveConfig();		//save defaults for brat to read
+
+
+	// III. Application Log. Report starting conditions
+
+	const std::string log_path = config_result ? settings.LogFilePath() : brat_paths.mRadsServicePanicLogFilePath.mPath;
+	CheckServiceLogging( log_path );
 
 	LOG_INFO( "" );		LOG_INFO( " *** Logging started *** " );
 
+	if ( !config_result )
+	{
+		const std::string msg = "An error occurred accessing the configuration file.";
+		LOG_WARN( msg );
+		std::cerr << msg << std::endl;	//if log file could not be created, output also to console
+	}
+
+	std::string msg =  "Configuration file " + settings.FilePath() + ". Log messages will be written to " + log_path;
+	LOG_INFO( msg );
+	std::cout << msg << std::endl;
+
+	std::ostringstream os;
+	os << settings;
+	msg = "Initial configuration:\n" + os.str();
+	LOG_INFO( msg );
+	std::cout << msg << std::endl;
+
+
+	// IV. Service
 
 #if defined (LOCAL_DEBUG)	
 	QCoreApplication service( argc, argv );
 	new CRadsClient( brat_paths );
 	return service.exec();
 #else
-
-
-	// III. Service
 
 	CRadsService service( argc, argv, brat_paths, true );		//auto start
 	return service.exec();

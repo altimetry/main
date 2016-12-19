@@ -281,7 +281,7 @@ bool CWorkspaceSettings::LoadConfig( CRadsDataset *d )
 {
 	auto const &missions = smRadsServiceSettings->AllAvailableMissions();
 	const std::string rads_server_address = ReadRadsServerAddress( smBratPaths->mRadsConfigurationFilePath );
-	const std::string local_dir = FormatRadsLocalOutputPath( smBratPaths->UserDataDirectory() );
+	const std::string local_dir = CRadsSettingsBase::FormatRadsLocalOutputFolder( smBratPaths->UserDataDirectory() );
 
 	{
 		CSection section( mSettings, d->GetName() );

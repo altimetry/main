@@ -32,9 +32,9 @@
 #include "libbrathl/List.h"
 #include "libbrathl/FileParams.h"
 
+#include "common/QtStringUtils.h"
 #include "process/rads/RadsSettings.h"
 #include "new-gui/Common/System/Service/qtservice.h"
-#include "new-gui/Common/QtStringUtils.h"
 
 #include "BratSettings.h"
 

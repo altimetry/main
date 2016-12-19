@@ -18,7 +18,6 @@
 #include "new-gui/brat/stdafx.h"
 
 #include "new-gui/Common/QtUtils.h"
-#include "new-gui/Common/QtUtilsIO.h"
 
 #include "libbrathl/Tools.h"
 

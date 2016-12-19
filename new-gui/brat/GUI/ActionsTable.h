@@ -52,6 +52,7 @@ enum EActionTag : int
 	eAction_Delete_Workspace,
 	eAction_About,
 	eAction_User_s_Manual,
+    eAction_Video_Tutorials,
 	eAction_Close_All,
 	eAction_Views_List,
 	eAction_Open_View,
@@ -110,7 +111,7 @@ enum EActionTag : int
 	eAction_InstallRadsService,
 	eAction_StartRadsService,
 	eAction_PauseRadsService,
-	eAction_ExecuteRadsService,
+	eAction_ExecuteOrStopRadsService,
 
 	//add new items before this line
 

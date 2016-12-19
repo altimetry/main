@@ -24,8 +24,7 @@
 #include "PythonEngine.hpp"				//include before any Qt
 
 #include <QDirIterator>
-#include "new-gui/Common/QtUtilsIO.h"
-#include "new-gui/Common/QtStringUtils.h"
+#include "common/QtUtilsIO.h"
 
 #include "BratEmbeddedPythonProcess.h"
 

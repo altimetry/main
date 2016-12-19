@@ -159,6 +159,14 @@ public:
 	{
 		SetTabToolTip( TabIndex( tab ), tip );
 	}
+
+
+	// signals
+
+signals:
+	
+	void TabSelected( int index );
+
 };
 
 #endif	//GUI_TABBED_DOCK_H

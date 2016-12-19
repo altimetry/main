@@ -268,6 +268,12 @@ public:
 	virtual ~COperationControls();
 
 
+	// overrides
+
+	virtual void SelectionChanged( bool selected ) override
+	{}
+
+
 	// access 
 
     bool AdvancedMode() const;

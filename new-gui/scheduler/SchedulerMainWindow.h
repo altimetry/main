@@ -29,7 +29,7 @@
 #include "new-gui/Common/GUI/ProcessesTable.h"
 
 
-class CApplicationUserPaths;
+class CApplicationStaticPaths;
 class CSchedulerApplication;
 class CBasicLogShell;
 class CProcessesTable;
@@ -138,7 +138,7 @@ class CSchedulerMainWindow : public QMainWindow, private Ui::CSchedulerMainWindo
 	QHash< int, QColor >	mSeverityToColorTable;
 	QHash< int, QString >	mSeverityToPromptTable;
 
-    const CApplicationUserPaths *mAppPaths;
+    const CApplicationStaticPaths *mAppPaths;
 	std::string mSchedulerFilePath;
 
 	QTimer mSchedulerTimer;

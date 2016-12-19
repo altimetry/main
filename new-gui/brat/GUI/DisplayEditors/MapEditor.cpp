@@ -17,7 +17,7 @@
 */
 #include "new-gui/brat/stdafx.h"
 
-#include "new-gui/Common/QtUtilsIO.h"
+#include "common/QtUtilsIO.h"
 
 #include "DataModels/Model.h"
 #include "DataModels/DisplayFilesProcessor.h"

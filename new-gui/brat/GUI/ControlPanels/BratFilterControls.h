@@ -138,6 +138,11 @@ public:
 	{}	
 
 
+	// overrides
+
+	virtual void SelectionChanged( bool selected ) override;
+
+
 	// access 
 
 	bool AutoSatelliteTrack() const

@@ -141,7 +141,7 @@ private slots:
 	void HandleViewLogFile();
 	void HandleViewRADSConfigurationFile();
 	void HandleViewRADSServiceSettingsFile();
-	void HandleRadsExecuteNow();
+	void HandleRadsExecuteNow( bool toggled );
 	void HandleRadsSpinValueChanged( int i );
 	void HandleRsyncStatusChanged( CBratApplication::ERadsNotification notification );
 };

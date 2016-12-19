@@ -19,9 +19,9 @@
 
 #include "common/+Utils.h"
 #include "common/+UtilsIO.h"
-#include "new-gui/Common/QtUtilsIO.h"
+#include "common/QtUtilsIO.h"
 
-#include "new-gui/Common/GUI/ApplicationUserPaths.h"
+#include "common/ApplicationStaticPaths.h"
 
 #include "TaskProcessor.h"
 
@@ -46,12 +46,12 @@ std::function< CTasksProcessor*( const std::string &path, bool lockFile, bool un
 
 
 //static 
-CTasksProcessor* CTasksProcessor::CreateInstance( const std::string&scheduler_name, const CApplicationUserPaths &app_paths )
+CTasksProcessor* CTasksProcessor::CreateInstance( const std::string&scheduler_name, const CApplicationStaticPaths &app_paths )
 {
 #if defined(BRAT_V3)
 	static const std::string path = scheduler_name;	//HACK scheduler_name used as tasks file path
 #else
-	static const std::string path = app_paths.DefaultUserDataPath4Application( scheduler_name, true ) + "/" + smFileName + ".xml";
+	static const std::string path = app_paths.DefaultUserSettingsPath4Application( scheduler_name, true ) + "/" + smFileName + ".xml";
 #endif
 	static bool called = false;			assert__( !called );
 	called = true;

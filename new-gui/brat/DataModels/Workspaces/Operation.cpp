@@ -221,8 +221,11 @@ public:
 
 			if ( value->IsFieldType() )
 			{
+                std::string data_mode_di_time_name = value->DataModeDITimeName();
+                if ( data_mode_di_time_name.empty() )
+                    data_mode_di_time_name = "DV";
 				WriteLn( value->GetFieldPrefix() + DATA_MODE_SUFFIX +				"=" + value->GetDataModeAsString() );
-				WriteLn( value->GetFieldPrefix() + DATA_MODE_DI_TIME_NAME_SUFFIX +	"=" + value->DataModeDITimeName() );
+				WriteLn( value->GetFieldPrefix() + DATA_MODE_DI_TIME_NAME_SUFFIX +	"=" + data_mode_di_time_name );
 				WriteLn( value->GetFieldPrefix() + DATA_MODE_DI_DATE_TIME_SUFFIX +	"=" + value->DataModeDIDateTime().AsString() );
 			}
 

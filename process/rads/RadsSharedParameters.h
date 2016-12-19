@@ -94,6 +94,14 @@ struct CRadsMission
 	std::string mAbbr;
 
 	bool operator == ( const CRadsMission &o ) const { return mName == o.mName && mAbbr == o.mAbbr; }
+
+	friend inline std::ostream& operator << ( std::ostream &os, const CRadsMission &o )
+	{
+		return os
+			<< "Name == " << o.mName << std::endl
+			<< "Abbreviation == " << o.mAbbr << std::endl
+			;
+	}
 };
 
 
@@ -174,6 +182,7 @@ inline const std::string& FindRadsMissionName( const std::string &abbr, const st
 enum ERadsServiceCmds
 {
 	eRadsService_ExecNow,
+	eRadsService_StopExec,
 	eRadsService_LockConfig,
 	eRadsService_UnlockConfig,
 
@@ -285,12 +294,6 @@ inline std::string ReadRadsServerAddress( const std::string &ini_path )
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 //										Resolve Rads Local Paths
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-inline std::string FormatRadsLocalOutputPath( const std::string &user_data_dir )
-{
-	return user_data_dir + "/rads";
-}
 
 
 // Assumes 

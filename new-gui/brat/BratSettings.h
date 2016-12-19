@@ -18,8 +18,8 @@
 #if !defined BRAT_SETTINGS_H
 #define BRAT_SETTINGS_H
 
+#include "common/QtUtilsIO.h"
 #include "new-gui/Common/ApplicationSettings.h"
-#include "new-gui/Common/QtUtilsIO.h"
 #include "ApplicationPaths.h"
 #include "GUI/DisplayWidgets/MapWidget.h"
 

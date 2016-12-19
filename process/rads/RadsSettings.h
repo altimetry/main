@@ -45,7 +45,7 @@ public:
 	static const unsigned smMaxNumberOfDays;
 
 
-	static inline const char* RsyncDateFormat()
+	inline static const char* RsyncDateFormat()
 	{
 		const char *date_s = "yyyy-MM-dd";		//const char *date_time_s = "yyyy-MM-dd hh:mm:ss.zzz";
 
@@ -53,6 +53,12 @@ public:
 	}
 
 	
+	static std::string FormatRadsLocalOutputFolder( const std::string &user_data_dir );
+
+
+	static std::string FormatRadsLogFilePath( const std::string &user_data_dir );
+
+
 protected:
 
     //////////////////////////////////////
@@ -65,9 +71,9 @@ protected:
 	// for the service to operate
 	//
 	std::vector< std::string > mMissionNames;
-	std::string mOutputDirectory;
+	std::string mUserDataDir;							//data folder and log path dynamically formed based on this
 
-	int mNumberOfDays = smDefaultNumberOfDays;					//signed: we must be able to do arithmetic with negative mNumberOfDays
+	int mNumberOfDays = smDefaultNumberOfDays;			//signed: we must be able to do arithmetic with negative mNumberOfDays
 
 	std::vector< CRadsMission > mAllAvailableMissions;	//initialized by CommonConstruct
 
@@ -105,7 +111,15 @@ public:
     virtual ~CRadsSettingsBase()
     {}
 
-    //////////////////////////////////////
+	
+	//////////////////////////////////////
+	//	Log
+	//////////////////////////////////////
+
+	friend std::ostream& operator << ( std::ostream &os, const CRadsSettingsBase &o );
+
+
+	//////////////////////////////////////
     //	access
     //////////////////////////////////////
 
@@ -113,7 +127,9 @@ public:
 
 	const std::vector< std::string >& MissionNames() const { return mMissionNames; }
 
-	const std::string& OutputDirectory() const { return mOutputDirectory; }
+	std::string OutputDirectory() const { return FormatRadsLocalOutputFolder( mUserDataDir ); }
+
+	std::string LogFilePath() const { return FormatRadsLogFilePath( mUserDataDir ); }
 
 
 	//... time related
@@ -151,7 +167,7 @@ protected:
 public:
 
     //////////////////////////////////////
-    //	operations
+    //	Persistence
     //////////////////////////////////////
 
 	virtual bool LoadConfig();
@@ -208,6 +224,14 @@ public:
 
 	virtual ~CRadsSettings()
 	{}
+
+
+	//////////////////////////////////////
+	//	Log
+	//////////////////////////////////////
+
+	friend std::ostream& operator << ( std::ostream &os, const CRadsSettings &o );
+
 
 	//////////////////////////////////////
 	//	access
@@ -285,7 +309,7 @@ public:
 
 	// Calls to this function should be enveloped in lock/unlock command calls to the rads service
 	//
-	bool SetApplicationParameterValues( const std::string &missions_str, int ndays, const std::string &output_dir );
+	bool SetApplicationParameterValues( const std::string &missions_str, int ndays, const std::string &user_data_dir );
 
 
 	virtual bool SaveConfig() override;

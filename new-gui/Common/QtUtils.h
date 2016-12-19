@@ -75,7 +75,7 @@
 #include <QTimer>
 
 
-#include "QtUtilsIO.h"	// QtUtilsIO.h => QtStringUtils.h => +Utils.h
+#include "common/QtUtilsIO.h"	// QtUtilsIO.h => QtStringUtils.h => +Utils.h
 
 
 //Table of Contents
@@ -201,9 +201,14 @@ inline void SimpleAboutBox( const std::string &version, const std::string &proc_
 	QMessageBox::about( ApplicationWindow(), QObject::tr( title.c_str() ), msg );
 }
 
+inline bool SimpleSystemOpenURL( const std::string &url )
+{
+	return QDesktopServices::openUrl( QUrl( url.c_str(), QUrl::TolerantMode ) );
+}
+
 inline bool SimpleSystemOpenFile( const std::string &path )
 {
-	return QDesktopServices::openUrl( QUrl( ( "file:///" + path ).c_str(), QUrl::TolerantMode ) );
+	return SimpleSystemOpenURL( "file:///" + path );
 }
 
 
@@ -1377,59 +1382,6 @@ inline void NotImplemented( const char *msg = nullptr )
 
 
 
-
-
-//////////////////////////////////////////////////////////////////
-//						OS Standard Paths
-//////////////////////////////////////////////////////////////////
-//
-//in this file and not IO because include GUI
-
-
-inline const std::string& SystemUserDocumentsPath()
-{
-#if QT_VERSION >= 0x050000
-	static const std::string docs = q2a( QStandardPaths::writableLocation( QStandardPaths::DocumentsLocation ) );
-#else
-	static const std::string docs = q2a( QDesktopServices::storageLocation( QDesktopServices::DocumentsLocation ) );
-#endif
-
-    assert__( IsDir( docs ) );
-
-	return docs;
-}
-
-// If applicationName and/or organizationName are set, are used by the framework as sub-directories.
-// If parameter root is false (the default), this function always removes the application 
-//  sub-directory, if it exists; so, for different applications of the same "organization" 
-//	(or of "no organization") the returned path is the same in the same machine.
-//
-inline std::string ComputeSystemUserDataPath( bool root = false )
-{
-#if QT_VERSION >= 0x050000
-
-	std::string data = q2a( QStandardPaths::writableLocation( QStandardPaths::GenericDataLocation ) );
-	if ( !root && !QCoreApplication::organizationName().isEmpty() )
-		data += ( "/" + q2a( QCoreApplication::organizationName() ) );
-
-#else
-	std::string data = q2a( QDesktopServices::storageLocation( QDesktopServices::DataLocation ) );
-
-	if ( !QCoreApplication::applicationName().isEmpty() )
-		data = GetDirectoryFromPath( data );
-	if ( root && !QCoreApplication::organizationName().isEmpty() && !QCoreApplication::applicationName().isEmpty() )
-		data = GetDirectoryFromPath( data );
-
-#endif
-
-	return data;
-}
-
-inline const std::string& SystemUserDataPath()
-{
-	static const std::string data = ComputeSystemUserDataPath();		assert__( IsDir( GetDirectoryFromPath( data ) ) );
-	return data;
-}
 
 
 //////////////////////////////////////////////////////////////////

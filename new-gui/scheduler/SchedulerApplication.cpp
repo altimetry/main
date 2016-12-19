@@ -17,18 +17,18 @@
 */
 #include "stdafx.h"
 
-#include "new-gui/Common/QtUtils.h"
+#include "common/ApplicationStaticPaths.h"
 
-#include "SchedulerApplication.h"
+#include "new-gui/Common/QtUtils.h"
 #include "new-gui/Common/ScheduledTasksList.hxx"
 #include "new-gui/Common/XmlSerializer.h"
 #include "new-gui/Common/DataModels/TaskProcessor.h"
-#include "new-gui/Common/GUI/ApplicationUserPaths.h"
 
+#include "SchedulerApplication.h"
 
 
 bool CSchedulerApplication::smPrologueCalled = false;
-const CApplicationUserPaths *CSchedulerApplication::smApplicationPaths = nullptr;
+const CApplicationStaticPaths *CSchedulerApplication::smApplicationPaths = nullptr;
 
 
 // Static "pre-constructor"
@@ -78,9 +78,9 @@ void CSchedulerApplication::Prologue( int argc, char *argv[] )
 
 	// Application Paths - a critical first thing to do ////////////////////////////////////
 
-    static const CApplicationUserPaths brat_paths( argv[ 0 ], SCHEDULER_APPLICATION_NAME );
+    static const CApplicationStaticPaths brat_paths( argv[ 0 ], SCHEDULER_APPLICATION_NAME );
     if ( !brat_paths.IsValid() )
-        throw CException( "One or more path directories are invalid:\n" + brat_paths.GetErrorMsg() );
+        throw CException( "One or more path directories are invalid:\n" + brat_paths.ErrorMsg() );
 
     smApplicationPaths = &brat_paths;	LOG_TRACEstd( smApplicationPaths->ToString() );
 

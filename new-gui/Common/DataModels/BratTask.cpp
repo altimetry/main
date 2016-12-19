@@ -17,7 +17,7 @@
 */
 #include "stdafx.h"
 
-#include "new-gui/Common/QtUtilsIO.h"
+#include "common/QtUtilsIO.h"
 #include "common/tools/Trace.h"
 
 #include "BratTask.h"

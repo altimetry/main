@@ -37,6 +37,79 @@
 //							Standard Paths
 ///////////////////////////////////////////////////////////////////////////
 
+struct CBratPath
+{
+	const std::string mPath;
+	const bool mMustExist;
+	const std::string mName;
+
+	CBratPath( const std::string &path, bool must_exist, const char *name );
+
+	CBratPath( const CBratPath &o )
+		: mPath( o.mPath )
+		, mMustExist( o.mMustExist )
+		, mName( o.mName )
+	{}
+
+	virtual ~CBratPath()
+	{}
+
+
+	operator const std::string& () const;
+
+	operator std::string () const;
+
+	bool operator == ( const CBratPath &o ) const;
+
+	std::string ToString() const;
+
+	virtual bool Valid() const = 0;
+};
+
+
+struct CFolderPath : public CBratPath
+{
+	using base_t = CBratPath;
+
+	CFolderPath( const std::string &path, bool must_exist, const char *name )
+		: base_t( path, must_exist, name )
+	{}
+
+	CFolderPath( const CBratPath &o )
+		: base_t( o )
+	{}
+
+	virtual ~CFolderPath()
+	{}
+
+	
+	std::string operator + ( const std::string &str ) const;
+
+
+	virtual bool Valid() const override;
+};
+
+
+struct CFilePath : public CBratPath
+{
+	using base_t = CBratPath;
+
+	CFilePath( const std::string &path, bool must_exist, const char *name )
+		: base_t( path, must_exist, name )
+	{}
+
+	CFilePath( const CBratPath &o )
+		: base_t( o )
+	{}
+
+	virtual ~CFilePath()
+	{}
+
+	virtual bool Valid() const override;
+};
+
+
+
 
 
 
@@ -69,6 +142,8 @@ protected:
 
 	static bool ValidPath( std::string &error_msg, const std::string &path, bool is_file, const std::string path_title );
 
+	static bool ValidPath( std::string &error_msg, const CBratPath &path );
+
 
     ////////////////////////////////////////////
     //	instance data
@@ -89,26 +164,26 @@ public:
     const std::string mPlatform;
     const std::string mConfiguration;
 
-    const std::string mExecutablePath;          //origin: runtime binary
+    const CFilePath mExecutablePath;			//origin: runtime binary
     const std::string mApplicationName;         //origin: caller
-    const std::string mExecutableDir;			//origin: runtime binary
-    const std::string mDeploymentRootDir;		//origin: runtime binary; executable's parent directory
+    const CFolderPath mExecutableDir;			//origin: runtime binary
+    const CFolderPath mDeploymentRootDir;		//origin: runtime binary; executable's parent directory
 
-    const std::string mQtPluginsDir;			//origin: Qt deployable (libraries)
-    const std::string mPythonDir;				//origin: runtime binary
+    const CFolderPath mQtPluginsDir;			//origin: Qt deployable (libraries)
+    const CFolderPath mPythonDir;				//origin: runtime binary
 
-    const std::string mUserManualPath;			//origin: runtime binary
+    const CFilePath mUserManualPath;			//origin: runtime binary
 
     // mInternalDataDir: allowed to change for
     //	compatibility reasons only. Modifiable
     //	exclusively through environment variable.
     //	Requires restart. 
     //
-    const std::string mInternalDataDir;		//origin: version control, deployed to bin as internal resources
+    const CFolderPath mInternalDataDir;		//origin: version control, deployed to bin as internal resources
 
-	const std::string mRsyncExecutablePath;
-	const std::string mRadsServiceLogFilePath;
-	const std::string mRadsConfigurationFilePath;
+	const CFilePath mRsyncExecutablePath;
+	const CFilePath mRadsConfigurationFilePath;
+	const CFilePath mRadsServicePanicLogFilePath;
 
 
     ////////////////////////////////////////////
@@ -128,12 +203,24 @@ public:
     //	access (getters/setters/testers)
     ////////////////////////////////////////////
 
-    std::string GetErrorMsg() const { return mErrorMsg; }
+    std::string ErrorMsg() const { return mErrorMsg; }
 
 	bool IsValid() const { return mValid; }
 
 
-    ////////////////////////////////////////////
+	std::string DefaultUserDocumentsPath() const;
+
+
+	std::string DefaultUserSettingsPath4Application( const std::string&application_name, bool create = true ) const;
+
+
+	std::string DefaultUserSettingsPath( bool create = true ) const
+	{
+		return DefaultUserSettingsPath4Application( mApplicationName, create );
+	}
+
+
+	////////////////////////////////////////////
     //	remaining member functions
     ////////////////////////////////////////////
 

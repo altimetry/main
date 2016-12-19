@@ -83,7 +83,14 @@ public:
 
 	virtual ~CRadsBrowserControls();
 
-    // access
+
+	// overrides
+
+	virtual void SelectionChanged( bool selected ) override
+	{}
+
+
+	// access
 
     // operations
     void AddFiles(QStringList &paths_list);

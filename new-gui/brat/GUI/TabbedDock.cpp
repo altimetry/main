@@ -60,6 +60,10 @@ void CTabbedDock::CreateContents( QWidget *top_widget )	//top_widget = nullptr
 	LayoutWidgets( Qt::Vertical, v, mDockContents, Spacing, ContentsMargin, ContentsMargin, ContentsMargin, ContentsMargin );
 
 	setWidget( mDockContents );
+
+	//Wire
+
+	connect( mTabWidget, SIGNAL( currentChanged( int ) ), this, SIGNAL( TabSelected( int ) ), Qt::QueuedConnection );
 }
 
 CTabbedDock::CTabbedDock( QWidget *top_widget, const QString &title, QWidget *parent, Qt::WindowFlags f )		//parent = nullptr, Qt::WindowFlags f = 0 

@@ -73,6 +73,11 @@ public:
 	{}	
 
 
+	// To be called when this is in a widget container and its selection state changed
+	//	- useful to 
+	//
+	virtual void SelectionChanged( bool selected ) = 0;
+
 
 	////////////////////////////
 	// GUI

@@ -17,7 +17,7 @@
 */
 #include "new-gui/brat/stdafx.h"
 
-#include "new-gui/Common/QtUtilsIO.h"
+#include "common/QtUtilsIO.h"
 #include "common/tools/Trace.h"
 #include "common/tools/Exception.h"
 #include "libbrathl/Tools.h"

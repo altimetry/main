@@ -17,7 +17,7 @@
 */
 #include "new-gui/brat/stdafx.h"
 
-#include "new-gui/Common/QtUtilsIO.h"
+#include "common/QtUtilsIO.h"
 
 #include "DataModels/Workspaces/Workspace.h"
 #include "new-gui/Common/GUI/TextWidget.h"

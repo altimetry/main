@@ -175,6 +175,7 @@ void CBratMainWindow::CreateWorkingDock()
 	mMainWorkingDock->setAllowedAreas( Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea );	
 	mMainWorkingDock->setMinimumWidth( min_main_working_dock_width );	
 	addDockWidget( Qt::LeftDockWidgetArea, mMainWorkingDock, Qt::Vertical );
+	connect( mMainWorkingDock, &CTabbedDock::TabSelected, this, &CBratMainWindow::TabSelected );
 
 	LOG_TRACE( "Added mMainWorkingDock..." );
 
@@ -1200,6 +1201,15 @@ void CBratMainWindow::EmitWorkspaceChanged()
 }
 
 
+void CBratMainWindow::TabSelected( int index )
+{
+	WorkingPanel< eDataset >()->SelectionChanged( index == eDataset );
+	WorkingPanel< eRADS >()->SelectionChanged( index == eRADS );
+	WorkingPanel< eFilter >()->SelectionChanged( index == eFilter );
+	WorkingPanel< eOperations >()->SelectionChanged( index == eOperations );
+}
+
+
 
 /////////////////////////////////////////////////////////////////////////
 //                      WORKSPACE ACTIONS
@@ -1634,9 +1644,17 @@ void CBratMainWindow::on_action_About_triggered()
 void CBratMainWindow::on_action_User_s_Manual_triggered()
 {
 	if ( !SimpleSystemOpenFile( mSettings.BratPaths().mUserManualPath ) )
-		SimpleErrorBox( "Could not open " + mSettings.BratPaths().mUserManualPath );
+		SimpleErrorBox( "Could not open " + mSettings.BratPaths().mUserManualPath.mPath );
 }
 
+
+void CBratMainWindow::on_action_Youtube_Video_Tutorials_triggered()
+{
+    static const std::string s = "https://www.youtube.com/playlist?list=PLWLKr3OylZcHbPKlAsmRLQp6aqAq2NChr";
+    
+    if ( !SimpleSystemOpenURL( s ) )
+        SimpleErrorBox( "Could not open " + s );
+}
 
 
 

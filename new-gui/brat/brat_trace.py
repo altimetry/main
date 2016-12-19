@@ -15,5 +15,5 @@ os.system( "brat" )
 # os.environ.clear()
 # set previously saved variables (preserves)
 os.environ.update(original_env)
-# also make sure we haven't destroyed our precious little development environment
+# also make sure we haven't destroyed our development environment
 # print ("\n", os.environ.get('QGIS_DEBUG'))

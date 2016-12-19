@@ -63,9 +63,9 @@ class InternalOutputStream
 
 		sTime.start();
 
-		sLogFile = getenv( "QGIS_LOG_FILE" ) ? getenv( "QGIS_LOG_FILE" ) : "";
+		sLogFile = getenv( CApplicationLoggerBase::LogToFileEnvVar().c_str() ) ? getenv( CApplicationLoggerBase::LogToFileEnvVar().c_str() ) : "";
 		sFileFilter = getenv( "QGIS_DEBUG_FILE" ) ? getenv( "QGIS_DEBUG_FILE" ) : "";
-		sDebugLevel = getenv( "QGIS_DEBUG" ) ? atoi( getenv( "QGIS_DEBUG" ) ) :
+		sDebugLevel = getenv( CApplicationLoggerBase::FullLogEnvVar().c_str() ) ? atoi( getenv( CApplicationLoggerBase::FullLogEnvVar().c_str() ) ) :
 #ifdef QGISDEBUG
 			1
 #else
@@ -145,7 +145,15 @@ public:
 		//Maybe more efficient to keep the file open for the life of qgis...
 		QFile file( sLogFile );
 		if ( !file.open( QIODevice::Append ) )
+		{
+			static bool first_time = true;
+			if ( first_time )
+			{
+				first_time = false;
+				std::cerr << "Could not open " << q2a( sLogFile ) << " for logging." << std::endl;
+			}
 			return;
+		}
 		file.write( theMessage.toLocal8Bit().constData() );
 		file.write( "\n" );
 		file.close();
@@ -228,7 +236,7 @@ CApplicationLoggerBase::CApplicationLoggerBase()
 
 	, mQtHandler( InstallQtMsgHandler( MessageOutputProxy ) )
 
-	, mLogMsg( getenv( "QGIS_DEBUG" ) ? &CApplicationLoggerBase::CallFullLogMsg : &CApplicationLoggerBase::CallProductionLogMsg )
+	, mLogMsg( getenv( CApplicationLoggerBase::FullLogEnvVar().c_str() ) ? &CApplicationLoggerBase::CallFullLogMsg : &CApplicationLoggerBase::CallProductionLogMsg )
 
 	, mSignalsMutex( QMutex::Recursive )
 

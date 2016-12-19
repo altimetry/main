@@ -21,7 +21,7 @@
 #include <QSettings>
 #include <QDateTime>
 
-#include "new-gui/Common/QtStringUtils.h"
+#include "common/QtStringUtils.h"
 #include "new-gui/Common/ConfigurationKeywords.h"
 
 

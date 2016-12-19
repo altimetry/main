@@ -20,7 +20,7 @@
 
 #include <QMutex>
 
-#include "new-gui/Common/QtStringUtils.h"
+#include "common/QtStringUtils.h"
 
 
 #if QT_VERSION >= 0x050000
@@ -234,6 +234,19 @@ protected:
 
 public:
 
+	static const std::string& LogToFileEnvVar()
+	{
+		static const std::string s = "QGIS_LOG_FILE";
+		return s;
+	}
+
+	static const std::string& FullLogEnvVar()	//versus Production log
+	{
+		static const std::string s = "QGIS_DEBUG";
+		return s;
+	}
+
+	
 	// For default trace macro usage
 	//
 	static void TraceWrite( const QString& msg, int debuglevel = 1, const char* file = nullptr, const char* function = nullptr, int line = -1 );

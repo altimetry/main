@@ -21,8 +21,8 @@
 
 #include <QString>
 
-#include "new-gui/Common/QtUtilsIO.h"
-#include "new-gui/Common/GUI/ApplicationUserPaths.h"
+#include "common/QtUtilsIO.h"
+#include "common/ApplicationStaticPaths.h"
 
 
 
@@ -32,13 +32,13 @@
 
 
 
-class CApplicationPaths : public CApplicationUserPaths
+class CApplicationPaths : public CApplicationStaticPaths
 {
     ////////////////////////////////////////////
     //	types & friends
     ////////////////////////////////////////////
 
-	using base_t = CApplicationUserPaths;
+	using base_t = CApplicationStaticPaths;
 
 	friend class CBratSettings;
 
@@ -74,8 +74,6 @@ public:
     const std::string mOsgPluginsDir;			//origin: OSG deployable (libraries)
     const std::string mQgisPluginsDir;			//origin: QGIS deployable (libraries)
     const std::string mGlobeDir;				//origin: QGIS deployable (like libraries)
-
-	//TODO: change these names according to our convention, for instance: m_execYFXName -> mExecYFXName. The same in COperation
 
     const std::string mExecYFXName;
     const std::string mExecZFXYName;

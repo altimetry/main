@@ -110,7 +110,7 @@ bool CRadsBrowserControls::CheckRadsConfigStatus()
 	std::string rads_error_msg;
 	bool result = mRadsServiceSettings.mValidRadsMissions;	//This variable records the status of reading RADS configuration file (not the service settings file)
 	if ( !result )
-		rads_error_msg = "An error occurred reading missions from rads configuration file.\nPlease check " + mBratPaths.mRadsConfigurationFilePath;
+		rads_error_msg = "An error occurred reading missions from rads configuration file.\nPlease check " + mBratPaths.mRadsConfigurationFilePath.mPath;
 	else
 	{
 		result = mRadsServiceSettings.Status() == QSettings::Status::NoError;
@@ -291,7 +291,7 @@ void CRadsBrowserControls::HandleCurrentIndexChanged( CRadsDatasetsTreeWidgetIte
 	CRadsDataset *current_dataset = mWDataset->GetDataset< CRadsDataset >( q2a( dataset_name ) );				assert__( current_dataset );
 
 	const std::string rads_server_address = ReadRadsServerAddress( mBratPaths.mRadsConfigurationFilePath );
-	const std::string local_dir = FormatRadsLocalOutputPath( mBratPaths.UserDataDirectory() );
+	const std::string local_dir = CRadsSettings::FormatRadsLocalOutputFolder( mBratPaths.UserDataDirectory() );
 	const std::string mission_name = q2a( item->CurrentMission() );
 
 	auto const &missions = mRadsServiceSettings.AllAvailableMissions();

@@ -17,7 +17,7 @@
 */
 #include "stdafx.h"
 
-#include "new-gui/Common/QtUtilsIO.h"
+#include "common/QtUtilsIO.h"
 #include "common/tools/Exception.h"
 #include "RadsSettings.h"
 
@@ -26,7 +26,7 @@
 
 const std::string ENTRY_RADS_MISSIONS =				"missions";
 const std::string ENTRY_RADS_NUMBER_OF_DAYS =		"days";
-const std::string ENTRY_RADS_OUTPUT_DIRECTORY =		"out_dir";
+const std::string ENTRY_USER_DATA_DIR =				"user_data_dir";
 const std::string ENTRY_LAT_SYNC_TIME =				"last_sync_time";
 const std::string ENTRY_PERIODIC_CHECK_IN_MINUTES =	"periodic_check_in_minutes";
 
@@ -45,6 +45,23 @@ const unsigned CRadsSettingsBase::smDefaultNumberOfDays = 3;
 const unsigned CRadsSettingsBase::smMinNumberOfDays = 1;
 //static 
 const unsigned CRadsSettingsBase::smMaxNumberOfDays = 31;
+
+
+//static 
+std::string CRadsSettingsBase::FormatRadsLocalOutputFolder( const std::string &user_data_dir )
+{
+	return NormalizedPath( user_data_dir + "/rads");
+}
+
+
+//static 
+std::string CRadsSettingsBase::FormatRadsLogFilePath( const std::string &user_data_dir )
+{
+	return NormalizedPath( FormatRadsLocalOutputFolder( user_data_dir ) + "/RadsServiceLog.txt" );
+}
+
+
+
 
 
 bool CRadsSettingsBase::CommonConstruct()
@@ -72,6 +89,30 @@ CRadsSettingsBase::CRadsSettingsBase( const CApplicationStaticPaths &brat_paths,
 	, mRadsPaths( brat_paths )
 	, mValidRadsMissions( CommonConstruct() )
 {}
+
+
+template< class CONTAINER_ITEM >
+std::ostream& operator << ( std::ostream &os, const std::vector< CONTAINER_ITEM > &o )
+{
+	for ( auto const &item : o )
+		os << item << std::endl;
+	return os;
+}
+
+
+std::ostream& operator << ( std::ostream &os, const CRadsSettingsBase &o )
+{
+	return os
+		<< "MissionNames == " << o.mMissionNames << std::endl
+		<< "UserDataDir == " << o.mUserDataDir << std::endl
+		<< "LogFilePath() == " << o.LogFilePath() << std::endl
+		<< "OutputDirectory() == " << o.OutputDirectory() << std::endl
+		<< "NumberOfDays == " << n2s<std::string>( o.mNumberOfDays ) << std::endl
+		<< "AllAvailableMissions == " << o.mAllAvailableMissions << std::endl
+		<< "LastSync == " << q2a( o.mLastSync.toString() ) << std::endl
+		<< "ValidRadsMissions == " << o.mValidRadsMissions << std::endl
+		;
+}
 
 
 QDate CRadsSettingsBase::NextSyncDateForPeriodWithDays( int ndays )
@@ -135,7 +176,7 @@ bool CRadsSettingsBase::SaveConfig()
 
 			k_v( ENTRY_RADS_MISSIONS,			missions_str ),
 			k_v( ENTRY_RADS_NUMBER_OF_DAYS,		mNumberOfDays ),
-			k_v( ENTRY_RADS_OUTPUT_DIRECTORY,	mOutputDirectory ),
+			k_v( ENTRY_USER_DATA_DIR,			mUserDataDir ),
 			k_v( ENTRY_LAT_SYNC_TIME,			mLastSync )
 		)
 		&&
@@ -152,7 +193,7 @@ bool CRadsSettingsBase::LoadConfig()
 
 			k_v( ENTRY_RADS_MISSIONS,			&missions_str ),
 			k_v( ENTRY_RADS_NUMBER_OF_DAYS,		&mNumberOfDays, (decltype(mNumberOfDays))smDefaultNumberOfDays ),
-			k_v( ENTRY_RADS_OUTPUT_DIRECTORY,	&mOutputDirectory ),
+			k_v( ENTRY_USER_DATA_DIR,			&mUserDataDir ),
 			k_v( ENTRY_LAT_SYNC_TIME,			&mLastSync )
 		);
 
@@ -217,7 +258,15 @@ bool CRadsSettings::SetLastSyncTimeNow()
 }
 
 
+std::ostream& operator << ( std::ostream &os, const CRadsSettings &o )
+{
+	return os 
+		<< static_cast< const CRadsSettings::base_t& >( o )
+		<< "PeriodicCheckInMinutes == " << n2s<std::string>( o.mPeriodicCheckInMinutes ) << std::endl
+		;
 
+	return os;
+}
 
 
 bool CRadsSettings::LockFile( bool lock ) 
@@ -287,17 +336,24 @@ bool CRadsSettings::LoadConfig()
 ////////////////////////////////////////////////////////////////////////////////////////////
 
 
-bool CSharedRadsSettings::SetApplicationParameterValues( const std::string &missions_str, int ndays, const std::string &output_dir )
+bool CSharedRadsSettings::SetApplicationParameterValues( const std::string &missions_str, int ndays, const std::string &user_data_dir )
 {
 	if ( ndays < smMinNumberOfDays || ndays > smMaxNumberOfDays )
 		return false;
 
-	if ( !IsDir( output_dir ) )
+	if ( !IsDir( user_data_dir ) )
 		return false;
 
+	if ( !IsDir( user_data_dir ) )
+		return false;
+
+	const std::string rads_data_dir = FormatRadsLocalOutputFolder( user_data_dir );
+	if ( !IsDir( rads_data_dir ) && !MakeDirectory( rads_data_dir ) )
+		return false;
+
+	mUserDataDir = user_data_dir;
 	mMissionNames = String2Vector( missions_str, missions_separator );
 	mNumberOfDays = ndays;
-	mOutputDirectory = output_dir;
 
 	return SaveConfig();
 }
