@@ -62,6 +62,8 @@
 #include "ProductTopex.h"
 #include "ProductTopexSDR.h"
 #include "ProductGeosatGDR.h"
+#include "ProductReaper.h"
+#include "ProductJason1NetCdf.h"
 
 // When debugging changes all calls to "new" to be calls to "DEBUG_NEW" allowing for memory leaks to
 // give you the file name and line number where it occurred.
@@ -1796,6 +1798,17 @@ CProduct* CProduct::Construct( const CProductList& fileNameList )
 			if ( productType == CExternalFilesGeosatGDR::TypeOf() )
 			{
 				product = new CProductGeosatGDR( fileNameList, true );
+			}
+            else
+            if ( productType == CExternalFilesReaper::TypeOf() )
+            {
+                product = new CProductReaper( fileNameList, true );
+			}
+            else
+            if ( (productType == CExternalFilesJason1GPN2P::TypeOf())
+                 || (productType == CExternalFilesJason1GPS2P::TypeOf()))
+            {
+                product = new CProductJason1NetCdf( fileNameList, true );
 			}
 			else
 			if ( CExternalFilesRads::IsTypeOf( productType ) )

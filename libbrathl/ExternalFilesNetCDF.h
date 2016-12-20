@@ -363,7 +363,6 @@ public:
 };
 
 
-
 class CExternalFilesGeosatGDR : public CExternalFilesNetCDFCF
 {
     DECLARE_BASE_TYPE( CExternalFilesNetCDFCF )
@@ -377,6 +376,40 @@ public:
     {}
 
     static std::string TypeOf() { return "Geosat_GDR"; }
+    virtual std::string GetType() { return TypeOf(); }
+};
+
+
+class CExternalFilesJason1GPN2P : public CExternalFilesNetCDFCF
+{
+    DECLARE_BASE_TYPE( CExternalFilesNetCDFCF )
+
+public:
+    CExternalFilesJason1GPN2P( const std::string	&name = "" )
+        : base_t( name )
+    {}
+
+    virtual ~CExternalFilesJason1GPN2P()
+    {}
+
+    static std::string TypeOf() { return "Jason1_GPN_2P"; }
+    virtual std::string GetType() { return TypeOf(); }
+};
+
+
+class CExternalFilesJason1GPS2P : public CExternalFilesNetCDFCF
+{
+    DECLARE_BASE_TYPE( CExternalFilesNetCDFCF )
+
+public:
+    CExternalFilesJason1GPS2P( const std::string	&name = "" )
+        : base_t( name )
+    {}
+
+    virtual ~CExternalFilesJason1GPS2P()
+    {}
+
+    static std::string TypeOf() { return "Jason1_GPS_2P"; }
     virtual std::string GetType() { return TypeOf(); }
 };
 

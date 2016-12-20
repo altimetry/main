@@ -98,6 +98,12 @@ namespace brathl
 		// Geosat GDR
 		CHECK_TYPE( CExternalFilesGeosatGDR );
 
+        // Jason-1 GDR Native (GPN 2P)
+        CHECK_TYPE( CExternalFilesJason1GPN2P );
+
+        // Jason-1 GDR Expertise (GPS 2P)
+        CHECK_TYPE( CExternalFilesJason1GPS2P );
+
 		return NULL;
 	}
 

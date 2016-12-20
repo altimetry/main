@@ -4452,6 +4452,11 @@ std::pair< std::string, std::string > CNetCDFFiles::IdentifyExistingFile( bool c
 				std::string str_id;
 				int found_str_id = GetAtt( NC_GLOBAL, "id", str_id, false, attrNotFound );
 
+                // Jason-1 GDR (Native/Expertise) -- Global attribute "title" exists and is equal
+                // to "GDR - Native dataset" for Native or "GDR - Expertise dataset" for Expertise
+                std::string str_title;
+                int found_str_title = GetAtt( NC_GLOBAL, "title", str_title, false, attrNotFound );
+
 				// If REAPER/ERS_ALT_2
 				if ( found_str_l2_ref_doc == NC_NOERR && str_l2_ref_doc == "REA-IS-PSD-5001" )
 				{
@@ -4464,6 +4469,20 @@ std::pair< std::string, std::string > CNetCDFFiles::IdentifyExistingFile( bool c
 				{
 					return { CExternalFilesGeosatGDR::TypeOf(), "" };
 				}
+
+                // If Jason-1 GDR (Native)
+                else
+                if (found_str_title == NC_NOERR && str_title == "GDR - Native dataset")
+                {
+                    return { CExternalFilesJason1GPN2P::TypeOf(), "" };
+                }
+
+                // If Jason-1 GDR (Expertise)
+                else
+                if (found_str_title == NC_NOERR && str_title == "GDR - Expertise dataset")
+                {
+                    return { CExternalFilesJason1GPS2P::TypeOf(), "" };
+                }
 			}
 
 

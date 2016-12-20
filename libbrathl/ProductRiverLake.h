@@ -85,9 +85,9 @@ private:
 
   void AddCombinedVariableToTree() override;
 
-  void initInternalFieldNamesForCombinedVariable(CStringList& listField);
+  void initInternalFieldNamesForCombinedVariable(CStringList& listField) override;
 
-  bool computeCombinedField(CField *field);
+  bool computeCombinedField(CField *field) override;
 };
 
 /** @} */

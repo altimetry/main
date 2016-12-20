@@ -280,6 +280,8 @@ namespace brathl
 
             return true;
         }
+
+       return false;
     }
 
 } // end namespace
