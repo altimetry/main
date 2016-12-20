@@ -1713,6 +1713,11 @@ void CBratMainWindow::HandleRsyncStatusChanged( CBratApplication::ERadsNotificat
 			mMainWorkingDock->SetTabTextColor( 1, Qt::yellow );
 		}
 		break;
+        
+        case  CBratApplication::eNotificationConfigSaved:
+        {
+        }
+        break;
     }
 }
 

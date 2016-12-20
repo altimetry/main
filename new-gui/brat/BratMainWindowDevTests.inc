@@ -66,10 +66,10 @@ void CBratMainWindow::on_action_Python_Console_triggered()
     //args << "-e" << mModel.BratPaths().FullPythonExecutablePath().c_str();
 
     QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
-    env.insert( "DYLD_LIBRARY_PATH", ( mModel.BratPaths().mPythonDir + ":" + mModel.BratPaths().mPythonDir + "/lib"  + ":/Users/brat/dev/bin/Qt-4.8.6/brat/x86_64/Debug/brat.app/Contents/MacOS/Python/lib/python3.2/lib-dynload" ).c_str() );
-    env.insert( "DYLD_FRAMEWORK_PATH", ( mModel.BratPaths().mPythonDir + ":/Users/brat/dev/bin/Qt-4.8.6/brat/x86_64/Debug/brat.app/Contents/MacOS/Python/lib/python3.2/lib-dynload" ).c_str() );
+    env.insert( "DYLD_LIBRARY_PATH", ( mModel.BratPaths().mPythonDir.mPath + ":" + mModel.BratPaths().mPythonDir.mPath + "/lib"  + ":/Users/brat/dev/bin/Qt-4.8.6/brat/x86_64/Debug/brat.app/Contents/MacOS/Python/lib/python3.2/lib-dynload" ).c_str() );
+    env.insert( "DYLD_FRAMEWORK_PATH", ( mModel.BratPaths().mPythonDir.mPath + ":/Users/brat/dev/bin/Qt-4.8.6/brat/x86_64/Debug/brat.app/Contents/MacOS/Python/lib/python3.2/lib-dynload" ).c_str() );
     env.insert( "PYTHONPATH", ( mModel.BratPaths().mPythonDir + "/lib/python3.2" ).c_str() );
-    env.insert( "PYTHONHOME", ( mModel.BratPaths().mPythonDir ).c_str() );
+    env.insert( "PYTHONHOME", ( mModel.BratPaths().mPythonDir.mPath ).c_str() );
     //env.insert("TERM", "xterm");
     process->setProcessEnvironment( env );
 

@@ -218,6 +218,8 @@ bool CRadsDatasetsTreeWidget::eventFilter( QObject *o, QEvent *e )
 			//	mousePressEvent( dynamic_cast<QMouseEvent*>( e ) );
 			//	return true;
 			//	break;
+            default:            
+                break;
 		}
 	}
 
@@ -237,6 +239,8 @@ bool CRadsDatasetsTreeWidget::eventFilter( QObject *o, QEvent *e )
 				//mouseReleaseEvent( dynamic_cast<QMouseEvent*>( e ) );
 				//return true;
 				break;
+            default:            
+                break;
 		}
 	}
 
