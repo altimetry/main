@@ -1684,6 +1684,8 @@ set(LIBBRATHL_CXX_SOURCES
   libbrathl/Unit.cpp
   libbrathl/Xml.cpp
   libbrathl/ProductGeosatGDR.cpp
+  libbrathl/ProductJason1NetCdf.cpp
+  libbrathl/ProductEnvisatNetCdf.cpp
   )
 
 
