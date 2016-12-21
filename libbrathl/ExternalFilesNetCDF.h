@@ -345,7 +345,6 @@ public:
 };
 
 
-
 class CExternalFilesReaper : public CExternalFilesNetCDFCF
 {
     DECLARE_BASE_TYPE( CExternalFilesNetCDFCF )
@@ -410,6 +409,23 @@ public:
     {}
 
     static std::string TypeOf() { return "Jason1_GPS_2P"; }
+    virtual std::string GetType() { return TypeOf(); }
+};
+
+
+class CExternalFilesEnvisat2P : public CExternalFilesNetCDFCF
+{
+    DECLARE_BASE_TYPE( CExternalFilesNetCDFCF )
+
+public:
+    CExternalFilesEnvisat2P( const std::string	&name = "" )
+        : base_t( name )
+    {}
+
+    virtual ~CExternalFilesEnvisat2P()
+    {}
+
+    static std::string TypeOf() { return "Envisat_2P"; }
     virtual std::string GetType() { return TypeOf(); }
 };
 

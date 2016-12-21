@@ -4448,14 +4448,19 @@ std::pair< std::string, std::string > CNetCDFFiles::IdentifyExistingFile( bool c
 				std::string str_l2_ref_doc;
 				int found_str_l2_ref_doc = GetAtt( NC_GLOBAL, "l2_ref_doc", str_l2_ref_doc, false, attrNotFound );
 
-				// Geosat GDR -- Global attribute "id" exists and is equal to "NODC Accession 0053056"
-				std::string str_id;
-				int found_str_id = GetAtt( NC_GLOBAL, "id", str_id, false, attrNotFound );
+                // Geosat GDR -- Global attribute "mission_name" exists and is equal to "GEOSAT"
+                std::string str_mission_name;
+                int found_str_mission_name = GetAtt( NC_GLOBAL, "mission_name", str_mission_name, false, attrNotFound );
 
                 // Jason-1 GDR (Native/Expertise) -- Global attribute "title" exists and is equal
                 // to "GDR - Native dataset" for Native or "GDR - Expertise dataset" for Expertise
                 std::string str_title;
                 int found_str_title = GetAtt( NC_GLOBAL, "title", str_title, false, attrNotFound );
+
+                // Envisat GDR or MWS (2P) -- Global attribute "title" exists and is equal
+                // to "Envisat RA2/MWR Level 2 Measurement Product file"
+                std::string str_title_env;
+                int found_str_title_env = GetAtt( NC_GLOBAL, "title", str_title_env, false, attrNotFound );
 
 				// If REAPER/ERS_ALT_2
 				if ( found_str_l2_ref_doc == NC_NOERR && str_l2_ref_doc == "REA-IS-PSD-5001" )
@@ -4465,7 +4470,7 @@ std::pair< std::string, std::string > CNetCDFFiles::IdentifyExistingFile( bool c
 
 				// If Geosat GDR
 				else
-				if ( found_str_id == NC_NOERR && str_id == "NODC Accession 0053056" )
+                if ( found_str_mission_name == NC_NOERR && str_mission_name == "GEOSAT" )
 				{
 					return { CExternalFilesGeosatGDR::TypeOf(), "" };
 				}
@@ -4482,6 +4487,13 @@ std::pair< std::string, std::string > CNetCDFFiles::IdentifyExistingFile( bool c
                 if (found_str_title == NC_NOERR && str_title == "GDR - Expertise dataset")
                 {
                     return { CExternalFilesJason1GPS2P::TypeOf(), "" };
+                }
+
+                // If Envisat GDR or MWS (2P)
+                else
+                if (found_str_title_env == NC_NOERR && str_title_env == "Envisat RA2/MWR Level 2 Measurement Product file")
+                {
+                    return { CExternalFilesEnvisat2P::TypeOf(), "" };
                 }
 			}
 

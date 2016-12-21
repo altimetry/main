@@ -104,6 +104,9 @@ namespace brathl
         // Jason-1 GDR Expertise (GPS 2P)
         CHECK_TYPE( CExternalFilesJason1GPS2P );
 
+        // Envisat GDR and MWS (2P)
+        CHECK_TYPE( CExternalFilesEnvisat2P );
+
 		return NULL;
 	}
 

@@ -64,6 +64,7 @@
 #include "ProductGeosatGDR.h"
 #include "ProductReaper.h"
 #include "ProductJason1NetCdf.h"
+#include "ProductEnvisatNetCdf.h"
 
 // When debugging changes all calls to "new" to be calls to "DEBUG_NEW" allowing for memory leaks to
 // give you the file name and line number where it occurred.
@@ -1810,6 +1811,11 @@ CProduct* CProduct::Construct( const CProductList& fileNameList )
             {
                 product = new CProductJason1NetCdf( fileNameList, true );
 			}
+            else
+            if ( productType == CExternalFilesEnvisat2P::TypeOf() )
+            {
+                product = new CProductEnvisatNetCdf( fileNameList, true );
+            }
 			else
 			if ( CExternalFilesRads::IsTypeOf( productType ) )
 			{
