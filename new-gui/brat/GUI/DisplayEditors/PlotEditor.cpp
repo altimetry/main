@@ -17,8 +17,9 @@
 */
 #include "new-gui/brat/stdafx.h"
 
-#include "BratLogger.h"
+#include "new-gui/Common/GUI/TextWidget.h"
 
+#include "DataModels/Model.h"
 #include "DataModels/MapTypeDisp.h"
 #include "DataModels/Workspaces/Display.h"
 #include "DataModels/DisplayFilesProcessor.h"
@@ -28,7 +29,9 @@
 #include "GUI/ControlPanels/ViewControlPanels/ViewControlPanels.h"
 #include "GUI/DisplayWidgets/3DPlotWidget.h"
 #include "GUI/DisplayWidgets/2DPlotWidget.h"
-#include "new-gui/Common/GUI/TextWidget.h"
+
+#include "BratLogger.h"
+#include "BratSettings.h"
 
 #include "PlotEditor.h"
 
@@ -48,8 +51,8 @@ void CPlotEditor::CreateWidgets() 	//parent = nullptr
 	//Even if ResetViews destroys them before first use, 
 	//	it is important to start with valid views
 	//
-	mPlot2DView = new C2DPlotWidget( this );
-	mPlot3DView = new C3DPlotWidget( this );
+	mPlot2DView = new C2DPlotWidget( PlotsGraphicParameters(), this );
+	mPlot3DView = new C3DPlotWidget( PlotsGraphicParameters(), this );
 	AddView( mPlot2DView, false );
 	AddView( mPlot3DView, true );
 
@@ -172,9 +175,11 @@ void CPlotEditor::Wire()
 CPlotEditor::CPlotEditor( CModel *model, const COperation *op, const std::string &display_name ) 	//display_name = ""
 	: base_t( false, model, op, display_name )
 {
+	setVisible( false );
     CreateWidgets();
 
 	Start( display_name );
+	setVisible( true );
 }
 
 
@@ -286,6 +291,15 @@ void CPlotEditor::Export2Image( bool save_2d, bool save_3d, const std::string pa
 
 
 
+//virtual 
+QSize CPlotEditor::sizeHint() const
+{
+	static const double hchild_ratio = mModel->Settings().HchildRatio();
+
+	return mModel ? QSize( PlotWidgetWidth( hchild_ratio ), PlotWidgetHeight( hchild_ratio ) ) : base_t::sizeHint();
+}
+
+
 
 //virtual 
 bool CPlotEditor::ResetViews( bool reset_2d, bool reset_3d, bool enable_2d, bool enable_3d )
@@ -303,7 +317,7 @@ bool CPlotEditor::ResetViews( bool reset_2d, bool reset_3d, bool enable_2d, bool
 	}
 	if ( enable_2d && !mPlot2DView )
 	{
-		mPlot2DView = new C2DPlotWidget( this );
+		mPlot2DView = new C2DPlotWidget( PlotsGraphicParameters(), this );
 		mPlot2DView->setMinimumSize( min_width, min_plot_widget_height );
 		AddView( mPlot2DView, false );
 		connect( mPlot2DView, SIGNAL( ScaleDivChanged( int, double, QString ) ), this, SLOT( Handle2DScaleChanged( int, double, QString ) ) );
@@ -318,11 +332,16 @@ bool CPlotEditor::ResetViews( bool reset_2d, bool reset_3d, bool enable_2d, bool
 	}
 	if ( enable_3d && !mPlot3DView )
 	{
-		mPlot3DView = new C3DPlotWidget( this );
+		mPlot3DView = new C3DPlotWidget( PlotsGraphicParameters(), this );
 		mPlot3DView->setMinimumSize( min_width, min_plot_widget_height );
 		AddView( mPlot3DView, true );
 		connect( mPlot3DView, SIGNAL( ScaleChanged( double, double, double ) ), this, SLOT( Handle3DScaleChanged( double, double, double ) ) );
-	}
+
+#if defined(Q_OS_MAC)
+        QTimer::singleShot( 1000, mViewsSubMainWindow, &QMainWindow::adjustSize );
+#endif
+    }
+    
 	return true;
 }
 
@@ -967,8 +986,9 @@ void CPlotEditor::Recreate3DPlots( bool build2d, bool build3d )
 		// RightButton: zoom out by 1
 		// Ctrl+RighButton: zoom out to full size
 		//
-		mPlot2DView->AddMagnifier();		//mPlot2DView->AddZoomer(); was the default
+		mPlot2DView->AddMagnifier( true, true, false );	//allows wheel zoom; false: disable y2 zoom
 		mPlot2DView->AddPanner();
+		mPlot2DView->AddZoomer();		//was the default; allows Home for rasters
 
 		mTabCurveOptions->SwitchTo3D();
 		mTabAxisOptions->SwitchTo3D();

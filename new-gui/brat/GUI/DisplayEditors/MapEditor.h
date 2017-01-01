@@ -120,7 +120,9 @@ public:
 
 protected:
 
-    virtual void closeEvent( QCloseEvent *event ) override;
+	virtual QSize sizeHint() const override;
+
+	virtual void closeEvent( QCloseEvent *event ) override;
 
 	CViewControlsPanelGeneralMaps* TabGeneral();
 

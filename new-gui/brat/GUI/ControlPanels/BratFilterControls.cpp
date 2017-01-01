@@ -22,7 +22,7 @@
 #include "DataModels/Model.h"
 #include "DataModels/Workspaces/Workspace.h"
 #include "DataModels/Filters/BratFilters.h"
-#include "DataModels/Workspaces/Dataset.h"
+#include "DataModels/Workspaces/RadsDataset.h"
 #include "DataModels/PlotData/MapColor.h"
 
 #include "GUI/ActionsTable.h"
@@ -61,7 +61,7 @@ void CBratFilterControls::CreateWidgets()
 	} );
 
     AddTopWidget( buttons_row );
-    AddTopSpace( 0, 0, QSizePolicy::Expanding, QSizePolicy::Expanding );
+    //AddTopSpace( 0, 0, QSizePolicy::Expanding, QSizePolicy::Expanding );
 
 
     // II. "Where" Description group
@@ -155,7 +155,7 @@ void CBratFilterControls::CreateWidgets()
     QBoxLayout *areas_coord = LayoutWidgets( Qt::Horizontal, { areas_box, coord_box } );
 
     mWhereBox = AddTopGroupBox(  ELayoutType::Vertical, { areas_coord } );
-    AddTopSpace( 0, 0, QSizePolicy::Expanding, QSizePolicy::Expanding );
+    //AddTopSpace( 0, 0, QSizePolicy::Expanding, QSizePolicy::Expanding );
 
 
     // III. "When" Description group
@@ -461,12 +461,19 @@ void CBratFilterControls::ShowOnlyAreasInRegion(int region_index)
 
 
 //virtual 
-void CBratFilterControls::SelectionChanged( bool selected )
+void CBratFilterControls::UpdatePanelSelectionChange()
 {
-	if ( isEnabled() && !selected )
+	if ( !isEnabled() )
+		return;
+
+	if ( SelectedPanel() )
+		HandleAreasSelectionChanged();
+	else
 	{
 		mSelectionButton->setChecked( false );
 		mActionSelectFeatures->setChecked( false );
+
+		mMap->RemoveAreaSelection(); // clean the map selection
 	}
 }
 
@@ -474,7 +481,7 @@ void CBratFilterControls::SelectionChanged( bool selected )
 void CBratFilterControls::HandleCurrentLayerSelectionChanged( QRectF box /*= QRectF()*/ )
 {
     // Clear Selected area in areas list
-    mAreasListWidget->clearSelection();
+    mAreasListWidget->clearSelection();		//triggers HandleAreasSelectionChanged
     mRenameArea->setDisabled( true );
     mDeleteArea->setDisabled( true );
 
@@ -674,6 +681,8 @@ void CBratFilterControls::HandleRegionsCurrentIndexChanged( int region_index )
 void CBratFilterControls::HandleAreasSelectionChanged()
 {
     QListWidgetItem *item = mAreasListWidget->currentItem();
+	//if ( item && !item->isSelected() )
+	//	item = nullptr;	
 
     mNewArea->setEnabled( item != nullptr ); // allowing to duplicate area
     mRenameArea->setEnabled( item != nullptr );
@@ -1284,7 +1293,7 @@ int ReadTrack( const std::vector< unsigned char > &can_use_alias,
 
 
 
-void CBratFilterControls::HandleDatasetChanged( CDataset *dataset )
+void CBratFilterControls::HandleDatasetChanged( const CDataset *dataset )
 {
     static CMapColor &mc = CMapColor::GetInstance();        Q_UNUSED(mc);
     static const std::string unknown( "???" );
@@ -1301,9 +1310,13 @@ void CBratFilterControls::HandleDatasetChanged( CDataset *dataset )
     //function body
 
     mMap->RemoveTracksLayerFeatures( true );
-    mTotalRecordsSelectedEdit->setText( "" );
+	mMap->setWindowTitle( "" );
+	mTotalRecordsSelectedEdit->setText( "" );
 
-    if ( !mAutoSatelliteTrack || !dataset || mDataset != dataset )
+	if ( dynamic_cast< const CRadsDataset* >( dataset ) )
+		dataset = nullptr;
+
+    if ( !mAutoSatelliteTrack || !dataset || mDataset != dataset )	//even if dataset is the same (mDataset), its composition can be different: skip this condition and print
     {
         if ( mDataset == dataset )
             return;
@@ -1421,7 +1434,8 @@ void CBratFilterControls::HandleDatasetChanged( CDataset *dataset )
         free( latv );
     }
 
-    mMap->setRenderFlag( true );
+	mMap->setWindowTitle( t2q( dataset->GetName() ) );
+	mMap->setRenderFlag( true );
     if ( total_records >= 0 )
         mTotalRecordsSelectedEdit->setText( n2s<std::string>( total_records ).c_str() );
 

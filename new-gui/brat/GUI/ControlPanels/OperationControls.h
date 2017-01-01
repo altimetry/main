@@ -153,6 +153,7 @@ protected:
 	stack_button_type *mQuickPageButton = nullptr;
 	stack_button_type *mAdvancedPageButton = nullptr;
 
+	CMapWidget *mMap = nullptr;
 
 	//...advanced
 
@@ -270,8 +271,7 @@ public:
 
 	// overrides
 
-	virtual void SelectionChanged( bool selected ) override
-	{}
+	virtual void UpdatePanelSelectionChange() override;
 
 
 	// access 
@@ -300,6 +300,8 @@ protected:
 	bool RemoveQuickFilter( const std::string &name );
 
 	void SelectOperation( const std::string &name, bool select_map );	//meant for quick, designed (not tested) for all
+
+	CProduct* ConstructTemporaryFilteredProduct( std::string &error_msg );
 
 	//both
 
@@ -380,6 +382,10 @@ signals:
 	void AsyncProcessExecution( bool executing );
 	void SyncProcessExecution( bool executing );
     void OperationModified( const COperation *operation );
+
+	// Notify to redraw tracks
+	//
+	void CurrentDatasetChanged( const CDataset *dataset );
 
 
 public slots:

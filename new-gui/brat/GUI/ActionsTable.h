@@ -131,6 +131,29 @@ enum EActionTag : int
 
 struct CActionInfo : non_copyable
 {
+
+	static const std::string smTipDelimiter;
+
+public:
+
+	static std::string FormatTip( const std::string &tip )
+	{
+		size_t delimiter = tip.find( smTipDelimiter );
+		size_t split_pos = (delimiter == std::string::npos) ?  0 : delimiter;
+
+		std::string name        = tip.substr(0, split_pos);
+		std::string description = tip.substr( split_pos );
+
+		return "<html><body><p><b>" + name + "</b></p><p>" + description + "</p></body></html>";
+	}
+
+
+	static std::string FormatTip( const std::string &title, const std::string &tip )
+	{
+		return FormatTip( title + smTipDelimiter + tip );
+	}
+
+
 	///////////////////////////
 	// Table Entry Section
 	///////////////////////////
@@ -181,18 +204,6 @@ public:
 	// operators
 
     bool operator == ( const CActionInfo &o ) const;
-
-
-    static std::string FormatTip( const std::string &tip )
-    {
-        size_t delimiter = tip.find("\n");
-        size_t split_pos = (delimiter == std::string::npos) ?  0 : delimiter;
-
-        std::string name        = tip.substr(0, split_pos);
-        std::string description = tip.substr( split_pos );
-
-        return "<html><body><p><b>" + name + "</b></p><p>" + description + "</p></body></html>";
-    }
 
 
 	///////////////////////////////////
@@ -374,9 +385,9 @@ class CRecentFilesProcessor : public QObject
 
 	void SetupMenu( QMainWindow *parent, QAction *ActionAfter );
 public:
-	CRecentFilesProcessor( QMainWindow *parent, const std::string MenuName, QMenu *MenuParent, QAction *ActionAfter, const QString &SettingsSectionName );
+	CRecentFilesProcessor( QMainWindow *parent, const std::string MenuName, QMenu *MenuParent, QAction *ActionAfter );
 
-	CRecentFilesProcessor( QMainWindow *parent, QMenu *RecentFiles_menu, QAction *ActionAfter, const QString &SettingsSectionName );
+	CRecentFilesProcessor( QMainWindow *parent, QMenu *RecentFiles_menu, QAction *ActionAfter );
 
 	virtual ~CRecentFilesProcessor()
 	{}

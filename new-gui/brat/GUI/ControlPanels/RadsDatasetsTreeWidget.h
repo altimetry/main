@@ -56,6 +56,7 @@ class CRadsDatasetsTreeWidgetItem : public QObject, public QTreeWidgetItem
 
 	//instance data
 
+	QFrame *mComboFrame = nullptr;
 	QComboBox *mCombo = nullptr;
 
 
@@ -89,12 +90,13 @@ public:
 	QTreeWidgetItem* parent() const { return base_t::parent(); }	
 
 
+	void SetMissionToolTip();
+	void SetToolTip( int column, const QString &atoolTip );
+
+
 protected:
 
 	virtual bool operator<(const QTreeWidgetItem &other) const override;
-
-
-	virtual bool eventFilter( QObject *o, QEvent *e ) override;
 
 
 signals:

@@ -467,9 +467,28 @@ const std::vector< Qwt3D::AXIS > CBrat3DPlot::smZaxis = { Qwt3D::AXIS::Z1, Qwt3D
 
 
 
+//virtual 
+void CBrat3DPlot::paintGL()
+{
+	base_t::paintGL();
+}
 
-CBrat3DPlot::CBrat3DPlot( QWidget *pw )
+
+
+CBrat3DPlot::CBrat3DPlot( const CPlotsGraphicParameters &plots_graphic_parameters, QWidget *pw )
 	: base_t( pw )
+#if defined (Q_OS_MAC)
+    , mPlotsGraphicParameters( {
+          plots_graphic_parameters.mFontName,
+          plots_graphic_parameters.mAxisFontSize * 2,
+          plots_graphic_parameters.mAxisBold,
+          plots_graphic_parameters.mTitleFontSize * 2,
+          plots_graphic_parameters.mTitleBold,
+          plots_graphic_parameters.mSizeHint
+          } )
+#else
+    , mPlotsGraphicParameters( plots_graphic_parameters )
+#endif
 	, mTimer( this )
 	, mXDigits( CBrat3DLinearScale::smDefaultDigits )
 	, mYDigits( CBrat3DLinearScale::smDefaultDigits )
@@ -477,14 +496,42 @@ CBrat3DPlot::CBrat3DPlot( QWidget *pw )
 {
 	connect( &mTimer, SIGNAL( timeout() ), this, SLOT( rotate() ) );
 
+	setBackgroundColor( Qwt3D::Qt2GL( ViewsDefaultBackgroundColor() ) );
+
+	SetCoordinateStyle();	//call before CreateContextMenu
 	CreateContextMenu();
 	Reset();
 
 	setSmoothMesh( true );
 	enableLighting( true );
 
-	coordinates()->setNumberFont( t2q( C3DPlotWidget::smFontName ), C3DPlotWidget::smAxisFontSize );
-	coordinates()->setLabelFont( t2q( C3DPlotWidget::smFontName ), C3DPlotWidget::smAxisFontSize );
+	setMeshLineWidth( 1 );
+	coordinates()->setGridLinesColor( Qwt3D::RGBA( 0, 0, 0.5 ) );
+	coordinates()->setLineWidth( 1 );
+	coordinates()->setNumberColor( Qwt3D::RGBA( 0, 0.5, 0 ) );
+
+	coordinates()->adjustNumbers( 5 );
+	coordinates()->adjustLabels( 10 );
+
+	setTitleFont( 
+		t2q( mPlotsGraphicParameters.mFontName ), 
+		mPlotsGraphicParameters.mTitleFontSize, 
+		mPlotsGraphicParameters.mTitleBold ? QFont::Bold : QFont::Normal );	//11 in axes example
+
+	coordinates()->setNumberFont( t2q( mPlotsGraphicParameters.mFontName ), 
+		mPlotsGraphicParameters.mAxisFontSize );							//10 in axes example
+
+	coordinates()->setLabelFont( 
+		t2q( mPlotsGraphicParameters.mFontName ), 
+		mPlotsGraphicParameters.mAxisFontSize, 
+		mPlotsGraphicParameters.mAxisBold ? QFont::Bold : QFont::Normal );	//12 in axes example, & bold
+
+    legend()->setTitleFont( 
+                t2q( mPlotsGraphicParameters.mFontName ), 
+                mPlotsGraphicParameters.mTitleFontSize, QFont::Normal );
+    
+    legend()->setAxisFont( t2q( mPlotsGraphicParameters.mFontName ), 
+		mPlotsGraphicParameters.mAxisFontSize );
 
 	const size_t size = coordinates()->axes.size();
 	for ( unsigned i = 0; i != size; ++i )
@@ -531,8 +578,6 @@ void CBrat3DPlot::AddSurface( const CZFXYPlotParameters &values )
 
 void CBrat3DPlot::SetTitle( const QString &title )
 {
-	setTitleFont( t2q( C3DPlotWidget::smFontName ), C3DPlotWidget::smTitleFontSize, QFont::Bold );
-
 	setTitle( title );
 
     updateGL();
@@ -567,6 +612,35 @@ bool CBrat3DPlot::SetAxisTitle( Qwt3D::AXIS axis, const std::string &title, std:
 
 	data_member = title;
 	coordinates()->axes[ axis ].setLabelString( data_member.c_str() );
+
+	return true;
+}
+
+
+bool CBrat3DPlot::SetXYAxisTitles( const std::string &xtitle, const std::string &ytitle )
+{
+	for ( auto axis : smXaxis )
+	{
+		if ( !SetAxisTitle( axis, xtitle, mXlabel ) )
+			return false;
+	}
+	
+	for ( auto axis : smYaxis )
+	{
+		if ( !SetAxisTitle( axis, ytitle, mYlabel ) )
+			return false;
+	}
+
+	return true;
+}
+
+bool CBrat3DPlot::SetZAxisTitle( const std::string &ztitle )
+{
+	for ( auto axis : smZaxis )
+	{
+		if ( !SetAxisTitle( axis, ztitle, mZlabel ) )
+			return false;
+	}
 
 	return true;
 }
@@ -959,14 +1033,12 @@ void CBrat3DPlot::CreateContextMenu()
 
 
 
-//static 
-const std::string C3DPlotWidget::smFontName = "Arial";
 
 
-
-C3DPlotWidget::C3DPlotWidget( QWidget *parent ) 
+C3DPlotWidget::C3DPlotWidget( const CPlotsGraphicParameters &plots_graphic_parameters, QWidget *parent ) 
 	: base_t( parent )
-	, m_SizeHint( DefaultSizeHint( this ) )
+	, graphic_parameters_base_t( plots_graphic_parameters )
+//	, m_SizeHint( DefaultSizeHint( this ) )
 {
 	setWindowIcon( QPixmap( ":/3.png" ) );
 	setWindowTitle( "[*]" );
@@ -979,7 +1051,7 @@ C3DPlotWidget::C3DPlotWidget( QWidget *parent )
     setMidLineWidth(0);
 
 	QPalette pal( palette() ); 
-	pal.setColor( QPalette::Background, Qt::white );
+	pal.setColor( QPalette::Background, ViewsDefaultBackgroundColor() );	//the real effect is done in the plot class
 	setAutoFillBackground( true );
 	setPalette( pal );
 }
@@ -989,14 +1061,13 @@ C3DPlotWidget::~C3DPlotWidget()
 {}
 
 
-
 void C3DPlotWidget::PushPlot( const CZFXYPlotParameters &values, Qwt3D::Color *pcolor_map )
 {
 #if defined (TEST_EXAMPLES)
 	return;
 #endif
 
-	mCurrentPlot = new CBrat3DPlot( this );
+	mCurrentPlot = new CBrat3DPlot( *this, this );
 	mSurfacePlots.push_back( mCurrentPlot );
 	AddWidget( mCurrentPlot );
 	
@@ -1507,7 +1578,7 @@ void C3DPlotWidget::AddWidget( QWidget *w )
 
 QSize C3DPlotWidget::sizeHint() const
 {
-	return m_SizeHint;
+    return mSizeHint;
 }
 
 

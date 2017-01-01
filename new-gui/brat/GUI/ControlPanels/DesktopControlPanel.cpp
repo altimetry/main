@@ -33,6 +33,12 @@ CDesktopControlsPanel::CDesktopControlsPanel( CModel &model, CDesktopManagerBase
 {}
 
 
+//virtual 
+void CDesktopControlsPanel::ChangePanelSelection( bool selected )
+{
+	mSelectedPanel = selected;
+	UpdatePanelSelectionChange();
+}
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////

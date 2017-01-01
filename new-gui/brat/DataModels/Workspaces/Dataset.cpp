@@ -45,7 +45,7 @@ void CDataset::SetFieldSpecificUnit( const std::string& key, const std::string& 
 
 // If filtering fails, all files of the original dataset are inserted
 //
-bool CDataset::ApplyFilter( const CBratFilter *filter, const CDataset *original_dataset, std::string &error_msg, CProgressInterface *pi )
+std::pair< bool, bool > CDataset::ApplyFilter( const CBratFilter *filter, const CDataset *original_dataset, std::string &error_msg, CProgressInterface *progress )
 {
 	assert__( GetProductList()->mCodaProductClass == original_dataset->GetProductList()->mCodaProductClass );
 	assert__( GetProductList()->mCodaProductType == original_dataset->GetProductList()->mCodaProductType );
@@ -54,14 +54,14 @@ bool CDataset::ApplyFilter( const CBratFilter *filter, const CDataset *original_
 	assert__( GetProductList()->m_productFormat == original_dataset->GetProductList()->m_productFormat );
 
 
-	bool result = true;
+	std::pair< bool, bool > result { true, false };
 
 	if ( filter )
 	{
-		result = filter->Apply( *original_dataset->GetProductList(), *GetProductList(), error_msg, pi );
+		result = filter->Apply( *original_dataset->GetProductList(), *GetProductList(), error_msg, progress );
 	}
 
-	if ( !filter || !result )
+	if ( !filter || !result.first )
 		GetProductList()->Insert( *original_dataset->GetProductList() );
 
 	return result;

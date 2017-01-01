@@ -46,7 +46,16 @@ CDesktopManagerBase::CDesktopManagerBase( const CBratSettings &settings, QMainWi
 
 	parent->setCentralWidget( this );
 
+	connect( mMap, &CMapWidget::windowTitleChanged, this, &CDesktopManagerBase::HandleMapWindowTitleChanged );
+
 	mMap->Home();
+}
+
+
+//slot
+void CDesktopManagerBase::HandleMapWindowTitleChanged( const QString &title )
+{
+	SetMapTitle( title );
 }
 
 
@@ -191,7 +200,10 @@ CDesktopManagerSDI::CDesktopManagerSDI( const CBratSettings &settings, QMainWind
 	mSplitter->setFrameStyle( QFrame::Panel );
 	mSplitter->setFrameShadow( QFrame::Sunken );
 	mSplitter->setMinimumSize( min_globe_widget_width, min_globe_widget_height );
-	mSplitter->addWidget( mMap );
+	mMapBox = CreateGroupBox( ELayoutType::Horizontal, { mMap }, "Dataset" );
+	mMapBox->setStyleSheet("QGroupBox { font-weight: bold; } ");
+	mMapBox->setAlignment( Qt::AlignCenter );
+	mSplitter->addWidget( mMapBox );
 	//mGlobeView = new CGlobeWidget( this, mMap, parent->statusBar() );
 	//mSplitter->addWidget( mGlobeView );
 

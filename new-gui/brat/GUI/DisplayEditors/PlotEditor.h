@@ -125,6 +125,8 @@ protected:
 	
 	// remaining operations
 
+	virtual QSize sizeHint() const override;
+
 protected:
 	
 	CViewControlsPanelGeneralPlots* TabGeneral();

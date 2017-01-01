@@ -606,8 +606,8 @@ protected:
 	void CreateFieldIndexData();
 
     virtual void AddCombinedVariableToTree() {}
-    virtual void initInternalFieldNamesForCombinedVariable(CStringList& listField) {}
-    virtual bool computeCombinedField(CField *field) {return false;}
+    virtual void initInternalFieldNamesForCombinedVariable(CStringList& listField) { UNUSED( listField ); }
+    virtual bool computeCombinedField(CField *field) { UNUSED( field ); return false; }
 
 	void CheckFields( bool convertDate = false );
 

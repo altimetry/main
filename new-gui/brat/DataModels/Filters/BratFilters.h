@@ -270,9 +270,9 @@ public:
 
 	void BoundingArea( double &lon1, double &lat1, double &lon2, double &lat2 ) const;
 
-    bool GetTimeBounds(CDate &Start, CDate &Stop, const std::string &product_label , std::string &error_msg) const;
+	bool GetTimeBounds( CDate &Start, CDate &Stop, const std::string &product_label, std::string &error_msg ) const;
 
-    bool Apply( const CStringList& files_in, CStringList& files_out, std::string &error_msg, CProgressInterface *pi ) const;
+	std::pair< bool, bool > Apply( const CStringList& files_in, CStringList& files_out, std::string &error_msg, CProgressInterface *progress ) const;
 
 	// Argument product_label must be the value returned by CProduct::GetLabel()
 	//	(or CProductInfo::Label)
@@ -395,7 +395,7 @@ public:
 
     bool DeleteFilter( const std::string &name );
 
-    bool Apply( const std::string &name, const CStringList& files_in, CStringList& files_out, std::string& error_msg, CProgressInterface *pi ) const;
+    std::pair< bool, bool > Apply( const std::string &name, const CStringList& files_in, CStringList& files_out, std::string& error_msg, CProgressInterface *progress ) const;
     bool Translate2SelectionCriteria( CProduct *product_ref, const std::string &name , std::string &error_msg ) const;
 
     // persistence

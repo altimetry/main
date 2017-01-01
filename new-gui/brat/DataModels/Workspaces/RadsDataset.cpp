@@ -87,21 +87,20 @@ bool CRadsDataset::AddMissionFiles( const std::vector< std::string > &paths, std
 
 	try
 	{
-		CheckFiles( true, true );                           // Check only first file
+		CheckFiles( true, true );				// Check only first file
 				
-		if ( ( m_files.IsYFX() || m_files.IsZFXY() || m_files.IsGenericNetCdf() ) && m_files.size() > 1 )//TODO REPLACE THIS BY A CHECK OF RADS CLASS
+		if ( ( m_files.IsYFX() || m_files.IsZFXY() || m_files.IsGenericNetCdf() ) && m_files.size() > 1 )	//TODO replace this by a check of RADS class
 		{
 			std::string msg = "Warning - You have to check that all the files in the list : "
 				"\n1) are in the same way (same structure, same fields with same dimension...)"
 				"\n2) contain the same kind of data"
-				"\n\n otherwise results may be ill-defined and confused or Brat may return a reading error.";
+				"\n\n otherwise results may be ill-defined and confused or BRAT may return a reading error.";
 			warnings += ( "\n" + msg );
 		}
 	}
 	catch ( CException& e )
 	{
-		warnings += ( std::string( "\nUnable to process files. Reason: " ) + e.what() );
-		// TODO: Delete all products from dataset ???
+		warnings += ( std::string( "\nUnable to process files. Reason: " ) + e.what() );	// TODO: Delete all files from dataset ???
 	}
 
 	return warnings.empty();
@@ -136,13 +135,13 @@ bool CRadsDataset::AddMission( const std::string &rads_server_address, const std
 bool CRadsDataset::SetMission( const std::string &rads_server_address, const std::string &local_rads_dir, const CRadsMission &mission, std::string &warnings )
 {
 	return
-		( Missions().empty() || RemoveAllMissions( rads_server_address, local_rads_dir ) )
+        ( Missions().empty() || RemoveAllMissions() )
 		&&
 		AddMission( rads_server_address, local_rads_dir, mission, warnings );
 }
 
 
-bool CRadsDataset::RemoveAllMissions( const std::string &rads_server_address, const std::string &local_dir )
+bool CRadsDataset::RemoveAllMissions()
 {
 	mMissions.clear();
 

@@ -22,14 +22,13 @@
 #include <QDateTime>
 
 #include "common/QtStringUtils.h"
-#include "new-gui/Common/ConfigurationKeywords.h"
 
 
 
 
-///////////////////////////////////////////////////
-//	Extract and insert values in QVariant
-///////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+//							Extract and insert values in QVariant
+//////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // Extract: QVariant => Type
 
@@ -95,9 +94,14 @@ inline QDateTime qv2type( const QVariant &v )
 	return v.value< QDateTime >();
 }
 template<>
-inline size_t qv2type( const QVariant &v )
+inline unsigned long qv2type( const QVariant &v )
 {
-	return v.value< size_t >();
+    return v.value< unsigned long >();
+}
+template<>
+inline unsigned long long qv2type( const QVariant &v )
+{
+	return v.value< unsigned long long >();
 }
 
 //GUI types: define in derived classes for GUI applications
@@ -109,7 +113,7 @@ inline size_t qv2type( const QVariant &v )
 template< typename TYPE >
 inline QVariant type2qv( const TYPE &v )
 {
-	return v;
+    return v;
 }
 
 template<>
@@ -119,16 +123,17 @@ inline QVariant type2qv( const std::string &v )
 }
 
 template<>
-inline QVariant type2qv( const size_t &v )
+inline QVariant type2qv( const unsigned long &v )
 {
-	return QVariant::fromValue( v );
+    return QVariant::fromValue( v );
 }
 
 
 
-///////////////////////////////////////////////////
-//	Help client code create pair/triplet arguments
-///////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+//						Help client code create pair/triplet arguments
+//////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // Key-Value type: for writing
 
@@ -171,6 +176,59 @@ kvd_t<T> k_v( const std::string &key, T *pvar, const T& defvalue )
 
 
 
+
+
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+//									The most "common" group key
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+const std::string GROUP_COMMON = "Common";
+
+
+// Belonging properly to the workspace module, these inter-related settings vales are here for 
+//	CFileSettings to be able to correct	some of these v3 value strings avoiding read errors
+//
+const std::string VALUE_OPERATION_TypeYFX = "Y=F(X)";				// Created from CMapTypeOp ctor
+const std::string VALUE_OPERATION_TypeZFXY = "Z=F(X,Y)";			// Created from CMapTypeOp ctor
+const std::string VALUE_DISPLAY_eTypeZFLatLon = "Z=F(Lon,Lat)";		// Created from CMapTypeDisp ctor
+const std::string OLD_VALUE_DISPLAY_eTypeZFLatLon = "Z=F(Lat,Lon)";	// Created from CDisplayData::LoadConfig
+
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+//						Helper for v3 composed keys (can still be useful)
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+inline std::string BuildKey( const std::string &s )
+{
+	return replace( s, " ", "" );
+}
+
+inline std::string BuildComposedKey( std::initializer_list< const std::string > l )
+{
+	std::string key;
+	for ( auto const &s : l )
+		key += BuildKey( s );
+
+	return key;
+}
+
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+//									CGlobalApplicationSettings
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
 //	Helper base class to allow the derived classes to declare
 //	QSettings instance members that use the default constructor 
 //	and benefit from previous QCoreApplication assignments. This
@@ -197,6 +255,14 @@ protected:
 	{}
 };
 
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+//										CFileSettings
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 //	CFileSettings is at the core of all file persistence
@@ -539,14 +605,7 @@ public:
 	//	operations
 	//////////////////////////////////////
 
-    bool WriteVersionSignature()
-    {
-        return WriteValues( GROUP_SETTINGS_VERSION,
-        {
-            { KEY_SETTINGS_VERSION, VersionValue() }
-        }
-        );
-    };
+	bool WriteVersionSignature();
 
 
 	//	Qt: "This function is called automatically from QSettings's destructor and 

@@ -337,7 +337,7 @@ CRadsClient::CRadsClient( CRadsSettings &settings, QObject *parent )	//parent = 
 	mTimer.start( periodic_check_in_seconds * 1000 );
 
 
-	//startup (starting paused)
+	//startup (starting paused only if PAUSE_ON_START defined for diagnostic)
 
 #if !defined (WAIT_FOR_DEBUGGER) && defined(PAUSE_ON_START)
 
@@ -735,7 +735,7 @@ void CRadsClient::HandleProcessFinished( int exit_code, QProcess::ExitStatus exi
     {
         std::string s = n2s<std::string>( code );
         
-        for ( int i = 0; i <  rsync_exit_codes_size; ++i )
+        for ( size_t i = 0; i <  rsync_exit_codes_size; ++i )
             if ( rsync_exit_codes[i].code == code )
                 return s += ( "-" + rsync_exit_codes[i].msg );
         

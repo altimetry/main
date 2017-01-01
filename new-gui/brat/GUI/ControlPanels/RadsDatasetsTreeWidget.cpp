@@ -26,6 +26,8 @@
 #include "RadsDatasetsTreeWidget.h"
 
 
+Q_DECLARE_METATYPE( CRadsDataset* )
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //										CRadsDatasetsTreeWidget Items Class
@@ -50,6 +52,7 @@ CRadsDatasetsTreeWidgetItem::CRadsDatasetsTreeWidgetItem( const std::vector< CRa
 	setToolTip(0, dataset_name );
 	setIcon( 0, QIcon( ":/images/OSGeo/dataset.png" ) );
 	setFlags( flags() | Qt::ItemIsEditable );
+	setData( 0, Qt::UserRole, QVariant::fromValue( dataset ) );
 
 	view->addTopLevelItem( this );		//this is necessary before what follows
 
@@ -101,7 +104,6 @@ CRadsDatasetsTreeWidgetItem::CRadsDatasetsTreeWidgetItem( const std::vector< CRa
 	mCombo->setStyleSheet( sheet );
 	mCombo->setSizeAdjustPolicy( QComboBox::AdjustToContents );
 	mCombo->view()->setMinimumHeight( missions.size() * ( mCombo->fontMetrics().lineSpacing() + 1 ) );
-	//mCombo->model()->setData(mCombo->model()->index(0, 0), QSize(100, 100), Qt::SizeHintRole);
 
 	//...align center
 	mCombo->setEditable(true);				//otherwise there is no edit widget
@@ -121,10 +123,10 @@ CRadsDatasetsTreeWidgetItem::CRadsDatasetsTreeWidgetItem( const std::vector< CRa
 
 	// II. 2. Put missions combo in column 1
 
-	QFrame *frame = new QFrame;
-	LayoutWidgets( Qt::Horizontal, { mCombo }, frame, 4, 4, 4, 4, 4 );
-	view->setItemWidget( this, 1, frame );
-
+	mComboFrame = new QFrame;
+	LayoutWidgets( Qt::Horizontal, { mCombo }, mComboFrame, 4, 4, 4, 4, 4 );
+	view->setItemWidget( this, 1, mComboFrame );
+	SetMissionToolTip();
 
 	view->blockSignals( false );
 }
@@ -145,9 +147,49 @@ bool CRadsDatasetsTreeWidgetItem::operator< ( const QTreeWidgetItem &o ) const
 }
 
 
+void CRadsDatasetsTreeWidgetItem::SetMissionToolTip()
+{
+	QString tip;
+	const CRadsDataset *rads_dataset = data( 0, Qt::UserRole ).value< CRadsDataset* >();
+	if ( rads_dataset )
+	{
+		const QString mission_name = CurrentMission();
+		if ( rads_dataset->HasMission( q2a( mission_name ) ) )
+		{
+			if ( rads_dataset->IsEmpty() )
+			{
+				tip = "No files found for mission " + mission_name;
+			}
+			else
+			{
+				tip = n2q( rads_dataset->Size() ) + " files found for mission " + mission_name;
+			}
+		}
+	}
+	SetToolTip( 1, tip );
+}
+
+
+void CRadsDatasetsTreeWidgetItem::SetToolTip( int column, const QString &atoolTip )
+{
+	setToolTip( column, atoolTip );
+	setData( column, Qt::ToolTipRole, atoolTip );
+
+	if ( column == 1 )
+	{
+		mCombo->setToolTip( atoolTip );
+		mCombo->lineEdit()->setToolTip( atoolTip );
+		mComboFrame->setToolTip( atoolTip );
+	}
+}
+
+
 //slot
 void CRadsDatasetsTreeWidgetItem::currentIndexChanged( int index )
 {
+	// Cannot SetMissionToolTip here, because only answering this signal
+	//	will the dataset be assigned with the mission
+
 	emit itemChanged( this, index );
 }
 
@@ -176,7 +218,6 @@ CRadsDatasetsTreeWidget::CRadsDatasetsTreeWidget( const std::vector< CRadsMissio
 
 	//setRootIsDecorated( false );	the problem with this: the highest level items have no node icon, can only be expanded/collapsed by double-clicking
 	setDragEnabled( false );
-	setToolTip( "Drag fields to the data expressions tree" );
 
 	setSortingEnabled( true );
 
@@ -192,10 +233,10 @@ QTreeWidgetItem* CRadsDatasetsTreeWidget::AddDatasetToTree( const QString &datas
 {
 	assert__( mWDataset );
 
-	CRadsDataset *d = mWDataset->GetDataset< CRadsDataset >( q2a( dataset_name ) );				assert__( d );
+	CRadsDataset *wkspcd = mWDataset->GetDataset< CRadsDataset >( q2a( dataset_name ) );			assert__( wkspcd );
 
-	CRadsDatasetsTreeWidgetItem *dataset_item = new CRadsDatasetsTreeWidgetItem( mAllAvailableMissions, d, this );
-	connect( dataset_item, &CRadsDatasetsTreeWidgetItem::itemChanged, this, &CRadsDatasetsTreeWidget::currentIndexChanged );
+	CRadsDatasetsTreeWidgetItem *dataset_item = new CRadsDatasetsTreeWidgetItem( mAllAvailableMissions, wkspcd, this );
+	connect( dataset_item, &CRadsDatasetsTreeWidgetItem::itemChanged, this, &CRadsDatasetsTreeWidget::currentIndexChanged );	//specialized RADS tree item signal, from missions combo
     
 	resizeColumnToContents( 0 );
 
@@ -203,67 +244,54 @@ QTreeWidgetItem* CRadsDatasetsTreeWidget::AddDatasetToTree( const QString &datas
 }
 
 
+// Tree item events to be processed by the container tree
+//
 bool CRadsDatasetsTreeWidget::eventFilter( QObject *o, QEvent *e ) 
 {
 	if ( qobject_cast< QComboBox* >( o ) )
 	{
 		switch( e->type() )
 		{
+			// Prevent mouse wheel on combo
+
 			case QEvent::Wheel:
 				e->ignore();
 				return true;
 				break;
 
-			//case QEvent::MouseButtonPress:
-			//	mousePressEvent( dynamic_cast<QMouseEvent*>( e ) );
-			//	return true;
-			//	break;
-            default:            
-                break;
+			default:            
+				return false;
+				break;
 		}
 	}
-
+	else
 	if ( qobject_cast< QLineEdit* >( o ) )
 	{
 		switch( e->type() )
 		{
-			//case QEvent::Wheel:
-			//	e->ignore();
-			//	return true;
-			//	break;
+			// Prevent arrow keys on combo line edit
+
+			case QEvent::KeyPress:
+			case QEvent::KeyRelease:
+				e->ignore();
+				return true;
+				break;
+
+			// Allow selection by clicking in combo line edit
 
 			case QEvent::MouseButtonPress:
 			case QEvent::MouseButtonRelease:
 				e->ignore();
 				return true;
-				//mouseReleaseEvent( dynamic_cast<QMouseEvent*>( e ) );
-				//return true;
 				break;
-            default:            
-                break;
+
+			default:            
+				return false;
+				break;
 		}
 	}
 
 	return base_t::eventFilter( o, e );
-}
-
-bool CRadsDatasetsTreeWidgetItem::eventFilter( QObject *o, QEvent *e ) 
-{
-	//if ( qobject_cast< QComboBox* >( o ) )
-	//{
-	//	switch( e->type() )
-	//	{
-	//		case QEvent::Wheel:
-	//			e->ignore();
-	//			return true;
-
-	//		//case QEvent::MouseButtonPress:
-	//		//	e->ignore();
-	//		//	return true;
-	//	}
-	//}
-
-	return qobject_base_t::eventFilter( o, e );
 }
 
 

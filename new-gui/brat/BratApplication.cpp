@@ -450,14 +450,20 @@ bool CBratApplication::InstallRadsService( QWidget *parent )
 	bool installed = mServiceController.isInstalled();
 	if ( !installed ) 
 	{
-		LoginDialog *dlg = new LoginDialog( "Install " + rads_service_name, parent );
-		dlg->SetUsername( ServiceUserName(), false );
-		if ( dlg->exec() == QDialog::Accepted )
+		const std::string license = "RADS Temporary License Agreement (to be replaced by oficial text)\n\nAccess to RADS is only granted for own (academic/institutional/scientific) use, excluding \
+any kind of commercial exploitation.\nWhen using the retrieved data in publications and/or presentations, there always should be a reference to the usage of RADS.\n\n\
+Do you agree with these license terms?";
+		if ( SimpleQuestion( license ) )
 		{
-			QString account = dlg->Username();
-			QString password = dlg->Password();
-			QString path = smApplicationPaths->mRadsServicePath.c_str();
-			installed = QtServiceController::install( path, account, password );
+			LoginDialog *dlg = new LoginDialog( "Install " + rads_service_name, parent );
+			dlg->SetUsername( ServiceUserName(), false );
+			if ( dlg->exec() == QDialog::Accepted )
+			{
+				QString account = dlg->Username();
+				QString password = dlg->Password();
+				QString path = smApplicationPaths->mRadsServicePath.c_str();
+				installed = QtServiceController::install( path, account, password );
+			}
 		}
 	}
 	bool running = mServiceController.isRunning();

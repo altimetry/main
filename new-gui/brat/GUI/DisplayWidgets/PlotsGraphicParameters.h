@@ -15,5 +15,28 @@
 * along with this program; if not, write to the Free Software
 * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
+#ifndef GUI_DISPLAY_WIDGETS_PLOTS_GRAPHIC_PARAMETERS_H
+#define GUI_DISPLAY_WIDGETS_PLOTS_GRAPHIC_PARAMETERS_H
 
-#include "ConfigurationKeywords.h"
+
+
+struct CPlotsGraphicParameters
+{
+	const std::string mFontName;
+	const int mAxisFontSize;
+	const bool mAxisBold;
+	const int mTitleFontSize;
+	const bool mTitleBold;
+
+	// Ensures equal plots size, even if the concrete value is later
+	//	adjusted by container windows constraints
+	//
+	QSize mSizeHint;
+};
+
+
+
+
+
+
+#endif			// GUI_DISPLAY_WIDGETS_PLOTS_GRAPHIC_PARAMETERS_H

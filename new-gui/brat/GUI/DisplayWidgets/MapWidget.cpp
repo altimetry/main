@@ -362,7 +362,7 @@ void CMapWidget::Init()
 
     setExtent( mMainLayer->extent() );
     enableAntiAliasing( true );
-    setCanvasColor( QColor( 0xFF, 0xFF, 0xF0, 255 ) );		//setCanvasColor(QColor(255, 255, 255));
+    setCanvasColor( ViewsDefaultBackgroundColor() );		//setCanvasColor(QColor(255, 255, 255));
     freeze( false );
 
 	// projections

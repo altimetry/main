@@ -20,7 +20,7 @@
 
 #include "libbrathl/brathl.h"
 
-#include "new-gui/Common/ConfigurationKeywords.h"
+#include "new-gui/Common/FileSettings.h"
 #include "MapTypeDisp.h"
 
 

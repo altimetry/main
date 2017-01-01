@@ -135,8 +135,11 @@ public:
 
 	bool IsEmpty() const { return m_files.empty(); }
 
+protected:
+
 	bool CheckFilesExist( std::vector< std::string > &v );
 
+public:
 	virtual const std::string& GetFirstFile() const { return *m_files.begin(); }
 
 	std::string ToString( const std::string& delim ) const
@@ -144,7 +147,7 @@ public:
 		return m_files.ToString( delim );
 	}
 
-	bool ApplyFilter( const CBratFilter *filter, const CDataset *original_dataset, std::string &error_msg, CProgressInterface *pi );
+	std::pair< bool, bool > ApplyFilter( const CBratFilter *filter, const CDataset *original_dataset, std::string &error_msg, CProgressInterface *progress );
 
 
 public:

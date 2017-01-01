@@ -1,5 +1,5 @@
 <RCC>
-  <qresource prefix="/">
+    <qresource prefix="/">
         <file>images/copy.png</file>
         <file>images/cut.png</file>
         <file>images/new.png</file>
@@ -225,5 +225,6 @@
         <file>images/brat_style.png</file>
         <file>images/rads.gif</file>
         <file>images/OSGeo/vector_plot.png</file>
+        <file>images/uac-icon-vista.png</file>
     </qresource>
 </RCC>

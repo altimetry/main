@@ -19,10 +19,10 @@
 #define GUI_CONTROL_PANELS_DATASETBROWSERCONTROLS_H
 
 
-#include "DesktopControlPanel.h"
+#include "DatasetsBrowserControlsBase.h"
 
 
-class CTextWidget;
+
 
 
 
@@ -31,7 +31,7 @@ class CTextWidget;
 //								Dataset Browser
 /////////////////////////////////////////////////////////////////////////////////////
 
-class CDatasetBrowserControls : public CDesktopControlsPanel
+class CDatasetsBrowserControls : public CDatasetsBrowserControlsBase
 {
 #if defined (__APPLE__)
 #pragma clang diagnostic push
@@ -46,30 +46,19 @@ class CDatasetBrowserControls : public CDesktopControlsPanel
 
 	//types
 
-    using base_t = CDesktopControlsPanel;
+    using base_t = CDatasetsBrowserControlsBase;
 
 
 	//instance data
 
-    QTreeWidget *mDatasetTree = nullptr;
 
-    QToolButton *mNewDataset = nullptr;
-    QToolButton *mDeleteDataset = nullptr;
     QToolButton *mAddDir = nullptr;
     QToolButton *mAddFiles = nullptr;
     QToolButton *mRemove = nullptr;
     QToolButton *mClear = nullptr;
 
-    CTextWidget *mFileDesc = nullptr;
-    QGroupBox   *mFileDescGroup = nullptr;
-    QListWidget *mFieldList = nullptr;
-    CTextWidget *mFieldDesc = nullptr;
-
 
 	//...doamin data
-
-	const CApplicationPaths &mBratPaths;
-    CWorkspaceDataset *mWDataset = nullptr;
 
 
     //construction / destruction
@@ -77,53 +66,53 @@ class CDatasetBrowserControls : public CDesktopControlsPanel
     void Wire();
 
 public:
-    explicit CDatasetBrowserControls( CModel &model, CDesktopManagerBase *manager, QWidget *parent = nullptr, Qt::WindowFlags f = 0 );
+    explicit CDatasetsBrowserControls( CBratApplication &app, CDesktopManagerBase *manager, QWidget *parent = nullptr, Qt::WindowFlags f = 0 );
 
-    virtual ~CDatasetBrowserControls()
-    {}
+	virtual ~CDatasetsBrowserControls();
 
 
 	// overrides
 
-	virtual void SelectionChanged( bool selected ) override
-	{}
+protected:
+
+	virtual void UpdatePanelSelectionChange() override;
 
 
+	virtual EDatasetType DatasetType() const override
+	{
+		return eStandard;
+	}
+
+	virtual QString TreeItemSelectionChanged( QTreeWidgetItem *tree_item ) override;
+
+	virtual void FillFieldList( CDataset *current_dataset, const std::string &current_file ) override;
+
+	virtual QTreeWidgetItem *AddDatasetToTree( const QString &dataset_name ) override;
+
+	// Called
+	//	- after assigning new workspace 
+	//	- after clearing tree
+	//	- before invoking AddDatasetToTree iteratively to refill tree
+	//
+	virtual void PrepareWorkspaceChange() override;
+	
+	
     // access
 
     // operations
-    void AddFiles(QStringList &paths_list);
 
-    void DatasetChanged( QTreeWidgetItem *tree_item );
-    virtual void FileChanged( QTreeWidgetItem *file_or_mission_item );
+	void AddFiles( QStringList &paths_list );					//called by HandleAddFiles and HandleAddDir
 
-    QTreeWidgetItem *AddDatasetToTree(const QString &dataset_name);
-    void FillFileTree( QTreeWidgetItem *current_dataset_item);
-    void FillFieldList( CDataset *current_dataset, const std::string &current_file );
-    void ClearFieldList();
+	void FillFileTree( QTreeWidgetItem *current_dataset_item );	//populates tree with file nodes; called by AddFiles and AddDatasetToTree
 
-	bool RenameDataset( QTreeWidgetItem *dataset_item );
 
-signals:
-    void CurrentDatasetChanged( CDataset* );
-    void DatasetsChanged( const CDataset* );
+protected slots:
 
-public slots:
-    void HandleWorkspaceChanged( CWorkspaceDataset *wksd );
-
-    void HandleFieldChanged();
-    void HandleNewDataset();
-    void HandleDeleteDataset();
     void HandleAddFiles();
     void HandleAddDir();
     void HandleRemoveFile();
     void HandleClearFiles();
-    void HandleTreeItemChanged();
 
-protected slots:
-
-    void HandleDatasetExpanded(); // Resizes DatasetTree when datasets are expanded
-    void HandleItemChanged( QTreeWidgetItem *item, int col );
 };
 
 

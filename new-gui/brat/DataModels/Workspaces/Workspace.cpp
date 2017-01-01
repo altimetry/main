@@ -25,6 +25,7 @@
 
 #include "Operation.h"
 #include "Display.h"
+#include "RadsDataset.h"
 #include "Workspace.h"
 #include "WorkspaceSettings.h"
 
@@ -171,6 +172,19 @@ void CWorkspace::Dump( std::ostream& fOut /* = std::cerr */ )
 //------------------- CWorkspaceDataset class --------------------
 //-------------------------------------------------------------
 
+
+bool CWorkspaceDataset::HasRadsDataset() const 
+{ 
+	if ( HasDataset() )
+		for ( auto const &dataset_pair : *this )
+		{
+			if ( dynamic_cast< const CRadsDataset* >( dataset_pair.second ) )
+				return true;
+		}
+
+	return false;
+}
+
 //----------------------------------------
 bool CWorkspaceDataset::Import( CWorkspace* wksi, std::string &errorMsg, CWorkspaceDataset *wks_data, CWorkspaceDisplay *wks_disp, CWorkspaceOperation *wks_op )
 {
@@ -293,26 +307,24 @@ bool CWorkspaceDataset::LoadConfigDataset( std::string &errorMsg )
 	return m_config->LoadConfigDataset( *this, errorMsg );
 }
 //----------------------------------------
-bool CWorkspaceDataset::RenameDataset(CDataset* dataset, const std::string& new_name)
+
+bool CWorkspaceDataset::RenameDataset( CDataset *dataset, const std::string& new_name )
 {
-  if ( str_cmp( dataset->GetName(), new_name) )
-    return true;
+	if ( dataset->GetName() != new_name )
+	{
+		if ( !m_datasets.RenameKey( dataset->GetName(), new_name ) )
+			return false;
 
-  bool bOk = m_datasets.RenameKey((const char *)dataset->GetName().c_str(), (const char *)new_name.c_str());
-  if (bOk == false)
-  {
-   return false;
-  }
+		dataset->SetName( new_name );
+	}
 
-  dataset->SetName(new_name);
-
-  return true;
+	return true;
 }
 
 //----------------------------------------
 bool CWorkspaceDataset::DeleteDataset( CDataset* dataset )
 {
-	return m_datasets.Erase( (const char *)dataset->GetName().c_str() );
+	return m_datasets.Erase( dataset->GetName() );
 }
 
 //----------------------------------------

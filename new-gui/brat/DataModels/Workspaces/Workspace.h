@@ -214,7 +214,8 @@ public:
 
 	// 
 
-	bool HasDataset() { return GetDatasetCount() > 0; }
+	bool HasDataset() const { return GetDatasetCount() > 0; }
+	bool HasRadsDataset() const;
 
 	//bool CheckFiles( std::string &errorMsg );			// femm: Apparently not used...
 

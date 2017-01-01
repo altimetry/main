@@ -186,6 +186,11 @@ void  CEditExportAsciiDialog::Wire()
     CProgressDialog progress( "Building data table...", "Cancel", 0, ascii.length(), parentWidget() );
     progress.show();
 	FillTable( ascii, &progress );
+	if ( progress.Cancelled() && !SimpleQuestion( "Do you want to see the data read before canceling?" ) )
+	{
+		QTimer::singleShot( 1000, this, &CEditExportAsciiDialog::close );
+		return;
+	}
 
     //	connect
 

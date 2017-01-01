@@ -92,8 +92,10 @@ const CParameter::KWValueListEntry	CBratProcess::PositionModeKeywords[] =
 //-------------------------------------------------------------
 
 CBratProcess::CBratProcess()
+    : base_t()
+    , mCheckedDataset( false )
 {
-  Init();
+    Init();
 }
 //----------------------------------------
     

@@ -90,7 +90,7 @@ public:
     
 protected:
 	bool AddMission( const std::string &rads_server_address, const std::string &local_rads_dir, const CRadsMission &mission, std::string &warnings );
-	bool RemoveAllMissions( const std::string &rads_server_address, const std::string &local_rads_dir );
+    bool RemoveAllMissions();
 	bool AddMissionFiles( const std::vector< std::string > &paths, std::string &warnings );
 	bool SetMissionFiles( const std::vector< std::string > &paths, std::string &warnings );
 };

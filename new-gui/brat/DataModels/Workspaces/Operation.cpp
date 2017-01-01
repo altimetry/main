@@ -125,9 +125,9 @@ public:
 
 	bool BuildCmdFileSpecificUnit()
 	{
-		assert__( mOp.mFilteredDataset );
+		assert__( mOp.mOriginalDataset );
 
-		const CDataset* dataset = mOp.mFilteredDataset;
+		const CDataset* dataset = mOp.mOriginalDataset;	//we were using mFilteredDataset, but it doesn't seem to make sense requiring filter application for units retrieval
 		if ( dataset == nullptr )
 			return false;
 
@@ -629,14 +629,13 @@ COperation* COperation::Copy( const COperation &o, CWorkspaceOperation *wkso, CW
 	assert__( new_op->mFilteredDataset == nullptr && new_op->mOriginalDataset == nullptr );
 
 	//assuming original operation is well formed, no reason to check filter and dataset assignment
-	std::string error_msg;
 	//if ( o.mDataset != nullptr )
 	//{
 		assert__( o.OriginalDataset() != nullptr && new_op->Filter() == nullptr );
 
-        new_op->SetOriginalDataset( wksd, o.OriginalDatasetName(), error_msg );	//NOTE: this clears formulas and can clear filter, don't assign them before
+        new_op->SetOriginalDataset( wksd, o.OriginalDatasetName() );	//NOTE: this clears formulas and can clear filter, don't assign them before
 	//}
-	new_op->SetFilter( o.Filter(), error_msg );
+    new_op->SetFilter( o.Filter() );
 
 	new_op->SetRecord( o.m_record );
 	new_op->CopyFilteredDatasetAndProduct( o );	//new_op->SetProduct( o.m_product );
@@ -948,16 +947,16 @@ bool COperation::RenameFormula(CFormula* formula, const std::string &newName)
 }
 
 
-bool COperation::ReapplyFilter()
+void COperation::ReapplyFilter()
 { 
-	return RemoveFilteredDataset();		// v4.0: SetFilteredDataset( error_msg, pi );
+	RemoveFilteredDataset();		// v4.0: SetFilteredDataset( error_msg, pi );
 }
 
 
-bool COperation::SetFilter( const CBratFilter *filter, std::string &error_msg )
+void COperation::SetFilter( const CBratFilter *filter )
 { 
 	mFilter = filter; 
-	return RemoveFilteredDataset();;		// SetFilteredDataset( error_msg, pi );
+	RemoveFilteredDataset();;		// SetFilteredDataset( error_msg, pi );
 }
 
 // Always succeeds
@@ -965,7 +964,6 @@ bool COperation::SetFilter( const CBratFilter *filter, std::string &error_msg )
 void COperation::RemoveFilter()
 {
 	mFilter = nullptr; 
-	std::string error_msg;
 	RemoveFilteredDataset();	// SetFilteredDataset( error_msg, nullptr );
 }
 
@@ -1037,14 +1035,12 @@ void COperation::CopyFilteredDatasetAndProduct( const COperation &o )
 	}
 }
 
-bool COperation::RemoveFilteredDataset()
+void COperation::RemoveFilteredDataset()
 {
 	delete mFilteredDataset;
 	mFilteredDataset = nullptr;
 	delete mFilteredProduct; 
 	mFilteredProduct = nullptr; 
-
-	return true;
 }
 
 bool COperation::CreateFilteredDataset( std::string &error_msg, CProgressInterface *progress )
@@ -1058,30 +1054,35 @@ bool COperation::CreateFilteredDataset( std::string &error_msg, CProgressInterfa
 
 	mFilteredDataset = NewFilteredDataset();
 
-	bool result = mFilteredDataset->ApplyFilter( mFilter, mOriginalDataset, error_msg, progress );
-	if ( !result )
+	auto result = mFilteredDataset->ApplyFilter( mFilter, mOriginalDataset, error_msg, progress );
+
+	if ( result.second )	//if user canceled filter application, doesn't make sense to retain a filtered dataset, the callers must abort anything that rely on it
+	{
+		RemoveFilteredDataset();
+	}
+	else
+	if ( !result.first )	//if the filter is removed, let the filtered dataset be an original dataset copy, if the callers want they can proceed with it
 	{
 		error_msg = "Filter '" + mFilter->Name() + "' could not be applied and was removed from operation '" + GetName() + "'.\nReason: " + error_msg;
 		mFilter = nullptr;
 	}
 
-	return result;
+	return result.first;
 }
 
 
-bool COperation::SetOriginalDataset( const CWorkspaceDataset *wks, const std::string dataset_name, std::string &error_msg ) 
+void COperation::SetOriginalDataset( const CWorkspaceDataset *wks, const std::string dataset_name )
 { 
 	const CDataset *dataset = wks ? wks->GetDataset( dataset_name ) : nullptr;			assert__( !wks || dataset );
 	RemoveFormulas();
 	mOriginalDataset = dataset;
-	return RemoveFilteredDataset();	// SetFilteredDataset( error_msg, pi );
+	RemoveFilteredDataset();	// SetFilteredDataset( error_msg, pi );
 }
 
 
 void COperation::RemoveOriginalDataset()
 {
-	std::string error_msg;
-	SetOriginalDataset( nullptr, "", error_msg );
+    SetOriginalDataset( nullptr, "" );
 }
 
 
@@ -1443,12 +1444,18 @@ bool COperation::BuildExportAsciiCmdFile( CWorkspaceFormula *wks, CWorkspaceOper
 	return true;
 }
 //----------------------------------------
-bool COperation::BuildShowStatsCmdFile( CWorkspaceFormula *wks, CWorkspaceOperation *wkso, std::string &error_msg )
+bool COperation::BuildShowStatsCmdFile( CWorkspaceFormula *wks, CWorkspaceOperation *wkso, std::string &error_msg, CProgressInterface *progress )
 {
 	if ( m_showStatsOutput.empty() )
 		InitShowStatsOutput( wkso );
 
-	const CProductInfo pi( OriginalDataset() );
+	auto filtered_result = FilteredDataset( error_msg, progress );
+	if ( !filtered_result.first )
+		return false;
+
+	assert__( mFilteredDataset );
+
+	const CProductInfo pi( mFilteredDataset );
 	if ( !pi.IsValid() )
 	{
 		error_msg = pi.ErrorMessages();

@@ -19,12 +19,10 @@
 #define GUI_CONTROL_PANELS_RADS_BROWSERCONTROLS_H
 
 
-#include "DesktopControlPanel.h"
+#include "DatasetsBrowserControlsBase.h"
 #include "RadsDatasetsTreeWidget.h"
-#include "BratApplication.h"
 
 
-class CTextWidget;
 
 
 
@@ -33,7 +31,7 @@ class CTextWidget;
 //								Dataset Browser
 /////////////////////////////////////////////////////////////////////////////////////
 
-class CRadsBrowserControls : public CDesktopControlsPanel
+class CRadsBrowserControls : public CDatasetsBrowserControlsBase
 {
 #if defined (__APPLE__)
 #pragma clang diagnostic push
@@ -48,30 +46,17 @@ class CRadsBrowserControls : public CDesktopControlsPanel
 
 	//types
 
-    using base_t = CDesktopControlsPanel;
+    using base_t = CDatasetsBrowserControlsBase;
 
 
 	//instance data
 
-	CRadsDatasetsTreeWidget *mDatasetTree = nullptr;
-
-    QToolButton *mNewDataset = nullptr;
-    QToolButton *mDeleteDataset = nullptr;
-
-    CTextWidget *mFileDesc = nullptr;
-    QGroupBox   *mFileDescGroup = nullptr;
-    QListWidget *mFieldList = nullptr;
-    CTextWidget *mFieldDesc = nullptr;
 
 
 	//...doamin data
 
-    CBratApplication &mApp;
-	const CApplicationPaths &mBratPaths;
 	const CSharedRadsSettings &mRadsServiceSettings;
-	CWorkspaceDataset *mWDataset = nullptr;
 	QSharedMemory mSharedMemory;
-
    
 
     //construction / destruction
@@ -84,49 +69,43 @@ public:
 	virtual ~CRadsBrowserControls();
 
 
+protected:
+
 	// overrides
 
-	virtual void SelectionChanged( bool selected ) override
+	virtual void UpdatePanelSelectionChange() override
 	{}
 
+	virtual EDatasetType DatasetType() const override
+	{
+		return eRADS;
+	}
 
-	// access
+	virtual QString TreeItemSelectionChanged( QTreeWidgetItem *tree_item ) override;
 
-    // operations
-    void AddFiles(QStringList &paths_list);
+	virtual QTreeWidgetItem *AddDatasetToTree( const QString &dataset_name ) override;
 
-    void DatasetChanged( QTreeWidgetItem *tree_item );
-    virtual void FileChanged( QTreeWidgetItem *tree_item );
+	// Called
+	//	- after assigning new workspace 
+	//	- after clearing tree
+	//	- before invoking AddDatasetToTree iteratively to refill tree
+	//
+	virtual void PrepareWorkspaceChange() override;
+	
+	
+    // access
 
-    QTreeWidgetItem *AddDatasetToTree(const QString &dataset_name);
+	CRadsDatasetsTreeWidget* RadsDatasetTree();
 
-    void FillFieldList( CDataset *current_dataset, const std::string &current_file_or_mission );
-    void ClearFieldList();
 
-	bool RenameDataset( QTreeWidgetItem *dataset_item );
-
-protected:
+	// operations
 
 	bool CheckRadsConfigStatus();
 
-signals:
-    void CurrentDatasetChanged( CDataset* );
-    void DatasetsChanged( const CDataset* );
-
-public slots:
-    void HandleWorkspaceChanged( CWorkspaceDataset *wksd );
-
-    void HandleFieldChanged();
-    void HandleNewDataset();
-    void HandleDeleteDataset();
-    void HandleTreeItemChanged();
 
 protected slots:
 
-    void HandleDatasetExpanded(); // Resizes DatasetTree when datasets are expanded
-    void HandleItemChanged( QTreeWidgetItem *item, int col );
-	void HandleCurrentIndexChanged( CRadsDatasetsTreeWidgetItem*, int index );
-    
+	void HandleCurrentIndexChanged( CRadsDatasetsTreeWidgetItem*, int index );			//Changed the mission selection in a dataset
     void HandleRsyncStatusChanged( CBratApplication::ERadsNotification notification );
 };
 

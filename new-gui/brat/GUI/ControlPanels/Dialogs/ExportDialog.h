@@ -137,28 +137,20 @@ protected:
 
 	CWorkspaceOperation *mWOperation = nullptr;
 	COperation *mOperation = nullptr;
-    const CStringMap *mAliases = nullptr;
 	const std::string mLogoPath;
 
     EExportFormat mExportType = eASCII;
 
+
     /////////////////////////////
     //construction / destruction
     /////////////////////////////
-private:
 
-	void CalculateMinMax();
     void CreateWidgets();
     void Wire();
 
 public:
-    CExportDialog( const std::string logo_path, CWorkspaceOperation *wkso, COperation *operation, const CStringMap *aliases, QWidget *parent );
-    //OLD BRAT CODE //////////////////////////////////////
-    //    ( wxWindow *parent, wxWindowID id, const std::string &title,
-    //          COperation* operation, const CStringMap* aliases = NULL,
-    //          const wxPoint& pos = wxDefaultPosition,
-    //          const wxSize& size = wxDefaultSize,
-    //          long style = wxDEFAULT_DIALOG_STYLE );
+    CExportDialog( const std::string logo_path, CWorkspaceOperation *wkso, COperation *operation, double color_range_min, double color_range_max, QWidget *parent );
 
     virtual ~CExportDialog();
 

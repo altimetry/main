@@ -148,19 +148,68 @@ const QSettings& QSettingsReadArray( QSettings &s, T &o, const std::string name,
 
 class WaitCursor
 {
-public:
-    WaitCursor()
-    {
-        QApplication::setOverrideCursor( Qt::WaitCursor );
-    }
-
-	void Restore()
+	static WaitCursor& GlobalWaitCursorInstance()
 	{
-        QApplication::restoreOverrideCursor();
+		static WaitCursor w( false, false );
+		return w;
 	}
 
-    ~WaitCursor()
+public:
+	static void GlobalWait()
+	{
+		static WaitCursor &w = GlobalWaitCursorInstance();
+
+		w.Set();
+	}
+
+	static void GlobalRestore()
+	{
+		static WaitCursor &w = GlobalWaitCursorInstance();
+
+		w.Restore();
+	}
+
+
+protected:
+	bool mWaiting = false;
+
+
+	WaitCursor( bool process_events, bool set )
+	{
+		if ( set )
+			Set( process_events );
+	}
+
+public:
+    WaitCursor( bool process_events = false )
+		: WaitCursor( process_events, true )
+    {}
+
+	void Set( bool process_events = false )
+	{
+		if ( !mWaiting )
+		{
+			mWaiting = true;
+			QApplication::setOverrideCursor( Qt::WaitCursor );
+		}
+		if ( process_events )
+			qApp->processEvents();
+	}
+
+	void Restore( bool process_events = false )
+	{
+		if ( mWaiting )
+		{
+			mWaiting = false;
+			QApplication::restoreOverrideCursor();
+		}
+		if ( process_events )
+			qApp->processEvents();
+	}
+
+	~WaitCursor()
     {
+		mWaiting = true;
 		Restore();
     }
 };
@@ -1326,31 +1375,59 @@ inline bool readUnicodeFileFromResource( const QString &rpath, std::wstring &des
 //					Dimensions - BRAT Specific
 //////////////////////////////////////////////////////////////////
 
+
 inline QSize DefaultSizeHint( const QWidget *w )
 {
 	return QSize( 72 * w->fontMetrics().width( 'x' ), 25 * w->fontMetrics().lineSpacing() );
 }
 
 
+inline const QColor& ViewsDefaultBackgroundColor()
+{
+	static const QColor c( 0xFF, 0xFF, 0xF0, 255 );
+	return c;
+}
+
 
 const int min_main_window_width = 1024;
 const int min_main_window_height = 728;
 const int min_main_working_dock_width = min_main_window_width / 2;
 
-const auto hchild_ratio = 2. / 3.;
-const auto aspect_ratio = 1. / 2.;	//latitude range == half longitude range
+const auto min_hchild_ratio = 2. / 3.;
+const auto aspect_ratio = ( 1. + .3 ) / 2.;	//latitude range == half longitude range
 
-const int min_globe_widget_width =  min_main_window_width * hchild_ratio;
+const int min_globe_widget_width =  min_main_window_width * min_hchild_ratio;
 const int min_globe_widget_height = min_globe_widget_width * aspect_ratio;
 
 const int min_plot_widget_width = min_globe_widget_width;
 const int min_plot_widget_height = min_globe_widget_height;
 
 
+inline int GlobeWidgetWidth( double hchild_ratio )
+{
+	return ApplicationWindow()->width() * hchild_ratio;
+}
+inline int GlobeWidgetHeight( double hchild_ratio )
+{
+	return GlobeWidgetWidth( hchild_ratio ) * aspect_ratio;
+}
+
+inline int PlotWidgetWidth( double hchild_ratio )
+{
+	return GlobeWidgetWidth( hchild_ratio );
+}
+inline int PlotWidgetHeight( double hchild_ratio )
+{
+	return GlobeWidgetHeight( hchild_ratio );
+}
+
+
+
 const int min_editor_dock_width = 200;
 const int min_editor_dock_height = 10;
 
 const int min_readable_combo_width = 90;
+
 
 
 

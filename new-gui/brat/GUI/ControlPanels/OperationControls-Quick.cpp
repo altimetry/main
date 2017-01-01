@@ -364,6 +364,8 @@ void COperationControls::HandleSelectedDatasetChanged_Quick( int dataset_index )
 
 	if ( dataset_index < 0 )
 	{
+		if ( SelectedPanel() && !AdvancedMode() )
+			UpdatePanelSelectionChange();
 		LOG_TRACEstd( "Leaving HandleSelectedDatasetChanged_Quick with index < 0" );
 		return;
 	}
@@ -380,12 +382,13 @@ void COperationControls::HandleSelectedDatasetChanged_Quick( int dataset_index )
 		item->setFlags( item->flags() & ~Qt::ItemIsEnabled );
 	}
 
+	assert__( dataset );		assert__( mQuickOperation );
+
 	// 2. re-assign dataset or filtered dataset 
 	//		Here is the usage of mQuickInitializing ugly trick
 	//
-	std::string error_msg;									assert__( dataset );		assert__( mQuickOperation );
-	if ( !mQuickInitializing && !mQuickOperation->SetOriginalDataset( mWDataset, dataset->GetName(), error_msg ) )
-		SimpleWarnBox( CWorkspaceOperation::QuickOperationName() + ": " + error_msg );
+	if ( !mQuickInitializing )
+		mQuickOperation->SetOriginalDataset( mWDataset, dataset->GetName() );
 
 
 	// 3. check if dataset files are usable (have lon/lat fields); return if not
@@ -451,6 +454,9 @@ void COperationControls::HandleSelectedDatasetChanged_Quick( int dataset_index )
 	mQuickSelectionCriteriaCheck->setEnabled( has_selection_criteria );
 	if ( !has_selection_criteria )
 		mQuickSelectionCriteriaCheck->setChecked( false );
+
+	if ( SelectedPanel() && !AdvancedMode() )
+		UpdatePanelSelectionChange();
 
 	LOG_TRACEstd( "Leaving HandleSelectedDatasetChanged_Quick with index >= 0" );
 }
@@ -612,17 +618,12 @@ COperation* COperationControls::CreateQuickOperation( CMapTypeOp::ETypeOp type )
 	operation->SetType( type );
 
 	const std::string filter_name = q2a( mOperationFilterButton_Quick->text() );
-	std::string error_msg;
 	if ( !filter_name.empty() )
 	{
 		auto *filter = mBratFilters.Find( filter_name );				assert__( filter );
-		operation->SetFilter( filter, error_msg );
+		operation->SetFilter( filter );
 	}
-	if ( !operation->SetOriginalDataset( mWDataset, QuickDatasetSelectedName(), error_msg ) )	//error consequence is filter not applied; continue
-	{
-		SimpleWarnBox( error_msg );
-		error_msg.clear();
-	}
+	operation->SetOriginalDataset( mWDataset, QuickDatasetSelectedName() );
 
 	//CProduct *product = const_cast<const COperation*>( operation )->Dataset()->SafeOpenProduct();
 	CProductInfo pi( operation->OriginalDataset() );
@@ -655,6 +656,7 @@ COperation* COperationControls::CreateQuickOperation( CMapTypeOp::ETypeOp type )
 		if ( operation->GetRecord().empty() && pi.IsNetCdf() )
 			operation->SetRecord( CProductNetCdf::m_virtualRecordName );
 	}
+	std::string error_msg;
 	CFormula* formula = operation->NewUserFormula( error_msg, lon_lat_fields.first, CMapTypeField::eTypeOpAsX, true, pi );
 	operation->ComputeInterval( formula, error_msg );
 

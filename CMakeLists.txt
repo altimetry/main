@@ -2674,7 +2674,6 @@ if(BRAT_BUILD_GUI)
 		new-gui/brat/GUI/ControlPanels/DatasetsBrowserControls.cpp
 		new-gui/brat/DataModels/Model.cpp
 		new-gui/brat/GUI/ActionsTable.cpp
-		new-gui/Common/ConfigurationKeywords.cpp
 		new-gui/Common/FileSettings.cpp
 		new-gui/Common/ApplicationSettings.cpp
 		new-gui/brat/BratSettings.cpp
@@ -2758,6 +2757,7 @@ if(BRAT_BUILD_GUI)
 	    new-gui/brat/DataModels/Workspaces/RadsDataset.cpp
 	    process/rads/RadsSettings.cpp
 		new-gui/brat/GUI/ControlPanels/Dialogs/DatasetInterpolationDialog.cpp
+		new-gui/brat/GUI/ControlPanels/DatasetsBrowserControlsBase.cpp
 	)
 
 		
@@ -2797,7 +2797,6 @@ if(BRAT_BUILD_GUI)
 		new-gui/brat/GUI/ControlPanels/DatasetsBrowserControls.h
 		new-gui/brat/DataModels/Model.h
 		new-gui/brat/GUI/ActionsTable.h
-		new-gui/Common/ConfigurationKeywords.h
 		new-gui/Common/FileSettings.h
 		new-gui/Common/ApplicationSettings.h
 		new-gui/brat/BratSettings.h
@@ -2883,6 +2882,8 @@ if(BRAT_BUILD_GUI)
 	    new-gui/brat/DataModels/Workspaces/RadsDataset.h
 	    process/rads/RadsSettings.h
 		new-gui/brat/GUI/ControlPanels/Dialogs/DatasetInterpolationDialog.h
+		new-gui/brat/GUI/DisplayWidgets/PlotsGraphicParameters.h
+		new-gui/brat/GUI/ControlPanels/DatasetsBrowserControlsBase.h
 	)
 
 

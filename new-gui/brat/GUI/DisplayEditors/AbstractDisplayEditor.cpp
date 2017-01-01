@@ -19,7 +19,6 @@
 
 #include "new-gui/Common/QtUtils.h"
 #include "new-gui/Common/GUI/TextWidget.h"
-#include "BratLogger.h"
 
 #include "DataModels/Model.h"
 #include "DataModels/Workspaces/Display.h"
@@ -38,6 +37,8 @@
 #include "Dialogs/ExportImageDialog.h"
 
 #include "AbstractDisplayEditor.h"
+#include "BratLogger.h"
+#include "BratSettings.h"
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
@@ -96,11 +97,13 @@ inline QToolBar* AddWidgets( QToolBar *toolbar, const std::vector< QObject* > &v
 
 void CAbstractDisplayEditor::CreateMainToolbar()
 {
-	mTopToolbar = new QToolBar( "Operation ToolBar", this );
+	assert__( mViewsSubMainWindow );
+
+	mTopToolbar = new QToolBar( "Operation ToolBar", mViewsSubMainWindow );
 	//mTopToolbar->setIconSize( { tool_icon_size, tool_icon_size } );
-	mTopToolbar->setAllowedAreas( Qt::TopToolBarArea );
-	mTopToolbar->setMovable( false );
+	mTopToolbar->setAllowedAreas( Qt::TopToolBarArea | Qt::BottomToolBarArea );	//mTopToolbar->setMovable( false );
 	mTopToolbar->layout()->setSpacing( 2 );
+    mTopToolbar->layout()->setMargin( 10 );
 
 	auto loperations = new QLabel( "Operation" );
 	QFont font = loperations->font();
@@ -112,7 +115,7 @@ void CAbstractDisplayEditor::CreateMainToolbar()
 	mFilterLineEdit = new QLineEdit;		mFilterLineEdit->setReadOnly( true );		mFilterLineEdit->setAlignment( Qt::AlignHCenter );
     //mFilterLineEdit->setSizePolicy( QSizePolicy::Maximum, QSizePolicy::Maximum );
 
-	mDatasetName = new QLineEdit;
+	mDatasetName = new QLineEdit;			mDatasetName->setReadOnly( true );			mDatasetName->setAlignment( Qt::AlignHCenter );
     //mDatasetName->setSizePolicy( QSizePolicy::Maximum, QSizePolicy::Maximum );
 
 	mOperationsCombo->setToolTip( "Operation" );
@@ -127,7 +130,7 @@ void CAbstractDisplayEditor::CreateMainToolbar()
 	mSaveOneClickButton->setAutoDefault( false );
 	mSaveOneClickButton->setVisible( false );			//TODO delete after implemented
 
-	addToolBar( AddWidgets( mTopToolbar,
+	mViewsSubMainWindow->addToolBar( Qt::TopToolBarArea, AddWidgets( mTopToolbar,
 	{
 		loperations, mOperationsCombo, nullptr, ldataset, mDatasetName, nullptr, lfilters, mFilterLineEdit, nullptr, mSaveOneClickButton
 	}
@@ -158,7 +161,9 @@ void CAbstractDisplayEditor::CreateWorkingDock()
 
 void CAbstractDisplayEditor::CreateGraphicsBar()
 {
-    mGraphicsToolBar = new QToolBar( "View ToolBar", this );
+	assert__( mViewsSubMainWindow );
+
+    mGraphicsToolBar = new QToolBar( "View ToolBar", mViewsSubMainWindow );
     mGraphicsToolBar->setIconSize({tool_icon_size,tool_icon_size});
 
 	// add button group
@@ -185,8 +190,8 @@ void CAbstractDisplayEditor::CreateGraphicsBar()
 
 	// add the bar
 
-	mGraphicsToolBar->setAllowedAreas( Qt::RightToolBarArea );
-    addToolBar( Qt::RightToolBarArea, mGraphicsToolBar );
+	mGraphicsToolBar->setAllowedAreas( Qt::AllToolBarAreas );
+	mViewsSubMainWindow->addToolBar( Qt::RightToolBarArea, mGraphicsToolBar );
 }
 
 
@@ -203,6 +208,7 @@ void CAbstractDisplayEditor::CreateWidgets()
 {
 	setAttribute( Qt::WA_DeleteOnClose );
 
+	mViewsSubMainWindow = new QMainWindow;
 	if ( !mDisplayOnlyMode )
 	{
 		CreateMainToolbar();
@@ -211,9 +217,10 @@ void CAbstractDisplayEditor::CreateWidgets()
 	CreateGraphicsBar();
 	CreateStatusBar();
 
-	mMainSplitter = CreateSplitterIn( this, Qt::Horizontal );
+	mMainSplitter = CreateSplitterIn( mViewsSubMainWindow, Qt::Horizontal );
 	mMainSplitter->setChildrenCollapsible( false );
-	setCentralWidget( mMainSplitter );
+	mViewsSubMainWindow->setCentralWidget( mMainSplitter );
+	setCentralWidget( mViewsSubMainWindow );
 
 	mTabGeneral = new GENERAL_TAB( this );
 	AddTab( mTabGeneral, "General" );
@@ -260,8 +267,6 @@ void CAbstractDisplayEditor::Wire()
 
 	connect( mOperationsCombo, SIGNAL( currentIndexChanged( int ) ), this, SLOT( HandleOperationsIndexChanged( int ) ) );
 	connect( mSaveOneClickButton, SIGNAL( clicked() ), this, SLOT( HandleOneClickClicked() ) );
-
-	mDatasetName->setReadOnly( true );
 
 	UpdateOperationsCombo();
 }
@@ -377,6 +382,18 @@ const std::string& CAbstractDisplayEditor::UserDataDirectory() const
 }
 
 
+CPlotsGraphicParameters CAbstractDisplayEditor::PlotsGraphicParameters() const
+{
+	return{ mModel->Settings().PlotsFontName(), mModel->Settings().PlotsAxisFontSize(), false, mModel->Settings().PlotsTitleFontSize(), true, sizeHint() };
+}
+
+
+
+
+static const int splitter_2D_side = 1;
+static const int splitter_3D_side = 0;
+
+
 bool CAbstractDisplayEditor::AddView( QWidget *view, bool view3D )
 {
 	assert__( mMainSplitter->count() < 2 );
@@ -388,13 +405,13 @@ bool CAbstractDisplayEditor::AddView( QWidget *view, bool view3D )
 	{
 		m3DAction->setEnabled( true );
 		m3DAction->setChecked( true );
-		mMainSplitter->insertWidget( 1, view );
+		mMainSplitter->insertWidget( splitter_3D_side, view );
 	}
 	else
 	{
 		m2DAction->setEnabled( true );
 		m2DAction->setChecked( true );
-		mMainSplitter->insertWidget( 0, view );
+		mMainSplitter->insertWidget( splitter_2D_side, view );
 	}
 
 	return true;
