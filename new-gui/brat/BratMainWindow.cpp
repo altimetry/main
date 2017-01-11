@@ -1371,7 +1371,7 @@ bool CBratMainWindow::SaveWorkspace()
     const CWorkspace *wks = mModel.RootWorkspace();
 	if ( result )
 	{
-		LOG_TRACEstd( wks->GetName() + " saved." );
+		LOG_INFO( wks->GetName() + " saved." );
 	}
 	else
 	{

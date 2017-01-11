@@ -79,9 +79,11 @@
 #define BRAT_PATCH_VERSION			0
 #endif
 
-// BRAT_BETA_VERSION and BRAT_RC_VERSION 
+// BRAT_BETA_VERSION and BRAT_RC_VERSION
 //	- are always defined outside BratVersion.h and CMakeLists.txt
 //	- are never hard-coded: the command line or development tools must always define them for beta and/or RC releases
+//  - BRAT_BETA_VERSION should be removed when beta testing is over, that is, when the last beta-rcX is accepted
+//  - BRAT_RC_VERSION should be incremented whenever the current RC is delivered
 //	- BratVersion.h uses these macros if correctly defined (externally) as preprocessor macros
 //	- CMakeLists.txt uses these macros if correctly defined as CMake macros, using them to build the version for CMake use 
 //		and to define the preprocessor macros for BratVersion.h use.
