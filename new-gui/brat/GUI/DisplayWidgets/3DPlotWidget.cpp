@@ -480,9 +480,9 @@ CBrat3DPlot::CBrat3DPlot( const CPlotsGraphicParameters &plots_graphic_parameter
 #if defined (Q_OS_MAC)
     , mPlotsGraphicParameters( {
           plots_graphic_parameters.mFontName,
-          plots_graphic_parameters.mAxisFontSize * 2,
+          plots_graphic_parameters.mAxisFontSize,
           plots_graphic_parameters.mAxisBold,
-          plots_graphic_parameters.mTitleFontSize * 2,
+          plots_graphic_parameters.mTitleFontSize,
           plots_graphic_parameters.mTitleBold,
           plots_graphic_parameters.mSizeHint
           } )

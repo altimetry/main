@@ -478,7 +478,7 @@ void CBratFilterControls::UpdatePanelSelectionChange()
 }
 
 
-void CBratFilterControls::HandleCurrentLayerSelectionChanged( QRectF box /*= QRectF()*/ )
+void CBratFilterControls::HandleCurrentLayerSelectionChanged( QRectF box )	// = QRectF()
 {
     // Clear Selected area in areas list
     mAreasListWidget->clearSelection();		//triggers HandleAreasSelectionChanged
@@ -1331,6 +1331,7 @@ void CBratFilterControls::HandleDatasetChanged( const CDataset *dataset )
 
     mMap->setRenderFlag( false );
     std::vector< std::string > paths = mDataset->GetFiles();
+	bool some_track_displayed = false;
     for ( auto &path : paths )
     {
         WaitCursor wait;
@@ -1416,6 +1417,8 @@ void CBratFilterControls::HandleDatasetChanged( const CDataset *dataset )
             assert__( lon_dim == lat_dim );
             assert__( !is_netcdf || ( lon_dim == expected_lon_dim && lat_dim == expected_lat_dim ) );
 
+			some_track_displayed = true;
+
             debug_log( "Normalizing longitudes..." );
 
             for ( size_t i = 0; i < lon_dim; ++i )
@@ -1434,7 +1437,8 @@ void CBratFilterControls::HandleDatasetChanged( const CDataset *dataset )
         free( latv );
     }
 
-	mMap->setWindowTitle( t2q( dataset->GetName() ) );
+	if ( some_track_displayed )
+		mMap->setWindowTitle( t2q( dataset->GetName() ) );
 	mMap->setRenderFlag( true );
     if ( total_records >= 0 )
         mTotalRecordsSelectedEdit->setText( n2s<std::string>( total_records ).c_str() );

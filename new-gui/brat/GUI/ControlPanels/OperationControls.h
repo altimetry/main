@@ -248,7 +248,6 @@ protected:
 	COperation *mQuickOperation = nullptr;
 	bool mQuickInitializing = false;					//ugly
 	const CDataset *mCurrentOriginalDataset = nullptr;
-	CProduct *mProduct = nullptr;
     CFormula *mUserFormula = nullptr;
     CFormula *mXformula = nullptr;
     CFormula *mYformula = nullptr;
@@ -331,8 +330,8 @@ protected:
     bool IsQuickOperationSelected() const;
     void UpdateFieldsCheckState();
 
-	CField* QuickFindField( CProduct *product, EPredefinedVariables index, bool &alias_used, std::string &field_error_msg );
-	CField* QuickFindField( CProduct *product, EPredefinedSelectionCriteria index, bool &alias_used, std::string &field_error_msg );
+	CField* QuickFindField( const CProductInfo &pi, EPredefinedVariables index, bool &alias_used, std::string &field_error_msg );
+	CField* QuickFindField( const CProductInfo &pi, EPredefinedSelectionCriteria index, bool &alias_used, std::string &field_error_msg );
 
 	//advanced
 

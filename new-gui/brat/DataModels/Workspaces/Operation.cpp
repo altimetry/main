@@ -30,6 +30,7 @@ using namespace processes;
 #include "../Filters/BratFilters.h"
 #include "Workspace.h"
 #include "Operation.h"
+#include "ProductInfo.h"
 #include "RadsDataset.h"
 #include "WorkspaceSettings.h"
 

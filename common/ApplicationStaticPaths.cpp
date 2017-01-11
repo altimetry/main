@@ -226,7 +226,7 @@ CApplicationStaticPaths::CApplicationStaticPaths( const std::string &exec_path, 
     , mDeploymentRootDir	( GetDirectoryFromPath( mExecutableDir.mPath ), true, "Deployment Root Folder" )
     , mQtPluginsDir			( mExecutableDir + "/" + QT_PLUGINS_SUBDIR, true, "Qt Plug-ins Folder" )
 	, mPythonDir			( mExecutableDir + "/Python", mApplicationName == BRAT_APPLICATION_NAME, "Python Folder" )
-	, mUserManualPath		( mDeploymentRootDir + "/doc/brat_user_manual_" + BRAT_VERSION + ".pdf", true, "User Manual" )
+    , mUserManualPath		( mDeploymentRootDir + "/doc/brat_user_manual_" + BRAT_VERSION_STRING + ".pdf", true, "User Manual" )
 
     , mInternalDataDir		( ComputeInternalDataDirectory( mExecutableDir ), true, "Private Data Folder" )
 
@@ -305,8 +305,8 @@ std::string CApplicationStaticPaths::ToString() const
 
 	s += ( "\n" + mRsyncExecutablePath.ToString() );
 
+    s += ( "\n" + mRadsConfigurationFilePath.ToString() );
 	s += ( "\n" + mRadsServicePanicLogFilePath.ToString() );
-	s += ( "\n" + mRadsConfigurationFilePath.ToString() );
 
     return s;
 }
@@ -334,7 +334,7 @@ bool CApplicationStaticPaths::ValidatePaths() const
 		&&	mRsyncExecutablePath.Valid( mErrorMsg )
 		&&	mRadsServicePanicLogFilePath.Valid( mErrorMsg )
 		&&	mRadsConfigurationFilePath.Valid( mErrorMsg )
-
+            
 		//	ValidPath( mErrorMsg, mQtPluginsDir, false, "Qt Plugins directory" ) 
 		//&&	ValidPath( mErrorMsg, mInternalDataDir, false, "BRAT resources directory" ) 
 		//&&	ValidPath( mErrorMsg, mRsyncExecutablePath, true, "rsync executable path" )

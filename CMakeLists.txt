@@ -15,33 +15,53 @@ ENDMACRO(DBG_MSG_V)
 
 project(BRAT)
 
-# It is assumed that, if a version value is defined in the command line,
-# 
+
+# It is assumed that, if any of the following version values is defined
+# in the command line, the purpose is to override macros in BratVersion.h
 
 IF (NOT DEFINED BRAT_MAJOR_VERSION)
-SET(BRAT_MAJOR_VERSION 4)
-ELSE (NOT DEFINED BRAT_MAJOR_VERSION)
-ADD_DEFINITIONS(-DBRAT_MAJOR_VERSION_INT=${BRAT_MAJOR_VERSION})
-ENDIF (NOT DEFINED BRAT_MAJOR_VERSION)
+	SET(BRAT_MAJOR_VERSION 4)
+ELSE ()
+	ADD_DEFINITIONS(-DBRAT_MAJOR_VERSION_INT=${BRAT_MAJOR_VERSION})
+ENDIF ()
 
 IF (NOT DEFINED BRAT_MINOR_VERSION)
-SET(BRAT_MINOR_VERSION 0)
-ELSE (NOT DEFINED BRAT_MINOR_VERSION)
-ADD_DEFINITIONS(-DBRAT_MINOR_VERSION_INT=${BRAT_MINOR_VERSION})
-ENDIF (NOT DEFINED BRAT_MINOR_VERSION)
+	SET(BRAT_MINOR_VERSION 1)
+ELSE ()
+	ADD_DEFINITIONS(-DBRAT_MINOR_VERSION_INT=${BRAT_MINOR_VERSION})
+ENDIF ()
 
 IF (NOT DEFINED BRAT_PATCH_VERSION)
-SET(BRAT_PATCH_VERSION 0)
-ELSE (NOT DEFINED BRAT_PATCH_VERSION)
-ADD_DEFINITIONS(-DBRAT_PATCH_VERSION_INT=${BRAT_PATCH_VERSION})
-ENDIF (NOT DEFINED BRAT_PATCH_VERSION)
+	SET(BRAT_PATCH_VERSION 0)
+ELSE ()
+	ADD_DEFINITIONS(-DBRAT_PATCH_VERSION_INT=${BRAT_PATCH_VERSION})
+ENDIF ()
 
-set(BRAT_VERSION "${BRAT_MAJOR_VERSION}.${BRAT_MINOR_VERSION}.${BRAT_PATCH_VERSION}")
+# Beta and RC version suffixes are always defined externally
+# and used by BratVersion.h
+
+IF (DEFINED BRAT_BETA_VERSION)
+	SET(BRAT_BETA_VERSION_SUFFIX -beta)
+	ADD_DEFINITIONS(-DBRAT_BETA_VERSION)
+ENDIF ()
+
+IF (DEFINED BRAT_RC_VERSION)
+	SET(BRAT_RC_VERSION_SUFFIX -rc${BRAT_RC_VERSION})
+	ADD_DEFINITIONS(-DBRAT_RC_VERSION=${BRAT_RC_VERSION})
+ENDIF ()
+
+
+set(BRAT_BASE_VERSION "${BRAT_MAJOR_VERSION}.${BRAT_MINOR_VERSION}.${BRAT_PATCH_VERSION}")
+set(BRAT_VERSION "${BRAT_BASE_VERSION}${BRAT_BETA_VERSION_SUFFIX}${BRAT_RC_VERSION_SUFFIX}")
 
 
 message(STATUS "System type: ${CMAKE_SYSTEM_NAME}")
 message(STATUS "BRAT version: ${BRAT_VERSION}")
 message(STATUS "BRAT_SOURCE_DIR: ${BRAT_SOURCE_DIR}")
+
+
+# RETURN()
+
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY bin CACHE INTERNAL "Directory for all programs")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY lib CACHE INTERNAL "Directory for all dynamic libraries")
@@ -2407,6 +2427,14 @@ if(BRAT_BUILD_GUI)
 		)
 
 
+	    # -o is ignored
+		if (ENABLE_QT5)
+			QT5_ADD_RESOURCES( RADS_RCC_SOURCES common/system/service/service.qrc OPTIONS -o ${BRAT_SOURCE_DIR}/process/rads/tmp/qrc_service.cpp )
+		else()
+			QT4_ADD_RESOURCES( RADS_RCC_SOURCES common/system/service/service.qrc OPTIONS -o ${BRAT_SOURCE_DIR}/process/rads/tmp/qrc_service.cpp )
+		endif()
+
+
 		if (WIN32)
 
 			set(RADS_SOURCES
@@ -2441,7 +2469,7 @@ if(BRAT_BUILD_GUI)
 		)
 
 
-		add_executable( ${RADS_SERVICE_NAME} ${RADS_SOURCES} ${RADS_SOURCES_H} )
+	    add_executable( ${RADS_SERVICE_NAME} ${RADS_SOURCES}  ${RADS_RCC_SOURCES} ${RADS_SOURCES_H} )
 
 		target_include_directories( ${RADS_SERVICE_NAME} BEFORE PRIVATE process/rads )
 
@@ -2758,6 +2786,7 @@ if(BRAT_BUILD_GUI)
 	    process/rads/RadsSettings.cpp
 		new-gui/brat/GUI/ControlPanels/Dialogs/DatasetInterpolationDialog.cpp
 		new-gui/brat/GUI/ControlPanels/DatasetsBrowserControlsBase.cpp
+		new-gui/brat/DataModels/Workspaces/ProductInfo.cpp
 	)
 
 		
@@ -2884,6 +2913,7 @@ if(BRAT_BUILD_GUI)
 		new-gui/brat/GUI/ControlPanels/Dialogs/DatasetInterpolationDialog.h
 		new-gui/brat/GUI/DisplayWidgets/PlotsGraphicParameters.h
 		new-gui/brat/GUI/ControlPanels/DatasetsBrowserControlsBase.h
+		new-gui/brat/DataModels/Workspaces/ProductInfo.h
 	)
 
 
@@ -2927,12 +2957,14 @@ if(BRAT_BUILD_GUI)
 		QT5_ADD_RESOURCES( BRAT_RCC_SOURCES new-gui/brat/GUI/DisplayWidgets/Globe/globe_plugin.qrc OPTIONS -o ${BRAT_SOURCE_DIR}/new-gui/brat/tmp/qrc_globe_plugin.cpp )
 		QT5_ADD_RESOURCES( BRAT_RCC_SOURCES new-gui/brat/Resources/images/qgis-themes-1.qrc OPTIONS -o ${BRAT_SOURCE_DIR}/new-gui/brat/tmp/qrc_qgis-themes-1.cpp )
 		QT5_ADD_RESOURCES( BRAT_RCC_SOURCES new-gui/brat/Resources/images/qgis-themes-2.qrc OPTIONS -o ${BRAT_SOURCE_DIR}/new-gui/brat/tmp/qrc_qgis-themes-2.cpp )
+		QT5_ADD_RESOURCES( BRAT_RCC_SOURCES common/system/service/service.qrc OPTIONS -o ${BRAT_SOURCE_DIR}/new-gui/brat/tmp/qrc_service.cpp )
 	else()
 		QT4_WRAP_UI( BRAT_UI_SOURCES new-gui/brat/BratMainWindow.ui OPTIONS -o ${BRAT_SOURCE_DIR}/new-gui/brat/tmp/ui_BratMainWindow.h )
 		QT4_ADD_RESOURCES( BRAT_RCC_SOURCES new-gui/Common/Resources/brat.qrc OPTIONS -o ${BRAT_SOURCE_DIR}/new-gui/brat/tmp/qrc_brat.cpp )
 		QT4_ADD_RESOURCES( BRAT_RCC_SOURCES new-gui/brat/GUI/DisplayWidgets/Globe/globe_plugin.qrc OPTIONS -o ${BRAT_SOURCE_DIR}/new-gui/brat/tmp/qrc_globe_plugin.cpp )
 		QT4_ADD_RESOURCES( BRAT_RCC_SOURCES new-gui/brat/Resources/images/qgis-themes-1.qrc OPTIONS -o ${BRAT_SOURCE_DIR}/new-gui/brat/tmp/qrc_qgis-themes-1.cpp )
 		QT4_ADD_RESOURCES( BRAT_RCC_SOURCES new-gui/brat/Resources/images/qgis-themes-2.qrc OPTIONS -o ${BRAT_SOURCE_DIR}/new-gui/brat/tmp/qrc_qgis-themes-2.cpp )
+		QT4_ADD_RESOURCES( BRAT_RCC_SOURCES common/system/service/service.qrc OPTIONS -o ${BRAT_SOURCE_DIR}/new-gui/brat/tmp/qrc_service.cpp )
 	endif()
 
 	include_directories(

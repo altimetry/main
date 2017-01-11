@@ -629,10 +629,7 @@ COperationControls::COperationControls( CProcessesTable *processes_table, CModel
 
 //virtual 
 COperationControls::~COperationControls()
-{
-	delete mProduct;
-	mProduct = nullptr;
-}
+{}
 
 
 
@@ -772,9 +769,6 @@ void COperationControls::HandleWorkspaceChanged()
     mWOperation = nullptr;
     mWDisplay = nullptr;
     mWFormula = nullptr;
-
-	delete mProduct;
-	mProduct = nullptr;
 
 	// - I. Select NO operation 
 	//		- this does not necessarily clear the datasets dependent widgets, but 
@@ -1023,9 +1017,8 @@ void COperationControls::HandleSelectedOperationChanged( int operation_index )	/
 // Supports null dataset and mCurrentOperation; takes care dataset selection, without 
 //	(persistent) domain assignments (assigns operation product)
 //
-// Assigns mCurrentOriginalDataset (with dataset parameter) and mProduct (only domain 
-//	change, not persistent)
-// Updates mAdvancedFieldsTree
+// Assigns mCurrentOriginalDataset (with dataset parameter) and product to
+// mAdvancedFieldsTree
 //
 // If dataset is not null
 //	- Selects it in GUI
@@ -1041,12 +1034,10 @@ bool COperationControls::UpdateDatasetSelection( const CDataset *dataset )
 	// Assign mCurrentOriginalDataset
 	//
 	mCurrentOriginalDataset = dataset;
-	delete mProduct;
-	mProduct = nullptr;
-
+	CProduct *product = nullptr;
 	bool result = true;
 
-	// Select dataset in GUI and assign mProduct
+	// Select dataset in GUI and assign product to mAdvancedFieldsTree
 	//
 	if ( dataset )
 	{
@@ -1060,24 +1051,20 @@ bool COperationControls::UpdateDatasetSelection( const CDataset *dataset )
 			mAdvancedDatasetsCombo->blockSignals( false );
 		}
 
-		// Assign mProduct and mCurrentOperation->m_product, if mCurrentOperation assigned
+		// Create CProduct for mAdvancedFieldsTree
 		//
 		std::string error_msg;
 		try
 		{
-			const CDataset *filtered_dataset = mCurrentOperation ? mCurrentOperation->OriginalDataset() : mCurrentOriginalDataset;
-			mProduct = filtered_dataset->OpenProduct();
-			//if ( mCurrentOperation )
-			//{
-			//	mCurrentOperation->SetProduct( mProduct );		assert__( filtered_dataset == const_cast<const COperation*>( mCurrentOperation )->Dataset() );
-			//}
+			const CDataset *dataset = mCurrentOperation ? mCurrentOperation->OriginalDataset() : mCurrentOriginalDataset;
+			product = dataset->OpenProduct();
 		}
 		catch ( const CException& e )
 		{
 			error_msg = std::string( "Unable to process files.\nReason:\n" ) + e.what();
-			mProduct = nullptr;
+			product = nullptr;
 		}
-		if ( mProduct == nullptr )
+		if ( product == nullptr )
 		{
 			if ( !error_msg.empty() )
 				SimpleErrorBox( error_msg );
@@ -1088,7 +1075,7 @@ bool COperationControls::UpdateDatasetSelection( const CDataset *dataset )
 		}
 	}
 
-	if ( mProduct != nullptr )
+	if ( product != nullptr )
 	{
 		//TODO: are these 2 v3 data members really necessary?
 		//m_productClass = m_product->GetProductClass().c_str();
@@ -1097,7 +1084,7 @@ bool COperationControls::UpdateDatasetSelection( const CDataset *dataset )
 
 	// Update fields tree with new product
 	//
-	mAdvancedFieldsTree->InsertProduct( mProduct );
+	mAdvancedFieldsTree->InsertProduct( product );
 
 	if ( mCurrentOperation )
 	{
@@ -1605,11 +1592,11 @@ void COperationControls::HandleDataComputation()
 
 bool COperationControls::DatasetInterpolationRequested()
 {
-	assert__( mCurrentOperation && mProduct && mUserFormula && mUserFormula == mDataExpressionsTree->SelectedFormula() );
+	assert__( mCurrentOperation && mAdvancedFieldsTree->Product() && mUserFormula && mUserFormula == mDataExpressionsTree->SelectedFormula() );
 	assert__( mCurrentOperation->GetSelect() != mUserFormula );
 	assert__( mUserFormula->GetDataMode() == CBratProcess::pctTIME );
 
-	CProductInfo pi( mProduct );
+	CProductInfo pi( mAdvancedFieldsTree->Product() );
 	std::vector< std::string > list;
     std::for_each( pi.Fields().begin(), pi.Fields().end(), [&list]( const CField *field )
 	{
@@ -2701,6 +2688,7 @@ void COperationControls::HandleNewOperation()
 		//m_currentOperationIndex = GetOpnames()->GetSelection();
 
 		//v3 continues in spite of warning
+		return;
 	}
 	else
 	{
@@ -2741,7 +2729,7 @@ void COperationControls::HandleNewOperation()
 	//auto *formula = mDataExpressionsTree->SelectedFormula();
 	//mExpressionTextWidget->setText( formula ? formula->GetDescription().c_str() : "" );	see above
 
-	// 5. Assigns selected dataset and mProduct
+	// 5. Assigns selected dataset
 
 	//SetCurrentDataset();		//sets the (real) operation dataset and formula
 	mCurrentOperation->SetOriginalDataset( mWDataset, dataset_name );

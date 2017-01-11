@@ -400,7 +400,7 @@ bool CWorkspaceSettings::SaveConfig( const CMapFormula &mapf, bool predefined, c
 
 bool CWorkspaceSettings::LoadConfig( CMapFormula &mapf, std::string &error_msg, bool predefined, const std::string& pathSuff )
 {
-	LOG_TRACEstd( "Loading formulas map" );
+	LOG_TRACE( "Loading formulas map" );
 
 	std::string path = GROUP_FORMULAS;
 	if ( !pathSuff.empty() )
@@ -443,7 +443,7 @@ bool CWorkspaceSettings::LoadConfig( CMapFormula &mapf, std::string &error_msg, 
 			return false;
 	}
 
-	LOG_TRACEstd( "Finished loading formulas map" );
+	LOG_TRACE( "Finished loading formulas map" );
 
 	return true;
 }

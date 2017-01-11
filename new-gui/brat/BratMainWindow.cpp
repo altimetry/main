@@ -790,9 +790,16 @@ CBratMainWindow::CBratMainWindow( CBratApplication &app )
     //
 	if ( mSettings.mDisplayRadsInstallInformation && !mApp.RadsServiceController().isInstalled() )
 	{
+        static const std::string options_name =
+#if defined (Q_OS_MAC)
+        "Preferences"
+#else
+        "Options"
+#endif
+        ;
 		QTimer::singleShot( 0, this, []() {
 			SimpleMsgBox( "For proper use and update of RADS datasets, the RADS service should be installed on your system.\n\n\
-The service can be installed and configured from the BRAT Options dialog, accessible in the Tools menu." );
+The service can be installed and configured from the " + options_name + " dialog." );
 		}
 		);
 		mSettings.mDisplayRadsInstallInformation = false;
@@ -1662,7 +1669,7 @@ void CBratMainWindow::UpdateWindowMenu()
 
 void CBratMainWindow::on_action_About_triggered()
 {
-	SimpleAboutBox( BRAT_VERSION, PROCESSOR_ARCH, "CNES/ESA" );
+	SimpleAboutBox( BRAT_VERSION_STRING, PROCESSOR_ARCH, "CNES/ESA" );
 }
 
 

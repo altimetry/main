@@ -175,11 +175,17 @@ void CPlotEditor::Wire()
 CPlotEditor::CPlotEditor( CModel *model, const COperation *op, const std::string &display_name ) 	//display_name = ""
 	: base_t( false, model, op, display_name )
 {
-	setVisible( false );
+#if defined(Q_OS_WIN)
+    setVisible( false );
+#endif
+
     CreateWidgets();
 
 	Start( display_name );
-	setVisible( true );
+    
+#if defined(Q_OS_WIN)
+    setVisible( true );
+#endif
 }
 
 

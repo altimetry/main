@@ -72,15 +72,20 @@ public:
     };
 
     
-    //femm    
-#if defined(Q_OS_MAC)
+#if defined(Q_OS_MAC) || defined(Q_OS_LINUX)
 #define QSettingsServiceScope QSettings::UserScope
 #else
 #define QSettingsServiceScope QSettings::SystemScope
 #endif
+    static const QString smOrganizationKey;
+    static const QString smServicesGroupKey;
+    static const QString smPathKey;
+    static const QString smDescriptionKey;
+    static const QString smAutomaticStartupKey;
+    static const QString smAccountKey;
+
     
-    
-    QtServiceController(const QString &name);
+    QtServiceController(const QString &name );
     virtual ~QtServiceController();
 
     bool isInstalled() const;
@@ -91,9 +96,26 @@ public:
     StartupType startupType() const;
     QString serviceFilePath() const;
 
-    static bool install(const QString &serviceFilePath, const QString &account = QString(),
-                const QString &password = QString());
+    static bool install(const QString &serviceFilePath, const QString &account = QString(), const QString &password = QString());
     bool uninstall();
+
+#if !defined(Q_OS_WIN)
+
+    std::string ServiceAutoStartFile() const;
+
+    bool EnableAutoStart( bool enable, const std::string &user_name );
+
+#endif
+
+	bool AutoStartEnabled() const 
+	{ 
+#if defined(Q_OS_WIN)
+		return startupType() == AutoStartup;
+#else
+		return mAutoStartEnabled; 
+#endif
+	}
+
 
     bool start(const QStringList &arguments);
     bool start();
@@ -104,6 +126,12 @@ public:
 
 private:
     QtServiceControllerPrivate *d_ptr;
+
+#if !defined(Q_OS_WIN)
+
+    bool mAutoStartEnabled = false;
+
+#endif
 };
 
 class QtServiceBasePrivate;
@@ -138,6 +166,7 @@ public:
 
     QtServiceController::StartupType startupType() const;
     void setStartupType(QtServiceController::StartupType startupType);
+    bool AutoStartEnabled() const;    
 
     ServiceFlags serviceFlags() const;
     void setServiceFlags(ServiceFlags flags);
@@ -171,8 +200,8 @@ template <typename Application>
 class QtService : public QtServiceBase
 {
 public:
-    QtService(int argc, char **argv, const QString &name)
-        : QtServiceBase(argc, argv, name), app(0)
+    QtService(int argc, char **argv, const QString &name )
+        : QtServiceBase(argc, argv, name ), app(0)
     {  }
     ~QtService()
     {

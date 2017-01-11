@@ -21,6 +21,10 @@
 
 #include "process/BratEmbeddedPythonProcess.h"
 
+#if defined (WIN32) || defined(_WIN32)
+#include "new-gui/Common/System/Service/qtservice_win.h"
+#endif
+
 #include "common/+Utils.h"
 #include "common/+UtilsIO.h"
 #include "new-gui/Common/QtUtils.h"
@@ -463,6 +467,21 @@ Do you agree with these license terms?";
 				QString password = dlg->Password();
 				QString path = smApplicationPaths->mRadsServicePath.c_str();
 				installed = QtServiceController::install( path, account, password );
+
+#if defined (WIN32) || defined(_WIN32)
+				if ( installed )
+				{
+					const std::string std_account = q2a( account );
+					if ( !HasLogOnAsServicePrivilege( std_account ) )
+					{
+						if ( GrantLogOnAsServicePrivilege( std_account ) )
+							SimpleMsgBox( "The account '" + std_account + "' has been granted the Log On As A Service right." );
+						else
+							SimpleWarnBox( "Could not grant the Log On As A Service right to the account '" + std_account + 
+								"'.\nIf you cannot start the service from BRAT, please use the Windows Services administrative tool." );
+					}
+				}
+#endif
 			}
 		}
 	}

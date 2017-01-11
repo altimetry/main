@@ -67,10 +67,241 @@
 #endif
 
 
+#include "common/QtUtilsIO.h"
 #include "qtservice.h"
 #include "qtservice_p.h"
 #include "qtunixsocket.h"
 #include "qtunixserversocket.h"
+
+
+
+
+std::string QtServiceController::ServiceAutoStartFile() const
+{
+#if defined(Q_OS_MAC)
+    return q2a( QDir::homePath() + "/Library/LaunchAgents/" + serviceName() + ".plist" );
+#else
+    return "/etc/init.d/" + q2a( serviceName() );
+#endif
+}
+
+
+
+static const std::string full_path_place_holder_to_find = "#QtServiceFullPath#";
+static const bool chkconfig_system = IsFile( "/usr/sbin/chkconfig" );
+static const QString template_resource =
+#if defined (Q_OS_MAC)
+        "://qt-service.plist"
+#else
+        chkconfig_system ? "://qt-sysv-service.sh" : "://qt-service.sh"
+#endif
+        ;
+
+
+
+#if defined (Q_OS_MAC)
+
+
+bool QtServiceController::EnableAutoStart( bool enable, const std::string &user_name )
+{
+    const std::string service_auto_start_file = ServiceAutoStartFile();
+
+    bool ok = !IsFile( service_auto_start_file ) || RemoveFile( service_auto_start_file );
+    if ( !enable || !ok )
+    {
+        return ok;
+    }
+    
+    // Create service auto-start file from template
+
+    QFile template_file( template_resource );
+    if ( !template_file.open( QFile::ReadOnly ) )
+    {
+        assert__( false );      //should never happen
+        return false;
+    }
+    QString template_file_content( template_file.readAll() );
+    std::string new_content = q2a( template_file_content );
+
+    const std::string service_path = q2a( serviceFilePath() );
+    new_content = replace( new_content, full_path_place_holder_to_find, service_path );
+
+    ok =
+            MakeDirectory( GetDirectoryFromPath( service_auto_start_file ) ) && 
+            Write2File( new_content, service_auto_start_file );
+
+    //only change mAutoStartEnabled state if no errors ocurred
+    //
+    if ( ok )
+        mAutoStartEnabled = enable;
+
+    return ok;
+}
+
+#else       //Q_OS_MAC
+
+
+
+static const std::string service_name_place_holder_to_find = "#QtServiceName#";
+static const std::string user_name_place_holder_to_find = "#QtServiceUserName#";
+
+// With System V, to test in command line, use:
+//
+//  systemctl status RadsService.service
+//  systemctl start RadsService.service
+//  systemctl stop RadsService.service
+//
+//  (where "RadsService" is a service name example)
+//
+bool QtServiceController::EnableAutoStart( bool enable, const std::string &user_name )
+{
+    const std::string service_name = q2a( serviceName() );
+    const std::string install_script = "/tmp/" + service_name + "-install-auto-start.sh";
+    const std::string uninstall_script = "/tmp/" + service_name + "-uninstall-auto-start.sh";
+    const std::string service_auto_start_file = ServiceAutoStartFile();
+    const std::string temporary_service_auto_start_file = "/tmp/" + service_name;
+
+    const std::string &script_to_execute = enable ? install_script : uninstall_script;
+
+    //lambdas
+
+    auto clean_up = [&enable, &uninstall_script, &install_script, &temporary_service_auto_start_file]( bool result )
+    {
+        system( ( "rm " + uninstall_script ).c_str() );
+        if ( enable )
+        {
+            system( ( "rm " + install_script ).c_str() );
+            system( ( "rm " + temporary_service_auto_start_file ).c_str() );
+        }
+
+        return result;
+    };
+
+
+    // Create uninstall script
+
+    std::string script_content;
+    if ( chkconfig_system )
+        script_content = "chkconfig --del " + service_name;
+    else
+        script_content = "update-rc.d -f " + service_name + " remove";
+    script_content += "\n";
+    if ( IsFile( service_auto_start_file ) )
+    {
+        script_content += ( "rm " + service_auto_start_file );
+        script_content += "\n";
+    }
+    if ( !Write2File( script_content, uninstall_script ) ||
+         system( ( "chmod 755 "+ uninstall_script ).c_str() ) != 0 )
+        return clean_up( false );
+
+    if ( enable )
+    {
+        // Create service auto-start file from template
+
+        QFile template_file( template_resource );
+        if ( !template_file.open( QFile::ReadOnly ) )
+        {
+            assert__( false );      //should never happen
+            return clean_up( false );
+        }
+        QString template_file_content( template_file.readAll() );
+        std::string new_content = q2a( template_file_content );
+
+        const std::string service_path = q2a( serviceFilePath() );
+        new_content = replace( new_content, full_path_place_holder_to_find, service_path );
+        new_content = replace( new_content, service_name_place_holder_to_find, service_name );
+        new_content = replace( new_content, user_name_place_holder_to_find, user_name );
+
+        if ( !Write2File( new_content, temporary_service_auto_start_file ) ||
+             system( ( "chmod 755 "+ temporary_service_auto_start_file ).c_str() ) != 0 )
+            return clean_up( false );
+
+
+        // Create install script
+
+        script_content = uninstall_script;
+        script_content += "\n";
+        script_content += ( "cp " + temporary_service_auto_start_file + " " + service_auto_start_file );
+        script_content += "\n";
+        script_content += "chmod 755 " + service_auto_start_file;
+        script_content += "\n";
+        if ( chkconfig_system )
+            script_content += "chkconfig --add " + service_name;
+        else
+            script_content += "update-rc.d " + service_name + " defaults";
+        script_content += "\n";
+        if ( !Write2File( script_content, install_script ) ||
+             system( ( "chmod 755 "+ install_script ).c_str() ) != 0 )
+            return clean_up( false );
+    }
+
+    if ( !ExecuteCommand( true, script_to_execute ) )
+        return clean_up( false );
+
+    mAutoStartEnabled = enable;
+
+    return clean_up( true );
+}
+
+#if 0
+static const std::string bash_profile = q2a( QDir::homePath() + "/.bash_profile" );
+
+bool EnableAutoStartWithBashProfile( const std::string &service_path, bool enable, const std::string &plist_template, const std::string &user_name )
+{
+    Q_UNUSED( plist_template );    Q_UNUSED( user_name );
+
+    // If the user manually changed bash_profile, this is the minimal content
+    //  that enables auto-start, and that we want to erase
+    //
+    const std::string minimal_content_to_find = service_path;
+
+    // Full content to delete/write if the user did not change it
+    //
+    const std::string content_to_write = "\n\n# RadsService\n" + minimal_content_to_find + " &\n\n";
+
+    std::string new_bash_profile_content;
+
+    if ( IsFile( bash_profile ) )
+    {
+        std::string bash_profile_content;
+        if ( !Read2String( bash_profile_content, bash_profile ) )
+            return false;
+
+        // Always start by deleting any existing service reference, as far as we can find it
+        //  if the user manually changed .bash_profile
+
+        new_bash_profile_content = replace( bash_profile_content, content_to_write, empty_string() );
+        if ( new_bash_profile_content.length() == bash_profile_content.length() )   //full content not found
+        {
+            //try to find minimal content
+            //
+            auto pos = bash_profile_content.find( minimal_content_to_find );
+            if ( pos != std::string::npos )
+            {
+                auto end_pos = bash_profile_content.find( "\n", pos + minimal_content_to_find.length() );
+                std::string to_delete;
+                if ( end_pos == std::string::npos )
+                    to_delete = minimal_content_to_find;
+                else
+                    to_delete = bash_profile_content.substr( pos, end_pos - pos );
+
+                new_bash_profile_content = replace( bash_profile_content, to_delete, empty_string() );
+            }
+        }
+    }
+
+    if ( enable )
+    {
+        new_bash_profile_content += content_to_write;
+    }
+
+    return Write2File( new_bash_profile_content, bash_profile );
+}
+#endif       //0
+
+#endif       //Q_OS_MAC
+
 
 
 static QString encodeName(const QString &name, bool allowUpper = false)
@@ -163,11 +394,11 @@ QString QtServiceBasePrivate::filePath() const
 
 QString QtServiceController::serviceDescription() const
 {
-    QSettings settings(QSettingsServiceScope, "QtSoftware");
-    settings.beginGroup("services");
+    QSettings settings(QSettingsServiceScope, QtServiceController::smOrganizationKey);
+    settings.beginGroup(QtServiceController::smServicesGroupKey);
     settings.beginGroup(serviceName());
 
-    QString desc = settings.value("description").toString();
+    QString desc = settings.value(QtServiceController::smDescriptionKey).toString();
 
     settings.endGroup();
     settings.endGroup();
@@ -177,8 +408,8 @@ QString QtServiceController::serviceDescription() const
 
 QtServiceController::StartupType QtServiceController::startupType() const
 {
-    QSettings settings(QSettingsServiceScope, "QtSoftware");
-    settings.beginGroup("services");
+    QSettings settings(QSettingsServiceScope, QtServiceController::smOrganizationKey);
+    settings.beginGroup(QtServiceController::smServicesGroupKey);
     settings.beginGroup(serviceName());
 
     StartupType startupType = (StartupType)settings.value("startupType").toInt();
@@ -191,11 +422,11 @@ QtServiceController::StartupType QtServiceController::startupType() const
 
 QString QtServiceController::serviceFilePath() const
 {
-    QSettings settings(QSettingsServiceScope, "QtSoftware");
-    settings.beginGroup("services");
+    QSettings settings(QSettingsServiceScope, QtServiceController::smOrganizationKey);
+    settings.beginGroup(QtServiceController::smServicesGroupKey);
     settings.beginGroup(serviceName());
 
-    QString path = settings.value("path").toString();
+    QString path = settings.value(QtServiceController::smPathKey).toString();
 
     settings.endGroup();
     settings.endGroup();
@@ -205,8 +436,23 @@ QString QtServiceController::serviceFilePath() const
 
 bool QtServiceController::uninstall()
 {
-    QSettings settings(QSettingsServiceScope, "QtSoftware");
-    settings.beginGroup("services");
+    QSettings settings(QSettingsServiceScope, QtServiceController::smOrganizationKey);
+    settings.beginGroup(QtServiceController::smServicesGroupKey);
+
+    QString account = settings.value(QtServiceController::smAccountKey).toString();
+
+    const bool remove_auto_start_ok =
+            ( startupType() != AutoStartup )
+            ||
+            EnableAutoStart( false, q2a( account ) );
+
+    if ( !remove_auto_start_ok )
+    {
+        fprintf( stderr, "Cannot remove auto-start of \"%s\". Cannot read/write to: %s. Check permissions.\n",
+                serviceName().toLatin1().constData(),
+                ServiceAutoStartFile().c_str() );
+    }
+
 
     settings.remove(serviceName());
 
@@ -219,7 +465,11 @@ bool QtServiceController::uninstall()
                 serviceName().toLatin1().constData(),
                 settings.fileName().toLatin1().constData());
     }
-    return (ret == QSettings::NoError);
+
+    // Do not return remove_auto_start_ok &&... Auto-start status can be queried from controller,
+    //  and if auto-start fails, the service can still be operational
+    //
+    return ret == QSettings::NoError;
 }
 
 
@@ -254,8 +504,8 @@ bool QtServiceController::sendCommand(int code)
 
 bool QtServiceController::isInstalled() const
 {
-    QSettings settings(QSettingsServiceScope, "QtSoftware");
-    settings.beginGroup("services");
+    QSettings settings(QSettingsServiceScope, QtServiceController::smOrganizationKey);
+    settings.beginGroup(QtServiceController::smServicesGroupKey);
 
     QStringList list = settings.childGroups();
 
@@ -432,15 +682,15 @@ bool QtServiceBasePrivate::start()
 
 bool QtServiceBasePrivate::install(const QString &account, const QString &password)
 {
-    Q_UNUSED(account)
     Q_UNUSED(password)
-    QSettings settings(QSettingsServiceScope, "QtSoftware");
-    settings.beginGroup("services");
+    QSettings settings(QSettingsServiceScope, QtServiceController::smOrganizationKey);
+    settings.beginGroup(QtServiceController::smServicesGroupKey);
     settings.beginGroup(controller.serviceName());
 
-    settings.setValue("path", filePath());
-    settings.setValue("description", serviceDescription);
-    settings.setValue("automaticStartup", startupType);
+    settings.setValue(QtServiceController::smPathKey, filePath());
+    settings.setValue(QtServiceController::smDescriptionKey, serviceDescription);
+    settings.setValue(QtServiceController::smAutomaticStartupKey, startupType);
+    settings.setValue(QtServiceController::smAccountKey, account);
 
     settings.endGroup();
     settings.endGroup();
@@ -452,7 +702,23 @@ bool QtServiceBasePrivate::install(const QString &account, const QString &passwo
                 controller.serviceName().toLatin1().constData(),
                 settings.fileName().toLatin1().constData());
     }
-    return (ret == QSettings::NoError);
+
+    const bool auto_start_ok =
+            ( startupType != QtServiceController::AutoStartup )
+            ||
+            controller.EnableAutoStart( true, q2a( account ) );
+
+    if ( !auto_start_ok )
+    {
+        fprintf( stderr, "Cannot configure auto-start of \"%s\". Cannot read/write to: %s. Check permissions.\n",
+                controller.serviceName().toLatin1().constData(),
+                controller.ServiceAutoStartFile().c_str() );
+    }
+
+    // Do not return auto_start_ok && ... Auto-start status can be queried from controller,
+    //  and if auto-start fails, the service can still be operational
+    //
+    return ret == QSettings::NoError;
 }
 
 void QtServiceBase::logMessage(const QString &message, QtServiceBase::MessageType type,

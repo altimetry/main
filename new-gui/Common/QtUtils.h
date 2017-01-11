@@ -1514,31 +1514,4 @@ public:
 
 
 
-inline bool IsLinuxDesktop( const std::string &desktop )
-{
-    //Tested only in debian 7
-    //DESKTOP_SESSION=kde-plasma
-    //DESKTOP_SESSION=gnome
-
-#if defined (Q_OS_LINUX)
-    const char *DESKTOP_SESSION = getenv( "DESKTOP_SESSION" );
-    return DESKTOP_SESSION && ( std::string( DESKTOP_SESSION ).find( desktop ) != std::string::npos );
-#else
-
-    Q_UNUSED( desktop )
-
-    return false;
-#endif
-}
-inline bool IsGnomeDesktop()
-{
-    return IsLinuxDesktop( "gnome" );
-}
-inline bool IsKDEDesktop()
-{
-    return IsLinuxDesktop( "kde" );
-}
-
-
-
 #endif		// BRAT_QT_UTILS_H

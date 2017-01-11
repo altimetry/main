@@ -101,7 +101,10 @@ void CAbstractDisplayEditor::CreateMainToolbar()
 
 	mTopToolbar = new QToolBar( "Operation ToolBar", mViewsSubMainWindow );
 	//mTopToolbar->setIconSize( { tool_icon_size, tool_icon_size } );
-	mTopToolbar->setAllowedAreas( Qt::TopToolBarArea | Qt::BottomToolBarArea );	//mTopToolbar->setMovable( false );
+	mTopToolbar->setAllowedAreas( Qt::TopToolBarArea | Qt::BottomToolBarArea );
+//#if defined(Q_OS_MAC)
+//	mTopToolbar->setMovable( false );
+//#endif
 	mTopToolbar->layout()->setSpacing( 2 );
     mTopToolbar->layout()->setMargin( 10 );
 
@@ -146,7 +149,7 @@ void CAbstractDisplayEditor::CreateWorkingDock()
 	assert__( mOperation );
 	mWorkingDock = new CTabbedDock( "Display Properties", this );
 	mWorkingDock->setTitleBarWidget( WidgetLine( this, Qt::Horizontal) );
-	mWorkingDock->SetTabShape( QTabWidget::Triangular );					//enum TabShape { Rounded, Triangular };
+    //mWorkingDock->SetTabShape( QTabWidget::Triangular );					//enum TabShape { Rounded, Triangular };
 
 	mWorkingDock->setMinimumSize( min_editor_dock_width, min_editor_dock_height );
 	auto PreventActions = QDockWidget::DockWidgetClosable;								//QDockWidget::DockWidgetFloatable | QDockWidget::DockWidgetMovable | 
@@ -165,6 +168,10 @@ void CAbstractDisplayEditor::CreateGraphicsBar()
 
     mGraphicsToolBar = new QToolBar( "View ToolBar", mViewsSubMainWindow );
     mGraphicsToolBar->setIconSize({tool_icon_size,tool_icon_size});
+    mGraphicsToolBar->setAllowedAreas( Qt::AllToolBarAreas );
+//#if defined(Q_OS_MAC)
+//    mGraphicsToolBar->setMovable( false );  //FIXME analyse erratic crashes in mac
+//#endif
 
 	// add button group
 
@@ -190,7 +197,6 @@ void CAbstractDisplayEditor::CreateGraphicsBar()
 
 	// add the bar
 
-	mGraphicsToolBar->setAllowedAreas( Qt::AllToolBarAreas );
 	mViewsSubMainWindow->addToolBar( Qt::RightToolBarArea, mGraphicsToolBar );
 }
 

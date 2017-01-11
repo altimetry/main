@@ -180,7 +180,7 @@ CActionInfo ActionsTable[ EActionTags_size ] =
 
 	{ eAction_InstallRadsService, "Install service", CActionInfo::FormatTip("Installation\nInstall/Uninstall RADS service in operating system."), ":images/ledoff.png", ":images/ledon.png" },
 
-	{ eAction_StartRadsService, "Enable service", CActionInfo::FormatTip("Execution\nEnable or prevent RADS service from running."), ":/images/themes/default/media/media-play-16.png", ":/images/themes/default/media/media-stop-16.png" },		//:/images/themes/default/media/media-seek-forward-16.png
+    { eAction_StartRadsService, "Start service", CActionInfo::FormatTip("Execution (optional)\nManually start or stop the RADS service."), ":/images/themes/default/media/media-play-16.png", ":/images/themes/default/media/media-stop-16.png" },		//:/images/themes/default/media/media-seek-forward-16.png
 
 	{ eAction_PauseRadsService, "", CActionInfo::FormatTip("Suspend\nPause/Resume data synchronization with RADS."), ":/images/themes/default/media/media-play-16.png", ":/images/themes/default/media/media-pause-16.png" },
 

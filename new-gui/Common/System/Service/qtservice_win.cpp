@@ -38,8 +38,6 @@
 **
 ****************************************************************************/
 
-#include "qtservice.h"
-#include "qtservice_p.h"
 #include <QCoreApplication>
 #include <QDateTime>
 #include <QFile>
@@ -62,7 +60,502 @@
 #include <QDebug>
 #endif
 
+#ifndef UNICODE
+#define UNICODE
+#endif // UNICODE
+
+#include "../include/ntsecapi.h"	//for Log On As a Service Privilege
+
+#include "common/QtStringUtils.h"
+
+#include "qtservice.h"
+#include "qtservice_p.h"
+
 #include "qtservice_win.h"
+
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+//Copyright 1996 - 1997 Microsoft Corporation
+//
+//Abstract:
+//
+//    This module illustrates how to use the Windows NT LSA security API
+//    to manage account privileges on the local or a remote machine.
+//
+//    When targeting a domain controller for privilege update operations,
+//    be sure to target the primary domain controller for the domain.
+//    The privilege settings are replicated by the primary domain controller
+//    to each backup domain controller as appropriate.  The NetGetDCName()
+//    Lan Manager API call can be used to get the primary domain controller
+//    computer name from a domain name.
+//
+//    For a list of privileges, consult winnt.h, and search for
+//    SE_ASSIGNPRIMARYTOKEN_NAME.
+//
+//    For a list of logon rights, which can also be assigned using this
+//    sample code, consult ntsecapi.h, and search for SE_BATCH_LOGON_NAME
+//
+//    You can use domain\account as argv[1]. For instance, mydomain\scott will
+//    grant the privilege to the mydomain domain account scott.
+//
+//    The optional target machine is specified as argv[2], otherwise, the
+//    account database is updated on the local machine.
+//
+//    The LSA APIs used by this sample are Unicode only.
+//
+//    Use LsaRemoveAccountRights() to remove account rights.
+//
+//Author:
+//
+//    Scott Field (sfield)    17-Apr-96
+//        Minor cleanup
+//
+//    Scott Field (sfield)    12-Jul-95
+
+
+// If you have the ddk, include ntstatus.h.
+//
+#ifndef STATUS_SUCCESS
+#define STATUS_SUCCESS  ((NTSTATUS)0x00000000L)
+#endif
+
+//void
+//DisplayWinError(
+//    LPSTR szAPI,                // pointer to function name (ANSI)
+//    DWORD WinError              // DWORD WinError
+//    );
+//
+void DisplayWinError( LPSTR szAPI, DWORD WinError )
+{
+	LPSTR MessageBuffer;
+	DWORD dwBufferLength;
+
+	//
+	// TODO: Get this fprintf out of here!
+	//
+	fprintf(stderr,"%s error %d!\n", szAPI, WinError);
+
+	if(dwBufferLength=FormatMessageA(
+		FORMAT_MESSAGE_ALLOCATE_BUFFER |
+		FORMAT_MESSAGE_FROM_SYSTEM,
+		nullptr,
+		WinError,
+		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+		(LPSTR) &MessageBuffer,
+		0,
+		nullptr
+	))
+	{
+		DWORD dwBytesWritten; // unused
+
+							  //
+							  // Output message string on stderr.
+							  //
+		WriteFile(
+			GetStdHandle(STD_ERROR_HANDLE),
+			MessageBuffer,
+			dwBufferLength,
+			&dwBytesWritten,
+			nullptr
+		);
+
+		//
+		// Free the buffer allocated by the system.
+		//
+		LocalFree(MessageBuffer);
+	}
+}
+
+//This function attempts to obtain a SID representing the supplied
+//account on the supplied system.
+//
+//If the function succeeds, the return value is TRUE. A buffer is
+//allocated which contains the SID representing the supplied account.
+//This buffer should be freed when it is no longer needed by calling
+//HeapFree(GetProcessHeap(), 0, buffer)
+//
+//If the function fails, the return value is FALSE. Call GetLastError()
+//to obtain extended error information.
+//
+//BOOL
+//GetAccountSid(
+//    LPTSTR SystemName,          // where to lookup account
+//    LPTSTR AccountName,         // account of interest
+//    PSID *Sid                   // resultant buffer containing SID
+//    );
+BOOL GetAccountSid( LPTSTR SystemName, LPCTSTR AccountName, PSID *Sid )
+{
+	LPTSTR ReferencedDomain=nullptr;
+	DWORD cbSid=128;    // initial allocation attempt
+	DWORD cchReferencedDomain=16; // initial allocation size
+	SID_NAME_USE peUse;
+	BOOL bSuccess=FALSE; // assume this function will fail
+
+	__try {
+
+		//
+		// initial memory allocations
+		//
+		*Sid = (PSID)HeapAlloc(GetProcessHeap(), 0, cbSid);
+
+		if(*Sid == nullptr) __leave;
+
+		ReferencedDomain = (LPTSTR)HeapAlloc(
+			GetProcessHeap(),
+			0,
+			cchReferencedDomain * sizeof(TCHAR)
+		);
+
+		if(ReferencedDomain == nullptr) __leave;
+
+		//
+		// Obtain the SID of the specified account on the specified system.
+		//
+		while(!LookupAccountName(
+			SystemName,         // machine to lookup account on
+			AccountName,        // account to lookup
+			*Sid,               // SID of interest
+			&cbSid,             // size of SID
+			ReferencedDomain,   // domain account was found on
+			&cchReferencedDomain,
+			&peUse
+		)) {
+			if (GetLastError() == ERROR_INSUFFICIENT_BUFFER) {
+				//
+				// reallocate memory
+				//
+				*Sid = (PSID)HeapReAlloc(
+					GetProcessHeap(),
+					0,
+					*Sid,
+					cbSid
+				);
+				if(*Sid == nullptr) __leave;
+
+				ReferencedDomain = (LPTSTR)HeapReAlloc(
+					GetProcessHeap(),
+					0,
+					ReferencedDomain,
+					cchReferencedDomain * sizeof(TCHAR)
+				);
+				if(ReferencedDomain == nullptr) __leave;
+			}
+			else __leave;
+		}
+
+		//
+		// Indicate success.
+		//
+		bSuccess = TRUE;
+
+	} // try
+	__finally {
+
+		//
+		// Cleanup and indicate failure, if appropriate.
+		//
+
+		HeapFree(GetProcessHeap(), 0, ReferencedDomain);
+
+		if(!bSuccess) {
+			if(*Sid != nullptr) {
+				HeapFree(GetProcessHeap(), 0, *Sid);
+				*Sid = nullptr;
+			}
+		}
+
+	} // finally
+
+	return bSuccess;
+}
+
+//void
+//InitLsaString(
+//    PLSA_UNICODE_STRING LsaString, // destination
+//    LPWSTR String                  // source (Unicode)
+//    );
+//
+void InitLsaString( PLSA_UNICODE_STRING LsaString, LPWSTR String )
+{
+	DWORD StringLength;
+
+	if(String == nullptr) {
+		LsaString->Buffer = nullptr;
+		LsaString->Length = 0;
+		LsaString->MaximumLength = 0;
+		return;
+	}
+
+	StringLength = lstrlenW(String);
+	LsaString->Buffer = String;
+	LsaString->Length = (USHORT) StringLength * sizeof(WCHAR);
+	LsaString->MaximumLength=(USHORT)(StringLength+1) * sizeof(WCHAR);
+}
+
+
+//NTSTATUS
+//SetPrivilegeOnAccount(
+//    LSA_HANDLE PolicyHandle,    // open policy handle
+//    PSID AccountSid,            // SID to grant privilege to
+//    LPWSTR PrivilegeName,       // privilege to grant (Unicode)
+//    BOOL bEnable                // enable or disable
+//    );
+//
+NTSTATUS SetPrivilegeOnAccount( LSA_HANDLE PolicyHandle, PSID AccountSid, LPWSTR PrivilegeName, BOOL bEnable )
+{
+	LSA_UNICODE_STRING PrivilegeString;
+
+	//
+	// Create a LSA_UNICODE_STRING for the privilege name.
+	//
+	InitLsaString(&PrivilegeString, PrivilegeName);
+
+	//
+	// grant or revoke the privilege, accordingly
+	//
+	if(bEnable) {
+		return LsaAddAccountRights(
+			PolicyHandle,       // open policy handle
+			AccountSid,         // target SID
+			&PrivilegeString,   // privileges
+			1                   // privilege count
+		);
+	}
+	else {
+		return LsaRemoveAccountRights(
+			PolicyHandle,       // open policy handle
+			AccountSid,         // target SID
+			FALSE,              // do not disable all rights
+			&PrivilegeString,   // privileges
+			1                   // privilege count
+		);
+	}
+}
+
+//NTSTATUS
+//OpenPolicy(
+//    LPWSTR ServerName,          // machine to open policy on (Unicode)
+//    DWORD DesiredAccess,        // desired access to policy
+//    PLSA_HANDLE PolicyHandle    // resultant policy handle
+//    );
+NTSTATUS OpenPolicy( LPWSTR ServerName, DWORD DesiredAccess, PLSA_HANDLE PolicyHandle )
+{
+	LSA_OBJECT_ATTRIBUTES ObjectAttributes;
+	LSA_UNICODE_STRING ServerString;
+	PLSA_UNICODE_STRING Server;
+
+	//
+	// Always initialize the object attributes to all zeros.
+	//
+	ZeroMemory(&ObjectAttributes, sizeof(ObjectAttributes));
+
+	if (ServerName != nullptr) {
+		//
+		// Make a LSA_UNICODE_STRING out of the LPWSTR passed in
+		//
+		InitLsaString(&ServerString, ServerName);
+		Server = &ServerString;
+	} else {
+		Server = nullptr;
+	}
+
+	//
+	// Attempt to open the policy.
+	//
+	return LsaOpenPolicy(
+		Server,
+		&ObjectAttributes,
+		DesiredAccess,
+		PolicyHandle
+	);
+}
+
+//void
+//DisplayNtStatus(
+//    LPSTR szAPI,                // pointer to function name (ANSI)
+//    NTSTATUS Status             // NTSTATUS error value
+//    );
+//
+void DisplayNtStatus( LPSTR szAPI, NTSTATUS Status )
+{
+	//
+	// Convert the NTSTATUS to Winerror. Then call DisplayWinError().
+	//
+	DisplayWinError(szAPI, LsaNtStatusToWinError(Status));
+}
+
+
+bool HasLogOnAsServicePrivilege(  const std::string &pwcAccount, const std::string &pwcMachine )	//= "localhost" 
+{
+	LSA_HANDLE PolicyHandle;
+	PSID AccountSid;
+
+	WCHAR wComputerName[256] = L"";	// static machine name buffer
+	WCHAR AccountName[256];			// static account name buffer
+
+	//NTSTATUS LsaEnumerateAccountRights(
+	//	_In_   LSA_HANDLE PolicyHandle,
+	//	_In_   PSID AccountSid,
+	//	_Out_  PLSA_UNICODE_STRING *UserRights,
+	//	_Out_  PULONG CountOfRights
+	//);
+
+	// Pick up account name
+	// Assumes source is ANSI. Resultant string is ANSI or Unicode
+	//
+	wsprintf( AccountName, TEXT("%hS"), pwcAccount.c_str() );
+
+	// Pick up machine name, if appropriate
+	// assumes source is ANSI. Resultant string is Unicode.
+	//
+	wsprintfW( wComputerName, L"%hS", pwcMachine.c_str() );
+
+	//
+	// Open the policy on the target machine.
+	//
+	NTSTATUS Status = OpenPolicy(
+		wComputerName,      // local machine
+		POLICY_CREATE_ACCOUNT | POLICY_LOOKUP_NAMES,
+		&PolicyHandle       // resultant policy handle
+	);
+
+	if(Status != STATUS_SUCCESS) 
+	{
+		DisplayNtStatus("OpenPolicy", Status);
+		return false;
+	}
+
+	bool has_right = false;
+	//
+	// Obtain the SID of the user/group.
+	// Note that we could target a specific machine, but we don't.
+	// Specifying nullptr for target machine searches for the SID in the
+	// following order: well-known, Built-in and local, primary domain,
+	// trusted domains.
+	//
+	if ( GetAccountSid(
+		nullptr,		// default lookup logic
+		AccountName,	// account to obtain SID
+		&AccountSid		// buffer to allocate to contain resultant SID
+	) ) 
+	{
+		LSA_UNICODE_STRING *UserRights = nullptr;
+		ULONG CountOfRights = 0;
+
+		NTSTATUS status = LsaEnumerateAccountRights( PolicyHandle, AccountSid, &UserRights, &CountOfRights );
+		for ( ULONG i = 0; i < CountOfRights; ++i )
+		{
+			LSA_UNICODE_STRING *UserRight = &UserRights[ i ];
+			if ( std::wstring( UserRight->Buffer, UserRight->Length ) == std::wstring( L"SeServiceLogonRight" ) )
+				has_right = true;
+		}
+		LsaFreeMemory( UserRights );
+	}
+
+	return has_right;
+}
+
+
+
+bool GrantLogOnAsServicePrivilege( const std::string &pwcAccount, const std::string &pwcMachine )	//= "localhost" 
+{
+	LSA_HANDLE PolicyHandle;
+
+	WCHAR wComputerName[256] = L"";	// static machine name buffer
+	WCHAR AccountName[256];			// static account name buffer
+	PSID pSid;
+
+	NTSTATUS Status;
+	bool result = false;            // assume error
+
+	// Pick up account name
+	// Assumes source is ANSI. Resultant string is ANSI or Unicode
+	//
+	wsprintf( AccountName, TEXT("%hS"), pwcAccount.c_str() );
+
+	// Pick up machine name, if appropriate
+	// assumes source is ANSI. Resultant string is Unicode.
+	//
+	wsprintfW( wComputerName, L"%hS", pwcMachine.c_str() );
+
+	//
+	// Open the policy on the target machine.
+	//
+	Status = OpenPolicy(
+		wComputerName,      // local machine
+		POLICY_CREATE_ACCOUNT | POLICY_LOOKUP_NAMES,
+		&PolicyHandle       // resultant policy handle
+	);
+
+	if(Status != STATUS_SUCCESS) {
+		DisplayNtStatus("OpenPolicy", Status);
+		return false;
+	}
+
+	//
+	// Obtain the SID of the user/group.
+	// Note that we could target a specific machine, but we don't.
+	// Specifying nullptr for target machine searches for the SID in the
+	// following order: well-known, Built-in and local, primary domain,
+	// trusted domains.
+	//
+	if(GetAccountSid(
+		nullptr,       // default lookup logic
+		AccountName,// account to obtain SID
+		&pSid       // buffer to allocate to contain resultant SID
+	)) {
+		//
+		// We only grant the privilege if we succeeded in obtaining the
+		// SID. We can actually add SIDs which cannot be looked up, but
+		// looking up the SID is a good sanity check which is suitable for
+		// most cases.
+
+		//
+		// Grant the SeServiceLogonRight to users represented by pSid.
+		//
+		Status = SetPrivilegeOnAccount(
+			PolicyHandle,           // policy handle
+			pSid,                   // SID to grant privilege
+			L"SeServiceLogonRight", // Unicode privilege
+			TRUE                    // enable the privilege
+		);
+
+		if(Status == STATUS_SUCCESS)
+		{
+			result = true;
+			wprintf ( L"'SeServiceLogonRight' added for '%s'\n",      AccountName);
+		}
+		else
+			DisplayNtStatus("SetPrivilegeOnAccount", Status);
+	}
+	else {
+		//
+		// Error obtaining SID.
+		//
+		DisplayWinError("GetAccountSid", GetLastError());
+	}
+
+	//
+	// Close the policy handle.
+	//
+	LsaClose(PolicyHandle);
+
+	//
+	// Free memory allocated for SID.
+	//
+	if(pSid != nullptr) HeapFree(GetProcessHeap(), 0, pSid);
+
+	return result;
+}
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 typedef SERVICE_STATUS_HANDLE(WINAPI*PRegisterServiceCtrlHandler)(const wchar_t*,LPHANDLER_FUNCTION);
 static PRegisterServiceCtrlHandler pRegisterServiceCtrlHandler = 0;
@@ -894,7 +1387,8 @@ bool QtServiceBasePrivate::install(const QString &account, const QString &passwo
         }
         pCloseServiceHandle(hSCM);
     }
-    return result;
+
+	return result;
 }
 
 QString QtServiceBasePrivate::filePath() const

@@ -112,13 +112,6 @@ public:
 	CTabbedDock* MapDock() { return mMapDock; }
 
 
-	void SetMapTitle( const QString &title )
-	{
-		mMapBox->setTitle( title );
-	}
-
-
-
 	// abstract interface
 
 	virtual QList<QWidget*> SubWindowList() = 0;
@@ -134,6 +127,14 @@ public:
 	//emit AllSubWindowsClosed only if there was something to close
 	//
 	virtual void CloseAllSubWindows() = 0;
+
+
+protected:
+
+	void SetMapTitle( const QString &title )
+	{
+		mMapBox->setTitle( title );
+	}
 
 
 signals:

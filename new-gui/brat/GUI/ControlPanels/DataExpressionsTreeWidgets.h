@@ -63,8 +63,7 @@ class CFieldsTreeWidget : public CGenericTreeWidget
 public:
 	CFieldsTreeWidget( QWidget *parent );
 
-	virtual ~CFieldsTreeWidget()
-	{}
+	virtual ~CFieldsTreeWidget();
 
 	//
 

@@ -69,8 +69,8 @@ namespace brathl
 
 	public:
 
-		std::string mCodaProductClass;	//as read by code from file
-		std::string mCodaProductType; 	//as read by code from file
+		std::string mCodaProductClass;	//as read by coda from file
+		std::string mCodaProductType; 	//as read by coda from file
 		std::string m_productClass;
 		std::string m_productType;
 		coda_format m_productFormat;

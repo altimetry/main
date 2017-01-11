@@ -40,4 +40,13 @@ private:
 
 
 
+
+
+bool HasLogOnAsServicePrivilege( const std::string &pwcAccount, const std::string &pwcMachine = "localhost" );
+
+bool GrantLogOnAsServicePrivilege( const std::string &pwcAccount, const std::string &pwcMachine = "localhost" );
+
+
+
+
 #endif		// __QT_SERVICE_WIN_H__

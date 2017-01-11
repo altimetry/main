@@ -630,7 +630,7 @@ void CApplicationSettingsDlg::UpdateRadsButtons()
 	mRadsSettingsBox->setEnabled( installed );
 	mRadsRefreshConnectionButton->setEnabled( installed );
 
-	mRadsStartButton->setText( running ? "Disable service" : "Enable service" );
+    mRadsStartButton->setText( running ? "Stop service" : "Start service" );
 	mRadsStartButton->setEnabled( installed );
 	mRadsStartButton_Test->setEnabled( installed );
 
@@ -648,13 +648,13 @@ void CApplicationSettingsDlg::DisplayRadsError( const std::string & action )
 
 void CApplicationSettingsDlg::HandleRadsInstall( bool toggled )
 {
-	const bool installed = mRadsController.isInstalled();
+	const bool was_installed = mRadsController.isInstalled();
 	std::string error_token;
 	bool user_canceled = false;
 
 	if ( toggled )
 	{
-		if ( !installed )
+		if ( !was_installed )
 		{
 			// Do not display WaitCursor, installation opens dialogs
 			// Do not call ValidateAndAssignRadsValues here: the settings must still be configured by the user
@@ -664,7 +664,7 @@ void CApplicationSettingsDlg::HandleRadsInstall( bool toggled )
 	}
 	else
 	{
-		if ( installed )
+		if ( was_installed )
 		{
 			user_canceled = !SimpleQuestion( "Are you sure you want to uninstall the RADS service?" );
 			if ( !user_canceled )
@@ -683,7 +683,7 @@ void CApplicationSettingsDlg::HandleRadsInstall( bool toggled )
 
 	WaitCursor::GlobalWait();
 
-	QTimer::singleShot( 2000, this, [this, error_token, user_canceled]() 
+	QTimer::singleShot( 2000, this, [this, was_installed, error_token, user_canceled]() 
 	{
 		WaitCursor::GlobalRestore();
 
@@ -695,14 +695,14 @@ void CApplicationSettingsDlg::HandleRadsInstall( bool toggled )
 		}
 		else
 		{
-			if ( mRadsController.isInstalled() && !mRadsController.isRunning() )
+			if ( mRadsController.isInstalled() && !was_installed && !mRadsController.isRunning() )
 				SimpleMsgBox(
 					QString( "The RADS service was installed successfully.\n\n" )
 					+ "Before starting periodic data synchronizations with the RADS server, please select your options in '" 
 					+ mRadsSettingsBox->title()
-					+ "' and activate the service with the '" 
-					+ mRadsStartButton->text() 
-					+ "' button when ready." 
+                    + "'. The service will start automatically when the system restarts.\nYou can start the service now with the '"
+                    + mRadsStartButton->text()
+                    + "' button."
 				);
 		}
 

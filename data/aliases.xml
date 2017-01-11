@@ -544,15 +544,12 @@
       <alias name="swh">swh_ka</alias>
     </aliases>
 
-    <!--
-    <aliases productType="RADS-JASON-3" description="RADS Sentinel-3A">
+    <aliases productType="RADS-SNTNL-3A" description="RADS Sentinel-3A">
       <alias name="lat">lat</alias>
       <alias name="lon">lon</alias>
       <alias name="time">time</alias>
-      <alias name="ssh">ssha</alias>
-      <alias name="ssha">ssha</alias>
-    </aliases>
-    -->
+	  <alias name="swh">swh_ku</alias>
+	</aliases>
 
     <aliases productType="RADS-TOPEX" description="RADS TOPEX">
       <alias name="lat">lat</alias>
