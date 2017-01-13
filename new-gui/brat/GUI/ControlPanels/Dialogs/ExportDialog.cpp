@@ -206,29 +206,6 @@ void  CExportDialog::CreateWidgets()
 }
 
 
-void CExportDialog::CalculateMinMax()
-{
-	WaitCursor wait;
-
-	CFormula *formula = mOperation->GetFormula( CMapTypeField::eTypeOpAsField );
-
-	CProduct *product_tmp = CProduct::Construct( *mOperation->OriginalDataset()->GetProductList() );
-
-	std::string error_msg;
-	CExpression expr;
-	if ( !CFormula::SetExpression( formula->GetDescription( true, mAliases, product_tmp->GetAliasesAsString() ), expr, error_msg ) )
-	{
-		wait.Restore();
-		SimpleWarnBox( "Unable to calculate min/max. Expression can't be set:\n'" + error_msg + "'" );
-		return;		//v3 didn't return
-	}
-
-	product_tmp->GetValueMinMax( expr, mOperation->GetRecord(), mColorRangeMin, mColorRangeMax, *formula->GetUnit() );
-
-	delete product_tmp;
-}
-
-
 void CExportDialog::Wire()
 {
 	//ASCII related
@@ -237,8 +214,6 @@ void CExportDialog::Wire()
 	mASCIINumberPrecisionLineEdit->setText( sprecision );
 
 	//GeoTIFF related
-
-	CalculateMinMax();
 
 	if ( mIsGeoImage )
 	{
@@ -291,11 +266,12 @@ void CExportDialog::Wire()
 }
 
 
-CExportDialog::CExportDialog( const std::string logo_path, CWorkspaceOperation *wkso, COperation *operation, const CStringMap *aliases, QWidget *parent )
+CExportDialog::CExportDialog( const std::string logo_path, CWorkspaceOperation *wkso, COperation *operation, double color_range_min, double color_range_max, QWidget *parent )
     : base_t( parent )
 	, mWOperation( wkso )
 	, mOperation( operation )
-	, mAliases( aliases )
+	, mColorRangeMin( color_range_min )
+	, mColorRangeMax( color_range_max )
 	, mLUT( new CBratLookupTable )
 	, mIsGeoImage( operation->IsMap() && operation->GetFormulaCountDataFields() > 0 )
 	, mDateTime( QDateTime::currentDateTime() )

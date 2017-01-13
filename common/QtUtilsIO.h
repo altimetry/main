@@ -373,7 +373,7 @@ inline bool CopyFileProc( const QString &src_path, const QString &dest_path )
 
 // How to set filters:
 //
-inline bool TraverseDirectory( const QString &sourceFolder, const QString &destFolder, const QStringList &filters, 
+inline bool TraverseDirectory_( const QString &sourceFolder, const QString &destFolder, const QStringList &filters, 
 	const std::function< bool( const QString &, const QString & ) > &f = CopyFileProc )
 {
     QDir sourceDir( sourceFolder );
@@ -400,22 +400,81 @@ inline bool TraverseDirectory( const QString &sourceFolder, const QString &destF
     {
         QString src_path = sourceFolder + "/" + dirs[i];
         QString dest_path = destFolder + "/" + dirs[i];
-        if ( !TraverseDirectory( src_path, dest_path, filters, f ) )
+        if ( !TraverseDirectory_( src_path, dest_path, filters, f ) )
             return false;
     }
     return true;
 }
 
 
-inline bool TraverseDirectory( const QString &sourceFolder, const QString &destFolder, std::initializer_list< QString > filters,
+inline bool TraverseDirectory_( const QString &sourceFolder, const QString &destFolder, std::initializer_list< QString > filters,
 	const std::function< bool( const QString &, const QString & ) > &f = CopyFileProc )
 {
 	QStringList qfilters;
 	for ( auto const &filter : filters )
 		qfilters << filter;
 
+	return TraverseDirectory_( sourceFolder, destFolder, qfilters, f );
+}
+
+
+
+
+template< class STRING >
+inline bool TraverseDirectory( const STRING &sourceFolder, const STRING &destFolder, const QStringList &filters, 
+	std::function< bool( const STRING &, const STRING & ) > f = CopyFileProc )
+{
+	const QString qsource_folder = t2q( sourceFolder );
+	const QString qdest_folder = t2q( destFolder );
+
+	QDir sourceDir( qsource_folder );
+	if( !sourceDir.exists() )
+		return false;
+
+	if ( !qdest_folder.isEmpty() )
+	{
+		QDir destDir( qdest_folder );
+		if( !destDir.exists() )
+			destDir.mkdir( qdest_folder );
+	}
+
+	{
+		QStringList files = sourceDir.entryList( filters, QDir::Files );
+		for ( int i = 0; i < files.count(); i++ )
+		{
+			STRING src_path = sourceFolder + "/" + q2t<STRING>( files[ i ] );
+			STRING dest_path = qdest_folder.isEmpty() ? x2x<STRING>( empty_string() ) : destFolder + "/" + q2t<STRING>( files[ i ] );
+			if ( !f( src_path, dest_path ) )
+				return false;
+		}
+	}
+	QStringList dirs;
+	dirs = sourceDir.entryList( QDir::AllDirs | QDir::NoDotAndDotDot );
+	for(int i = 0; i< dirs.count(); i++)
+	{
+		STRING src_path = sourceFolder + "/" + q2t<STRING>( dirs[i] );
+		STRING dest_path = qdest_folder.isEmpty() ? x2x<STRING>( empty_string() ) : destFolder + "/" + q2t<STRING>( dirs[ i ] );
+		if ( !TraverseDirectory( src_path, dest_path, filters, f ) )
+			return false;
+	}
+	return true;
+}
+
+
+template< class STRING >
+inline bool TraverseDirectory( const STRING &sourceFolder, const STRING &destFolder, std::initializer_list< STRING > filters,
+	std::function< bool( const STRING &, const STRING & ) > f = CopyFileProc )
+{
+	QStringList qfilters;
+	for ( auto const &filter : filters )
+		qfilters << t2q( filter );
+
 	return TraverseDirectory( sourceFolder, destFolder, qfilters, f );
 }
+
+
+
+
 
 
 
@@ -497,6 +556,81 @@ inline const std::string& SystemUserSettingsPath()
 	static const std::string data = ComputeSystemUserSettingsPath();		assert__( IsDir( GetDirectoryFromPath( data ) ) );
 	return data;
 }
+
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//                                              QtCore not IO specific
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+//////////////////////////////////////////////////////////////////
+//						Linux Desktop
+//////////////////////////////////////////////////////////////////
+
+inline bool IsLinuxDesktop( const std::string &desktop )
+{
+//Tested only in debian 7
+//DESKTOP_SESSION=kde-plasma
+//DESKTOP_SESSION=gnome
+
+#if defined (Q_OS_LINUX)
+    const char *DESKTOP_SESSION = getenv( "DESKTOP_SESSION" );
+    return DESKTOP_SESSION && ( std::string( DESKTOP_SESSION ).find( desktop ) != std::string::npos );
+#else
+
+    UNUSED( desktop )
+
+    return false;
+
+#endif
+}
+
+inline bool IsGnomeDesktop()
+{
+    return IsLinuxDesktop( "gnome" );
+}
+
+inline bool IsKDEDesktop()
+{
+    return IsLinuxDesktop( "kde" );
+}
+
+
+
+#if defined (Q_OS_LINUX)
+
+//////////////////////////////////////////////////////////////////
+//				Linux Execute Command As Root
+//////////////////////////////////////////////////////////////////
+
+inline bool ExecuteCommand( bool root, const std::string &script, const std::string &arguments = empty_string() )
+{
+    static const std::string full_kdesu = "/usr/lib/kde4/libexec/kdesu";
+    static const bool is_full_kdesu = IsFile( full_kdesu );
+    static const std::string root_cmd = is_full_kdesu ? full_kdesu : ( IsGnomeDesktop() ? "gksu" : "kdesu" );
+    static const std::string root_args = IsGnomeDesktop() ? "-u root" : "-u root -c";
+
+    // If root, script is treated as an arg
+    //
+    const std::string cmd = root ? root_cmd : script;
+    std::string args;
+    if ( root )
+        args = ( root_args + " " + script );
+    if ( !arguments.empty() )
+        args += ( " "  + arguments );
+
+    return system( ( cmd + " " + args ).c_str() ) == 0;
+}
+
+#endif
+
+
+
+
 
 
 #endif		//BRAT_QT_UTILS_IO_H

@@ -28,6 +28,8 @@
 #include "DataModels/Workspaces/Display.h"
 #include "DataModels/PlotData/WidgetField.h"
 
+#include "GUI/DisplayWidgets/PlotsGraphicParameters.h"
+
 
 class CTabbedDock;
 class CTextWidget;
@@ -50,6 +52,7 @@ class CGeoPlotField;
 class CGeoPlot;
 class CYFXPlot;
 class CZFXYPlot;
+
 
 
 //#define USE_DISPLAY_FILES_PROCESSOR
@@ -154,6 +157,7 @@ protected:
     QStatusBar *mStatusBar = nullptr;
 
 	//... views related
+	QMainWindow *mViewsSubMainWindow = nullptr;
 	QSplitter *mMainSplitter = nullptr;
 
 
@@ -222,6 +226,8 @@ protected:
 
 	const std::string& UserDataDirectory() const;
 
+	CPlotsGraphicParameters PlotsGraphicParameters() const;
+
 
 	///////////////////////////////////////////////////////////
 	// GUI creation/management helpers
@@ -236,7 +242,7 @@ protected:
 	QAction* AddToolBarSeparator( QAction *after = nullptr );
 	QToolButton* AddMenuButton( EActionTag button_tag, const QList<QAction*> &actions, QAction *after = nullptr );
 
-	QSize sizeHint() const override;
+	virtual QSize sizeHint() const override = 0;
 
 	int DisplayIndex( const CDisplay *display ) const;
 	//bool SelectDisplay( const CDisplay *display );

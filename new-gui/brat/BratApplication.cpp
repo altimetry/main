@@ -21,6 +21,10 @@
 
 #include "process/BratEmbeddedPythonProcess.h"
 
+#if defined (WIN32) || defined(_WIN32)
+#include "new-gui/Common/System/Service/qtservice_win.h"
+#endif
+
 #include "common/+Utils.h"
 #include "common/+UtilsIO.h"
 #include "new-gui/Common/QtUtils.h"
@@ -450,14 +454,35 @@ bool CBratApplication::InstallRadsService( QWidget *parent )
 	bool installed = mServiceController.isInstalled();
 	if ( !installed ) 
 	{
-		LoginDialog *dlg = new LoginDialog( "Install " + rads_service_name, parent );
-		dlg->SetUsername( ServiceUserName(), false );
-		if ( dlg->exec() == QDialog::Accepted )
+		const std::string license = "RADS Temporary License Agreement (to be replaced by oficial text)\n\nAccess to RADS is only granted for own (academic/institutional/scientific) use, excluding \
+any kind of commercial exploitation.\nWhen using the retrieved data in publications and/or presentations, there always should be a reference to the usage of RADS.\n\n\
+Do you agree with these license terms?";
+		if ( SimpleQuestion( license ) )
 		{
-			QString account = dlg->Username();
-			QString password = dlg->Password();
-			QString path = smApplicationPaths->mRadsServicePath.c_str();
-			installed = QtServiceController::install( path, account, password );
+			LoginDialog *dlg = new LoginDialog( "Install " + rads_service_name, parent );
+			dlg->SetUsername( ServiceUserName(), false );
+			if ( dlg->exec() == QDialog::Accepted )
+			{
+				QString account = dlg->Username();
+				QString password = dlg->Password();
+				QString path = smApplicationPaths->mRadsServicePath.c_str();
+				installed = QtServiceController::install( path, account, password );
+
+#if defined (WIN32) || defined(_WIN32)
+				if ( installed )
+				{
+					const std::string std_account = q2a( account );
+					if ( !HasLogOnAsServicePrivilege( std_account ) )
+					{
+						if ( GrantLogOnAsServicePrivilege( std_account ) )
+							SimpleMsgBox( "The account '" + std_account + "' has been granted the Log On As A Service right." );
+						else
+							SimpleWarnBox( "Could not grant the Log On As A Service right to the account '" + std_account + 
+								"'.\nIf you cannot start the service from BRAT, please use the Windows Services administrative tool." );
+					}
+				}
+#endif
+			}
 		}
 	}
 	bool running = mServiceController.isRunning();

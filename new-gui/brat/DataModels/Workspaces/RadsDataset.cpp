@@ -18,62 +18,12 @@
 
 #include "new-gui/brat/stdafx.h"
 
+#include "libbrathl/ExternalFilesNetCDF.h"
+using namespace brathl;
+
+
 #include "WorkspaceSettings.h"
 #include "RadsDataset.h"
-
-
-template< class STRING >
-inline bool TraverseDirectory_( const STRING &sourceFolder, const STRING &destFolder, const QStringList &filters, 
-	std::function< bool( const STRING &, const STRING & ) > f = CopyFileProc )
-{
-	const QString qsource_folder = t2q( sourceFolder );
-	const QString qdest_folder = t2q( destFolder );
-
-	QDir sourceDir( qsource_folder );
-	if( !sourceDir.exists() )
-		return false;
-
-	if ( !qdest_folder.isEmpty() )
-	{
-		QDir destDir( qdest_folder );
-		if( !destDir.exists() )
-			destDir.mkdir( qdest_folder );
-	}
-
-	{
-		QStringList files = sourceDir.entryList( filters, QDir::Files );
-		for ( int i = 0; i < files.count(); i++ )
-		{
-			STRING src_path = sourceFolder + "/" + q2t<STRING>( files[ i ] );
-			STRING dest_path = qdest_folder.isEmpty() ? empty_string() : destFolder + "/" + q2t<STRING>( files[ i ] );
-			if ( !f( src_path, dest_path ) )
-				return false;
-		}
-	}
-	QStringList dirs;
-	dirs = sourceDir.entryList( QDir::AllDirs | QDir::NoDotAndDotDot );
-	for(int i = 0; i< dirs.count(); i++)
-	{
-		STRING src_path = sourceFolder + "/" + q2t<STRING>( dirs[i] );
-		STRING dest_path = qdest_folder.isEmpty() ? empty_string() : destFolder + "/" + q2t<STRING>( dirs[i] );
-		if ( !TraverseDirectory_( src_path, dest_path, filters, f ) )
-			return false;
-	}
-	return true;
-}
-
-
-template< class STRING >
-inline bool TraverseDirectory_( const STRING &sourceFolder, const STRING &destFolder, std::initializer_list< STRING > filters,
-	std::function< bool( const STRING &, const STRING & ) > f = CopyFileProc )
-{
-	QStringList qfilters;
-	for ( auto const &filter : filters )
-		qfilters << t2q( filter );
-
-	return TraverseDirectory_( sourceFolder, destFolder, qfilters, f );
-}
-
 
 
 bool CRadsDataset::AddMissionFiles( const std::vector< std::string > &paths, std::string &warnings )
@@ -87,21 +37,18 @@ bool CRadsDataset::AddMissionFiles( const std::vector< std::string > &paths, std
 
 	try
 	{
-		CheckFiles( true, true );                           // Check only first file
+		CheckFiles( true, true );		// Check only first file
 				
-		if ( ( m_files.IsYFX() || m_files.IsZFXY() || m_files.IsGenericNetCdf() ) && m_files.size() > 1 )//TODO REPLACE THIS BY A CHECK OF RADS CLASS
+		if ( !CExternalFilesRads::IsTypeOf( m_files.m_productType ) )
 		{
-			std::string msg = "Warning - You have to check that all the files in the list : "
-				"\n1) are in the same way (same structure, same fields with same dimension...)"
-				"\n2) contain the same kind of data"
-				"\n\n otherwise results may be ill-defined and confused or Brat may return a reading error.";
+			std::string msg = "Warning - Please make sure that all the files in the list belong to RADS,"
+				"\notherwise results may be ill-defined or BRAT may return a reading error.";
 			warnings += ( "\n" + msg );
 		}
 	}
 	catch ( CException& e )
 	{
 		warnings += ( std::string( "\nUnable to process files. Reason: " ) + e.what() );
-		// TODO: Delete all products from dataset ???
 	}
 
 	return warnings.empty();
@@ -120,7 +67,7 @@ bool CRadsDataset::AddMission( const std::string &rads_server_address, const std
 	//add files
 	const std::string input_path = MissionPath( rads_server_address, local_dir, mission.mAbbr );
 	std::vector< std::string >paths;
-    TraverseDirectory_<std::string>( input_path, empty_string(), { filter }, [&paths]( const std::string &s1, const std::string & ) -> bool
+    TraverseDirectory<std::string>( input_path, empty_string(), { filter }, [&paths]( const std::string &s1, const std::string & ) -> bool
 	{
 		paths.push_back( s1 );
 		return true;
@@ -136,13 +83,13 @@ bool CRadsDataset::AddMission( const std::string &rads_server_address, const std
 bool CRadsDataset::SetMission( const std::string &rads_server_address, const std::string &local_rads_dir, const CRadsMission &mission, std::string &warnings )
 {
 	return
-		( Missions().empty() || RemoveAllMissions( rads_server_address, local_rads_dir ) )
+        ( Missions().empty() || RemoveAllMissions() )
 		&&
 		AddMission( rads_server_address, local_rads_dir, mission, warnings );
 }
 
 
-bool CRadsDataset::RemoveAllMissions( const std::string &rads_server_address, const std::string &local_dir )
+bool CRadsDataset::RemoveAllMissions()
 {
 	mMissions.clear();
 

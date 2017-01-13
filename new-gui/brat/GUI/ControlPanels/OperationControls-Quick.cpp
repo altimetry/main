@@ -109,14 +109,14 @@ const std::string& COperationControls::QuickFindAliasValue( const CProductInfo &
 }
 
 
-CField* COperationControls::QuickFindField( CProduct *product, EPredefinedVariables index, bool &alias_used, std::string &field_error_msg )
+CField* COperationControls::QuickFindField( const CProductInfo &pi, EPredefinedVariables index, bool &alias_used, std::string &field_error_msg )
 {
-    return CBratFilters::FindField( product, QuickVariableAlias( index ), mModel.Settings().mUseUnsupportedFields, alias_used, field_error_msg );
+    return pi.FindField( QuickVariableAlias( index ), mModel.Settings().mUseUnsupportedFields, alias_used, field_error_msg );
 }
 
-CField* COperationControls::QuickFindField( CProduct *product, EPredefinedSelectionCriteria index, bool &alias_used, std::string &field_error_msg )
+CField* COperationControls::QuickFindField( const CProductInfo &pi, EPredefinedSelectionCriteria index, bool &alias_used, std::string &field_error_msg )
 {
-    return CBratFilters::FindField( product, QuickCriteriaAlias( index ), mModel.Settings().mUseUnsupportedFields, alias_used, field_error_msg );
+    return pi.FindField( QuickCriteriaAlias( index ), mModel.Settings().mUseUnsupportedFields, alias_used, field_error_msg );
 }
 
 
@@ -364,6 +364,8 @@ void COperationControls::HandleSelectedDatasetChanged_Quick( int dataset_index )
 
 	if ( dataset_index < 0 )
 	{
+		if ( SelectedPanel() && !AdvancedMode() )
+			UpdatePanelSelectionChange();
 		LOG_TRACEstd( "Leaving HandleSelectedDatasetChanged_Quick with index < 0" );
 		return;
 	}
@@ -380,12 +382,13 @@ void COperationControls::HandleSelectedDatasetChanged_Quick( int dataset_index )
 		item->setFlags( item->flags() & ~Qt::ItemIsEnabled );
 	}
 
+	assert__( dataset );		assert__( mQuickOperation );
+
 	// 2. re-assign dataset or filtered dataset 
 	//		Here is the usage of mQuickInitializing ugly trick
 	//
-	std::string error_msg;									assert__( dataset );		assert__( mQuickOperation );
-	if ( !mQuickInitializing && !mQuickOperation->SetOriginalDataset( mWDataset, dataset->GetName(), error_msg ) )
-		SimpleWarnBox( CWorkspaceOperation::QuickOperationName() + ": " + error_msg );
+	if ( !mQuickInitializing )
+		mQuickOperation->SetOriginalDataset( mWDataset, dataset->GetName() );
 
 
 	// 3. check if dataset files are usable (have lon/lat fields); return if not
@@ -394,13 +397,13 @@ void COperationControls::HandleSelectedDatasetChanged_Quick( int dataset_index )
 	bool has_lon_lat_fields = false;
 	for ( auto const &path : dataset_files )
 	{
-		CProductInfo product( dataset, path );
-		if ( !product.IsValid() )
+		CProductInfo pi( dataset, path );
+		if ( !pi.IsValid() )
 			continue;
 
 		std::string field_error_msg;
 		bool lon_alias_used, lat_alias_used;
-        std::pair<CField*, CField*> fields = product.FindLonLatFields( mModel.Settings().mUseUnsupportedFields, lon_alias_used, lat_alias_used, field_error_msg );
+        std::pair<CField*, CField*> fields = pi.FindLonLatFields( mModel.Settings().mUseUnsupportedFields, lon_alias_used, lat_alias_used, field_error_msg );
 		if ( fields.first && fields.second )
 		{
 			has_lon_lat_fields = true;
@@ -419,15 +422,15 @@ void COperationControls::HandleSelectedDatasetChanged_Quick( int dataset_index )
 			auto *item = mQuickVariablesList->item( i );			assert__( item );
 			for ( auto const &path : dataset_files )
 			{
-				CProduct *product = dataset->SafeOpenProduct( path );
-				if ( !product )
+				CProductInfo pi( dataset, path );
+				if ( !pi.IsValid() )
 					continue;
 
 				bool alias_used;
 				std::string field_error_msg;
 				EPredefinedVariables vi = (EPredefinedVariables)i;
-				std::string expression = QuickFindAliasValue( product, vi );
-				CField *field = QuickFindField( product, vi, alias_used, field_error_msg );
+				std::string expression = QuickFindAliasValue( pi, vi );
+				CField *field = QuickFindField( pi, vi, alias_used, field_error_msg );
 				//if ( field )
 				if ( !expression.empty() )
 				{
@@ -436,8 +439,7 @@ void COperationControls::HandleSelectedDatasetChanged_Quick( int dataset_index )
 					if ( field )
 						item->setData( Qt::UserRole, t2q( field->GetDescription() ) );
 				}
-				has_selection_criteria |= ( has_fields && !QuickFindAliasValue( product, eOceanEditing ).empty() );		//TODO see above (*)
-				delete product;
+				has_selection_criteria |= ( has_fields && !QuickFindAliasValue( pi, eOceanEditing ).empty() );		//TODO see above (*)
 				if ( !expression.empty() )
 					break;
 			}
@@ -451,6 +453,9 @@ void COperationControls::HandleSelectedDatasetChanged_Quick( int dataset_index )
 	mQuickSelectionCriteriaCheck->setEnabled( has_selection_criteria );
 	if ( !has_selection_criteria )
 		mQuickSelectionCriteriaCheck->setChecked( false );
+
+	if ( SelectedPanel() && !AdvancedMode() )
+		UpdatePanelSelectionChange();
 
 	LOG_TRACEstd( "Leaving HandleSelectedDatasetChanged_Quick with index >= 0" );
 }
@@ -588,7 +593,7 @@ void COperationControls::HandleSelectedFieldChanged_Quick( int variable_index )
 	// 2. Assign mCurrentOperation, init outputs, update data expressions tree
 	// 3. Select data computation mode in GUI
 	// 4. Select X in expression tree
-	// 5. Assigns selected dataset and mProduct
+	// 5. Assigns selected dataset
 	// 6. Add new operation to GUI lits and select it (possibly triggers all handling operation change sequence)
 	// 7. Select and re-assign operation record (v3 technique: amounts to update GUI with operation record and assign one to operation if none assigned)
 //
@@ -612,17 +617,12 @@ COperation* COperationControls::CreateQuickOperation( CMapTypeOp::ETypeOp type )
 	operation->SetType( type );
 
 	const std::string filter_name = q2a( mOperationFilterButton_Quick->text() );
-	std::string error_msg;
 	if ( !filter_name.empty() )
 	{
 		auto *filter = mBratFilters.Find( filter_name );				assert__( filter );
-		operation->SetFilter( filter, error_msg );
+		operation->SetFilter( filter );
 	}
-	if ( !operation->SetOriginalDataset( mWDataset, QuickDatasetSelectedName(), error_msg ) )	//error consequence is filter not applied; continue
-	{
-		SimpleWarnBox( error_msg );
-		error_msg.clear();
-	}
+	operation->SetOriginalDataset( mWDataset, QuickDatasetSelectedName() );
 
 	//CProduct *product = const_cast<const COperation*>( operation )->Dataset()->SafeOpenProduct();
 	CProductInfo pi( operation->OriginalDataset() );
@@ -655,6 +655,7 @@ COperation* COperationControls::CreateQuickOperation( CMapTypeOp::ETypeOp type )
 		if ( operation->GetRecord().empty() && pi.IsNetCdf() )
 			operation->SetRecord( CProductNetCdf::m_virtualRecordName );
 	}
+	std::string error_msg;
 	CFormula* formula = operation->NewUserFormula( error_msg, lon_lat_fields.first, CMapTypeField::eTypeOpAsX, true, pi );
 	operation->ComputeInterval( formula, error_msg );
 

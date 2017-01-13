@@ -20,7 +20,7 @@
 #include "libbrathl/brathl.h"
 #include "libbrathl/Tools.h"
 
-#include "new-gui/Common/ConfigurationKeywords.h"
+#include "new-gui/Common/FileSettings.h"
 #include "common/tools/Trace.h"
 #include "common/tools/Exception.h"
 

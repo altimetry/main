@@ -22,9 +22,11 @@
 
 class CProgressInterface
 {
-	int mm = 0;
-	int mM = 100;
-	int mCurrent = 0;
+	//do not initialize here, for pre-C++11 compilers
+
+	int mm;
+	int mM;
+	int mCurrent;
 
 public:
 	CProgressInterface( int m = 0, int M = 100 )

@@ -76,6 +76,7 @@ public:
 	const CApplicationPaths &mPaths;
 
 protected:
+	QGroupBox *mMapBox = nullptr;
 	CMapWidget *mMap = nullptr;
 	CTabbedDock *mMapDock = nullptr;
 
@@ -127,11 +128,25 @@ public:
 	//
 	virtual void CloseAllSubWindows() = 0;
 
+
+protected:
+
+	void SetMapTitle( const QString &title )
+	{
+		mMapBox->setTitle( title );
+	}
+
+
 signals:
 
 	void subWindowActivated( QWidget *window );
 
 	void AllSubWindowsClosed();
+
+
+protected slots:
+
+	void HandleMapWindowTitleChanged( const QString &title );
 };
 
 

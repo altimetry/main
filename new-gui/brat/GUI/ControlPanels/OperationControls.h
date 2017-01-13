@@ -153,6 +153,7 @@ protected:
 	stack_button_type *mQuickPageButton = nullptr;
 	stack_button_type *mAdvancedPageButton = nullptr;
 
+	CMapWidget *mMap = nullptr;
 
 	//...advanced
 
@@ -247,7 +248,6 @@ protected:
 	COperation *mQuickOperation = nullptr;
 	bool mQuickInitializing = false;					//ugly
 	const CDataset *mCurrentOriginalDataset = nullptr;
-	CProduct *mProduct = nullptr;
     CFormula *mUserFormula = nullptr;
     CFormula *mXformula = nullptr;
     CFormula *mYformula = nullptr;
@@ -270,8 +270,7 @@ public:
 
 	// overrides
 
-	virtual void SelectionChanged( bool selected ) override
-	{}
+	virtual void UpdatePanelSelectionChange() override;
 
 
 	// access 
@@ -301,6 +300,8 @@ protected:
 
 	void SelectOperation( const std::string &name, bool select_map );	//meant for quick, designed (not tested) for all
 
+	CProduct* ConstructTemporaryFilteredProduct( std::string &error_msg );
+
 	//both
 
 	// for enabling / disabling widgets dependent of multiple change types
@@ -329,8 +330,8 @@ protected:
     bool IsQuickOperationSelected() const;
     void UpdateFieldsCheckState();
 
-	CField* QuickFindField( CProduct *product, EPredefinedVariables index, bool &alias_used, std::string &field_error_msg );
-	CField* QuickFindField( CProduct *product, EPredefinedSelectionCriteria index, bool &alias_used, std::string &field_error_msg );
+	CField* QuickFindField( const CProductInfo &pi, EPredefinedVariables index, bool &alias_used, std::string &field_error_msg );
+	CField* QuickFindField( const CProductInfo &pi, EPredefinedSelectionCriteria index, bool &alias_used, std::string &field_error_msg );
 
 	//advanced
 
@@ -380,6 +381,10 @@ signals:
 	void AsyncProcessExecution( bool executing );
 	void SyncProcessExecution( bool executing );
     void OperationModified( const COperation *operation );
+
+	// Notify to redraw tracks
+	//
+	void CurrentDatasetChanged( const CDataset *dataset );
 
 
 public slots:

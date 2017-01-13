@@ -33,6 +33,7 @@ typedef Qwt3D::SurfacePlot SurfacePlot; // VC6/moc issue
 typedef Qwt3D::SurfacePlot BratSurfacePlot;
 #endif
 
+#include "PlotsGraphicParameters.h"
 
 
 class CDisplayFilesProcessor;
@@ -44,6 +45,7 @@ struct CZFXYPlotParameters;
 struct CBrat3DFunction;
 class CBrat3DPlot;
 class QLookupTable;
+
 
 
 
@@ -76,6 +78,7 @@ class CBrat3DPlot : public BratSurfacePlot
 	//instance data
 	/////////////////////////////
 
+	const CPlotsGraphicParameters mPlotsGraphicParameters;
 	std::vector<CBrat3DFunction*> mFunctions;		//multiple functions are really not supported so far
 
 	QActionGroup *mStyleGroup = nullptr;
@@ -102,7 +105,10 @@ class CBrat3DPlot : public BratSurfacePlot
 	void CreateContextMenu();
 
 public:
-	CBrat3DPlot( QWidget *pw );
+	CBrat3DPlot( const CPlotsGraphicParameters &plots_graphic_parameters, QWidget *pw );
+
+	virtual void paintGL() override;
+
 
 	virtual ~CBrat3DPlot();
 
@@ -125,17 +131,11 @@ public:
 		ytitle = AxisTitle( Qwt3D::Y1 );
 		ztitle = AxisTitle( Qwt3D::Z1 );		
 	}
-	bool SetXYAxisTitles( const std::string &xtitle, const std::string &ytitle )
-	{
-		return
-			SetAxisTitle( Qwt3D::X1, xtitle, mXlabel ) &&
-			SetAxisTitle( Qwt3D::Y1, ytitle, mYlabel );
-	}
-	bool SetZAxisTitle( const std::string &ztitle )
-	{
-		return 
-			SetAxisTitle( Qwt3D::Z1, ztitle, mZlabel );
-	}
+
+	bool SetXYAxisTitles( const std::string &xtitle, const std::string &ytitle );
+
+	bool SetZAxisTitle( const std::string &ztitle );
+
 
 	//...ticks
 
@@ -231,7 +231,7 @@ protected slots:
 ////////////////////////////////////////////////////////////
 
 
-class C3DPlotWidget : public QFrame
+class C3DPlotWidget : public QFrame, public CPlotsGraphicParameters
 {
 #if defined (__APPLE__)
 #pragma clang diagnostic push
@@ -247,16 +247,12 @@ class C3DPlotWidget : public QFrame
 	// types
 
 	using base_t = QFrame;
+	using graphic_parameters_base_t = CPlotsGraphicParameters;
 
 
 	//statics
 
 public:
-
-	static const std::string smFontName;
-	static const int smAxisFontSize = 8;
-	static const int smTitleFontSize = 10;
-
 
 protected:
 	static void Save2All( CBrat3DPlot *p, const QString &path );
@@ -278,10 +274,11 @@ protected:
 	std::vector< BratSurfacePlot* > mSurfacePlots;
 	CBrat3DPlot *mCurrentPlot = nullptr;
 
-	QSize m_SizeHint;
+
+	//construction / destruction
 
 public:
-	C3DPlotWidget( QWidget *parent = nullptr );
+	C3DPlotWidget( const CPlotsGraphicParameters &plots_graphic_parameters, QWidget *parent = nullptr );
 
 	virtual ~C3DPlotWidget();
 

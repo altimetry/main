@@ -63,12 +63,12 @@ public:
   /// Destructor
   virtual ~CProductNetCdf();
 
-  virtual void InitDateRef();
+  virtual void InitDateRef() override;
 
-  virtual bool GetDateMinMax(CDatePeriod& datePeriodMinMax);
-  virtual bool GetLatLonMinMax(CLatLonRect& latlonRectMinMax);
+  virtual bool GetDateMinMax(CDatePeriod& datePeriodMinMax) override;
+  virtual bool GetLatLonMinMax(CLatLonRect& latlonRectMinMax) override;
 
-  virtual bool HasCriteriaInfo() { return true; }
+  virtual bool HasCriteriaInfo()  override { return true; }
 
   virtual bool ApplyCriteria( CStringList& filteredFileList, CProgressInterface *pi, const std::string& log_file = "" ) override;
 
@@ -82,19 +82,19 @@ public:
   CFieldNetCdf* ReadDateCriteriaValue(CFieldInfo& fieldInfo, CDate& date, bool wantMin = true);
   CFieldNetCdf* ReadDoubleCriteriaValue(CFieldInfo& fieldInfo, double& value, bool wantMin = true);
 
-  virtual bool IsOpened();
-  virtual void CheckFileOpened();
-  virtual bool IsOpened(const std::string& fileName);
+  virtual bool IsOpened() override;
+  virtual void CheckFileOpened() override;
+  virtual bool IsOpened(const std::string& fileName) override;
 
-  virtual void GetRecords(CStringArray& array);
+  virtual void GetRecords(CStringArray& array) override;
 
-  virtual bool Close();
+  virtual bool Close() override;
 
   virtual bool Open(const std::string& fileName, const std::string& dataSetName, CStringList& listFieldToRead);
-  virtual bool Open(const std::string& fileName, const std::string& dataSetName);
-  virtual bool Open(const std::string& fileName);
+  virtual bool Open(const std::string& fileName, const std::string& dataSetName) override;
+  virtual bool Open(const std::string& fileName) override;
 
-  virtual void Rewind ();
+  virtual void Rewind () override;
   virtual bool NextRecord ();
   virtual bool PrevRecord ();
 
@@ -103,26 +103,26 @@ public:
   //virtual void ReadBratFile(const std::string& fileName, const std::string& dataSetName, const std::string& field);
   //virtual void ReadBratFile(const std::string& fileName, const std::string& dataSetName, CStringList& listField);
 
-  virtual void ReadBratRecord(int32_t iRecord);
+  virtual void ReadBratRecord(int32_t iRecord) override;
 
-  virtual int32_t GetNumberOfRecords(const std::string& dataSetName /*NOT USED*/);
-  virtual int32_t GetNumberOfRecords();
+  virtual int32_t GetNumberOfRecords(const std::string& dataSetName /*NOT USED*/) override;
+  virtual int32_t GetNumberOfRecords() override;
 
   //virtual CField* GetFieldRead(const std::string& fieldName);
 
   void InitLatLonFieldName();
 
-  virtual void InitCriteriaInfo();
+  virtual void InitCriteriaInfo() override;
 
-  const CStringArray* GetAxisDims() { return &m_axisDims; };
-  void SetAxisDims(const CStringArray& value) { m_axisDims = value; };
+  const CStringArray* GetAxisDims() { return &m_axisDims; }
+  void SetAxisDims(const CStringArray& value) { m_axisDims = value; }
 
-  CStringArray* GetComplementDims() { return &m_complementDims; };
-  void SetComplementDims(const CStringArray& value) { m_complementDims = value; };
+  CStringArray* GetComplementDims() { return &m_complementDims; }
+  void SetComplementDims(const CStringArray& value) { m_complementDims = value; }
 
-  CStringArray* GetDimsToReadOneByOne() { return &m_dimsToReadOneByOne; };
-  void SetDimsToReadOneByOne(const CStringArray& value) { m_dimsToReadOneByOne = value; };
-  void AddDimsToReadOneByOne(const CStringArray& value) { m_dimsToReadOneByOne.InsertUnique(value); };
+  CStringArray* GetDimsToReadOneByOne() { return &m_dimsToReadOneByOne; }
+  void SetDimsToReadOneByOne(const CStringArray& value) { m_dimsToReadOneByOne = value; }
+  void AddDimsToReadOneByOne(const CStringArray& value) { m_dimsToReadOneByOne.InsertUnique(value); }
 
   void GetNetCdfDimensions(const std::vector<CExpression>& expressions, CStringArray& commonDimNames);
   void GetNetCdfDimensions(const CExpression& expr, CStringArray& commonDimNames);
@@ -134,43 +134,43 @@ public:
   void GetNetCdfDimensionsWithoutAlgo(const std::vector<CExpression>& expressions, CStringArray& commonDimNames, const std::string& recordName);
   void GetNetCdfDimensionsWithoutAlgo(const CExpression& expr, CStringArray& commonDimNames, const std::string& recordName);
 
-  virtual void SetForceReadDataOneByOne(bool value) { m_forceReadDataOneByOne = value; };
-  virtual bool GetForceReadDataOneByOne() { return m_forceReadDataOneByOne; };
+  virtual void SetForceReadDataOneByOne(bool value) override { m_forceReadDataOneByOne = value; }
+  virtual bool GetForceReadDataOneByOne() override { return m_forceReadDataOneByOne; }
   //virtual void SetForceReadDataComplementDimsOneByOne(bool value) { m_forceReadDataComplementDimsOneByOne = value; };
 
   // throws an exception if file is not opened
   void MustBeOpened();
 
-  virtual CProduct* Clone();
+  virtual CProduct* Clone() override;
 
   virtual void NetCdfProductInitialization(CProduct* from);
 
   bool IsLatField(CFieldNetCdf* field);
   bool IsLonField(CFieldNetCdf* field);
 
-  bool IsApplyNetcdfProductInitialisation() {return m_applyNetcdfProductInitialisation;};
-  void SetApplyNetcdfProductInitialisation(bool value) {m_applyNetcdfProductInitialisation = value;};
+  bool IsApplyNetcdfProductInitialisation() {return m_applyNetcdfProductInitialisation;}
+  void SetApplyNetcdfProductInitialisation(bool value) {m_applyNetcdfProductInitialisation = value;}
 
   ///Dump fonction
-  virtual void Dump(std::ostream& fOut = std::cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr) override;
 
   static bool IsProductNetCdf(CBratObject* ob);
 
   static CProductNetCdf* GetProductNetCdf(CBratObject* ob, bool withExcept = true);
 
-  CExternalFilesNetCDF* GetExternalFile() { return m_externalFile; };
+  CExternalFilesNetCDF* GetExternalFile() { return m_externalFile; }
 
-  virtual void SetOffset(double value);
-  virtual void AddOffset(double value, CField* field = NULL);
+  virtual void SetOffset(double value) override;
+  virtual void AddOffset(double value, CField* field = NULL) override;
 
 
 protected:
 
   void Init();
 
-  virtual void RewindInit ();
-  virtual void RewindProcess ();
-  virtual void RewindEnd ();
+  virtual void RewindInit () override;
+  virtual void RewindProcess () override;
+  virtual void RewindEnd () override;
 
 
 //  virtual void InitCriteriaInfoJason2();
@@ -186,20 +186,20 @@ protected:
   void DeleteExternalFile();
   void DeleteFieldsToReadMap();
 
-  virtual void InitInternalFieldName(const std::string& dataSetName, CStringList& listField, bool convertDate = false);
-  virtual void InitInternalFieldName(CStringList& listField, bool convertDate = false);
+  virtual void InitInternalFieldName(const std::string& dataSetName, CStringList& listField, bool convertDate = false) override;
+  virtual void InitInternalFieldName(CStringList& listField, bool convertDate = false) override;
 
-  virtual bool Open();
+  virtual bool Open() override;
 
-  virtual std::string MakeInternalFieldName(const std::string& dataSetName, const std::string& field);
-  virtual std::string MakeInternalFieldName(const std::string& field);
+  virtual std::string MakeInternalFieldName(const std::string& dataSetName, const std::string& field) override;
+  virtual std::string MakeInternalFieldName(const std::string& field) override;
 
-  virtual void LoadFieldsInfo();
+  virtual void LoadFieldsInfo() override;
   //virtual CFieldNetCdf* CreateField(const std::string& fieldName);
   virtual void CreateFieldSets();
 
   virtual void ReadBratFieldRecord(const std::string& key);
-  virtual void ReadBratFieldRecord(CField::CListField::iterator it);
+  virtual void ReadBratFieldRecord(CField::CListField::iterator it) override;
 
 
   struct CAdjustValidMinMax
@@ -219,7 +219,7 @@ protected:
   virtual void ReadAll(CFieldNetCdf* field, const CAdjustValidMinMax &adjust_algo = CAdjustValidMinMax() );
   virtual void ReadAll(CFieldNetCdf* field, CExpressionValue& value);
 
-  virtual void FillDescription();
+  virtual void FillDescription() override;
 
 
 

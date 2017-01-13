@@ -64,6 +64,7 @@
 #include "ProductGeosatGDR.h"
 #include "ProductReaper.h"
 #include "ProductJason1NetCdf.h"
+#include "ProductEnvisatNetCdf.h"
 
 // When debugging changes all calls to "new" to be calls to "DEBUG_NEW" allowing for memory leaks to
 // give you the file name and line number where it occurred.
@@ -1026,36 +1027,12 @@ void CProduct::LogSelectionResult(const std::string& fileName, bool result)
 
 
 }
-//----------------------------------------
+
+
 bool CProduct::ApplyCriteria( CStringList& filteredFileList, CProgressInterface *pi, const std::string &log_file )	//log_file = ""
 {
 	const bool with_log = !log_file.empty();
 	bool canceled = false;
-
-
-	auto log = [&with_log, this]( const char *s, bool crlf )
-	{
-		if ( with_log )
-		{
-			Log( s, crlf );
-		};
-	};
-
-
-	auto progress = [pi]( int_t i )
-	{
-		if ( pi )
-		{
-			if ( pi->Cancelled() )
-				return false;
-			pi->SetCurrentValue( i );
-		}
-		return true;
-	};
-
-
-	//function body
-
 
 	if ( with_log )
 	{
@@ -1084,8 +1061,16 @@ bool CProduct::ApplyCriteria( CStringList& filteredFileList, CProgressInterface 
 	for ( CProductList::iterator itFile = m_fileList.begin(); itFile != m_fileList.end(); itFile++ )
 	{
 		m_indexProcessedFile++;
-		if ( !progress( m_indexProcessedFile ) )
-			break;
+        if ( pi )
+        {
+            if ( pi->Cancelled() )
+            {
+                canceled = true;
+                break;
+            }
+            pi->SetCurrentValue( m_indexProcessedFile );
+        }
+
 
 		if ( with_log )
 			CTrace::Tracer( 1, "Process file %ld of %ld", (long)m_indexProcessedFile, (long)m_fileList.size() );
@@ -1106,13 +1091,17 @@ bool CProduct::ApplyCriteria( CStringList& filteredFileList, CProgressInterface 
 		}
 		catch ( CException& e )
 		{
-			log( "Error while opening file:", false );
-			log( e.what(), true );
+            if ( with_log )
+            {
+                Log( "Error while opening file:", false );
+                Log( e.what(), true );
+            }
 			continue;
 		}
 		catch ( ... )
 		{
-			log( "Unknown error while opening file", true );
+            if ( with_log )
+                Log( "Unknown error while opening file", true );
 			continue;
 		}
 
@@ -1240,14 +1229,18 @@ bool CProduct::ApplyCriteria( CStringList& filteredFileList, CProgressInterface 
 			}
 			catch ( CException& e )
 			{
-				log( "Error while processing file:", false );
-				log( e.what(), true );
+                if ( with_log )
+                {
+                    Log( "Error while processing file:", false );
+                    Log( e.what(), true );
+                }
 				fileOk = false;
 				break;
 			}
 			catch ( ... )
 			{
-				log( "Unknown error while processing file", true );
+                if ( with_log )
+                    Log( "Unknown error while processing file", true );
 				fileOk = false;
 				break;
 			}
@@ -1810,6 +1803,11 @@ CProduct* CProduct::Construct( const CProductList& fileNameList )
             {
                 product = new CProductJason1NetCdf( fileNameList, true );
 			}
+            else
+            if ( productType == CExternalFilesEnvisat2P::TypeOf() )
+            {
+                product = new CProductEnvisatNetCdf( fileNameList, true );
+            }
 			else
 			if ( CExternalFilesRads::IsTypeOf( productType ) )
 			{

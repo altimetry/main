@@ -285,9 +285,17 @@ std::string CBratFilter::GetSelectionCriteriaExpression( const std::string &prod
 //////////////////////////////////////////////////
 
 
-bool CBratFilter::Apply( const CStringList& files_in, CStringList& files_out, std::string& error_msg, CProgressInterface *pi ) const
+// The 1st boolean return is the usual result
+// The 2nd boolean return is true only if user canceled
+// Whenever 2nd is true, 1st must be false
+//
+std::pair< bool, bool > CBratFilter::Apply( const CStringList& files_in, CStringList& files_out, std::string& error_msg, CProgressInterface *progress ) const
 {
-    return CBratFilters::GetInstance().Apply( mName, files_in, files_out, error_msg, pi );
+	auto result = CBratFilters::GetInstance().Apply( mName, files_in, files_out, error_msg, progress );	//variable created only for assertion
+
+	assert__( !result.second || !result.first );
+
+	return result;
 }
 
 
@@ -587,15 +595,21 @@ bool CBratFilters::Translate2SelectionCriteria( CProduct *product_ref, const std
 }
 
 
-bool CBratFilters::Apply( const std::string &name, const CStringList& files_in, CStringList& files_out, std::string& error_msg, CProgressInterface *pi ) const
+// The 1st boolean return is the usual result
+// The 2nd boolean return is true only if user canceled
+// Whenever 2nd is true, 1st must be false
+//
+std::pair< bool, bool > CBratFilters::Apply( const std::string &name, const CStringList& files_in, CStringList& files_out, std::string& error_msg, CProgressInterface *progress ) const
 {
 #if defined(BRAT_V3)
     return true;
 #endif
 
+	bool user_canceled = false;
+
 	auto *filter = Find( name );		assert__( filter );
     if ( !filter )
-        return false;
+		return{ false, user_canceled };
 
     CProduct* product = nullptr;
     bool filter_applied_complete = true;
@@ -607,8 +621,8 @@ bool CBratFilters::Apply( const std::string &name, const CStringList& files_in, 
         if ( !product )
         {
             error_msg.append( "Perhaps the dataset is empty." );
-            return false;
-        }
+			return{ false, user_canceled };
+		}
 
         product->GetProductList().clear();
         product->GetProductList().Insert( files_in );
@@ -623,8 +637,8 @@ bool CBratFilters::Apply( const std::string &name, const CStringList& files_in, 
         {
             error_msg.append( "Unable to get criteria information for product type '" + product->GetLabel() + " - "
                               + product->GetProductType() + "'." );
-            return false;
-        }
+			return{ false, user_canceled };
+		}
 
 
         // 2. Check if product has all required aliases //
@@ -639,8 +653,8 @@ bool CBratFilters::Apply( const std::string &name, const CStringList& files_in, 
             error_msg.append( "All required aliases (latitude, longitude and time) were not found for product type '"
                               + product->GetLabel() + " - "  + product->GetProductType()
                               + "'.\nPlease add missing information to aliases file." );
-            return false;
-        }
+			return{ false, user_canceled };
+		}
 
 
         // 3. Check if product has Lon, Lat and Time fields (required to filter data by location and time) //
@@ -650,38 +664,48 @@ bool CBratFilters::Apply( const std::string &name, const CStringList& files_in, 
         if ( !lon )
         {
             error_msg.append( "No longitude data found in product." );
-            return false;
-        }
+			return{ false, user_canceled };
+		}
 
         CField *lat = product->FindFieldByName( lat_alias, false, &field_error_msg );
         if ( !lat )
         {
             error_msg.append( "No latitude data found in product." );
-            return false;
-        }
+			return{ false, user_canceled };
+		}
 
         CField *time = product->FindFieldByName( time_alias, false, &field_error_msg );
         if ( !time )
         {
             error_msg.append( "No time data found in product." );
-            return false;
-        }
+			return{ false, user_canceled };
+		}
 
 
         // 4. Translate Filter to selection criteria //
         if ( !Translate2SelectionCriteria( product_ref, name, error_msg ) )
         {
             // Unable to translate to selection criteria (no criteria info, unknown mission...)
-            return false;
-        }
+			return{ false, user_canceled };
+		}
 
 
         // 5. Add and apply Criteria (old Dataset Selection Criteria in Brat v.3) //
         product->AddCriteria( product_ref );
         std::string log_path = files_in.size() > 5000 ? empty_string() : mWorkspacesPath + "/" + DATASET_SELECTION_LOG_FILENAME;
-        if ( !product->ApplyCriteria( files_out, pi, log_path ) )
+        if ( !product->ApplyCriteria( files_out, progress, log_path ) )
 		{
-			error_msg.append( "User canceled." );
+			user_canceled = progress->Cancelled();
+
+			error_msg.append( 
+				user_canceled ? 
+				"" :					//the user already knows what happened
+				( log_path.empty() 	? 
+					"An error occurred applying filter. Too much files to create a log file." : 
+					( "An error occurred applying filter. Please see the log file " + log_path ) 
+					)
+				);
+
 			filter_applied_complete = false;
 		}
 		else
@@ -704,7 +728,7 @@ bool CBratFilters::Apply( const std::string &name, const CStringList& files_in, 
 
     delete product;
 
-    return filter_applied_complete;
+	return{ filter_applied_complete, user_canceled };
 }
 
 

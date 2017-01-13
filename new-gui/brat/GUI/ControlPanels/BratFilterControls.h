@@ -124,7 +124,7 @@ class CBratFilterControls : public CDesktopControlsPanel
 
 	CWorkspaceDataset *mWDataset = nullptr;
 	CWorkspaceOperation *mWOperation = nullptr;
-    CDataset *mDataset = nullptr;
+    const CDataset *mDataset = nullptr;
 
 
 	//construction / destruction
@@ -140,7 +140,7 @@ public:
 
 	// overrides
 
-	virtual void SelectionChanged( bool selected ) override;
+	virtual void UpdatePanelSelectionChange() override;
 
 
 	// access 
@@ -214,7 +214,7 @@ public slots:
     void HandleRelativeReferenceTimeChanged(const QDateTime &ref_datetime);
 
 	void HandleWorkspaceChanged();
-    void HandleDatasetChanged( CDataset *dataset );
+    void HandleDatasetChanged( const CDataset *dataset );
 
     void HandleCurrentLayerSelectionChanged( QRectF box = QRectF() );
 	void HandleRelativeTimesBoxChecked( bool checked );

@@ -81,6 +81,7 @@ class CApplicationSettingsDlg : public QDialog
 	QToolButton *mRadsInstallButton = nullptr;
 	QToolButton *mRadsStartButton = nullptr;
 	QToolButton *mRadsStartButton_Test = nullptr;
+    QToolButton *mRadsRefreshConnectionButton = nullptr;
 	QToolButton *mRadsPauseButton = nullptr;
 	QToolButton *mRadsExecuteNow = nullptr;
 	QPushButton *mRadsViewLogFile = nullptr;
@@ -115,27 +116,31 @@ public:
 
 protected:
     bool ValidateAndAssign();
-	bool ValidateAndSaveRadsValues( bool ask_user );
+	bool ValidateAndAssignPaths();
+	bool ValidateAndAssignRadsValues( bool ask_user, bool validate_paths = true );
 
 	bool RadsStart( bool toggled, bool validate_and_save, bool check_buttons );
 	bool RadsPause( bool toggled, bool validate_and_save );
 
 	bool CheckRadsConfigStatus();
 
+	void SetExecNowText();
 	void DisplayRadsError( const std::string &action );
 
 private slots:
     virtual void accept();
 
-	void EnableRadsButtons();
+	void UpdateRadsButtons();
 
 	void HandleBrowseDataDirectory();
+	void HandleDataDirectoryLineEditEditingFinished();
     void HandleBrowseProjectsPath();
     void HandleMainLayerTypeChanged( bool toggled );
     void HandleViewsLayerTypeChanged( bool toggled );
 
 	void HandleRadsInstall( bool toggled );
-	void HandleRadsStart( bool toggled );
+	void HandleRadsStart_Test( bool toggled );
+    void HandleRadsRefreshConnection();
 	void HandleRadsUserStart( bool toggled );
 	void HandleRadsPause( bool toggled );
 	void HandleViewLogFile();

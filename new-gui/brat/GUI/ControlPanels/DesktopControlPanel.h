@@ -60,6 +60,9 @@ protected:
 
 	//instance data
 
+private:
+	bool mSelectedPanel = false;					
+
 protected:
 	CModel &mModel;
 	CDesktopManagerBase *mDesktopManager = nullptr;
@@ -73,11 +76,21 @@ public:
 	{}	
 
 
-	// To be called when this is in a widget container and its selection state changed
-	//	- useful to 
-	//
-	virtual void SelectionChanged( bool selected ) = 0;
+	bool SelectedPanel() const { return mSelectedPanel; }
 
+	// To be called when this is in a widget container and its selection state changed
+	//
+	void ChangePanelSelection( bool selected );
+
+protected:
+
+	// Derived classes must call SelectedPanel() in overrider methods to know their current
+	//	selection status
+	//
+	virtual void UpdatePanelSelectionChange() = 0;
+
+
+public:
 
 	////////////////////////////
 	// GUI

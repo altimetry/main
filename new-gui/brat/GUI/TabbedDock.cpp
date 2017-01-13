@@ -85,25 +85,24 @@ void CTabbedDock::SetTabShape( QTabWidget::TabShape s )
 }
 
 
+void CTabbedDock::SetTabPosition( QTabWidget::TabPosition p )
+{
+	mTabWidget->setTabPosition( p );
+}
+
+
 QWidget* CTabbedDock::AddTab( QWidget *tab_widget, const QString &title )
 {
-	QWidget *tab = new QWidget();
-	SetObjectName( tab, "tab" );
+	mTabWidget->addTab( tab_widget, title );	assert__( Tab( TabIndex( tab_widget ) ) == tab_widget );
 
-	LayoutWidgets( Qt::Vertical, { tab_widget }, tab, Spacing, ContentsMargin, ContentsMargin, ContentsMargin, ContentsMargin );
-
-	mTabWidget->addTab( tab, title );
-
-	assert__( Tab( TabIndex( tab ) ) == tab );
-
-	return tab;
+	return tab_widget;
 }
 
 
 QWidget* CTabbedDock::TabWidget( int index )
 {
-	QWidget *tab = Tab( index );					assert__( tab && tab->layout() );
-	return tab->layout()->itemAt( 0 )->widget();
+	QWidget *tab = Tab( index );	assert__( tab );
+	return tab;
 }
 
 

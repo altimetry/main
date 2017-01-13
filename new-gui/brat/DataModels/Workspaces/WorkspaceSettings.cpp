@@ -33,6 +33,17 @@
 
 
 
+
+//const std::string GROUP_GENERAL = "WorkspaceGeneral";		//General -> WorkspaceGeneral; moved from Constants.h
+//const std::string GROUP_GENERAL_V3 = "General";				//GROUP_GENERAL -> GROUP_GENERAL_V3
+
+static const std::string GROUP_GENERAL_READ =	"";				//GROUP_GENERAL -> GROUP_GENERAL_READ; "General" -> ""; moved from Constants.h
+static const std::string GROUP_GENERAL_WRITE =	"";				//GROUP_GENERAL -> GROUP_GENERAL_WRITE				  ; moved from Constants.h
+
+
+
+
+
 /////////////////////////////////////////////////////////////////////////////////////////////
 //										statics
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -191,17 +202,17 @@ bool CWorkspaceSettings::LoadConfigDataset( CWorkspaceDataset &data, std::string
 	for ( CObMap::iterator it = data.m_datasets.begin(); it != data.m_datasets.end(); it++ )
 	{
 		CDataset *dataset = dynamic_cast< CDataset* >( it->second );				assert__( dataset != nullptr );	//v3: an error msg box here
-		CRadsDataset *rads_dataset = dynamic_cast< CRadsDataset* >( it->second );
-        UNUSED( rads_dataset );
+		CRadsDataset *rads_dataset = dynamic_cast< CRadsDataset* >( it->second );	UNUSED( rads_dataset );
 
 		dataset->LoadConfig( this );
 		if ( data.m_ctrlDatasetFiles )
 		{
 			std::vector< std::string > v;
-			if ( !dataset->CheckFilesExist(v) )
+			if ( !dataset->CheckFilesExist( v ) )
 			{
-				std::string s = Vector2String( v, "\n" );
-				error_msg += "Dataset '" + data.m_name + "':\n contains file '" + s + "' that doesn't exist\n";
+				std::string msg = "Dataset '" + data.m_name + "' references files that do not exist";
+				msg += ( v.size() > 50 ? "." : ( ":\n" + Vector2String( v, "\n" ) ) );
+				error_msg += ( msg + "\n\nPlease check the configuration file " + this->FilePath() );
 				return false;
 			}
 			else {
@@ -389,7 +400,7 @@ bool CWorkspaceSettings::SaveConfig( const CMapFormula &mapf, bool predefined, c
 
 bool CWorkspaceSettings::LoadConfig( CMapFormula &mapf, std::string &error_msg, bool predefined, const std::string& pathSuff )
 {
-	LOG_TRACEstd( "Loading formulas map" );
+	LOG_TRACE( "Loading formulas map" );
 
 	std::string path = GROUP_FORMULAS;
 	if ( !pathSuff.empty() )
@@ -432,7 +443,7 @@ bool CWorkspaceSettings::LoadConfig( CMapFormula &mapf, std::string &error_msg, 
 			return false;
 	}
 
-	LOG_TRACEstd( "Finished loading formulas map" );
+	LOG_TRACE( "Finished loading formulas map" );
 
 	return true;
 }
@@ -766,12 +777,9 @@ bool CWorkspaceSettings::LoadConfig( COperation &op, std::string &error_msg, CWo
 		LOG_WARN( msg );
 	}
 	//assuming original operation is well formed, no reason to inspect SetFilter and SetDataset return values
-	std::string dataset_error_msg;
 	op.RemoveFilter();
-	op.SetOriginalDataset( wks, dsname, dataset_error_msg );	//NOTE: this clears formulas and can clear filter, don't load them before
-	op.SetFilter( filter, dataset_error_msg );
-	if ( !dataset_error_msg.empty() )
-		error_msg += ( "\n" + dataset_error_msg );
+	op.SetOriginalDataset( wks, dsname );	//NOTE: this clears formulas and can clear filter, don't load them before
+	op.SetFilter( filter );
 	op.m_type = type.empty() ? CMapTypeOp::eTypeOpYFX : CMapTypeOp::GetInstance().NameToId( type );
 	if ( op.m_record.empty() )
 	{

@@ -29,11 +29,29 @@
 #include "FileSettings.h"
 
 
+static const std::string GROUP_SETTINGS_VERSION = "SettingsVersion";
+
+static const std::string KEY_SETTINGS_VERSION = "version";
+
+
+
+
 ////////////////////////////////////////////////////////////////////////////////////////////
 //
 //									CFileSettings
 //
 ////////////////////////////////////////////////////////////////////////////////////////////
+
+
+bool CFileSettings::WriteVersionSignature()
+{
+	return WriteValues( GROUP_SETTINGS_VERSION,
+	{
+		{ KEY_SETTINGS_VERSION, VersionValue() }
+	}
+	);
+};
+
 
 
 bool CFileSettings::CheckVersion()

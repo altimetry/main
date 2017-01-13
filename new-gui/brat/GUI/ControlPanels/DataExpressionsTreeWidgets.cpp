@@ -103,6 +103,14 @@ CFieldsTreeWidget::CFieldsTreeWidget( QWidget *parent )
 }
 
 
+//virtual 
+CFieldsTreeWidget::~CFieldsTreeWidget()
+{
+	delete mProduct;
+}
+
+
+
 
 CField* CFieldsTreeWidget::ItemField( QTreeWidgetItem *item )
 {
@@ -134,6 +142,7 @@ std::string	CFieldsTreeWidget::GetCurrentFieldDescription() const
 
 void CFieldsTreeWidget::InsertProduct( CProduct *product )
 {
+	delete mProduct;
 	mProduct = product;
 
 	clear();
@@ -1079,32 +1088,36 @@ void CDataExpressionsTreeWidget::HandleCheckSyntax()
 {
     assert__( mCurrentOperation && mDragSource->Product() );
 
-	std::string value = q2a( mExpressionTextWidget->toPlainText() );
-	std::string value_out;
-	bool result = false;
-	std::string msg;
-
-	if ( mCurrentOperation->IsSelect( mCurrentFormula ) )
+	CProductInfo pi( mDragSource->Product() );
+	bool result = pi.IsValid();
+	if ( !result )
 	{
-        result = CFormula::CheckExpression( mWFormula, value, mCurrentOperation->GetRecord(), msg, nullptr, &mMapFormulaString,
-                                            mDragSource->Product(), &value_out );
-		if ( !result )
-			SimpleWarnBox( msg );
+		LOG_WARN( pi.ErrorMessages() );
 	}
 	else
 	{
-		std::string unit = mCurrentFormula->GetUnitAsText();	// = GetOpunit()->GetValue();
-        result = CFormula::CheckExpression( mWFormula, value, mCurrentOperation->GetRecord(), msg, &unit, &mMapFormulaString,
-                                            mDragSource->Product(), &value_out );
-		if ( !result )
-			SimpleWarnBox( msg );
-	}
+		std::string value_out, msg, value = q2a( mExpressionTextWidget->toPlainText() );
 
-	if ( !value_out.empty() )
-	{
-		if ( value != value_out )
+		if ( mCurrentOperation->IsSelect( mCurrentFormula ) )
 		{
-			mExpressionTextWidget->setPlainText( value_out.c_str() );
+			result = CFormula::CheckExpression( mWFormula, value, mCurrentOperation->GetRecord(), msg, nullptr, &mMapFormulaString, pi, &value_out );
+			if ( !result )
+				SimpleWarnBox( msg );
+		}
+		else
+		{
+			std::string unit = mCurrentFormula->GetUnitAsText();	// = GetOpunit()->GetValue();
+			result = CFormula::CheckExpression( mWFormula, value, mCurrentOperation->GetRecord(), msg, &unit, &mMapFormulaString, pi, &value_out );
+			if ( !result )
+				SimpleWarnBox( msg );
+		}
+
+		if ( !value_out.empty() )
+		{
+			if ( value != value_out )
+			{
+				mExpressionTextWidget->setPlainText( value_out.c_str() );
+			}
 		}
 	}
 

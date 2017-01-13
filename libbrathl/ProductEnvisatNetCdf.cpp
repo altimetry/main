@@ -1,5 +1,5 @@
 /*
-* This file is part of BRAT 
+* This file is part of BRAT
 *
 * BRAT is free software; you can redistribute it and/or
 * modify it under the terms of the GNU General Public License
@@ -16,4 +16,14 @@
 * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
-#include "ConfigurationKeywords.h"
+#include "ProductEnvisatNetCdf.h"
+
+using namespace brathl;
+
+
+namespace brathl
+{
+
+
+
+} // end namespace

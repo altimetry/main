@@ -22,7 +22,6 @@
 #include "common/BratVersion.h"
 #include "common/ccore-types.h"
 #include "new-gui/Common/QtUtils.h"
-#include "new-gui/Common/ConfigurationKeywords.h"
 #include "new-gui/Common/GUI/TextWidget.h"
 #include "new-gui/Common/GUI/ProcessesTable.h"
 
@@ -54,6 +53,21 @@
 #include "GUI/DisplayEditors/Dialogs/ExportImageDialog.h"
 
 #include "BratMainWindow.h"
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//                                            Main Window private settings keywords
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+static const std::string GROUP_MAIN_WINDOW =			"MainWindow";
+
+static const std::string KEY_MAIN_WINDOW_GEOMETRY =		"geometry";
+static const std::string KEY_MAIN_WINDOW_STATE =		"state";
+static const std::string KEY_MAIN_WINDOW_MAXIMIZED =	"maximized";
+
+
 
 
 
@@ -147,7 +161,7 @@ CControlPanel* CBratMainWindow::MakeWorkingPanel( ETabName tab )
 	switch ( tab )
 	{
 		case eDataset:
-			return new ControlsPanelType< eDataset >::type( mModel, mDesktopManager );
+			return new ControlsPanelType< eDataset >::type( mApp, mDesktopManager );
 			break;
 		case eRADS:
 			return new ControlsPanelType< eRADS >::type( mApp, mDesktopManager );
@@ -205,8 +219,9 @@ void CBratMainWindow::CreateWorkingDock()
 
 	action_Satellite_Tracks->setChecked( WorkingPanel< eFilter >()->AutoSatelliteTrack() );
 
-	//notifications from datasets to filters (for track plot, not filtering)
-	connect( WorkingPanel< eDataset >(), SIGNAL( CurrentDatasetChanged(CDataset*) ), WorkingPanel< eFilter >(), SLOT( HandleDatasetChanged(CDataset*) ) );
+	//notifications from datasets && operations datasets to filters (for track plot, not filtering)
+	connect( WorkingPanel< eDataset >(), SIGNAL( CurrentDatasetChanged( const CDataset* ) ), WorkingPanel< eFilter >(), SLOT( HandleDatasetChanged( const CDataset* ) ) );
+	connect( WorkingPanel< eOperations >(), SIGNAL( CurrentDatasetChanged( const CDataset* ) ), WorkingPanel< eFilter >(), SLOT( HandleDatasetChanged( const CDataset* ) ) );
 
 	//notifications from datasets to operations
     connect( WorkingPanel< eDataset >(), SIGNAL( DatasetsChanged(const CDataset*) ), WorkingPanel< eOperations >(), SLOT( HandleDatasetsChanged_Quick(const CDataset*) ) );
@@ -342,7 +357,7 @@ void CBratMainWindow::ProcessMenu()
     //
 	mRecentFilesSeparatorAction = menu_File->insertSeparator( action_Exit );
 
-	mRecentFilesProcessor = new CRecentFilesProcessor( this, "Recent Workspaces", menu_File, action_Exit, GROUP_WKS_RECENT.c_str() );
+	mRecentFilesProcessor = new CRecentFilesProcessor( this, "Recent Workspaces", menu_File, action_Exit );
 	connect( mRecentFilesProcessor, SIGNAL( triggered( QAction* ) ), this, SLOT( openRecentWorkspace_triggered( QAction* ) ) );
 
 	mRecentFilesSeparatorAction = menu_File->insertSeparator( action_Exit );
@@ -775,9 +790,16 @@ CBratMainWindow::CBratMainWindow( CBratApplication &app )
     //
 	if ( mSettings.mDisplayRadsInstallInformation && !mApp.RadsServiceController().isInstalled() )
 	{
+        static const std::string options_name =
+#if defined (Q_OS_MAC)
+        "Preferences"
+#else
+        "Options"
+#endif
+        ;
 		QTimer::singleShot( 0, this, []() {
 			SimpleMsgBox( "For proper use and update of RADS datasets, the RADS service should be installed on your system.\n\n\
-The service can be installed and configured from the BRAT Options dialog, accessible in the Tools menu." );
+The service can be installed and configured from the " + options_name + " dialog." );
 		}
 		);
 		mSettings.mDisplayRadsInstallInformation = false;
@@ -1203,10 +1225,20 @@ void CBratMainWindow::EmitWorkspaceChanged()
 
 void CBratMainWindow::TabSelected( int index )
 {
-	WorkingPanel< eDataset >()->SelectionChanged( index == eDataset );
-	WorkingPanel< eRADS >()->SelectionChanged( index == eRADS );
-	WorkingPanel< eFilter >()->SelectionChanged( index == eFilter );
-	WorkingPanel< eOperations >()->SelectionChanged( index == eOperations );
+	std::vector< std::pair < CDesktopControlsPanel*, bool > > v;
+
+	v.push_back( { WorkingPanel< eDataset >(), index == eDataset } );
+	v.push_back( { WorkingPanel< eRADS >(), index == eRADS } );
+	v.push_back( { WorkingPanel< eFilter >(), index == eFilter } );
+	v.push_back( { WorkingPanel< eOperations >(), index == eOperations } );
+
+	for ( auto const &pair : v )
+		if ( !pair.second )
+			pair.first->ChangePanelSelection( pair.second );
+
+	for ( auto const &pair : v )
+		if ( pair.second )
+			pair.first->ChangePanelSelection( pair.second );
 }
 
 
@@ -1266,11 +1298,11 @@ bool CBratMainWindow::OpenWorkspace( const std::string &path )
     else
 	{
 		std::string error_msg;
-		CWorkspace* wks = mModel.LoadWorkspace( path, error_msg );
+		CWorkspace *wks = mModel.LoadWorkspace( path, error_msg );
 		if ( !error_msg.empty() )
 		{
 			if ( wks )
-				LOG_WARN( error_msg );		//can be only warnings about (missing) filters
+				LOG_WARN( error_msg );		//can be only warnings about (missing) filters, recovered file references, etc.
 			else
 			{
 				SimpleErrorBox( error_msg );
@@ -1339,7 +1371,7 @@ bool CBratMainWindow::SaveWorkspace()
     const CWorkspace *wks = mModel.RootWorkspace();
 	if ( result )
 	{
-		LOG_TRACEstd( wks->GetName() + " saved." );
+		LOG_INFO( wks->GetName() + " saved." );
 	}
 	else
 	{
@@ -1637,7 +1669,7 @@ void CBratMainWindow::UpdateWindowMenu()
 
 void CBratMainWindow::on_action_About_triggered()
 {
-	SimpleAboutBox( BRAT_VERSION, PROCESSOR_ARCH, "CNES/ESA" );
+	SimpleAboutBox( BRAT_VERSION_STRING, PROCESSOR_ARCH, "CNES/ESA" );
 }
 
 
@@ -1651,9 +1683,18 @@ void CBratMainWindow::on_action_User_s_Manual_triggered()
 void CBratMainWindow::on_action_Youtube_Video_Tutorials_triggered()
 {
     static const std::string s = "https://www.youtube.com/playlist?list=PLWLKr3OylZcHbPKlAsmRLQp6aqAq2NChr";
-    
-    if ( !SimpleSystemOpenURL( s ) )
-        SimpleErrorBox( "Could not open " + s );
+	static const bool is_xp = QSysInfo::windowsVersion() == QSysInfo::WV_XP || QSysInfo::windowsVersion() == QSysInfo::WV_2003;	//WV_2003: xp x64
+	static const std::string default_firefox_location = "C:\\Program Files (x86)\\Mozilla Firefox\\firefox.exe";
+
+	if ( is_xp && IsFile( default_firefox_location ) )
+	{
+		system( ( "\"" + default_firefox_location + "\" " + s ).c_str() );
+	}
+	else
+	{
+		if ( !SimpleSystemOpenURL( s ) )
+			SimpleErrorBox( "Could not open " + s );
+	}
 }
 
 
@@ -1713,6 +1754,11 @@ void CBratMainWindow::HandleRsyncStatusChanged( CBratApplication::ERadsNotificat
 			mMainWorkingDock->SetTabTextColor( 1, Qt::yellow );
 		}
 		break;
+        
+        case  CBratApplication::eNotificationConfigSaved:
+        {
+        }
+        break;
     }
 }
 

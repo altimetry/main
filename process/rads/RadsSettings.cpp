@@ -204,7 +204,7 @@ bool CRadsSettingsBase::LoadConfig()
 
 	if ( result )
 	{
-		for ( int i = 0; i < mMissionNames.size(); )
+		for ( size_t i = 0; i < mMissionNames.size(); )
 		{
 			const std::string name = FindRadsMissionName( mMissionNames[ i ], mAllAvailableMissions );
 			if ( name.empty() )

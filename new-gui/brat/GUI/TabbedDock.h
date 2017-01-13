@@ -138,9 +138,9 @@ public:
 
 	void SetTabShape( QTabWidget::TabShape s );
 
+    void SetTabPosition( QTabWidget::TabPosition p );
 
-	// Sets QWidget parameter ("tab_widget") parent
-	//
+
 	QWidget* AddTab( QWidget *tab_widget, const QString &title );
 
 	

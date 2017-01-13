@@ -1,0 +1,7 @@
+<RCC>
+    <qresource prefix="/">
+        <file>qt-service.plist</file>
+        <file>qt-service.sh</file>
+        <file>qt-sysv-service.sh</file>
+    </qresource>
+</RCC>

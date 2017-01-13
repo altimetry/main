@@ -43,7 +43,7 @@ using namespace brathl;
 const std::string CHECKED_DATASET_CMD_LINE_PARAMETER = "-rads";
 
 const std::string DATA_MODE_SUFFIX = "_DATA_MODE";
-const std::string DATA_MODE_DI_TIME_NAME_SUFFIX = "_DATA_MODE_DI_TIME_NAME_SUFFIX";
+const std::string DATA_MODE_DI_TIME_NAME_SUFFIX = "_DATA_MODE_DI_TIME_NAME";
 const std::string DATA_MODE_DI_DATE_TIME_SUFFIX = "_DATA_MODE_DI_DATE_TIME";
 
 
@@ -71,6 +71,8 @@ namespace processes
 	class CBratProcess : public CBratObject
 	{
 		// types
+
+        DECLARE_BASE_TYPE( CBratObject )
 
 	public:
 
@@ -118,7 +120,7 @@ namespace processes
 		static const std::string& DataModeStr( EMergeDataMode mode )
 		{
 			static const std::string* names_list = DataModeNames();		//call DataModeNames only once
-			static const std::vector< std::string > names_vector{ &names_list[pctFIRST], &names_list[pctLAST + 1] };
+			static const std::vector< std::string > names_vector( &names_list[pctFIRST], &names_list[pctLAST + 1] );
 
 			assert__( names_vector.size() == eMergeDataMode_size );
 
@@ -245,7 +247,7 @@ namespace processes
 
 		CFileParams* m_fileParams;
 
-		bool mCheckedDataset = false;
+        bool mCheckedDataset;
 
 
 		// construction / destruction

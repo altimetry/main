@@ -28,6 +28,39 @@
 
 
 
+
+/////////////////////////////////////////////////////////////////////////////////
+//							Current Process Privileges 
+//								(Windows specific)
+/////////////////////////////////////////////////////////////////////////////////
+
+#if defined (Q_OS_WIN)
+
+inline bool IsElevated( ) 
+{
+	bool result = false;
+	HANDLE hToken = NULL;
+	if( OpenProcessToken( GetCurrentProcess( ),TOKEN_QUERY,&hToken ) ) 
+	{
+		TOKEN_ELEVATION Elevation;
+		DWORD cbSize = sizeof( TOKEN_ELEVATION );
+		if( GetTokenInformation( hToken, TokenElevation, &Elevation, sizeof( Elevation ), &cbSize ) )
+		{
+			result = Elevation.TokenIsElevated != 0;
+		}
+	}
+	if( hToken ) 
+	{
+		CloseHandle( hToken );
+	}
+	return result;
+}
+
+#endif
+
+
+
+
 /////////////////////////////////////////////////////////////////////////////////
 //							Brat Process Class
 /////////////////////////////////////////////////////////////////////////////////

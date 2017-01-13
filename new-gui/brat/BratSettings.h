@@ -51,6 +51,14 @@ class CBratSettings : public CApplicationSettings
 	static const bool smUseUnsupportedFields;
 	static const size_t smMinimumFilesToWarnUser;
 
+	static const double smHchildRatioNum;
+	static const double smHchildRatioDnm;
+
+	static const std::string smPlotsFontName;
+	static const int smPlotsAxisFontSize;
+	static const int smPlotsTitleFontSize;
+
+
 protected:
 
     //////////////////////////////////////
@@ -81,6 +89,13 @@ public:
 protected:
 
 	size_t mMinimumFilesToWarnUser = smMinimumFilesToWarnUser;
+
+	double mHchildRatioNum = smHchildRatioNum;
+	double mHchildRatioDnm = smHchildRatioDnm;
+
+	std::string mPlotsFontName = smPlotsFontName;
+	int mPlotsAxisFontSize = smPlotsAxisFontSize;
+	int mPlotsTitleFontSize = smPlotsTitleFontSize;
 
 
     //////////////////////////////////////
@@ -149,6 +164,17 @@ public:
 	size_t MinimumFilesToWarnUser() const { return mMinimumFilesToWarnUser; }
 
 
+	//..plots 
+
+	double HchildRatio() const { return mHchildRatioNum / mHchildRatioDnm; }
+
+	const std::string& PlotsFontName() const { return mPlotsFontName; }
+
+	int PlotsAxisFontSize() const { return mPlotsAxisFontSize; }
+
+	int PlotsTitleFontSize() const { return mPlotsTitleFontSize; }
+
+
 public:
 
     //////////////////////////////////////
@@ -158,7 +184,7 @@ public:
     virtual bool LoadConfig() override;
     virtual bool SaveConfig() override;
 
-protected:
+private:
 
     bool LoadConfigSelectionCriteria();
     bool SaveConfigSelectionCriteria();

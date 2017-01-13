@@ -19,9 +19,7 @@
 
 #include <QAction>
 
-#include "new-gui/Common/ConfigurationKeywords.h"
 #include "new-gui/Common/QtUtils.h"
-
 #include "new-gui/Common/ApplicationSettings.h"
 
 #include "DataModels/PlotData/MapProjection.h"
@@ -29,6 +27,10 @@
 #include "ui_BratMainWindow.h"
 #include "ActionsTable.h"
 
+
+
+//static 
+const std::string CActionInfo::smTipDelimiter = "\n";
 
 
 
@@ -155,7 +157,7 @@ CActionInfo ActionsTable[ EActionTags_size ] =
 
     { eAction_SelectPolygon, "Polygon Selection", CActionInfo::FormatTip("Polygon Selection\nSelect Features by Polygon"), ":/images/themes/default/mActionSelectPolygon.svg", ":/images/themes/default/mActionSelectPolygon.svg" },
 
-    { eAction_DeselectAll, "Deselect All", CActionInfo::FormatTip("Deselect\nRemove features selection"), ":/images/themes/default/mActionDeselectAll.svg" },
+    { eAction_DeselectAll, "Deselect All", CActionInfo::FormatTip("Deselect\nRemove area selection"), ":/images/themes/default/mActionDeselectAll.svg" },
 
     { eAction_DecorationGrid, "Grid", CActionInfo::FormatTip("Grid\nCreates a scale bar that is displayed on the map canvas"), ":/images/themes/default/transformed.png", ":/images/themes/default/transformed.png" },
 
@@ -178,7 +180,7 @@ CActionInfo ActionsTable[ EActionTags_size ] =
 
 	{ eAction_InstallRadsService, "Install service", CActionInfo::FormatTip("Installation\nInstall/Uninstall RADS service in operating system."), ":images/ledoff.png", ":images/ledon.png" },
 
-	{ eAction_StartRadsService, "Enable service", CActionInfo::FormatTip("Execution\nEnable or prevent RADS service from running."), ":/images/themes/default/media/media-play-16.png", ":/images/themes/default/media/media-stop-16.png" },		//:/images/themes/default/media/media-seek-forward-16.png
+    { eAction_StartRadsService, "Start service", CActionInfo::FormatTip("Execution (optional)\nManually start or stop the RADS service."), ":/images/themes/default/media/media-play-16.png", ":/images/themes/default/media/media-stop-16.png" },		//:/images/themes/default/media/media-seek-forward-16.png
 
 	{ eAction_PauseRadsService, "", CActionInfo::FormatTip("Suspend\nPause/Resume data synchronization with RADS."), ":/images/themes/default/media/media-play-16.png", ":/images/themes/default/media/media-pause-16.png" },
 
@@ -415,6 +417,15 @@ void CActionInfo::TriggerAction( EActionTag tag )
 //						Most Recent Files QActions
 //////////////////////////////////////////////////////////////////////////////////
 
+
+
+static const std::string GROUP_WKS_RECENT =	"RecentWorkspaces";
+
+static const std::string KEY_WKS_RECENT =	"Recent";				//v4
+
+
+
+
 //
 // - After construction, connect this class's triggered signal to client openRecentfile handler slot
 // - Also after construction, and only if some supplementary action is needed at runtime (for instance,
@@ -433,8 +444,8 @@ void CRecentFilesProcessor::SetupMenu( QMainWindow *parent, QAction *ActionAfter
 }
 
 
-CRecentFilesProcessor::CRecentFilesProcessor( QMainWindow *parent, const std::string MenuName, QMenu *MenuParent, QAction *ActionAfter, const QString &SettingsSectionName ) : 
-	QObject( parent ), mSettingsSectionName( SettingsSectionName  )
+CRecentFilesProcessor::CRecentFilesProcessor( QMainWindow *parent, const std::string MenuName, QMenu *MenuParent, QAction *ActionAfter ) : 
+	QObject( parent ), mSettingsSectionName( GROUP_WKS_RECENT.c_str() )
 {
 	mRecentFilesMenu = new CRecentFilesMenu( MenuName.c_str(), MenuParent );
 	MenuParent->insertMenu( ActionAfter, mRecentFilesMenu );
@@ -442,8 +453,8 @@ CRecentFilesProcessor::CRecentFilesProcessor( QMainWindow *parent, const std::st
 }
 
 
-CRecentFilesProcessor::CRecentFilesProcessor( QMainWindow *parent, QMenu *RecentFiles_menu, QAction *ActionAfter, const QString &SettingsSectionName ) :
-	QObject( parent ), mRecentFilesMenu( RecentFiles_menu ), mSettingsSectionName( SettingsSectionName )
+CRecentFilesProcessor::CRecentFilesProcessor( QMainWindow *parent, QMenu *RecentFiles_menu, QAction *ActionAfter ) :
+	QObject( parent ), mRecentFilesMenu( RecentFiles_menu ), mSettingsSectionName( GROUP_WKS_RECENT.c_str() )
 {
 	SetupMenu( parent, ActionAfter );
 }

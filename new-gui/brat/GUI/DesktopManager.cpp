@@ -46,7 +46,19 @@ CDesktopManagerBase::CDesktopManagerBase( const CBratSettings &settings, QMainWi
 
 	parent->setCentralWidget( this );
 
+	connect( mMap, &CMapWidget::windowTitleChanged, this, &CDesktopManagerBase::HandleMapWindowTitleChanged );
+
 	mMap->Home();
+}
+
+
+//slot
+void CDesktopManagerBase::HandleMapWindowTitleChanged( const QString &title )
+{
+	if ( title.isEmpty() )
+		SetMapTitle( " " );		//hack: do not use empty string to always show map box
+	else
+		SetMapTitle( title );
 }
 
 
@@ -191,7 +203,10 @@ CDesktopManagerSDI::CDesktopManagerSDI( const CBratSettings &settings, QMainWind
 	mSplitter->setFrameStyle( QFrame::Panel );
 	mSplitter->setFrameShadow( QFrame::Sunken );
 	mSplitter->setMinimumSize( min_globe_widget_width, min_globe_widget_height );
-	mSplitter->addWidget( mMap );
+	mMapBox = CreateGroupBox( ELayoutType::Horizontal, { mMap }, "Dataset", nullptr, 0, 0, 0, 0, 0 );
+	mMapBox->setStyleSheet("QGroupBox { font-weight: bold; } ");
+	mMapBox->setAlignment( Qt::AlignCenter );
+	mSplitter->addWidget( mMapBox );
 	//mGlobeView = new CGlobeWidget( this, mMap, parent->statusBar() );
 	//mSplitter->addWidget( mGlobeView );
 

@@ -19,6 +19,7 @@
 #define COMMON_APPLICATION_STATIC_PATHS_H
 
 #include "common/+Utils.h"
+#include "common/tools/brathl_error.h"
 
 
 
@@ -59,17 +60,24 @@ struct CBratPath
 
 	operator std::string () const;
 
+	
 	bool operator == ( const CBratPath &o ) const;
+
 
 	std::string ToString() const;
 
-	virtual bool Valid() const = 0;
+	
+	bool Valid( std::string &error_msg ) const;
+
+protected:
+
+	virtual bool Validate() const = 0;
 };
 
 
 struct CFolderPath : public CBratPath
 {
-	using base_t = CBratPath;
+    DECLARE_BASE_TYPE( CBratPath )
 
 	CFolderPath( const std::string &path, bool must_exist, const char *name )
 		: base_t( path, must_exist, name )
@@ -86,13 +94,15 @@ struct CFolderPath : public CBratPath
 	std::string operator + ( const std::string &str ) const;
 
 
-	virtual bool Valid() const override;
+protected:
+
+	virtual bool Validate() const override;
 };
 
 
 struct CFilePath : public CBratPath
 {
-	using base_t = CBratPath;
+    DECLARE_BASE_TYPE( CBratPath )
 
 	CFilePath( const std::string &path, bool must_exist, const char *name )
 		: base_t( path, must_exist, name )
@@ -105,7 +115,9 @@ struct CFilePath : public CBratPath
 	virtual ~CFilePath()
 	{}
 
-	virtual bool Valid() const override;
+protected:
+
+	virtual bool Validate() const override;
 };
 
 
@@ -142,7 +154,6 @@ protected:
 
 	static bool ValidPath( std::string &error_msg, const std::string &path, bool is_file, const std::string path_title );
 
-	static bool ValidPath( std::string &error_msg, const CBratPath &path );
 
 
     ////////////////////////////////////////////

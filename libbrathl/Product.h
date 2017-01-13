@@ -69,8 +69,8 @@ namespace brathl
 
 	public:
 
-		std::string mCodaProductClass;	//as read by code from file
-		std::string mCodaProductType; 	//as read by code from file
+		std::string mCodaProductClass;	//as read by coda from file
+		std::string mCodaProductType; 	//as read by coda from file
 		std::string m_productClass;
 		std::string m_productType;
 		coda_format m_productFormat;
@@ -606,8 +606,8 @@ protected:
 	void CreateFieldIndexData();
 
     virtual void AddCombinedVariableToTree() {}
-    virtual void initInternalFieldNamesForCombinedVariable(CStringList& listField) {}
-    virtual bool computeCombinedField(CField *field) {return false;}
+    virtual void initInternalFieldNamesForCombinedVariable(CStringList& listField) { UNUSED( listField ); }
+    virtual bool computeCombinedField(CField *field) { UNUSED( field ); return false; }
 
 	void CheckFields( bool convertDate = false );
 

@@ -476,20 +476,31 @@ public:
 
 
 
-//static 
-const std::string C2DPlotWidget::smFontName = "Arial";
 
 
-
-C2DPlotWidget::C2DPlotWidget( QWidget *parent ) 
+C2DPlotWidget::C2DPlotWidget( const CPlotsGraphicParameters &plots_graphic_parameters, QWidget *parent ) 
 	: base_t( parent )
+	, graphic_parameters_base_t( plots_graphic_parameters )
 	, mIsLog( false )
 {
 	setWindowIcon( QPixmap( ":/2.png" ) );
 	setWindowTitle( "[*]" );
 	setAttribute( Qt::WA_DeleteOnClose );
 
+	//same as 3D
+
+	setFrameStyle( QFrame::Panel | QFrame::Sunken );
+	setLineWidth(2);
+	setMidLineWidth(0);
+
+	QPalette pal = palette();
+	pal.setColor( QPalette::Background, ViewsDefaultBackgroundColor() );
+	setAutoFillBackground( true );
+	setPalette( pal );
+
 	setCanvasBackground( Qt::white );
+
+	//
 
 	AddLegend( RightLegend, true );
 
@@ -556,8 +567,9 @@ void C2DPlotWidget::Clear()		// TODO analyze; not usable so far
 void C2DPlotWidget::SetPlotTitle( const std::string &title )
 {
 	QwtText text( t2q( title ) );
-	QFont font( t2q( smFontName ), smTitleFontSize );
-	font.setBold( true );
+	QFont font( t2q( mFontName ), mTitleFontSize );
+	if ( mTitleBold )
+		font.setBold( true );
 	text.setFont( font );
 	setTitle( text );
 	//setWindowTitle( text );
@@ -854,8 +866,9 @@ void C2DPlotWidget::SetCurrentAxisTitles( const std::string &xtitle, const std::
 void C2DPlotWidget::SetCurrentAxisTitle( Axis axis, const std::string &title )
 {
 	QwtText text( t2q( title ) );
-	QFont font( t2q( smFontName ), smAxisFontSize );
-	font.setBold( true );
+	QFont font( t2q( mFontName ), mAxisFontSize );
+	if ( mAxisBold )
+		font.setBold( true );
 	text.setFont( font );
     setAxisTitle( axis, text );
 }
@@ -1000,6 +1013,9 @@ void C2DPlotWidget::SetAxisScales( double xMin, double xMax, double yMin, double
 	setAxisScale( yLeft, yMin, yMax  );
 	if ( !isDefaultValue( y2Min ) && !isDefaultValue( y2Max ) )
 		setAxisScale( yRight, y2Min, y2Max  );
+
+	updateAxes();		//assigns/updates axis scaleDiv
+
 	if (plot) replot();
 }
 
@@ -1050,7 +1066,7 @@ void C2DPlotWidget::AxisRanges( double &xMin, double &xMax, double &yMin, double
 }
 
 
-void C2DPlotWidget::SetPlotAxisRanges( int index, double xMin, double xMax, double yMin, double yMax, double y2Min, double y2Max )   //y2Min = defaultValue<double>(), double y2Max = defaultValue<double>()
+void C2DPlotWidget::SetPlotAxisRanges( int index, double xMin, double xMax, double yMin, double yMax, double y2Min, double y2Max, bool plot )	//y2Min = defaultValue<double>(), double y2Max = defaultValue<double>(), bool plot )	//plot = true 
 {
 	for ( auto *curve : mCurves )
 		curve->SetRanges( xMin, xMax, yMin, yMax );
@@ -1061,10 +1077,10 @@ void C2DPlotWidget::SetPlotAxisRanges( int index, double xMin, double xMax, doub
 	if ( mSpectrograms.size() > 0 )
 		mSpectrograms[index]->SetRanges( xMin, xMax, yMin, yMax );
 
-	SetAxisScales( xMin, xMax, yMin, yMax, y2Min, y2Max );
+	SetAxisScales( xMin, xMax, yMin, yMax, y2Min, y2Max, plot );
 }
 
-void C2DPlotWidget::RescaleX( double x )
+void C2DPlotWidget::RescaleX( double x, bool plot )	//plot = true 
 {
 	double xMin, xMax, yMin, yMax, y2Min, y2Max;
 	AxisRanges( xMin, xMax, yMin, yMax, y2Min, y2Max );
@@ -1076,9 +1092,9 @@ void C2DPlotWidget::RescaleX( double x )
 	const double width = range / 2 * ( 1 / x );
 
 	setAxisScale( xBottom, center - width, center + width );
-	replot();
+	if ( plot ) replot();
 }
-void C2DPlotWidget::RescaleY( double y )
+void C2DPlotWidget::RescaleY( double y, bool plot )
 {
 	double xMin, xMax, yMin, yMax, y2Min, y2Max;
 	AxisRanges( xMin, xMax, yMin, yMax, y2Min, y2Max );
@@ -1090,7 +1106,7 @@ void C2DPlotWidget::RescaleY( double y )
 	const double width = range / 2 * ( 1 / y );
 
 	setAxisScale( yLeft, center - width, center + width );
-	replot();
+	if ( plot ) replot();
 }
 
 
@@ -1184,7 +1200,7 @@ QwtPlotSpectrogram* C2DPlotWidget::PushRaster( const std::string &title, const C
 		mCurrentSpectrogram->detach();
 	mCurrentSpectrogram = mSpectrograms.back();
 
-	const CZFXYValues::value_type &map = maps[ 0 ];	//the index parameter is the index of recently created spectrogram, not the maps index
+	const CZFXYValues::value_type &map = maps[ 0 ];
     mCurrentSpectrogram->setData( maps );
 	mCurrentSpectrogram->attach( this );
     //QVector<double> vmatrix;
@@ -1205,7 +1221,7 @@ QwtPlotSpectrogram* C2DPlotWidget::PushRaster( const std::string &title, const C
 
 	EnableAxisY2();
 	SetPlotAxisRanges( (int)mSpectrograms.size() - 1, map.mMinX, map.mMaxX, map.mMinY, map.mMaxY, 
-		mCurrentSpectrogram->data().range().minValue(), mCurrentSpectrogram->data().range().maxValue() );
+		mCurrentSpectrogram->data().range().minValue(), mCurrentSpectrogram->data().range().maxValue(), false );
 
 	//...color bar on the right axis
 	QwtScaleWidget *rightAxis = axisWidget( QwtPlot::yRight );
@@ -1245,8 +1261,8 @@ void C2DPlotWidget::SetCurrentRaster( int index )
 	mCurrentSpectrogram->ScaleFactors( x, y, z );
 
 	SetAxisScales( xMin, xMax, yMin, yMax, y2Min, y2Max, false );	//changes both this and plot scale factors (to 1.)
-	RescaleX( x );
-	RescaleY( y );
+	RescaleX( x, false );
+	RescaleY( y, false  );
 
 	std::string xtitle, ytitle, ztitle;
 	SpectrogramAxisTitles( index, xtitle, ytitle, ztitle );
@@ -1877,9 +1893,13 @@ class C2DMagnifier : public QwtPlotMagnifier
 	double mFactor = 1.;
 
 public:
-	explicit C2DMagnifier( QwtPlotCanvas *canvas )
+	explicit C2DMagnifier( QwtPlotCanvas *canvas, bool enable_x, bool enable_y, bool enable_y2 )
 		: base_t( canvas )
-	{}
+	{
+		setAxisEnabled( QwtPlot::xBottom, enable_x );
+		setAxisEnabled( QwtPlot::yLeft, enable_y );
+		setAxisEnabled( QwtPlot::yRight, enable_y2 );
+	}
 
 	virtual ~C2DMagnifier()
 	{}
@@ -1968,11 +1988,11 @@ void C2DPlotWidget::Home()
 }
 
 
-C2DMagnifier* C2DPlotWidget::AddMagnifier()
+C2DMagnifier* C2DPlotWidget::AddMagnifier( bool enable_x, bool enable_y, bool enable_y2 )	//enable_x = true, bool enable_y = true, bool enable_y2 = true );
 {
 	assert__( !mMagnifier );
 
-	mMagnifier = new C2DMagnifier( canvas() );
+	mMagnifier = new C2DMagnifier( canvas(), enable_x, enable_y, enable_y2 );
 	return mMagnifier;
 }
 

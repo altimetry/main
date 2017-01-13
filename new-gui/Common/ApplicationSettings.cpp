@@ -30,6 +30,17 @@
 #include "ApplicationSettings.h"
 
 
+
+static const std::string ENTRY_USER_MANUAL =		"UserManual";
+static const std::string ENTRY_USER_MANUAL_VIEWER = "UserManualViewer";
+
+//v4
+
+static const std::string ENTRY_APP_STYLE =			"application_style";
+static const std::string ENTRY_USE_DEFAULT_STYLE =	"use_default_style";
+
+
+
 ////////////////////////////////////////////////////////////////////////////////////////////
 //
 //									CApplicationSettings
@@ -39,6 +50,11 @@
 
 bool CApplicationSettings::SaveConfig()
 {
+	// Using Clear (clearing all) is too strong: there can be modules that write
+	//	to the same file using global CAppSection, for instance
+	//
+	ClearGroup( GROUP_COMMON );	
+
 	return
 	WriteVersionSignature() &&
 	WriteSection( GROUP_COMMON, 

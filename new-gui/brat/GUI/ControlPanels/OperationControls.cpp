@@ -593,6 +593,7 @@ void COperationControls::Wire()
 
 COperationControls::COperationControls( CProcessesTable *processes_table, CModel &model, CDesktopManagerBase *manager, QWidget *parent, Qt::WindowFlags f )	//parent = nullptr, Qt::WindowFlags f = 0 
 	: base_t( model, manager, parent, f )
+	, mMap( manager->Map() )
 	, mProcessesTable( processes_table )
 	, mBratFilters( mModel.BratFilters() )
 {
@@ -628,9 +629,25 @@ COperationControls::COperationControls( CProcessesTable *processes_table, CModel
 
 //virtual 
 COperationControls::~COperationControls()
+{}
+
+
+
+//virtual 
+void COperationControls::UpdatePanelSelectionChange()
 {
-	delete mProduct;
-	mProduct = nullptr;
+	const CDataset *current_dataset = nullptr;
+	double lon1 = 0., lat1 = 0., lon2 = 0., lat2 = 0.;
+	if ( SelectedPanel() )
+	{
+		current_dataset = AdvancedMode() ? mCurrentOriginalDataset : QuickDatasetSelected();
+		const COperation *operation = AdvancedMode() ? mCurrentOperation : QuickOperation();
+		if ( operation && operation->Filter() )
+			operation->Filter()->BoundingArea( lon1, lat1, lon2, lat2 );
+	}
+
+	mMap->SelectArea( lon1, lon2, lat1, lat2 );
+	emit CurrentDatasetChanged( current_dataset );
 }
 
 
@@ -682,6 +699,8 @@ void COperationControls::HandlePageChanged( int index )
 
 	mOperationStatisticsButton->setEnabled( operation && operation->HasFormula() );
 	mSplitPlotsButton->setEnabled( operation );
+	if ( SelectedPanel() )
+		UpdatePanelSelectionChange();
 }
 
 
@@ -750,9 +769,6 @@ void COperationControls::HandleWorkspaceChanged()
     mWOperation = nullptr;
     mWDisplay = nullptr;
     mWFormula = nullptr;
-
-	delete mProduct;
-	mProduct = nullptr;
 
 	// - I. Select NO operation 
 	//		- this does not necessarily clear the datasets dependent widgets, but 
@@ -851,24 +867,16 @@ void COperationControls::HandleDatasetsChanged_Advanced( const CDataset *dataset
 	{
 		const std::string dataset_name = dataset->GetName();
 		auto &operations = *mWOperation->GetOperations();
-		std::string error_msg, global_error_msg = "Problems re-assigning dataset " + dataset_name + ":\n\n";
-		bool result = true, applied = false;
+		bool applied = false;
 		for ( auto &operation_entry : operations )
 		{
 			COperation *operation = dynamic_cast<COperation*>( operation_entry.second );
 			if ( operation->OriginalDatasetName() == dataset_name )
 			{
 				applied = true;
-				if ( !operation->SetOriginalDataset( mWDataset, dataset_name, error_msg ) )
-				{
-					global_error_msg += ( "Operation '" + operation->GetName() + "': " + error_msg );
-					result = false;
-				}
+				operation->SetOriginalDataset( mWDataset, dataset_name );
 			}
 		}
-
-		if ( !result )
-			SimpleWarnBox( global_error_msg );
 
 		if ( applied )
 		{
@@ -884,24 +892,16 @@ void COperationControls::HandleDatasetsChanged_Advanced( const CDataset *dataset
 void COperationControls::HandleFilterCompositionChanged( std::string filter_name )	//triggered if filter areas change
 {
 	auto &operations = *mWOperation->GetOperations();
-	std::string error_msg, global_error_msg = "Problems re-applying filter " + filter_name + ":\n\n";
-	bool result = true, applied = false;
+	bool applied = false;
 	for ( auto &operation_entry : operations )
 	{
 		COperation *operation = dynamic_cast<COperation*>( operation_entry.second );
 		if ( operation->FilterName() == filter_name )
 		{
 			applied = true;
-			if ( !operation->ReapplyFilter() )
-			{
-				global_error_msg += ( "Operation '" + operation->GetName() + "': " + error_msg );
-				result = false;
-			}
+			operation->ReapplyFilter();
 		}
 	}
-
-	if ( !result )
-		SimpleWarnBox( global_error_msg );
 
 	if ( applied )
 	{
@@ -1017,9 +1017,8 @@ void COperationControls::HandleSelectedOperationChanged( int operation_index )	/
 // Supports null dataset and mCurrentOperation; takes care dataset selection, without 
 //	(persistent) domain assignments (assigns operation product)
 //
-// Assigns mCurrentOriginalDataset (with dataset parameter) and mProduct (only domain 
-//	change, not persistent)
-// Updates mAdvancedFieldsTree
+// Assigns mCurrentOriginalDataset (with dataset parameter) and product to
+// mAdvancedFieldsTree
 //
 // If dataset is not null
 //	- Selects it in GUI
@@ -1035,12 +1034,10 @@ bool COperationControls::UpdateDatasetSelection( const CDataset *dataset )
 	// Assign mCurrentOriginalDataset
 	//
 	mCurrentOriginalDataset = dataset;
-	delete mProduct;
-	mProduct = nullptr;
-
+	CProduct *product = nullptr;
 	bool result = true;
 
-	// Select dataset in GUI and assign mProduct
+	// Select dataset in GUI and assign product to mAdvancedFieldsTree
 	//
 	if ( dataset )
 	{
@@ -1054,24 +1051,20 @@ bool COperationControls::UpdateDatasetSelection( const CDataset *dataset )
 			mAdvancedDatasetsCombo->blockSignals( false );
 		}
 
-		// Assign mProduct and mCurrentOperation->m_product, if mCurrentOperation assigned
+		// Create CProduct for mAdvancedFieldsTree
 		//
 		std::string error_msg;
 		try
 		{
-			const CDataset *filtered_dataset = mCurrentOperation ? mCurrentOperation->OriginalDataset() : mCurrentOriginalDataset;
-			mProduct = filtered_dataset->OpenProduct();
-			//if ( mCurrentOperation )
-			//{
-			//	mCurrentOperation->SetProduct( mProduct );		assert__( filtered_dataset == const_cast<const COperation*>( mCurrentOperation )->Dataset() );
-			//}
+			const CDataset *dataset = mCurrentOperation ? mCurrentOperation->OriginalDataset() : mCurrentOriginalDataset;
+			product = dataset->OpenProduct();
 		}
 		catch ( const CException& e )
 		{
 			error_msg = std::string( "Unable to process files.\nReason:\n" ) + e.what();
-			mProduct = nullptr;
+			product = nullptr;
 		}
-		if ( mProduct == nullptr )
+		if ( product == nullptr )
 		{
 			if ( !error_msg.empty() )
 				SimpleErrorBox( error_msg );
@@ -1082,7 +1075,7 @@ bool COperationControls::UpdateDatasetSelection( const CDataset *dataset )
 		}
 	}
 
-	if ( mProduct != nullptr )
+	if ( product != nullptr )
 	{
 		//TODO: are these 2 v3 data members really necessary?
 		//m_productClass = m_product->GetProductClass().c_str();
@@ -1091,7 +1084,7 @@ bool COperationControls::UpdateDatasetSelection( const CDataset *dataset )
 
 	// Update fields tree with new product
 	//
-	mAdvancedFieldsTree->InsertProduct( mProduct );
+	mAdvancedFieldsTree->InsertProduct( product );
 
 	if ( mCurrentOperation )
 	{
@@ -1099,6 +1092,9 @@ bool COperationControls::UpdateDatasetSelection( const CDataset *dataset )
 		//SetCurrentRecord();
 		mCurrentOperation->SetRecord( mAdvancedFieldsTree->GetCurrentRecord() );
 	}
+
+	if ( SelectedPanel() && AdvancedMode() )
+		UpdatePanelSelectionChange();
 
 	return result;
 }
@@ -1172,12 +1168,7 @@ bool COperationControls::AssignDataset( const std::string &new_dataset_name, boo
 
 		if ( mCurrentOperation )
 		{
-			std::string error_msg;
-			if ( !mCurrentOperation->SetOriginalDataset( mWDataset, new_dataset_name, error_msg ) )
-			{
-				ResetFilterSelection();
-				LOG_WARN( error_msg );															   	//failure means filter failure, not dataset assignment failure
-			}
+			mCurrentOperation->SetOriginalDataset( mWDataset, new_dataset_name );
 			mCurrentOperation->SetRecord( record );
 		}
 	}
@@ -1374,12 +1365,7 @@ bool COperationControls::AssignFilter( const CBratFilters &brat_filters, COperat
 	WaitCursor wait;
 
 	auto *filter = brat_filters.Find( name );			assert__( filter );
-	std::string error_msg;
-	if ( !operation->SetFilter( filter, error_msg ) )
-	{
-		SimpleWarnBox( error_msg );
-		return false;
-	}
+	operation->SetFilter( filter );
 
 	return true;
 }
@@ -1389,14 +1375,27 @@ bool COperationControls::AssignAdvancedFilter( const std::string &name )
 {
 	if ( AssignFilter( mBratFilters, mCurrentOperation, name ) )
 	{
-		UpdateSelectedDatasetAdvancedSelection();
+		UpdateSelectedDatasetAdvancedSelection();			//TODO is this really necessary???
+
+		if ( SelectedPanel() )
+			UpdatePanelSelectionChange();
+
 		return true;
 	}
+
 	return false;
 }
 bool COperationControls::AssignQuickFilter( const std::string &name )
 {
-	return AssignFilter( mBratFilters, mQuickOperation, name );
+	if ( AssignFilter( mBratFilters, mQuickOperation, name ) )
+	{
+		if ( SelectedPanel() )
+			UpdatePanelSelectionChange();
+
+		return true;
+	}
+
+	return false;
 }
 
 
@@ -1593,11 +1592,11 @@ void COperationControls::HandleDataComputation()
 
 bool COperationControls::DatasetInterpolationRequested()
 {
-	assert__( mCurrentOperation && mProduct && mUserFormula && mUserFormula == mDataExpressionsTree->SelectedFormula() );
+	assert__( mCurrentOperation && mAdvancedFieldsTree->Product() && mUserFormula && mUserFormula == mDataExpressionsTree->SelectedFormula() );
 	assert__( mCurrentOperation->GetSelect() != mUserFormula );
 	assert__( mUserFormula->GetDataMode() == CBratProcess::pctTIME );
 
-	CProductInfo pi( mProduct );
+	CProductInfo pi( mAdvancedFieldsTree->Product() );
 	std::vector< std::string > list;
     std::for_each( pi.Fields().begin(), pi.Fields().end(), [&list]( const CField *field )
 	{
@@ -1855,7 +1854,72 @@ void COperationControls::UpdateSamplingGroup()
 }
 
 
+// If returns nullptr but error_msg is empty, user canceled
+//
+CProduct* COperationControls::ConstructTemporaryFilteredProduct( std::string &error_msg )
+{
+	assert__( mCurrentOperation );
+
+	CProduct *product_tmp = nullptr;
+
+	bool is_Ok = true;
+	const CDataset *filtered_dataset = nullptr;
+
+	auto filtering_confirmation = ConfirmFiltering( mCurrentOperation );
+	if ( !filtering_confirmation.first )
+		is_Ok = false;
+	else
+	{
+		WaitCursor wait;
+		if ( filtering_confirmation.second )
+			wait.Restore();
+
+		auto filtered_result = mCurrentOperation->FilteredDataset( error_msg, filtering_confirmation.second );
+		is_Ok = filtered_result.first;
+		//
+		// IMPORTANT: calling ConstructTemporaryFilteredProduct assumes mCurrentOperation->OriginalDataset exists, otherwise 
+		//	filtered_result.first can be true and filtered_result.second (the filtered dataset) can be null 
+		//
+		if ( is_Ok )
+			filtered_dataset = filtered_result.second;
+		else
+			ResetFilterSelection();
+	}
+
+	if ( is_Ok )
+	{
+		try
+		{
+			is_Ok = false;
+			product_tmp = CProduct::Construct( *filtered_dataset->GetProductList() );
+			is_Ok = true;
+		}
+		catch ( const CException &e )
+		{
+			error_msg = e.what();
+		}
+		catch ( const std::exception &e )
+		{
+			error_msg = e.what();
+		}
+		catch ( ... )
+		{
+			error_msg = " Unexpected error while getting product (runtime error).";
+		}
+	}
+
+	if ( !is_Ok )
+	{
+		delete product_tmp;
+		product_tmp = nullptr;
+	}
+
+	return product_tmp;
+}
+
+
 // At old Brat -> CResolutionDlg::GetMinmax(CFormula* formula).
+//
 void COperationControls::GetDataMinMax( CFormula* formula )
 {
 	if ( formula == nullptr )
@@ -1866,64 +1930,24 @@ void COperationControls::GetDataMinMax( CFormula* formula )
 	//if ( product == nullptr )
 	//    return;
 
-	WaitCursor wait;
-
 	///////////////////////////////
 	/// Get product temp object  //
 	///////////////////////////////
 	// Don't use product of operation object to read data
 	// because reading reload fields info and then we get bad pointer
 	// So, we use a CProduct temporary object (Old Brat comment)
-	CProduct* product_tmp = nullptr;
 
 	std::string error_msg;
-	bool is_Ok = true;
-	const CDataset *filtered_dataset = nullptr;
-
-	auto filtering_confirmation = ConfirmFiltering( mCurrentOperation );
-	if ( !filtering_confirmation.first )
-		is_Ok = false;
-	else
+	CProduct *product_tmp = ConstructTemporaryFilteredProduct( error_msg );
+	if ( !product_tmp )
 	{
-		auto filtered_result = mCurrentOperation->FilteredDataset( error_msg, filtering_confirmation.second );
-		is_Ok = filtered_result.first;
-		//
-		// IMPORTANT: calling GetDataMinMax assumes mCurrentOperation->OriginalDataset exists, otherwise 
-		//	filtered_result.first can be true and filtered_result.second (the filtered dataset) can be null 
-		//
-		if ( is_Ok )
-			filtered_dataset = filtered_result.second;
-	}
-
-	if ( is_Ok )
-	{
-		try
-		{
-			product_tmp = CProduct::Construct( *filtered_dataset->GetProductList() );
-		}
-		catch ( const CException &e )
-		{
-			error_msg = e.what();
-			is_Ok    = false;
-		}
-		catch ( const std::exception &e )
-		{
-			error_msg = e.what();
-			is_Ok    = false;
-		}
-		catch ( ... )
-		{
-			error_msg = " Unexpected error while getting product (runtime error).";
-			is_Ok    = false;
-		}
-	}
-
-	if ( !is_Ok )
-	{
-		wait.Restore(); // restore wait cursor
-		SimpleWarnBox( "Unable to get min/max values - Reason:\n" + error_msg );
+		if ( !error_msg.empty() )
+			SimpleWarnBox( "Unable to get min/max values - Reason:\n" + error_msg );
 		return;
 	}
+
+	WaitCursor wait;
+	bool is_Ok = true;
 
 	///////////////////////////////
 	/// Get product Min and Max  //
@@ -2058,11 +2082,8 @@ void COperationControls::GetDataMinMax( CFormula* formula )
 		is_Ok    = false;
 	}
 
-	if ( product_tmp != nullptr )
-	{
-		delete product_tmp;
-		product_tmp = nullptr;
-	}
+
+	delete product_tmp;
 
 	if ( !is_Ok )
 	{
@@ -2073,6 +2094,7 @@ void COperationControls::GetDataMinMax( CFormula* formula )
 	///////////////////////////////////////////////////////
 	/// Verify values, compute interval, update mformula //
 	///////////////////////////////////////////////////////
+
 	ValidateData();
 }
 
@@ -2666,6 +2688,7 @@ void COperationControls::HandleNewOperation()
 		//m_currentOperationIndex = GetOpnames()->GetSelection();
 
 		//v3 continues in spite of warning
+		return;
 	}
 	else
 	{
@@ -2706,12 +2729,10 @@ void COperationControls::HandleNewOperation()
 	//auto *formula = mDataExpressionsTree->SelectedFormula();
 	//mExpressionTextWidget->setText( formula ? formula->GetDescription().c_str() : "" );	see above
 
-	// 5. Assigns selected dataset and mProduct
+	// 5. Assigns selected dataset
 
 	//SetCurrentDataset();		//sets the (real) operation dataset and formula
-	std::string error_msg;
-	if ( !mCurrentOperation->SetOriginalDataset( mWDataset, dataset_name, error_msg ) )
-		SimpleWarnBox( error_msg );
+	mCurrentOperation->SetOriginalDataset( mWDataset, dataset_name );
 	//mCurrentOperation->SetProduct( mProduct );
 
 	// 6. Add new operation to GUI lits and select it (possibly triggers all handling operation change sequence)
@@ -2762,18 +2783,16 @@ void COperationControls::HandleDeleteOperation()
     if ( IsFile(mCurrentOperation->GetOutputPath() ) )         //COperationPanel::RemoveOutput()
     {
 
-        if ( !SimpleQuestion( "Do you want to delete output file\n'"
+        if ( SimpleQuestion( "Do you want to delete output file\n'"
                              + mCurrentOperation->GetOutputPath()
                              + "'\nlinked to this operation ?" ) )
         {
-            return;
-        }
-
-        if ( !mCurrentOperation->RemoveOutput() )
-        {
-            SimpleWarnBox( "Unable to delete file '" + mCurrentOperation->GetOutputPath() + "'.\nPlease check if it is being used." );
-            return;
-        }
+			if ( !mCurrentOperation->RemoveOutput() )
+			{
+				SimpleWarnBox( "Unable to delete file '" + mCurrentOperation->GetOutputPath() + "'.\nPlease check if it is being used." );
+				return;
+			}
+		}
     }
 
 
@@ -3055,7 +3074,34 @@ void COperationControls::HandleExportOperation()
     }
 
 
-    CExportDialog dlg( mModel.BratPaths().mInternalDataDir + "/BratLogo.png",  mWOperation, mCurrentOperation, &mMapFormulaString, this );
+	//get min/max before export dialog
+
+	std::string error_msg;
+	CProduct *product_tmp = ConstructTemporaryFilteredProduct( error_msg );
+	if ( !product_tmp )
+	{
+		if (!error_msg.empty() )
+			SimpleWarnBox( "Unable to get min/max values - Reason:\n" + error_msg );
+		return;
+	}
+
+	CFormula *formula = mCurrentOperation->GetFormula( CMapTypeField::eTypeOpAsField );
+	CExpression expr;
+	if ( !CFormula::SetExpression( formula->GetDescription( true, &mMapFormulaString, product_tmp->GetAliasesAsString() ), expr, error_msg ) )
+	{
+		delete product_tmp;
+		SimpleWarnBox( "Unable to calculate min/max. Expression can't be set:\n'" + error_msg + "'" );
+		return;		//v3 didn't return
+	}
+
+	double color_range_min = defaultValue<double>(), color_range_max = defaultValue<double>();
+	product_tmp->GetValueMinMax( expr, mCurrentOperation->GetRecord(), color_range_min, color_range_max, *formula->GetUnit() );
+	delete product_tmp;
+
+
+	//export dialog
+
+	CExportDialog dlg( mModel.BratPaths().mInternalDataDir + "/BratLogo.png",  mWOperation, mCurrentOperation, color_range_min, color_range_max, this );
     if ( dlg.exec() == QDialog::Rejected )
         return;
 
@@ -3443,22 +3489,30 @@ bool COperationControls::Execute( EExecutionType type, COperation *operation, bo
 
 	//BuildCmdFile(); == following 
 	CProgressInterface *progress = nullptr;
-	if ( type == EExecutionType::eOperation )
+	if ( type == EExecutionType::eOperation || type == EExecutionType::eStatistics )
 	{
 		auto filtering_confirmation = ConfirmFiltering( operation );
 		if ( !filtering_confirmation.first )
 			return false;
 		progress = filtering_confirmation.second;
 	}
+
+	WaitCursor wait;
+	if ( progress )
+		wait.Restore();
+
 	std::string error_msg;
 	if ( !operation->BuildCmdFile( type, mWFormula, mWOperation, error_msg, progress ) )	//v3 didn't seem to care if this fails
 	{
-		assert__( !error_msg.empty() );
+		assert__( progress->Cancelled() || !error_msg.empty() );
 
-		SimpleWarnBox( error_msg );
+		ResetFilterSelection();
+		if ( !error_msg.empty() )
+			SimpleWarnBox( error_msg );
 		return false;
 	}
 
+	wait.Restore();
 
 	//Confirm execution
 
@@ -3512,8 +3566,6 @@ CBratTask* COperationControls::Schedule( EExecutionType type, const QDateTime &a
 		return nullptr;
 	}
 
-	WaitCursor wait;
-
 	//BuildCmdFile(); == following 
 	CProgressInterface *progress = nullptr;
 	if ( type == EExecutionType::eOperation )
@@ -3523,15 +3575,25 @@ CBratTask* COperationControls::Schedule( EExecutionType type, const QDateTime &a
 			return nullptr;
 		progress = filtering_confirmation.second;
 	}
+
+	WaitCursor wait;
+	if ( progress )
+		wait.Restore();
+
 	std::string error_msg;
 	if ( !exporting_netcdf && !mCurrentOperation->BuildCmdFile( type, mWFormula, mWOperation, error_msg, progress ) )	//v3 didn't seem to care if this fails
 	{
-		assert__( !error_msg.empty() );
+		assert__( progress->Cancelled() || !error_msg.empty() );
 
 		wait.Restore();
-		SimpleWarnBox( error_msg );
+		ResetFilterSelection();
+		if ( !error_msg.empty() )
+			SimpleWarnBox( error_msg );
         return nullptr;
 	}
+
+	if ( progress )
+		wait.Set();
 
 	std::string task_label = mCurrentOperation->GetTaskName( type, true );		assert__( !task_label.empty() );
 
@@ -3574,6 +3636,7 @@ CBratTask* COperationControls::Schedule( EExecutionType type, const QDateTime &a
 	}
 	catch ( const CException &e )
 	{
+		wait.Restore();
 		SimpleErrorBox( e.Message() );
 		return nullptr;
 	}

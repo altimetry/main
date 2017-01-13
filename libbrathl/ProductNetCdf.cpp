@@ -482,29 +482,6 @@ namespace brathl
 	{
 		const bool with_log = !log_file.empty();
 
-		auto log = [&with_log, this]( const char *s, bool crlf )
-		{
-			if ( with_log )
-			{
-				Log( s, crlf );
-			};
-		};
-
-
-		auto progress = [pi]( int_t i )
-		{
-			if ( pi )
-			{
-				if ( pi->Cancelled() )
-					return false;
-				pi->SetCurrentValue( i );
-			}
-			return true;
-		};
-
-		//function body
-
-
 		if ( with_log )
 		{
 			CreateLogFile( log_file );
@@ -532,8 +509,12 @@ namespace brathl
 			bool fileOk = true;
 
 			m_indexProcessedFile++;
-			if ( !progress( m_indexProcessedFile ) )
-				break;
+            if ( pi )
+            {
+                if ( pi->Cancelled() )
+                    break;
+                pi->SetCurrentValue( m_indexProcessedFile );
+            }
 
 			if ( with_log )
 				CTrace::Tracer( 1, "Process file %ld of %ld", (long)m_indexProcessedFile, (long)m_fileList.size() );
@@ -552,13 +533,17 @@ namespace brathl
 			}
 			catch ( CException e )
 			{
-				log( "Error while opening file:", false );
-				log( e.what(), true );
+                if ( with_log )
+                {
+                    Log( "Error while opening file:", false );
+                    Log( e.what(), true );
+                }
 				continue;
 			}
 			catch ( ... )
 			{
-				log( "Unknown error while opening file", true );
+                if ( with_log )
+                    Log( "Unknown error while opening file", true );
 				continue;
 			}
 
@@ -614,14 +599,18 @@ namespace brathl
 				}
 				catch ( CException e )
 				{
-					log( "Error while processing file:", false );
-					log( e.what(), true );
+                    if ( with_log )
+                    {
+                        Log( "Error while processing file:", false );
+                        Log( e.what(), true );
+                    }
 					fileOk = false;
 					break;
 				}
 				catch ( ... )
 				{
-					log( "Unknown error while processing file", true );
+                    if ( with_log )
+                        Log( "Unknown error while processing file", true );
 					fileOk = false;
 					break;
 				}

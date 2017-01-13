@@ -411,7 +411,7 @@ void CColorMapWidget::SetShowSolidColor( bool checked )
 
 void CColorMapWidget::SetLUT( CBratLookupTable *lut, double data_min, double data_max )
 {
-	assert__( data_min < data_max );
+	assert__( data_min <= data_max );
 
 	mLut = lut;
 	mColorTables->blockSignals( true );		//we don't want client code to think that the user changed the color map

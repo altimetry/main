@@ -37,6 +37,9 @@
 
 #include "DataModels/PlotData/MapColor.h"
 
+#include "PlotsGraphicParameters.h"
+
+
 class QwtPlotCurve;
 class QwtData;
 class QwtPlotZoomer;
@@ -54,6 +57,7 @@ template< class PARAMS >
 class CGenericZFXYValues;
 struct CZFXYPlotParameters;
 using CZFXYValues = CGenericZFXYValues< CZFXYPlotParameters >;
+
 
 
 
@@ -272,7 +276,7 @@ protected:
 //		2D Plot Widget
 //////////////////////////////////////////////////////////////////
 
-class C2DPlotWidget : public QwtPlot
+class C2DPlotWidget : public QwtPlot, public CPlotsGraphicParameters
 {
 #if defined (__APPLE__)
 #pragma clang diagnostic push
@@ -288,13 +292,10 @@ class C2DPlotWidget : public QwtPlot
 	// types
 
 	using base_t = QwtPlot;
+	using graphic_parameters_base_t = CPlotsGraphicParameters;
 
 
 	//static members
-
-	static const std::string smFontName;
-	static const int smAxisFontSize = 8;
-	static const int smTitleFontSize = 10;
 
 public:
 	static const std::string smHistogramXtitle;
@@ -338,8 +339,6 @@ private:
 	QTimer mTimer;
 
 
-	QSize mSizeHint = QSize( 72 * fontMetrics().width( 'x' ), 25 * fontMetrics().lineSpacing() );
-
 
 	/////////////////////////////
 	// construction / destruction
@@ -347,7 +346,7 @@ private:
 
 public:
 
-    C2DPlotWidget( QWidget *parent = nullptr );
+    C2DPlotWidget( const CPlotsGraphicParameters &plots_graphic_parameters, QWidget *parent = nullptr );
 
 	virtual ~C2DPlotWidget();
 
@@ -478,9 +477,9 @@ protected:
 	void SetAxisScales( double xMin, double xMax, double yMin, double yMax, double y2Min = defaultValue<double>(), double y2Max = defaultValue<double>(), bool plot = true );
 
 public:
-	void SetPlotAxisRanges( int index, double xMin, double xMax, double yMin, double yMax, double y2Min = defaultValue<double>(), double y2Max = defaultValue<double>() );
-	void RescaleX( double x );
-	void RescaleY( double y );
+	void SetPlotAxisRanges( int index, double xMin, double xMax, double yMin, double yMax, double y2Min = defaultValue<double>(), double y2Max = defaultValue<double>(), bool plot = true );
+	void RescaleX( double x, bool plot = true );
+	void RescaleY( double y, bool plot = true );
 
 
 	///////////
@@ -601,7 +600,7 @@ public:
 
 	QwtPlotZoomer* AddZoomer();
 
-	C2DMagnifier* AddMagnifier();
+	C2DMagnifier* AddMagnifier( bool enable_x = true, bool enable_y = true, bool enable_y2 = true );
 
 	QwtPlotPanner* AddPanner();
 

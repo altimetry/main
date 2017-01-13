@@ -20,6 +20,7 @@
 #include "common/QtUtilsIO.h"
 
 #include "DataModels/Model.h"
+#include "DataModels/Workspaces/Display.h"
 #include "DataModels/DisplayFilesProcessor.h"
 #include "DataModels/PlotData/MapProjection.h"
 #include "DataModels/PlotData/Plots.h"
@@ -27,10 +28,8 @@
 
 #include "GUI/ActionsTable.h"
 #include "GUI/ControlPanels/ViewControlPanels/ViewControlPanels.h"
-
 #include "GUI/DisplayWidgets/GlobeWidget.h"				//these 3 includes must be done in this  order to avoid macro definition collisions
 #include "GUI/DisplayWidgets/MapWidget.h"
-#include "DataModels/Workspaces/Display.h"
 
 #include "BratLogger.h"
 #include "BratSettings.h"
@@ -348,6 +347,15 @@ void CMapEditor::KillGlobe()
 		qApp->processEvents();///////////////////////////////////////////////////// ADDED FOR TESTING
 		mDisplaying3D = false;
 	}
+}
+
+
+//virtual 
+QSize CMapEditor::sizeHint() const
+{
+	static const double hchild_ratio = mModel->Settings().HchildRatio();
+
+	return mModel ? QSize( GlobeWidgetWidth( hchild_ratio ), GlobeWidgetHeight( hchild_ratio ) ) : base_t::sizeHint();
 }
 
 

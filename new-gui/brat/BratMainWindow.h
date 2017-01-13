@@ -34,7 +34,7 @@ class CTextWidget;
 class CRecentFilesProcessor;
 
 class CControlPanel;
-class CDatasetBrowserControls;
+class CDatasetsBrowserControls;
 class CRadsBrowserControls;
 class CBratFilterControls;
 class COperationControls;
@@ -211,7 +211,7 @@ public:
 	template< CBratMainWindow::ETabName INDEX >
 	struct ControlsPanelType
 	{
-		using panels_factory_t = std::tuple< CDatasetBrowserControls, CRadsBrowserControls, CBratFilterControls, COperationControls >;
+		using panels_factory_t = std::tuple< CDatasetsBrowserControls, CRadsBrowserControls, CBratFilterControls, COperationControls >;
 
 		using type = typename std::tuple_element< INDEX, panels_factory_t >::type;
 	};

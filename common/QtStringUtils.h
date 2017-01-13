@@ -35,20 +35,20 @@ inline std::string q2a( const QString qs )
 }
 
 template< typename STRING >
-STRING q2t( const QString &str )
+inline STRING q2t( const QString &qs )
 {
-	return str;
+	return qs;
 }
 
 template<>
-inline std::string q2t< std::string >( const QString &str )
+inline std::string q2t< std::string >( const QString &qs )
 {
-    return q2a( str );
+    return q2a( qs );
 }
 template<>
-inline std::wstring q2t< std::wstring >( const QString &str )
+inline std::wstring q2t< std::wstring >( const QString &qs )
 {
-    return q2w( str );
+    return q2w( qs );
 }
 
 
@@ -56,7 +56,26 @@ inline std::wstring q2t< std::wstring >( const QString &str )
 /// X2q conversions
 ///////////////////////////////////////////////
 
-inline QString t2q( const std::wstring ws )
+template< typename STRING = QString >
+inline STRING t2q( const std::string &str )
+{
+	return str;
+}
+
+template< typename STRING = QString >
+inline STRING t2q( const std::wstring &str )
+{
+	return str;
+}
+
+template< typename STRING = QString >
+inline STRING t2q( const QString &qs )
+{
+	return qs;
+}
+
+template<>
+inline QString t2q< QString >( const std::wstring &ws )
 {
     //return QString::fromWCharArray( ws.c_str(), (int)ws.length() );
 #ifdef _MSC_VER
@@ -66,20 +85,40 @@ inline QString t2q( const std::wstring ws )
 #endif
 }
 
-inline QString t2q( const std::string s )
+template<>
+inline QString t2q< QString >( const std::string &s )
 {
     return QString::fromStdString( s );
 }
-//
-// for use in generics
-//
-inline const QString& t2q( const QString &s )
+
+inline QString t2q( const char *s )
 {
 	return s;
 }
-inline const QString t2q( const char *s )
+
+
+
+
+///////////////////////////////////////////////
+/// X2X conversions
+///////////////////////////////////////////////
+
+template< typename STRING >
+inline STRING x2x( const QString &s )
 {
-	return s;
+	return q2t<STRING>( s );
+}
+
+template< typename STRING >
+inline STRING x2x( const std::string &s )
+{
+	return t2q<STRING>( s );
+}
+
+template< typename STRING >
+inline STRING x2x( const std::wstring &s )
+{
+	return t2q<STRING>( s );
 }
 
 

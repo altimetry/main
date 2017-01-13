@@ -141,8 +141,26 @@ bool CBratPath::operator == ( const CBratPath &o ) const
 
 std::string CBratPath::ToString() const
 {
-	return mName + " == " + mPath + ( Valid() ? "" : " [INVALID]" );
+	return mName + " == " + mPath + ( Validate() ? "" : " [INVALID]" );
 }
+
+bool CBratPath::Valid( std::string &error_msg ) const
+{
+	if ( !Validate() )
+	{
+		const bool is_file = dynamic_cast< const CFilePath* >( this );
+		error_msg +=
+			( is_file ? std::string( "\nFile: " ) : std::string( "\nDirectory: " ) )
+			+ mName + " "
+			+ mPath
+			+ std::string( " is not valid." );
+
+		return false;
+	}
+	return true;
+}
+
+
 
 
 
@@ -151,12 +169,12 @@ std::string CFolderPath::operator + ( const std::string &str ) const
 	return mPath + str;
 }
 
-bool CFolderPath::Valid() const
+bool CFolderPath::Validate() const
 {
 	return !mMustExist || IsDir( mPath );
 }
 
-bool CFilePath::Valid() const
+bool CFilePath::Validate() const
 {
 	return !mMustExist || IsFile( mPath );
 }
@@ -185,25 +203,10 @@ std::string CApplicationStaticPaths::ComputeInternalDataDirectory( const std::st
 //static
 bool CApplicationStaticPaths::ValidPath( std::string &error_msg, const std::string &path, bool is_file, const std::string path_title )
 {
-	if ( is_file ? !IsFile( path ) : !IsDir( path ) )
-	{
-		error_msg = 
-			( is_file ? std::string( "File: ") : std::string("Directory: ") ) 
-			+ path_title + " " 
-			+ path 
-			+ std::string(" is not valid.");
-
-		return false;
-	}
-	return true;
+	return is_file ? CFilePath( path, true, path_title.c_str() ).Valid( error_msg ) : CFolderPath( path, true, path_title.c_str() ).Valid( error_msg );
 }
 
 
-//static 
-bool CApplicationStaticPaths::ValidPath( std::string &error_msg, const CBratPath &path )
-{
-	return ValidPath( error_msg, path, dynamic_cast< const CFilePath* >( &path ), path.mName );
-}
 
 
 
@@ -222,8 +225,8 @@ CApplicationStaticPaths::CApplicationStaticPaths( const std::string &exec_path, 
     , mExecutableDir		( GetDirectoryFromPath( mExecutablePath.mPath ), true, "Executable Folder" )			// (*)
     , mDeploymentRootDir	( GetDirectoryFromPath( mExecutableDir.mPath ), true, "Deployment Root Folder" )
     , mQtPluginsDir			( mExecutableDir + "/" + QT_PLUGINS_SUBDIR, true, "Qt Plug-ins Folder" )
-	, mPythonDir			( mExecutableDir + "/Python", true, "Python Folder" )
-	, mUserManualPath		( mDeploymentRootDir + "/doc/brat_user_manual_" + BRAT_VERSION + ".pdf", true, "User Manual" )
+	, mPythonDir			( mExecutableDir + "/Python", mApplicationName == BRAT_APPLICATION_NAME, "Python Folder" )
+    , mUserManualPath		( mDeploymentRootDir + "/doc/brat_user_manual_" + BRAT_VERSION_STRING + ".pdf", true, "User Manual" )
 
     , mInternalDataDir		( ComputeInternalDataDirectory( mExecutableDir ), true, "Private Data Folder" )
 
@@ -302,8 +305,8 @@ std::string CApplicationStaticPaths::ToString() const
 
 	s += ( "\n" + mRsyncExecutablePath.ToString() );
 
+    s += ( "\n" + mRadsConfigurationFilePath.ToString() );
 	s += ( "\n" + mRadsServicePanicLogFilePath.ToString() );
-	s += ( "\n" + mRadsConfigurationFilePath.ToString() );
 
     return s;
 }
@@ -313,23 +316,25 @@ std::string CApplicationStaticPaths::ToString() const
 //
 bool CApplicationStaticPaths::ValidatePaths() const
 {
+	mErrorMsg.clear();
+
 	mValid =
-			mExecutablePath.Valid()
-		&&	mExecutableDir.Valid()
-		&&	mDeploymentRootDir.Valid()
+			mExecutablePath.Valid( mErrorMsg )
+		&&	mExecutableDir.Valid( mErrorMsg )
+		&&	mDeploymentRootDir.Valid( mErrorMsg )
 
-		&&	mQtPluginsDir.Valid()
+		&&	mQtPluginsDir.Valid( mErrorMsg )
 
-		&&	mPythonDir.Valid()
+		&&	mPythonDir.Valid( mErrorMsg )
 
-		&&	mUserManualPath.Valid()
+		&&	mUserManualPath.Valid( mErrorMsg )
 
-		&&	mInternalDataDir.Valid()
+		&&	mInternalDataDir.Valid( mErrorMsg )
 
-		&&	mRsyncExecutablePath.Valid()
-		&&	mRadsServicePanicLogFilePath.Valid()
-		&&	mRadsConfigurationFilePath.Valid()
-
+		&&	mRsyncExecutablePath.Valid( mErrorMsg )
+		&&	mRadsServicePanicLogFilePath.Valid( mErrorMsg )
+		&&	mRadsConfigurationFilePath.Valid( mErrorMsg )
+            
 		//	ValidPath( mErrorMsg, mQtPluginsDir, false, "Qt Plugins directory" ) 
 		//&&	ValidPath( mErrorMsg, mInternalDataDir, false, "BRAT resources directory" ) 
 		//&&	ValidPath( mErrorMsg, mRsyncExecutablePath, true, "rsync executable path" )

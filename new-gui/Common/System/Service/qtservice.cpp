@@ -145,6 +145,23 @@ void qtServiceLogDebug(QtMsgType type, const char* msg)
 
 #endif
 
+
+
+//static 
+const QString QtServiceController::smOrganizationKey = "QtSoftware";
+//static 
+const QString QtServiceController::smServicesGroupKey = "services";
+//static 
+const QString QtServiceController::smPathKey = "path";
+//static 
+const QString QtServiceController::smDescriptionKey = "description";
+//static 
+const QString QtServiceController::smAutomaticStartupKey = "automaticStartup";
+//static
+const QString QtServiceController::smAccountKey = "account";
+
+
+
 /*!
     \class QtServiceController
 
@@ -273,6 +290,8 @@ QString QtServiceController::serviceName() const
     Q_D(const QtServiceController);
     return d->serviceName;
 }
+
+
 /*!
     \fn QString QtServiceController::serviceDescription() const
 
@@ -633,7 +652,7 @@ int QtServiceBasePrivate::run(bool asService, const QStringList &argList)
 
     \sa exec(), start(), QtServiceController::install()
 */
-QtServiceBase::QtServiceBase( int argc, char **argv, const QString &name )
+QtServiceBase::QtServiceBase(int argc, char **argv, const QString &name )
 {
 #if defined(QTSERVICE_DEBUG)
 #  if QT_VERSION >= 0x050000
@@ -657,7 +676,7 @@ QtServiceBase::QtServiceBase( int argc, char **argv, const QString &name )
 		nm.replace( ( QChar )'\\', ( QChar )'\0' );
 	}
 
-	d_ptr = new QtServiceBasePrivate( nm );
+    d_ptr = new QtServiceBasePrivate( nm );
 	d_ptr->q_ptr = this;
 
 	d_ptr->serviceFlags = 0;
@@ -730,6 +749,11 @@ QtServiceController::StartupType QtServiceBase::startupType() const
 void QtServiceBase::setStartupType(QtServiceController::StartupType type)
 {
     d_ptr->startupType = type;
+}
+
+bool QtServiceBase::AutoStartEnabled() const 
+{ 
+    return d_ptr->controller.AutoStartEnabled(); 
 }
 
 /*!
@@ -854,8 +878,9 @@ int QtServiceBase::exec()
         return ec;
     }
 #endif
-    if (!d_ptr->start()) {
-        fprintf(stderr, "The service %s could not start\n", serviceName().toLatin1().constData());
+    if (!d_ptr->start())
+    {
+        fprintf(stderr, "The service %s is either already running or it could not be started\n", serviceName().toLatin1().constData());
         return -4;
     }
     return 0;

@@ -24,6 +24,7 @@
 #include "libbrathl/Unit.h"
 #include "libbrathl/Date.h"
 
+#include "ProductInfo.h"
 
 namespace brathl
 { 

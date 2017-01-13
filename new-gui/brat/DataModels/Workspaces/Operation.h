@@ -277,14 +277,14 @@ protected:
 #endif
 
 	bool CreateFilteredDataset( std::string &error_msg, CProgressInterface *progress );
-	bool RemoveFilteredDataset();
+	void RemoveFilteredDataset();
 	void CopyFilteredDatasetAndProduct( const COperation &o );
 	CDataset* NewFilteredDataset() const;
 
 public:
 	const CDataset* OriginalDataset() const { return mOriginalDataset; }
 	std::string OriginalDatasetName() const;
-	bool SetOriginalDataset( const CWorkspaceDataset *wks, const std::string dataset_name, std::string &error_msg );
+    void SetOriginalDataset( const CWorkspaceDataset *wks, const std::string dataset_name );
 	void RemoveOriginalDataset();
 
 	std::pair< bool, const CDataset* > FilteredDataset( std::string &error_msg, CProgressInterface *progress );
@@ -292,9 +292,9 @@ public:
 
 	const CBratFilter* Filter() const { return mFilter; }
 	std::string FilterName() const;
-	bool SetFilter( const CBratFilter *filter, std::string &error_msg );
-	void RemoveFilter();	//always succeeds
-	bool ReapplyFilter();	//obsolete from v4.0: simply calls RemoveFilteredDataset
+    void SetFilter( const CBratFilter *filter );
+	void RemoveFilter();
+	void ReapplyFilter();	//obsolete from v4.0: simply calls RemoveFilteredDataset
 
 	//void SetProduct( CProduct* value ) { m_product = value; }
 
@@ -421,7 +421,7 @@ public:
 			case eExportGeoTIFF:
 				return BuildExportGeoTIFFCmdFile( wks, wkso, error_msg );
 			case eStatistics:
-				return BuildShowStatsCmdFile( wks, wkso, error_msg );
+				return BuildShowStatsCmdFile( wks, wkso, error_msg, progress );
 			default:
 				assert__( false );
 		}
@@ -431,7 +431,7 @@ protected:
 	bool BuildCmdFile( CWorkspaceFormula *wks, CWorkspaceOperation *wkso, std::string &error_msg, CProgressInterface *progress );
 	bool BuildExportAsciiCmdFile( CWorkspaceFormula *wks, CWorkspaceOperation *wkso, std::string &error_msg );
 	bool BuildExportGeoTIFFCmdFile( CWorkspaceFormula *wks, CWorkspaceOperation *wkso, std::string &error_msg );
-	bool BuildShowStatsCmdFile( CWorkspaceFormula *wks, CWorkspaceOperation *wkso, std::string &error_msg );
+	bool BuildShowStatsCmdFile( CWorkspaceFormula *wks, CWorkspaceOperation *wkso, std::string &error_msg, CProgressInterface *progress );
 	//
 	///////////////////////////////////////////////////////////////////////////////////////
 
