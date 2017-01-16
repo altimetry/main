@@ -236,6 +236,12 @@ namespace processes
 
 		CIntArray m_countOffsets;
 		CIntArray m_meanOffsets;
+        CIntArray m_weightOffsets;
+
+        double m_tParam;
+        double m_dParam;
+        double m_tFactor;
+        double m_dFactor;
 
 		uint32_t m_nbDataAllocated;
 
@@ -556,6 +562,7 @@ namespace processes
 			double value,
 			double*	countValue,
 			double*	meanValue,
+            double* weightValue,
 			EMergeDataMode	mode );
 
 
@@ -563,6 +570,7 @@ namespace processes
 		( double& data,
 			double*	countValue,
 			double*	meanValue,
+            double* weightValue,
 			EMergeDataMode	mode );
 
 
@@ -656,7 +664,8 @@ namespace processes
 			uint32_t nbValues,
 			uint32_t indexExpr,
 			double* countValues,
-			double* meanValues );
+            double* meanValues,
+            double* weightValues);
 
 		//void MergeDataValue
 		//( double& data,
@@ -671,7 +680,8 @@ namespace processes
 			uint32_t indexExpr,
 			uint32_t nbValues,
 			double* countValues,
-			double* meanValues );
+            double* meanValues,
+            double* weightValues);
 
 	};
 

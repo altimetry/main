@@ -251,6 +251,7 @@ void CBratProcessYFX::GetParameters()
     // Computes count and means offsets for mean and sdtDev calculation (-1 if no offset ==> no mean and no stddev)
     m_countOffsets[index] = -1;
     m_meanOffsets[index] = -1;
+    m_weightOffsets[index] = -1;
     switch (nbDataSlices)
     {
       //-------
@@ -263,6 +264,13 @@ void CBratProcessYFX::GetParameters()
       //-------
         m_countOffsets[index] = nbFields + accruedDataSlices;
         m_meanOffsets[index] = nbFields + accruedDataSlices + 1;
+        break;
+      //-------
+      case 4:
+      //-------
+        m_countOffsets[index] = nbFields + accruedDataSlices;
+        m_meanOffsets[index] = nbFields + accruedDataSlices + 1;
+        m_weightOffsets[index] = nbFields + accruedDataSlices + 2;
         break;
       //-------
       default:
@@ -547,6 +555,7 @@ void CBratProcessYFX::RegisterData()
         m_matrixDims[indexExpr] = nbValues;
         int32_t countOffset = m_countOffsets.at(indexExpr);
         int32_t meanOffset = m_meanOffsets.at(indexExpr);
+        int32_t weightOffset = m_weightOffsets.at(indexExpr);
         
         if (countOffset > 0)
         {
@@ -556,6 +565,10 @@ void CBratProcessYFX::RegisterData()
         if (meanOffset > 0)
         {
           m_matrixDims[meanOffset] = nbValues;
+        }
+        if (weightOffset > 0)
+        {
+          m_matrixDims[weightOffset] = nbValues;
         }
       }
 
@@ -627,6 +640,7 @@ void CBratProcessYFX::RegisterData()
 
       int32_t countOffset = m_countOffsets.at(indexExpr);
       int32_t meanOffset = m_meanOffsets.at(indexExpr);
+      int32_t weightOffset = m_weightOffsets.at(indexExpr);
 
       uint32_t cols = m_measures.GetMatrixColDim(indexExpr);
       
@@ -646,6 +660,7 @@ void CBratProcessYFX::RegisterData()
       double* countValues = NULL;
       //CDoubleArrayOb* meanValues = NULL;
       double* meanValues = NULL;
+      double* weightValues = NULL;
 
       if (indexExpr >= m_measures.GetMatrixNumberOfRows())
       {
@@ -728,6 +743,32 @@ void CBratProcessYFX::RegisterData()
           }
         }
       }
+      if (weightOffset > 0)
+      {
+          weightValues = fieldsArray[weightOffset];
+          if (weightValues == NULL)
+          {
+              throw CException(CTools::Format("ERROR: CBratProcessYFX::RegisterData() - weight values array not found\n. Expression index is %d. Offset is %d\n"
+                                              "Expression is: '%s'",
+                                              indexExpr,
+                                              weightOffset,
+                                              m_fields.at(indexExpr).AsString().c_str()),
+                                     BRATHL_LOGIC_ERROR);
+          }
+          else
+          {
+              uint32_t colsWeight = m_measures.GetMatrixColDim(weightOffset);
+              if (cols != colsWeight)
+              {
+                throw CException(CTools::Format("ERROR: CBratProcessYFX::RegisterData() - data values array size (%d) is not equal to weight values array size (%d)\n"
+                                                "Expression is: '%s'",
+                                                cols,
+                                                colsWeight,
+                                                m_fields.at(indexExpr).AsString().c_str()),
+                                       BRATHL_LOGIC_ERROR);
+              }
+          }
+      }
 
 
       
@@ -749,7 +790,7 @@ void CBratProcessYFX::RegisterData()
       }
 
 
-      MergeDataValue(dataValues, exprValue.GetValues(), nbValues, indexExpr, countValues, meanValues);
+      MergeDataValue(dataValues, exprValue.GetValues(), nbValues, indexExpr, countValues, meanValues, weightValues);
 
     }
 
@@ -894,6 +935,7 @@ int32_t CBratProcessYFX::WriteData()
    
     int32_t countOffset = m_countOffsets.at(indexExpr);
     int32_t meanOffset = m_meanOffsets.at(indexExpr);
+    int32_t weightOffset = m_weightOffsets.at(indexExpr);
     
     uint32_t cols = m_measures.GetMatrixColDim(indexExpr);
 
@@ -940,6 +982,7 @@ int32_t CBratProcessYFX::WriteData()
       double* countValues = NULL;
       //CDoubleArrayOb* meanValues = NULL;
       double* meanValues = NULL;
+      double* weightValues = NULL;
 
       if (countOffset > 0)
       {
@@ -1000,12 +1043,42 @@ int32_t CBratProcessYFX::WriteData()
           }
         }
       }
+      if (weightOffset > 0)
+      {
+        //meanValues = base_t::GetDoubleArrayOb(fieldsArray->at(meanOffset), false);
+        weightValues = fieldsArray[meanOffset];
+        if (weightValues == NULL)
+        {
+          throw CException(CTools::Format("ERROR: CBratProcessYFX::WriteData() - weight values array not found\n. X value is %.15g. Expression index is %d. Offset is %d\n"
+                                          "Expression is: '%s'",
+                                          itX->first,
+                                          indexExpr,
+                                          weightOffset,
+                                          m_fields.at(indexExpr).AsString().c_str()),
+                                 BRATHL_LOGIC_ERROR);
+        }
+        else   // (meanValues != NULL)
+        {
+          uint32_t colsWeight = m_measures.GetMatrixColDim(weightOffset);
+          if (cols != colsWeight)
+          {
+            throw CException(CTools::Format("ERROR: CBratProcessYFX::WriteData() - data values array size (%d) is not equal to  mean values array size (%d)\n"
+                                            "Expression is: '%s'",
+                                            cols,
+                                            colsWeight,
+                                            m_fields.at(indexExpr).AsString().c_str()),
+                                   BRATHL_LOGIC_ERROR);
+
+          }
+        }
+      }
 
 	    FinalizeMergingOfDataValues(dataValues,
-				                          indexExpr,
-                                  cols,
-				                          countValues,
-                                  meanValues);
+                                    indexExpr,
+                                    cols,
+                                    countValues,
+                                    meanValues,
+                                    weightValues);
       
       //CDoubleArrayOb::iterator itDataValues;
       uint32_t indexValues = 0;

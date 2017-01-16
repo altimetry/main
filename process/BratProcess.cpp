@@ -121,6 +121,12 @@ void CBratProcess::Init()
   setDefaultValue(m_validMin);
   setDefaultValue(m_validMax);
 
+  // set default values for time interpolation
+  m_tParam = 1.0;
+  m_tFactor = 1.0;
+  m_dParam = 1.0;
+  m_dFactor = 1.0;
+
 }
 
 //----------------------------------------
@@ -518,7 +524,7 @@ void CBratProcess::ResizeArrayDependOnFields(uint32_t size)
 
   m_countOffsets.resize(size);
   m_meanOffsets.resize(size);
-
+  m_weightOffsets.resize(size);
 
 }
 
@@ -1410,7 +1416,7 @@ int32_t CBratProcess::GetMergedDataSlices( EMergeDataMode mode )
 
 	switch ( mode )
 	{
-		case pctMEAN:
+        case pctMEAN:
 			dataSlices = 2;
 			break;
 
@@ -1418,12 +1424,9 @@ int32_t CBratProcess::GetMergedDataSlices( EMergeDataMode mode )
 			dataSlices = 3;
 			break;
 
-		case pctTIME:
-
-			//!!! GORKA !!!
-			//Please delete the whole case statement if 1 is good for pctTIME
-
-			break;
+        case pctTIME:
+            dataSlices = 4;
+            break;
 
 		default:
 			break;
@@ -2413,6 +2416,9 @@ void CBratProcess::BuildListFieldsToRead()
 
     }
     */
+    if (m_dataMode[i] == CBratProcess::pctTIME) {
+        m_listFieldsToRead.InsertUnique(mDataInterpolationTimeFieldName);
+    }
   }
 
   // build, from SELECT parameter, the list of the fields to read in the data files
@@ -2677,6 +2683,7 @@ void CBratProcess::OnAddDimensionsFromNetCdf()
 
   m_countOffsets.push_back(-1);
   m_meanOffsets.push_back(-1);
+  m_weightOffsets.push_back(-1);
 
   //-----------------
   m_nbDataAllocated++;
@@ -2883,6 +2890,7 @@ void CBratProcess::IncrementOffsetValues(uint32_t incr /* = 1 */)
 {
   IncrementValue(m_countOffsets, incr);
   IncrementValue(m_meanOffsets, incr);
+  IncrementValue(m_weightOffsets, incr);
 }
 //----------------------------------------
 void CBratProcess::IncrementValue(CIntArray& vect, uint32_t incr /* = 1 */)
@@ -3022,15 +3030,17 @@ void CBratProcess::MergeDataValue
 		 uint32_t nbValues,
      uint32_t indexExpr,
 		 double* countValues,
-		 double* meanValues)
+         double* meanValues,
+         double* weightValues)
 {
 
   if (nbValues == 0)
   {
     double* countValue = ((countValues != nullptr) ? (&countValues[0]) : nullptr);
     double* meanValue = ((meanValues != nullptr) ? (&meanValues[0]) : nullptr);
+    double* weightValue = ((weightValues != nullptr) ? (&weightValues[0]) : nullptr);
     
-    MergeDataValue(data[0], CTools::m_defaultValueDOUBLE, countValue, meanValue, m_dataMode[indexExpr]);
+    MergeDataValue(data[0], CTools::m_defaultValueDOUBLE, countValue, meanValue, weightValue, m_dataMode[indexExpr]);
     return;
   }
 
@@ -3042,8 +3052,9 @@ void CBratProcess::MergeDataValue
     double value = CBratProcess::CheckLongitudeValue(values[indexValues], -180.0, m_types[indexExpr]);
     double* countValue = ((countValues != nullptr) ? (&countValues[0]) : nullptr);
     double* meanValue = ((meanValues != nullptr) ? (&meanValues[0]) : nullptr);
+    double* weightValue = ((weightValues != nullptr) ? (&weightValues[0]) : nullptr);
     
-    CBratProcess::MergeDataValue(data[indexValues], value, countValue, meanValue, m_dataMode[indexExpr]);
+    CBratProcess::MergeDataValue(data[indexValues], value, countValue, meanValue, weightValue, m_dataMode[indexExpr]);
   }
 
 }
@@ -3079,6 +3090,7 @@ void CBratProcess::MergeDataValue
 		 double value,
 		 double*	countValue,
 		 double*	meanValue,
+         double*    weightValue,
 		 EMergeDataMode	mode)
 {
   if (isDefaultValue(value))
@@ -3087,6 +3099,7 @@ void CBratProcess::MergeDataValue
   }
 
   double dummy = 0.0;
+  double t_weight, d_weight;
 
   switch (mode)
   {
@@ -3231,9 +3244,30 @@ void CBratProcess::MergeDataValue
 	//--------------------------
 	case CBratProcess::pctTIME:
 	//--------------------------
+        // get the time and position of this record (how??)
+        // and add this information to some sort of collection (also how?)
 
-		//!!! GORKA !!!
-        data = 1.0;
+        // calc. time weight for new data point
+        t_weight = exp( (-(t_out - value_t) / m_tParam) ** m_tFactor);
+        // calc. distance wieght for new data point
+        d_weight = exp( (-value_d / m_dParam) ** m_dFactor );
+
+        if (data == CBratProcess::MergeIdentifyUnsetData) {
+            // if this is first point for output cell, init.
+            // weighted-sum and sum-of-weights (data & *countValue
+            // respectively) to current values
+            data = t_weight * d_weight * value;
+            *weightValue = t_weight * d_weight;
+            *meanValue = value;
+            *countValue = 1.0;
+        }
+        else {
+            // otherwise, accumulate values
+            data += t_weight * d_weight * value;
+            *weightValue += t_weight * d_weight;
+            *meanValue += value;
+            *countValue += 1;
+        }
 
 		break;
 
@@ -3293,7 +3327,6 @@ void CBratProcess::FinalizeMergingOfDataValues
     case pctSUM:
     case pctSUBSTRACT:
     case pctPRODUCT:
-	case pctTIME:			//!!! GORKA !!! Please check if this is enough
 		//--------------------------
 	    if (data == CBratProcess::MergeIdentifyUnsetData)
 	    {
@@ -3357,6 +3390,27 @@ void CBratProcess::FinalizeMergingOfDataValues
 					                               dummy);
 	    }
 	    break;
+    //--------------------------
+    case pctTIME:
+    //--------------------------
+        if (data == CBratProcess::MergeIdentifyUnsetData)
+        {
+            setDefaultValue(data);
+        }
+        else
+        {
+            if (countValue == nullptr)
+            {
+              throw CException(CTools::Format("ERROR: CBratProcess::FinalizeMergingOfDataValues() - count value  is nullptr, but mode is '%s'\n",
+                                              CBratProcess::DataModeStr(mode).c_str()),
+                                     BRATHL_LOGIC_ERROR);
+
+            }
+            double mean = *meanValue / *countValue;
+            data = (data - mean * *weightValue) / *weightValue;
+        }
+
+        break;
 
 	default:
 	    throw CException(CTools::Format("PROGRAM ERROR: DataMode %d unknown (CBratProcess::MergeDataValue)",

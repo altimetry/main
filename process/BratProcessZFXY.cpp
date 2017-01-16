@@ -383,6 +383,7 @@ void CBratProcessZFXY::GetParameters()
     
     m_countOffsets[index] = -1;
     m_meanOffsets[index] = -1;
+    m_wieghtOffsets[index] = 1;
 
     switch (nbDataSlices)
     {
@@ -398,6 +399,12 @@ void CBratProcessZFXY::GetParameters()
         m_meanOffsets[index] = nbFields + accruedDataSlices + 1;
         break;
       //-------
+      case 3:
+      //-------
+        m_countOffsets[index] = nbFields + accruedDataSlices;
+        m_meanOffsets[index] = nbFields + accruedDataSlices + 1;
+        m_weightOffsets[index] = nbFields + accruedDataSlices + 2;
+        break;
       default:
       //-------
         break;
@@ -747,6 +754,20 @@ CMatrixDoublePtr* CBratProcessZFXY::CreateGridDoublePtr(uint32_t index, const CE
       //---------------------------------
 
     }
+
+    int32_t weightOffset = m_weightOffsets[index];
+
+    if (weightOffset > 0) {
+        matrix = NewMatrixDoublePtr();
+        matrix->SetName(CTools::Format("%s_weight", m_names[index].c_str()));
+        matrix->SetXName(m_xName);
+        matrix->SetYName(m_yName);
+
+        matrix->InitMatrixDimsData(exprValue.GetDimensions(), base_t::MergeIdentifyUnsetData);
+        matrix->SetMatrixDataDimIndexes(complementFieldDims);
+
+        m_grids[weightOffset] = matrix;
+    }
   }
   catch (CException& e)
   {
@@ -821,6 +842,21 @@ CMatrixDouble* CBratProcessZFXY::CreateGridDouble(uint32_t index)
       matrix->SetXName(m_xName);
       matrix->SetYName(m_yName);
       
+      m_grids[meanOffset] = matrix;
+
+    }
+
+    int32_t weightOffset = m_weightOffsets[index];
+
+    if (weightOffset > 0)
+    {
+      //-------------
+      matrix = NewMatrixDouble();
+      //-------------
+      matrix->SetName(CTools::Format("%s_weight", m_names[index].c_str()));
+      matrix->SetXName(m_xName);
+      matrix->SetYName(m_yName);
+
       m_grids[meanOffset] = matrix;
 
     }
@@ -1153,7 +1189,7 @@ int32_t CBratProcessZFXY::Execute( std::string& msg )
 
 		ReplaceFieldDefinition();
 
-        m_product->SetListFieldToRead( m_listFieldsToRead, false ); // TODO: Mark - add time variable to this list
+        m_product->SetListFieldToRead( m_listFieldsToRead, false );
 
 		// Get the number of record for the default record name (set in Open method of CProduct above)
 		int32_t nRecords = m_product->GetNumberOfRecords();
@@ -1554,7 +1590,7 @@ void CBratProcessZFXY::GetDataValuesFromMatrix(CMatrixDouble* matrix, uint32_t i
 }
 */
 //----------------------------------------
-void CBratProcessZFXY::GetDataValuesFromMatrix(uint32_t indexExpr, uint32_t xPos, uint32_t yPos, DoublePtr& dataValues, DoublePtr& countValues, DoublePtr& meanValues, uint32_t& nbValues)
+void CBratProcessZFXY::GetDataValuesFromMatrix(uint32_t indexExpr, uint32_t xPos, uint32_t yPos, DoublePtr& dataValues, DoublePtr& countValues, DoublePtr& meanValues, DoublePtr& weightValues, uint32_t& nbValues)
 {
 
   
@@ -1562,11 +1598,13 @@ void CBratProcessZFXY::GetDataValuesFromMatrix(uint32_t indexExpr, uint32_t xPos
 
   countValues = NULL;
   meanValues = NULL;
+  weightValues = NULL;
 
   CMatrix* matrix = NULL;
 
   int32_t countOffset = m_countOffsets.at(indexExpr);
   int32_t meanOffset = m_meanOffsets.at(indexExpr);
+  int32_t weightOffset = m_weightOffsets.at(indexExpr);
 
 
   if (countOffset > 0)
@@ -1640,7 +1678,41 @@ void CBratProcessZFXY::GetDataValuesFromMatrix(uint32_t indexExpr, uint32_t xPos
       }
     }
   }
+  if (weightOffset > 0)
+  {
+    //---------------------------------------
+    matrix = CBratProcessZFXY::GetMatrix(weightOffset);
+    //---------------------------------------
 
+    weightValues = matrix->At(xPos, yPos);
+
+    if (weightValues == NULL)
+    {
+      throw CException(CTools::Format("ERROR: CBratProcessZFXY::GetDataValueFromMatrix() - weight values array not found\n. Expression index is %d. Offset is %d.\n Matrix '%s' at (%d , %d).\n"
+                                      "Expression is: '%s'",
+                                      indexExpr,
+                                      weightOffset,
+                                      matrix->GetName().c_str(),
+                                      xPos,
+                                      yPos,
+                                      m_fields.at(indexExpr).AsString().c_str()),
+                             BRATHL_LOGIC_ERROR);
+    }
+    else   // (meanValues != NULL)
+    {
+      uint32_t colsWeight = matrix->GetMatrixNumberOfValuesData();
+      if (nbValues != colsWeight)
+      {
+        throw CException(CTools::Format("ERROR: CBratProcessZFXY::GetDataValueFromMatrix() - weight values array size (%d) is not equal to  mean values array size (%d)\n"
+                                        "Expression is: '%s'",
+                                        nbValues,
+                                        colsWeight,
+                                        m_fields.at(indexExpr).AsString().c_str()),
+                               BRATHL_LOGIC_ERROR);
+
+      }
+    }
+  }
 
 
 }
@@ -1913,10 +1985,11 @@ int32_t CBratProcessZFXY::WriteData()
         //---------------------------------------------
         {
 	        FinalizeMergingOfDataValues(dataValues,
-				                              indexExpr,
-                                      nbValues,
-				                              countValues,
-                                      meanValues);
+                                        indexExpr,
+                                        nbValues,
+                                        countValues,
+                                        meanValues,
+                                        weightValues);
 
           for (uint32_t indexValues = 0 ; indexValues < nbValues; indexValues++)
           {
@@ -1936,9 +2009,10 @@ int32_t CBratProcessZFXY::WriteData()
         {
 
 	        FinalizeMergingOfDataValues(*dataValues,
-				                              countValues,
-                                      meanValues,
-                                      m_dataMode[indexExpr]);
+                                        countValues,
+                                        meanValues,
+                                        weightValues,
+                                        m_dataMode[indexExpr]);
 
           //---------------------------------------------
           // converts to asked unit
