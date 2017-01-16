@@ -284,7 +284,8 @@ public:
     void SetDefaultValues();
     void SetDefaultDateValues();
     void SetDefaultCyclePassValues();
-    void SetDefaultRelativeDays();
+	bool InvalidCyclePassValues() const;
+	void SetDefaultRelativeDays();
 };
 
 

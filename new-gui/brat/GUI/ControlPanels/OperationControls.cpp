@@ -1069,6 +1069,7 @@ bool COperationControls::UpdateDatasetSelection( const CDataset *dataset )
 			if ( !error_msg.empty() )
 				SimpleErrorBox( error_msg );
 			else
+			if ( SelectedPanel() )
 				LOG_WARN( "Unable to set Product.\nPerhaps dataset file list is empty or product file doesn't exist." );
 
 			result = false;

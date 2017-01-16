@@ -40,6 +40,9 @@
 //							Dataset Filter Controls
 /////////////////////////////////////////////////////////////////////////////////////
 
+static const QString cycle_pas_radio_text = "Use Cycle/Pass";
+
+
 
 void CBratFilterControls::CreateWidgets()
 {
@@ -168,7 +171,9 @@ void CBratFilterControls::CreateWidgets()
     //    III.1 Dates, Cycles and Pass (start and stop values)
     QDateTime minDateTime( QDate(1950, 1, 1), QTime(0, 0, 0));
 
-    mStartTimeEdit = new QDateTimeEdit();                      mStopTimeEdit = new QDateTimeEdit();
+	mUseTimeRadio = new QRadioButton( "Use Dates");
+	mUseCyclePassRadio = new QRadioButton( cycle_pas_radio_text );
+	mStartTimeEdit = new QDateTimeEdit();                      mStopTimeEdit = new QDateTimeEdit();
     mStartTimeEdit->setCalendarPopup(true);                    mStopTimeEdit->setCalendarPopup(true);
     mStartTimeEdit->setDisplayFormat("yyyy.MM.dd hh:mm:ss");   mStopTimeEdit->setDisplayFormat("yyyy.MM.dd hh:mm:ss");
     mStartTimeEdit->setMinimumDateTime( minDateTime );         mStopTimeEdit->setMinimumDateTime( minDateTime );
@@ -182,20 +187,23 @@ void CBratFilterControls::CreateWidgets()
     mStartPassEdit->setValidator( textValidator );   mStopPassEdit->setValidator( textValidator );
 
 
-    QBoxLayout *dates_box = LayoutWidgets( Qt::Vertical, {
-                                                 LayoutWidgets( Qt::Horizontal, { new QLabel( "Start Date" ), mStartTimeEdit } ),
-                                                 LayoutWidgets( Qt::Horizontal, { new QLabel( "Stop Date" ),  mStopTimeEdit } )
-                                                } );
+    QBoxLayout *dates_box = LayoutWidgets( Qt::Vertical, 
+	{
+		LayoutWidgets( Qt::Horizontal, { new QLabel( "Start Date" ), mStartTimeEdit } ),
+		LayoutWidgets( Qt::Horizontal, { new QLabel( "Stop Date" ),  mStopTimeEdit } )
+	} );
 
-    QBoxLayout *cycles_box = LayoutWidgets( Qt::Vertical, {
-                                                 LayoutWidgets( Qt::Horizontal, { new QLabel( "Start Cycle" ), mStartCycleEdit } ),
-                                                 LayoutWidgets( Qt::Horizontal, { new QLabel( "Stop Cycle" ),  mStopCycleEdit  } )
-                                                } );
+    QBoxLayout *cycles_box = LayoutWidgets( Qt::Vertical, 
+	{
+        LayoutWidgets( Qt::Horizontal, { new QLabel( "Start Cycle" ), mStartCycleEdit } ),
+        LayoutWidgets( Qt::Horizontal, { new QLabel( "Stop Cycle" ),  mStopCycleEdit  } )
+    } );
 
-    QBoxLayout *pass_box = LayoutWidgets( Qt::Vertical, {
-                                                 LayoutWidgets( Qt::Horizontal, { new QLabel( "Start Pass" ), mStartPassEdit } ),
-                                                 LayoutWidgets( Qt::Horizontal, { new QLabel( "Stop Pass" ),  mStopPassEdit  } )
-                                                } );
+    QBoxLayout *pass_box = LayoutWidgets( Qt::Vertical, 
+	{
+        LayoutWidgets( Qt::Horizontal, { new QLabel( "Start Pass" ), mStartPassEdit } ),
+        LayoutWidgets( Qt::Horizontal, { new QLabel( "Stop Pass" ),  mStopPassEdit  } )
+    } );
 
     //   III.2 One-Click Time Filtering
 
@@ -227,7 +235,25 @@ void CBratFilterControls::CreateWidgets()
     ) }, s, m, m, m, m );
 #endif
 
-    mAbsoluteTimesBox = CreateGroupBox(  ELayoutType::Horizontal, { dates_box, nullptr, cycles_box, nullptr, pass_box} );
+    mAbsoluteTimesBox = CreateGroupBox(  ELayoutType::Horizontal, 
+	{ 
+		LayoutWidgets( Qt::Vertical, 
+		{
+			mUseTimeRadio,						
+			dates_box
+		} )
+		,
+		nullptr, 
+		LayoutWidgets( Qt::Vertical, 
+		{
+			mUseCyclePassRadio,
+			LayoutWidgets( Qt::Horizontal, 
+			{
+				cycles_box, nullptr, pass_box
+			} )
+		} )
+	} 
+	);
 
     mRelativeStart  = new QLineEdit(this);
     mRelativeStop   = new QLineEdit(this);
@@ -318,14 +344,19 @@ void CBratFilterControls::Wire()
     connect( mDeleteArea, SIGNAL( clicked() ), this, SLOT( HandleDeleteArea() ) );
 
     // When widgets
-    connect( mClearWhen, SIGNAL( clicked() ), this, SLOT( HandleClearWhen() ) );
+	connect( mClearWhen, SIGNAL( clicked() ), this, SLOT( HandleClearWhen() ) );
+
+	connect( mUseTimeRadio, SIGNAL( toggled( bool ) ), this, SLOT( HandleUseTimeToggled( bool ) ) );
     connect( mStartTimeEdit, SIGNAL( dateTimeChanged(const QDateTime&) ), this, SLOT( HandleStartDateTimeChanged(const QDateTime&) ) );
     connect( mStopTimeEdit, SIGNAL( dateTimeChanged(const QDateTime&) ), this, SLOT( HandleStopDateTimeChanged(const QDateTime&) ) );
 
-    connect( mStartCycleEdit, SIGNAL( textEdited(const QString &) ), this, SLOT( HandleStartCycleChanged() ) );
+	connect( mUseCyclePassRadio, SIGNAL( toggled( bool ) ), this, SLOT( HandleUseCyclePass( bool ) ) );
+	connect( mStartCycleEdit, SIGNAL( textEdited(const QString &) ), this, SLOT( HandleStartCycleChanged() ) );
     connect( mStopCycleEdit,  SIGNAL( textEdited(const QString &) ), this, SLOT( HandleStopCycleChanged() ) );
     connect( mStartPassEdit,  SIGNAL( textEdited(const QString &) ), this, SLOT( HandleStartPassChanged() ) );
     connect( mStopPassEdit,   SIGNAL( textEdited(const QString &) ), this, SLOT( HandleStopPassChanged() ) );
+	mUseCyclePassRadio->setChecked( true );	//only to force state change to false (and calling handler) by next line
+	mUseTimeRadio->setChecked( true );
 
     connect( mRelativeTimesBox, SIGNAL( toggled( bool ) ), this, SLOT( HandleRelativeTimesBoxChecked( bool ) ) );
     mRelativeTimesBox->setChecked( false );
@@ -634,6 +665,7 @@ void CBratFilterControls::HandleFiltersCurrentIndexChanged( int filter_index )
     mWhenBox->setEnabled( filter_index >= 0 );
     mClearWhere->setEnabled( filter_index >= 0 );
     mClearWhen->setEnabled( filter_index >= 0 );
+	mUseTimeRadio->setChecked( true );
 
     if ( filter_index < 0 )
     {
@@ -647,7 +679,10 @@ void CBratFilterControls::HandleFiltersCurrentIndexChanged( int filter_index )
 
     mFilter = filter;
 
-    // Refresh areas list (checked/unchecked status)
+	if ( !mFilter->InvalidCyclePassValues() )
+		mUseCyclePassRadio->setChecked( true );
+
+	// Refresh areas list (checked/unchecked status)
     FillAreasList();
 
     // Update Max/Min Lat and Lon and refresh "NewArea" button status
@@ -941,11 +976,38 @@ void CBratFilterControls::SaveAllAreas()
 
 
 
+void CBratFilterControls::HandleUseTimeToggled( bool toggled )
+{
+	mStartTimeEdit->setEnabled( toggled );
+	mStopTimeEdit->setEnabled( toggled );
+	//
+	// Cycle/pass are used if all valid; otherwise dates are used.
+	// But dates are always valid, so cycle/pass must be invalidated
+	//	when the user selects dates, otherwise the 2 sets of values are 
+	//	good and cycle/pass will be used.
+	//
+	if ( mFilter )
+	{
+		mFilter->SetDefaultCyclePassValues();
+		updateCyclePassWidgets();
+	}
+}
+
+
+void CBratFilterControls::HandleUseCyclePass( bool toggled )
+{
+	mStartCycleEdit->setEnabled( toggled );
+	mStopCycleEdit->setEnabled( toggled );
+	mStartPassEdit->setEnabled( toggled );
+	mStopPassEdit->setEnabled( toggled );
+}
+
+
 void CBratFilterControls::HandleStartDateTimeChanged(const QDateTime &start_datetime)
 {
     mFilter->StartTime() = start_datetime;
 
-    // When user selects a data, the cycle and pass are automatically deleted (Only user dates are used in When criteria)
+    // When user selects a date, the cycle and pass are automatically deleted (Only user dates are used in When criteria)
     mFilter->SetDefaultCyclePassValues();
     updateDateWidgets();
     updateCyclePassWidgets();
@@ -958,7 +1020,7 @@ void CBratFilterControls::HandleStopDateTimeChanged(const QDateTime &stop_dateti
 {
     mFilter->StopTime() = stop_datetime;
 
-    // When user selects a data, the cycle and pass are automatically deleted (Only user dates are used in When criteria)
+    // When user selects a date, the cycle and pass are automatically deleted (Only user dates are used in When criteria)
     mFilter->SetDefaultCyclePassValues();
     updateDateWidgets();
     updateCyclePassWidgets();
@@ -1009,7 +1071,7 @@ void CBratFilterControls::HandleStartPassChanged()
                            CTools::m_defaultValueINT32,  // Min
                            mFilter->StopPass()  );       // Max (should be < StopPass)
 
-    // When user selects a cycle, the dates are automatically deleted (Only user cycle/pass are used in When criteria)
+    // When user selects a pass, the dates are automatically deleted (Only user cycle/pass are used in When criteria)
     mFilter->SetDefaultDateValues();
     updateDateWidgets();
     updateCyclePassWidgets();
@@ -1026,7 +1088,7 @@ void CBratFilterControls::HandleStopPassChanged()
                            mFilter->StartPass(),          // Min (should be > StartPass)
                            CTools::m_defaultValueINT32 ); // Max
 
-    // When user selects a cycle, the dates are automatically deleted (Only user cycle/pass are used in When criteria)
+    // When user selects a pass, the dates are automatically deleted (Only user cycle/pass are used in When criteria)
     mFilter->SetDefaultDateValues();
     updateDateWidgets();
     updateCyclePassWidgets();
@@ -1164,20 +1226,19 @@ void CBratFilterControls::updateDateWidgets()
     mStopTimeEdit->setDateTime( mFilter->StopTime() );
 
     // SET READ_ONLY PALETTE
-    bool markAsReadOnly = ( !isDefaultValue(mFilter->StartCycle()) &
-                            !isDefaultValue(mFilter->StopCycle())  &
-                            !isDefaultValue(mFilter->StartPass())  &
-                            !isDefaultValue(mFilter->StopPass())
-                           );
-
-    QPalette *palette_readOnly = new QPalette();
-    if ( markAsReadOnly )
-    {
-        palette_readOnly->setColor(QPalette::Base, Qt::gray );
-        palette_readOnly->setColor(QPalette::Text,Qt::black);
-    }
-    mStartTimeEdit->setPalette( *palette_readOnly );
-    mStopTimeEdit->setPalette( *palette_readOnly );
+    //bool markAsReadOnly = ( !isDefaultValue(mFilter->StartCycle()) &
+    //                        !isDefaultValue(mFilter->StopCycle())  &
+    //                        !isDefaultValue(mFilter->StartPass())  &
+    //                        !isDefaultValue(mFilter->StopPass())
+    //                       );
+    //QPalette *palette_readOnly = new QPalette();
+    //if ( markAsReadOnly )
+    //{
+    //    palette_readOnly->setColor(QPalette::Base, Qt::gray );
+    //    palette_readOnly->setColor(QPalette::Text,Qt::black);
+    //}
+    //mStartTimeEdit->setPalette( *palette_readOnly );
+    //mStopTimeEdit->setPalette( *palette_readOnly );
 
     // UNBLOCK SIGNALS //
     mStartTimeEdit->blockSignals( false );
@@ -1194,16 +1255,20 @@ void CBratFilterControls::updateCyclePassWidgets()
     mStopPassEdit->setText(  isDefaultValue(mFilter->StopPass())  ? "" : n2q(mFilter->StopPass()) );
 
     // SET READ_ONLY PALETTE
-    bool markAsReadOnly = ( isDefaultValue(mFilter->StartCycle()) ||
-                            isDefaultValue(mFilter->StopCycle())  ||
-                            isDefaultValue(mFilter->StartPass())  ||
-                            isDefaultValue(mFilter->StopPass())
-                           );
-
-	SetReadOnlyEditor( mStartCycleEdit, markAsReadOnly );
-	SetReadOnlyEditor( mStopCycleEdit, markAsReadOnly );
-	SetReadOnlyEditor( mStartPassEdit, markAsReadOnly );
-	SetReadOnlyEditor( mStopPassEdit, markAsReadOnly );
+    const bool markAsWarning = mFilter->InvalidCyclePassValues();
+    QPalette *palette_warning = new QPalette();
+	QString text = cycle_pas_radio_text;
+	if ( markAsWarning )
+    {
+        //palette_warning->setColor(QPalette::Base, Qt::lightGray );
+        palette_warning->setColor(QPalette::Text,Qt::red);
+		text += " (4 values required)";
+    }
+    mStartCycleEdit->setPalette( *palette_warning );
+    mStopCycleEdit->setPalette( *palette_warning );
+    mStartPassEdit->setPalette( *palette_warning );
+    mStopPassEdit->setPalette( *palette_warning );
+	mUseCyclePassRadio->setText( text );
 }
 
 void CBratFilterControls::updateRelativeTimeWidgets()

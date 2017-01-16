@@ -181,8 +181,7 @@ void CBratFilter::BoundingArea( double &lon1, double &lat1, double &lon2, double
 
 bool CBratFilter::GetTimeBounds( CDate &Start, CDate &Stop, const std::string &product_label, std::string &error_msg ) const
 {
-    if ( !isDefaultValue( StartCycle() ) && !isDefaultValue( StopCycle() ) &&
-         !isDefaultValue( StartPass() )  && !isDefaultValue( StopPass() )     )
+    if ( !InvalidCyclePassValues() )
     {
         // 1- Uses Start/Stop Cycle/Pass defined by user
         CMission m( product_label );
@@ -334,6 +333,14 @@ void CBratFilter::SetDefaultDateValues()
     mStopTime  = QDateTime::currentDateTime();
 }
 
+bool CBratFilter::InvalidCyclePassValues() const
+{
+	return 
+		mStartCycle == smStartCycle ||
+		mStopCycle == smStopCycle ||
+		mStartPass == smStartPass ||
+		mStopPass == smStopPass;
+}
 void CBratFilter::SetDefaultCyclePassValues()
 {
     mStartCycle = smStartCycle;

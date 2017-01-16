@@ -160,7 +160,7 @@ void COperationControls::UpdateFieldsCheckState()
 			{
 				item->setFlags( item->flags() | Qt::ItemIsEnabled );
 				item->setCheckState( Qt::Checked );
-				item->setData( Qt::UserRole, i );
+				//item->setData( Qt::UserRole, i );
 			}
 		}
 	};
@@ -417,7 +417,7 @@ void COperationControls::HandleSelectedDatasetChanged_Quick( int dataset_index )
 		// 4. enable quick data fields found in dataset
 		//
 		bool has_fields = false;
-		for ( int i = 0; i < EPredefinedVariables_size; ++i )	//TODO maybe this should be corrected to open products only once, not once per iteration
+		for ( int i = 0; i < EPredefinedVariables_size; ++i )
 		{
 			auto *item = mQuickVariablesList->item( i );			assert__( item );
 			for ( auto const &path : dataset_files )
@@ -429,15 +429,16 @@ void COperationControls::HandleSelectedDatasetChanged_Quick( int dataset_index )
 				bool alias_used;
 				std::string field_error_msg;
 				EPredefinedVariables vi = (EPredefinedVariables)i;
-				std::string expression = QuickFindAliasValue( pi, vi );
+				const std::string expression = QuickFindAliasValue( pi, vi );
 				CField *field = QuickFindField( pi, vi, alias_used, field_error_msg );
-				//if ( field )
 				if ( !expression.empty() )
 				{
 					item->setFlags( item->flags() | Qt::ItemIsEnabled );
 					has_fields = true;
+                    std::string field_description = "[ %{" + QuickVariableAlias( vi ) + "}==" + expression + " ]";
 					if ( field )
-						item->setData( Qt::UserRole, t2q( field->GetDescription() ) );
+                        field_description += "\n\n => " + field->GetDescription();
+                    item->setData( Qt::UserRole, t2q( field_description ) );
 				}
 				has_selection_criteria |= ( has_fields && !QuickFindAliasValue( pi, eOceanEditing ).empty() );		//TODO see above (*)
 				if ( !expression.empty() )
