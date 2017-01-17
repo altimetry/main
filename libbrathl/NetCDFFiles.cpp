@@ -4396,12 +4396,13 @@ std::pair< std::string, std::string > CNetCDFFiles::IdentifyExistingFile( bool c
 
 			std::string dummy;
 
-			//if "mission_name" equals "Sentinel 3A" and exists attribute "xref_altimeter_level1" the Sentinel 3A level 2
-
+            // if "mission_name" equals "Sentinel 3A" and exists attribute "xref_altimeter_level1" the Sentinel 3A level 2
+            // For S3A L1A, L1B and L1B-S, we'll check the existance of the corresponding time variables
 			int found_ref_altimeter_level1 = GetAtt( NC_GLOBAL, "xref_altimeter_level1", dummy, false, attrNotFound );
-			int found_time_l1b_echo_sar_ku = GetAtt( NC_GLOBAL, "time_l1b_echo_sar_ku", dummy, false, attrNotFound );
-			int found_time_l1a_echo_sar_ku = GetAtt( NC_GLOBAL, "time_l1a_echo_sar_ku", dummy, false, attrNotFound );
-			int found_time_l1bs_echo_sar_ku = GetAtt( NC_GLOBAL, "time_l1bs_echo_sar_ku", dummy, false, attrNotFound );
+            bool found_time_l1b_echo_sar_ku = VarExists("time_l1b_echo_sar_ku");
+            bool found_time_l1a_echo_sar_ku = VarExists("time_l1a_echo_sar_ku");
+            bool found_time_l1bs_echo_sar_ku = VarExists("time_l1bs_echo_sar_ku");
+
 			if ( found_ref_altimeter_level1 == NC_NOERR )
 			{
 				// if exists dimension "echo_sample_ind" the enhanced, if exists dimension "time_20_ku" then standard,  otherwise reduced
@@ -4415,19 +4416,19 @@ std::pair< std::string, std::string > CNetCDFFiles::IdentifyExistingFile( bool c
 					return { CExternalFilesSentinel3A_reduced::TypeOf(), "" };	//    S3A/SR_2_RED (s3a reduced level 2 product
 			}
 			else
-			if ( found_time_l1b_echo_sar_ku == NC_NOERR )
+            if ( found_time_l1b_echo_sar_ku == true )
 			{
 				//    S3A/SR_1_B - Mission name is Sentinel 3A and dimension "time_l1b_echo_sar_ku" exists.
 				return { CExternalFilesSentinel3A_l1b::TypeOf(), "" };
 			}
 			else
-			if ( found_time_l1a_echo_sar_ku == NC_NOERR )
+            if ( found_time_l1a_echo_sar_ku == true )
 			{
 				//    S3A/SR_1_A Mission name is Sentinel 3A and dimension "time_l1a_echo_sar_ku" exists.
 				return { CExternalFilesSentinel3A_l1a::TypeOf(), "" };
 			}
 			else
-			if ( found_time_l1bs_echo_sar_ku == NC_NOERR )
+            if ( found_time_l1bs_echo_sar_ku == true )
 			{
 				//    S3A/SR_1_BS Mission name is Sentinel 3A and dimension "time_l1bs_echo_sar_ku" exists.
 				return { CExternalFilesSentinel3A_l1bs::TypeOf(), "" };
