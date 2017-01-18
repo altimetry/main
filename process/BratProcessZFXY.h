@@ -119,7 +119,7 @@ protected:
   //void GetDataValuesFromMatrix(CMatrixDoublePtr* matrix, uint32_t indexExpr, uint32_t xPos, uint32_t yPos, DoublePtr& dataValues, uint32_t& nbValues);
 
   void GetDataValuesFromMatrix(uint32_t indexExpr, uint32_t xPos, uint32_t yPos, 
-                              DoublePtr& dataValues, DoublePtr& countValues, DoublePtr& meanValues, uint32_t& nbValues);
+                              DoublePtr& dataValues, DoublePtr& countValues, DoublePtr& meanValues, DoublePtr& weightValues, uint32_t& nbValues);
 
   virtual void SubstituteAxisDim(const CStringArray& fieldDims, CStringArray& fieldDimsOut);
   virtual void OnAddDimensionsFromNetCdf();
@@ -134,6 +134,7 @@ protected:
 		                   int32_t nbY, bool circularY, int32_t waveLengthY,
 		                   bool smoothData, bool extrapolData);
   */
+  double* ComputeMergeDataValueParameters(CRecordSet* recordSet, uint32_t index, double xPos, double yPos);
   
 
   CMatrix* GetMatrix(uint32_t index, bool withExcept = true);

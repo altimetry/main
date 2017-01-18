@@ -383,7 +383,7 @@ void CBratProcessZFXY::GetParameters()
     
     m_countOffsets[index] = -1;
     m_meanOffsets[index] = -1;
-    m_wieghtOffsets[index] = 1;
+    m_weightOffsets[index] = 1;
 
     switch (nbDataSlices)
     {
@@ -399,7 +399,7 @@ void CBratProcessZFXY::GetParameters()
         m_meanOffsets[index] = nbFields + accruedDataSlices + 1;
         break;
       //-------
-      case 3:
+      case 4:
       //-------
         m_countOffsets[index] = nbFields + accruedDataSlices;
         m_meanOffsets[index] = nbFields + accruedDataSlices + 1;
@@ -1344,8 +1344,6 @@ void CBratProcessZFXY::RegisterData()
 		       BRATHL_LIMIT_ERROR);
     }
 
-
-
     //-----------------------------
     // Searches data x an y indexes
     //-----------------------------
@@ -1457,8 +1455,9 @@ void CBratProcessZFXY::RegisterData()
       double* dataValues = NULL;
       double* countValues = NULL;
       double* meanValues = NULL;
+      double* weightValues = NULL;
 
-      GetDataValuesFromMatrix(indexExpr, xPos, yPos, dataValues, countValues, meanValues, nbValues);
+      GetDataValuesFromMatrix(indexExpr, xPos, yPos, dataValues, countValues, meanValues, weightValues, nbValues);
 
       
       if (base_t::IsProductNetCdf())
@@ -1483,13 +1482,15 @@ void CBratProcessZFXY::RegisterData()
       
       CMatrixDoublePtr* matrixDoublePtr = CBratProcessZFXY::GetMatrixDoublePtr(matrix, false);
 
+      double* auxParams = ComputeMergeDataValueParameters(recordSet, indexExpr, xValue, yValue);
+
       if (matrixDouble != NULL)
       {
-        MergeDataValue(*dataValues, exprValue.GetValues()[0], countValues, meanValues, m_dataMode[indexExpr]);
+        MergeDataValue(*dataValues, exprValue.GetValues()[0], countValues, meanValues, weightValues, auxParams, m_dataMode[indexExpr]);
       }
       else if (matrixDoublePtr != NULL)
       {
-        MergeDataValue(dataValues, exprValue.GetValues(), nbValues, indexExpr, countValues, meanValues);
+        MergeDataValue(dataValues, exprValue.GetValues(), nbValues, indexExpr, countValues, meanValues, weightValues, auxParams);
       }
 
     }
@@ -1499,6 +1500,48 @@ void CBratProcessZFXY::RegisterData()
   //p->Tracer(1,"End registering data");
 }
 
+double* CBratProcessZFXY::ComputeMergeDataValueParameters(CRecordSet* recordSet, uint32_t index, double xPos, double yPos) {
+    double* auxData = NULL;
+    EMergeDataMode mode = m_dataMode[index];
+
+    switch (mode) {
+        case CBratProcess::pctTIME:
+            // init. output array
+        {
+            auxData = new double[7];
+
+            // get interp. target time
+            CDate target = mDataInterpolationDateTime.at(index);
+            double secs;
+            target.Convert2Second(secs);
+            auxData[0] = secs;
+
+            // get actual time value
+            CExpressionValue exprValue;
+            std::string field = mDataInterpolationTimeFieldName.at(index);
+            CExpression fieldExpr(field);
+            recordSet->ExecuteExpression(fieldExpr, m_recordName, exprValue, m_product);
+
+            auxData[1] = exprValue.GetValues()[0];
+
+            // calc. distance from cell centre
+            double x_err = fmod((xPos - m_xMin), m_xStep);
+            double y_err = fmod((yPos - m_yMin), m_yStep);
+            double dist = sqrt(x_err*x_err + y_err*y_err);
+
+            auxData[2] = dist;
+
+            auxData[3] = m_tParam;
+            auxData[4] = m_tFactor;
+            auxData[5] = m_dParam;
+            auxData[6] = m_dFactor;
+            break;
+        }
+        default:
+            break;
+    }
+    return auxData;
+}
 
 //----------------------------------------
 void CBratProcessZFXY::GetDataValuesFromMatrix(uint32_t indexExpr, uint32_t xPos, uint32_t yPos, DoublePtr& dataValues, uint32_t& nbValues)
@@ -1954,6 +1997,7 @@ int32_t CBratProcessZFXY::WriteData()
     double* dataValues = NULL;
     double* countValues = NULL;
     double* meanValues = NULL;
+    double* weightValues = NULL;
 
     unit = m_units[indexExpr];
     unit.SetConversionFromBaseUnit();
@@ -1978,7 +2022,7 @@ int32_t CBratProcessZFXY::WriteData()
       for (uint32_t yPos = 0 ; yPos < m_yCount ; yPos++)
       {
 
-        GetDataValuesFromMatrix(indexExpr, xPos, yPos, dataValues, countValues, meanValues, nbValues);
+        GetDataValuesFromMatrix(indexExpr, xPos, yPos, dataValues, countValues, meanValues, weightValues, nbValues);
 
         //---------------------------------------------
         if (CBratProcessZFXY::IsMatrixDoublePtr(matrix))

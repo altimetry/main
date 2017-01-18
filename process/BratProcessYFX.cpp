@@ -790,7 +790,7 @@ void CBratProcessYFX::RegisterData()
       }
 
 
-      MergeDataValue(dataValues, exprValue.GetValues(), nbValues, indexExpr, countValues, meanValues, weightValues);
+      MergeDataValue(dataValues, exprValue.GetValues(), nbValues, indexExpr, countValues, meanValues, weightValues, NULL);
 
     }
 

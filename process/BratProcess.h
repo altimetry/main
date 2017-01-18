@@ -563,6 +563,7 @@ namespace processes
 			double*	countValue,
 			double*	meanValue,
             double* weightValue,
+            double* auxParams,
 			EMergeDataMode	mode );
 
 
@@ -665,7 +666,8 @@ namespace processes
 			uint32_t indexExpr,
 			double* countValues,
             double* meanValues,
-            double* weightValues);
+            double* weightValues,
+            double* auxParams);
 
 		//void MergeDataValue
 		//( double& data,
