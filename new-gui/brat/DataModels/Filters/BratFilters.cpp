@@ -34,6 +34,8 @@ static const std::string NAME_KEY = "Name";
 
 static const std::string FILTER_AREAS_KEY = "FilterAreas";
 
+static const std::string USING_RELATIVE_TIMES_KEY = "UsingRelativeTimes";
+static const std::string USING_CYCLE_PASS_KEY = "UsingDateTime";
 static const std::string STARTDATE_KEY = "StartDate";
 static const std::string STOPDATE_KEY = "StopDate";
 
@@ -59,6 +61,12 @@ static const std::string DATASET_SELECTION_LOG_FILENAME = "DatasetSelection.log"
 //////////////////////////////////////////////////////////////
 //						Single Filter
 //////////////////////////////////////////////////////////////
+
+//static 
+const bool CBratFilter::smUsingRelativeTimes = false;
+
+//static 
+const bool CBratFilter::smUsingCyclePass = false;
 
 // Setting Brathl internal reference date year (1950)
 //
@@ -91,6 +99,8 @@ CBratFilter& CBratFilter::operator = ( const CBratFilter &o )
 
         mAreaNames = o.mAreaNames;
 
+		mUsingRelativeTimes = o.mUsingRelativeTimes;
+		mUsingCyclePass = o.mUsingCyclePass;
         mStartTime = o.mStartTime;
         mStopTime = o.mStopTime;
 
@@ -181,7 +191,7 @@ void CBratFilter::BoundingArea( double &lon1, double &lat1, double &lon2, double
 
 bool CBratFilter::GetTimeBounds( CDate &Start, CDate &Stop, const std::string &product_label, std::string &error_msg ) const
 {
-    if ( !InvalidCyclePassValues() )
+    if ( UsingCyclePass() && !InvalidCyclePassValues() )
     {
         // 1- Uses Start/Stop Cycle/Pass defined by user
         CMission m( product_label );
@@ -318,6 +328,9 @@ void CBratFilter::Relative2AbsoluteTimes()
 
 void CBratFilter::SetDefaultValues()
 {
+	mUsingRelativeTimes = false;	//absolute always valid (if not using cycle-pass)
+	mUsingCyclePass = false;		//date-times always valid
+
     SetDefaultDateValues();
 
     SetDefaultCyclePassValues();
@@ -328,7 +341,9 @@ void CBratFilter::SetDefaultValues()
 
 void CBratFilter::SetDefaultDateValues()
 {
-    // Setting Brathl internal reference date year (1950): see smStartTime definition
+	//set to valid values that filter nothing
+
+	// Setting Brathl internal reference date year (1950): see smStartTime definition
     mStartTime = smStartTime;
     mStopTime  = QDateTime::currentDateTime();
 }
@@ -341,8 +356,11 @@ bool CBratFilter::InvalidCyclePassValues() const
 		mStartPass == smStartPass ||
 		mStopPass == smStopPass;
 }
+
 void CBratFilter::SetDefaultCyclePassValues()
 {
+	//set to all invalid values
+
     mStartCycle = smStartCycle;
     mStopCycle = smStopCycle;
     mStartPass = smStartPass;
@@ -351,8 +369,11 @@ void CBratFilter::SetDefaultCyclePassValues()
 
 void CBratFilter::SetDefaultRelativeDays()
 {
-    mRelativeStartDays = smRelativeStartDays;
+	//set to invalid values
+	//
+	mRelativeStartDays = smRelativeStartDays;
     mRelativeStopDays = smRelativeStopDays;
+
     mUseCurrentTime = smUseCurrentTime;
     mRelativeReferenceTime = QDateTime::currentDateTime();
 }
@@ -450,6 +471,9 @@ bool CBratFilters::Save()
 
             k_v( FILTER_AREAS_KEY,	list ),
 
+			k_v( USING_RELATIVE_TIMES_KEY,	filter.mUsingRelativeTimes ),
+
+			k_v( USING_CYCLE_PASS_KEY,		filter.mUsingCyclePass ),
             k_v( STARTDATE_KEY,				filter.StartTime().toString( t2q( date_time_format ) ) ),
             k_v( STOPDATE_KEY,				filter.StopTime().toString( t2q( date_time_format ) ) ),
 
@@ -492,13 +516,16 @@ bool CBratFilters::Load()
 
             k_v( FILTER_AREAS_KEY,			&list ),
 
-            k_v( STARTDATE_KEY,				&stime ),
+			k_v( USING_RELATIVE_TIMES_KEY,	&filter.mUsingRelativeTimes,	CBratFilter::smUsingRelativeTimes ),
+
+			k_v( USING_CYCLE_PASS_KEY,		&filter.mUsingCyclePass,		CBratFilter::smUsingCyclePass ),
+			k_v( STARTDATE_KEY,				&stime ),
             k_v( STOPDATE_KEY,				&etime ),
 
-            k_v( STARTCYCLE_KEY,			&filter.StartCycle(),	CBratFilter::smStartCycle ),
-            k_v( STOPCYCLE_KEY,				&filter.StopCycle(),	CBratFilter::smStopCycle ),
-            k_v( STARTPASS_KEY,				&filter.StartPass(),	CBratFilter::smStartPass ),
-            k_v( STOPPASS_KEY,				&filter.StopPass(),		CBratFilter::smStopPass ),
+            k_v( STARTCYCLE_KEY,			&filter.StartCycle(),			CBratFilter::smStartCycle ),
+            k_v( STOPCYCLE_KEY,				&filter.StopCycle(),			CBratFilter::smStopCycle ),
+            k_v( STARTPASS_KEY,				&filter.StartPass(),			CBratFilter::smStartPass ),
+            k_v( STOPPASS_KEY,				&filter.StopPass(),				CBratFilter::smStopPass ),
 
             k_v( RELATIVE_START_DAYS_KEY,	&filter.RelativeStartDays(),	CBratFilter::smRelativeStartDays ),
             k_v( RELATIVE_STOP_DAYS_KEY,	&filter.RelativeStopDays(),		CBratFilter::smRelativeStopDays ),
@@ -649,7 +676,7 @@ std::pair< bool, bool > CBratFilters::Apply( const std::string &name, const CStr
 
 
         // 2. Check if product has all required aliases //
-        // NOTE: This step can be delete if we ensure that GetSelectionCriteriaExpression()
+        // NOTE: This step can be deleted if we ensure that GetSelectionCriteriaExpression()
         // finds the field names case the aliases are not available (RCCC TODO: to be discussed)
         std::string lon_alias = FindAliasValue( product, lon_name() );
         std::string lat_alias = FindAliasValue( product, lat_name() );

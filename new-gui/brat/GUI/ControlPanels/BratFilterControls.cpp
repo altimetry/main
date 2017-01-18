@@ -665,7 +665,6 @@ void CBratFilterControls::HandleFiltersCurrentIndexChanged( int filter_index )
     mWhenBox->setEnabled( filter_index >= 0 );
     mClearWhere->setEnabled( filter_index >= 0 );
     mClearWhen->setEnabled( filter_index >= 0 );
-	mUseTimeRadio->setChecked( true );
 
     if ( filter_index < 0 )
     {
@@ -677,10 +676,10 @@ void CBratFilterControls::HandleFiltersCurrentIndexChanged( int filter_index )
     if ( filter == mFilter )
         return;
 
-    mFilter = filter;
+	mFilter = filter;										assert__( mFilter );
 
-	if ( !mFilter->InvalidCyclePassValues() )
-		mUseCyclePassRadio->setChecked( true );
+	mUseTimeRadio->setChecked( !mFilter->UsingCyclePass() );
+	mUseCyclePassRadio->setChecked( mFilter->UsingCyclePass() );
 
 	// Refresh areas list (checked/unchecked status)
     FillAreasList();
@@ -980,16 +979,11 @@ void CBratFilterControls::HandleUseTimeToggled( bool toggled )
 {
 	mStartTimeEdit->setEnabled( toggled );
 	mStopTimeEdit->setEnabled( toggled );
-	//
-	// Cycle/pass are used if all valid; otherwise dates are used.
-	// But dates are always valid, so cycle/pass must be invalidated
-	//	when the user selects dates, otherwise the 2 sets of values are 
-	//	good and cycle/pass will be used.
-	//
+
 	if ( mFilter )
 	{
-		mFilter->SetDefaultCyclePassValues();
-		updateCyclePassWidgets();
+		mFilter->EnableCyclePass( false );
+		//updateCyclePassWidgets();
 	}
 }
 
@@ -1000,15 +994,21 @@ void CBratFilterControls::HandleUseCyclePass( bool toggled )
 	mStopCycleEdit->setEnabled( toggled );
 	mStartPassEdit->setEnabled( toggled );
 	mStopPassEdit->setEnabled( toggled );
+
+	if ( mFilter )
+	{
+		mFilter->EnableCyclePass( true );
+		//updateCyclePassWidgets();
+	}
 }
 
 
 void CBratFilterControls::HandleStartDateTimeChanged(const QDateTime &start_datetime)
 {
-    mFilter->StartTime() = start_datetime;
+	assert__( mFilter && !mFilter->UsingCyclePass() );
 
-    // When user selects a date, the cycle and pass are automatically deleted (Only user dates are used in When criteria)
-    mFilter->SetDefaultCyclePassValues();
+	mFilter->StartTime() = start_datetime;
+
     updateDateWidgets();
     updateCyclePassWidgets();
 
@@ -1018,10 +1018,10 @@ void CBratFilterControls::HandleStartDateTimeChanged(const QDateTime &start_date
 
 void CBratFilterControls::HandleStopDateTimeChanged(const QDateTime &stop_datetime)
 {
-    mFilter->StopTime() = stop_datetime;
+	assert__( mFilter && !mFilter->UsingCyclePass() );
 
-    // When user selects a date, the cycle and pass are automatically deleted (Only user dates are used in When criteria)
-    mFilter->SetDefaultCyclePassValues();
+	mFilter->StopTime() = stop_datetime;
+
     updateDateWidgets();
     updateCyclePassWidgets();
 
@@ -1031,14 +1031,14 @@ void CBratFilterControls::HandleStopDateTimeChanged(const QDateTime &stop_dateti
 
 void CBratFilterControls::HandleStartCycleChanged()
 {
+	assert__( mFilter && mFilter->UsingCyclePass() );
+
     ValidateAndStoreValue( mStartCycleEdit,              // Text box
                            mFilter->StartCycle(),        // Filter value
                            mFilter->StopCycle(),         // Default Param
                            CTools::m_defaultValueINT32,  // Min
                            mFilter->StopCycle()  );      // Max (should be < StopCycle)
 
-    // When user selects a cycle, the dates are automatically deleted (Only user cycle/pass are used in When criteria)
-    mFilter->SetDefaultDateValues();
     updateDateWidgets();
     updateCyclePassWidgets();
 
@@ -1048,14 +1048,14 @@ void CBratFilterControls::HandleStartCycleChanged()
 
 void CBratFilterControls::HandleStopCycleChanged()
 {
-    ValidateAndStoreValue( mStopCycleEdit,                // Text box
+	assert__( mFilter && mFilter->UsingCyclePass() );
+
+	ValidateAndStoreValue( mStopCycleEdit,                // Text box
                            mFilter->StopCycle(),          // Filter value
                            mFilter->StartCycle(),         // Default Param
                            mFilter->StartCycle(),         // Min (should be > StartCycle)
                            CTools::m_defaultValueINT32 ); // Max
 
-    // When user selects a cycle, the dates are automatically deleted (Only user cycle/pass are used in When criteria)
-    mFilter->SetDefaultDateValues();
     updateDateWidgets();
     updateCyclePassWidgets();
 
@@ -1065,14 +1065,14 @@ void CBratFilterControls::HandleStopCycleChanged()
 
 void CBratFilterControls::HandleStartPassChanged()
 {
-    ValidateAndStoreValue( mStartPassEdit,               // Text box
+	assert__( mFilter && mFilter->UsingCyclePass() );
+
+	ValidateAndStoreValue( mStartPassEdit,               // Text box
                            mFilter->StartPass(),         // Filter value
                            mFilter->StopPass(),          // Default Param
                            CTools::m_defaultValueINT32,  // Min
                            mFilter->StopPass()  );       // Max (should be < StopPass)
 
-    // When user selects a pass, the dates are automatically deleted (Only user cycle/pass are used in When criteria)
-    mFilter->SetDefaultDateValues();
     updateDateWidgets();
     updateCyclePassWidgets();
 
@@ -1082,14 +1082,14 @@ void CBratFilterControls::HandleStartPassChanged()
 
 void CBratFilterControls::HandleStopPassChanged()
 {
-    ValidateAndStoreValue( mStopPassEdit,                 // Text box
+	assert__( mFilter && mFilter->UsingCyclePass() );
+
+	ValidateAndStoreValue( mStopPassEdit,                 // Text box
                            mFilter->StopPass(),           // Filter value
                            mFilter->StartPass(),          // Default Param
                            mFilter->StartPass(),          // Min (should be > StartPass)
                            CTools::m_defaultValueINT32 ); // Max
 
-    // When user selects a pass, the dates are automatically deleted (Only user cycle/pass are used in When criteria)
-    mFilter->SetDefaultDateValues();
     updateDateWidgets();
     updateCyclePassWidgets();
 
@@ -1103,17 +1103,14 @@ void CBratFilterControls::HandleRelativeTimesBoxChecked( bool checked )
 
     if ( mFilter )
     {
-        if ( !checked )
+		mFilter->EnableRelativeTimes( checked );
+		if ( checked )
         {
-            mFilter->DisableRelativeTimes();
-        }
-        else
-        {
-            // When user selects a relative data, Cycle&Pass are automatically deleted (Only user dates are used in When criteria)
-            mFilter->SetDefaultCyclePassValues();
-
             // For updating current DateTime
-            if ( mFilter->UseCurrentTime() ) { mFilter->RelativeReferenceTime() = QDateTime::currentDateTime(); }
+            if ( mFilter->UseCurrentTime() ) 
+			{ 
+				mFilter->RelativeReferenceTime() = QDateTime::currentDateTime(); 
+			}
             mRefDateTimeEdit->setDateTime( mFilter->RelativeReferenceTime() );
         }
         updateDateWidgets();
@@ -1248,6 +1245,8 @@ void CBratFilterControls::updateDateWidgets()
 
 void CBratFilterControls::updateCyclePassWidgets()
 {
+	assert__( mFilter );
+
     // UPDATE start/stop Cycle and Pass
     mStartCycleEdit->setText( isDefaultValue(mFilter->StartCycle()) ? "" : n2q(mFilter->StartCycle()) );
     mStopCycleEdit->setText(  isDefaultValue(mFilter->StopCycle())  ? "" : n2q(mFilter->StopCycle()) );
@@ -1273,7 +1272,9 @@ void CBratFilterControls::updateCyclePassWidgets()
 
 void CBratFilterControls::updateRelativeTimeWidgets()
 {
-    // UPDATE start/stop Relative Times
+	assert__( mFilter );
+
+	// UPDATE start/stop Relative Times
     mRelativeStart->setText( isDefaultValue(mFilter->RelativeStartDays()) ? "" : n2q(mFilter->RelativeStartDays()) );
     mRelativeStop->setText(  isDefaultValue(mFilter->RelativeStopDays() ) ? "" : n2q(mFilter->RelativeStopDays()) );
     mRefDateTimeEdit->setDateTime( mFilter->RelativeReferenceTime() );

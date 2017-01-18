@@ -267,16 +267,6 @@ typedef int		brathl_mission;	 // (int32_t)
 
 
 
-typedef enum
-{
-    EARTH_ROTATION = 0,
-    LIGHT_SPEED,
-    EARTH_GRAVITY,
-    EARTH_RADIUS,
-    ELLIPSOID_PARAM
-} brathl_global_constants;
-
-
 #if defined( __cplusplus )
 }
 #endif  /* __cplusplus */

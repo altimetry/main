@@ -588,7 +588,7 @@ LIBRATHL_API int32_t brathl_Cycle2YMDHMSM(brathl_mission mission, uint32_t cycle
 //----------------------------------------
 
 LIBRATHL_API int32_t brathl_YMDHMSM2Cycle(brathl_mission mission, brathl_DateYMDHMSM *dateYMDHMSM,
-      	      	      	      	          uint32_t *cycle, uint32_t *pass)
+      	      	      	      	          uint_t *cycle, uint_t *pass)
 {
   brathl_errno = BRATHL_SUCCESS;
 

@@ -64,7 +64,7 @@ protected:
 
 
 public:
-    static const std::string m_missionName;
+    static const std::string smMissionName;
 
 protected:
 
@@ -83,7 +83,7 @@ public:
 
   virtual ~CExternalFilesJason2SSHA() { };
 
-  static std::string TypeOf() { return CTools::Format("%s/%s", m_missionName.c_str(), SSHA.c_str()); };
+  static std::string TypeOf() { return CTools::Format("%s/%s", smMissionName.c_str(), SSHA.c_str()); };
   virtual std::string GetType() { return TypeOf(); };
 
 protected:
@@ -110,7 +110,7 @@ public:
   virtual ~CExternalFilesJason2SSHAOGDR() { };
 
 
-  static std::string TypeOf() { return CTools::Format("%s/%s/OGDR", m_missionName.c_str(), SSHA.c_str()); };
+  static std::string TypeOf() { return CTools::Format("%s/%s/OGDR", smMissionName.c_str(), SSHA.c_str()); };
   virtual std::string GetType() { return TypeOf(); };
 protected:
 
@@ -130,7 +130,7 @@ public:
 
   virtual ~CExternalFilesJason2SSHAIGDR() { };
 
-  static std::string TypeOf() { return CTools::Format("%s/%s/IGDR", m_missionName.c_str(), SSHA.c_str());};
+  static std::string TypeOf() { return CTools::Format("%s/%s/IGDR", smMissionName.c_str(), SSHA.c_str());};
   virtual std::string GetType() { return TypeOf(); };
 };
 //-------------------------------------------------------------
@@ -148,7 +148,7 @@ public:
 
   virtual ~CExternalFilesJason2SSHAGDR() { };
 
-  static std::string TypeOf() { return CTools::Format("%s/%s/GDR", m_missionName.c_str(), SSHA.c_str()); };
+  static std::string TypeOf() { return CTools::Format("%s/%s/GDR", smMissionName.c_str(), SSHA.c_str()); };
   virtual std::string GetType() { return TypeOf(); };
 };
 
@@ -166,7 +166,7 @@ public:
 
   virtual ~CExternalFilesJason2GDR() { };
 
-  static std::string TypeOf() { return CTools::Format("%s/%s", m_missionName.c_str(), GDR.c_str());};
+  static std::string TypeOf() { return CTools::Format("%s/%s", smMissionName.c_str(), GDR.c_str());};
   virtual std::string GetType() { return TypeOf(); };
 
 
@@ -190,7 +190,7 @@ public:
 
   virtual ~CExternalFilesJason2GDROGDR() { };
 
-  static std::string TypeOf() { return CTools::Format("%s/%s/OGDR", m_missionName.c_str(), GDR.c_str()); };
+  static std::string TypeOf() { return CTools::Format("%s/%s/OGDR", smMissionName.c_str(), GDR.c_str()); };
   virtual std::string GetType() { return TypeOf(); };
 };
 
@@ -209,7 +209,7 @@ public:
 
   virtual ~CExternalFilesJason2GDRIGDR() { };
 
-  static std::string TypeOf() { return CTools::Format("%s/%s/IGDR", m_missionName.c_str(), GDR.c_str()); };
+  static std::string TypeOf() { return CTools::Format("%s/%s/IGDR", smMissionName.c_str(), GDR.c_str()); };
   virtual std::string GetType() { return TypeOf(); };
 };
 
@@ -228,7 +228,7 @@ public:
 
   virtual ~CExternalFilesJason2GDRGDR() { };
 
-  static std::string TypeOf() { return CTools::Format("%s/%s/GDR", m_missionName.c_str(), GDR.c_str()); };
+  static std::string TypeOf() { return CTools::Format("%s/%s/GDR", smMissionName.c_str(), GDR.c_str()); };
   virtual std::string GetType() { return TypeOf(); };
 };
 
@@ -250,7 +250,7 @@ public:
 
   virtual ~CExternalFilesJason2SGDR() { };
 
-  static std::string TypeOf() { return CTools::Format("%s/%s", m_missionName.c_str(), SGDR.c_str()); };
+  static std::string TypeOf() { return CTools::Format("%s/%s", smMissionName.c_str(), SGDR.c_str()); };
   virtual std::string GetType() { return TypeOf(); };
   
 
@@ -275,7 +275,7 @@ public:
   }
   virtual ~CExternalFilesJason2SGDRIGDR() { };
 
-  static std::string TypeOf() { return CTools::Format("%s/%s/IGDR", m_missionName.c_str(), SGDR.c_str()); };
+  static std::string TypeOf() { return CTools::Format("%s/%s/IGDR", smMissionName.c_str(), SGDR.c_str()); };
   virtual std::string GetType() { return TypeOf(); };
 };
 
@@ -293,7 +293,7 @@ public:
   }
   virtual ~CExternalFilesJason2SGDRGDR() { };
 
-  static std::string TypeOf() { return CTools::Format("%s/%s/GDR", m_missionName.c_str(), SGDR.c_str()); };
+  static std::string TypeOf() { return CTools::Format("%s/%s/GDR", smMissionName.c_str(), SGDR.c_str()); };
   virtual std::string GetType() { return TypeOf(); };
 };
 

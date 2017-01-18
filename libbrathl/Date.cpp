@@ -829,7 +829,7 @@ int32_t CDate::GetDateRef(const CDate& date, brathl_refDate& refDate)
   return result;
 }
 //----------------------------------------
-int32_t CDate::GetDateRef(const brathl_refDate refDate, CDate& date)
+int32_t CDate::GetDateRef( const brathl_refDate refDate, CDate& date) const
 {
 
   int32_t result = BRATHL_SUCCESS;
@@ -1309,8 +1309,7 @@ int32_t CDate::Convert2DMM(int32_t& days, int32_t& milliSeconds, int32_t& muSeco
 
 }
 //----------------------------------------
-int32_t CDate::Convert2DSM(int32_t& days, int32_t& seconds, int32_t& muSeconds,
-      	      	      	   const brathl_refDate refDate /*= REF19500101*/)
+int32_t CDate::Convert2DSM(int32_t& days, int32_t& seconds, int32_t& muSeconds, const brathl_refDate refDate ) const	//= REF19500101
 {
   int32_t result = BRATHL_SUCCESS;
 
@@ -1358,8 +1357,7 @@ int32_t CDate::Convert2DSM(int32_t& days, int32_t& seconds, int32_t& muSeconds,
 }
 
 //----------------------------------------
-int32_t CDate::Convert2DSM(double& days, double& seconds, double& muSeconds,
-      	      	      	   const brathl_refDate refDate /*= REF19500101*/)
+int32_t CDate::Convert2DSM(double& days, double& seconds, double& muSeconds, const brathl_refDate refDate ) const //= REF19500101
 {
   int32_t idays = 0;
   int32_t iseconds = 0;
@@ -1385,7 +1383,7 @@ int32_t CDate::Convert2DSM(double& days, double& seconds, double& muSeconds,
 }
 //----------------------------------------
 
-int32_t CDate::Convert2DecimalJulian(double& julian, const brathl_refDate refDate /*= REF19500101*/)
+int32_t CDate::Convert2DecimalJulian( double& julian, const brathl_refDate refDate ) const	//= REF19500101
 {
   int32_t result = BRATHL_SUCCESS;
   int32_t days = 0;

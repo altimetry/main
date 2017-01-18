@@ -4348,9 +4348,7 @@ std::pair< std::string, std::string > CNetCDFFiles::IdentifyExistingFile( bool c
 			return file_type;
 		}
 
-		// ---------------------------------------------------------
-		// Jason-2 Netcdf
-		// ---------------------------------------------------------
+
 		// search product_type and data_set global attribute values (Netcdf Jason-2) 
 		std::string missionNameAttrValue;
 		std::string productTypeAttrValue;
@@ -4361,6 +4359,7 @@ std::pair< std::string, std::string > CNetCDFFiles::IdentifyExistingFile( bool c
 		//int foundProductTypeAttr = GetAtt(NC_GLOBAL, PRODUCT_TYPE_ATTR, productTypeAttrValue, false, attrNotFound);
 		int foundDataSetAttr = GetAtt( NC_GLOBAL, DATA_SET_ATTR, dataSetAttrValue, false, attrNotFound );
 		int foundTitleAttr = GetAtt( NC_GLOBAL, TITLE_ATTR, titleAttrValue, false, attrNotFound );
+
 
 		// ---------------------------------------------------------
 		// Rads
@@ -4374,21 +4373,76 @@ std::pair< std::string, std::string > CNetCDFFiles::IdentifyExistingFile( bool c
 		}
 
 		// ---------------------------------------------------------
-	// Sentinel 3A
-	// ---------------------------------------------------------
+		// Jason-2 Netcdf
+		// ---------------------------------------------------------
 
-	//	Relation CProduct / CExternalFile
-	//
-	//	CProduct* CProduct::Construct( CProductList& fileNameList ) => 
-	//	...CProductList::CheckFiles() (assigns m_productClass & m_productType) => 
-	//		...CProductList::CheckFilesNetCdf() 
-	//				=> BuildExistingExternalFileKind => IdentifyExistingFile (this function)
-	//				=> assigns AGAIN m_productClass & m_productType with the matching values in the class CExternalFilesXXX returned here; 
-	//						odd NOTE 1. CheckFilesNetCdf fails if m_productType is different from here; when concludes its equal, assigns it again...
-	//						odd NOTE 2. at least for CExternalFilesNetCDFCFGeneric hierarchy, virtual GetType return the static TypeOf, so it must be repeated in every derived class
-	//
-	//	...if-else-if sequence to build instance of derived class according to m_productClass & m_productType of CProductList
-	//
+		if ( foundDataSetAttr != NC_NOERR )
+		{
+			if ( foundTitleAttr == NC_NOERR )
+			{
+				int32_t pos = CTools::FindNoCase( titleAttrValue, SSHA_TITLE );
+				if ( pos >= 0 )
+				{
+					dataSetAttrValue = SSHA;
+					foundDataSetAttr = NC_NOERR;
+				}
+
+				// ----------------------------------------
+				// WARNING : first test "GDR" then "SGDR" 
+				// ----------------------------------------
+				pos = CTools::FindNoCase( titleAttrValue, GDR_TITLE );
+				if ( pos >= 0 )
+				{
+					dataSetAttrValue = GDR;
+					foundDataSetAttr = NC_NOERR;
+				}
+
+				pos = CTools::FindNoCase( titleAttrValue, SGDR_TITLE );
+				if ( pos >= 0 )
+				{
+					dataSetAttrValue = SGDR;
+					foundDataSetAttr = NC_NOERR;
+				}
+			}
+		}
+
+		//if ((foundMissionNameAttr == NC_NOERR) && (foundProductTypeAttr == NC_NOERR) && (foundDataSetAttr == NC_NOERR)) 
+		if ( ( foundMissionNameAttr == NC_NOERR ) && ( foundDataSetAttr == NC_NOERR ) )
+		{
+			static const std::vector< std::string > j2_aliases { "Jason-2", "OSTM/Jason-2", "jason2", "j2", "mission_name", "(mission_name)", "{mission_name}" };
+
+			for ( auto const &s : j2_aliases )
+			{
+				if ( str_icmp( s, missionNameAttrValue ) )
+				{
+					//        fileTypeStr = CTools::StringToUpper(CTools::Format("%s/%s/%s",
+					//                                            mission.GetName(), 
+					//                                            dataSetAttrValue.c_str(),
+					//                                            productTypeAttrValue.c_str()
+					//                                            )
+					file_type.first = CTools::StringToUpper( CTools::Format( "%s/%s", "Jason-2", dataSetAttrValue.c_str() ) );
+					return file_type;
+				}
+			}
+		}
+
+
+		// ---------------------------------------------------------
+		// Sentinel 3A
+		// ---------------------------------------------------------
+
+		//	Relation CProduct / CExternalFile
+		//
+		//	CProduct* CProduct::Construct( CProductList& fileNameList ) => 
+		//	...CProductList::CheckFiles() (assigns m_productClass & m_productType) => 
+		//		...CProductList::CheckFilesNetCdf() 
+		//				=> BuildExistingExternalFileKind => IdentifyExistingFile (this function)
+		//				=> assigns AGAIN m_productClass & m_productType with the matching values in the class CExternalFilesXXX returned here; 
+		//						odd NOTE 1. CheckFilesNetCdf fails if m_productType is different from here; when concludes its equal, assigns it again...
+		//						odd NOTE 2. at least for CExternalFilesNetCDFCFGeneric hierarchy, virtual GetType return the static TypeOf, so it must be repeated in every derived class
+		//
+		//	...if-else-if sequence to build instance of derived class according to m_productClass & m_productType of CProductList
+		//
 
 		if ( foundMissionNameAttr == NC_NOERR && missionNameAttrValue == CExternalFilesSentinel3A::TypeOf() )
 		{
@@ -4396,12 +4450,13 @@ std::pair< std::string, std::string > CNetCDFFiles::IdentifyExistingFile( bool c
 
 			std::string dummy;
 
-			//if "mission_name" equals "Sentinel 3A" and exists attribute "xref_altimeter_level1" the Sentinel 3A level 2
-
+            // if "mission_name" equals "Sentinel 3A" and exists attribute "xref_altimeter_level1" the Sentinel 3A level 2
+            // For S3A L1A, L1B and L1B-S, we'll check the existance of the corresponding time variables
 			int found_ref_altimeter_level1 = GetAtt( NC_GLOBAL, "xref_altimeter_level1", dummy, false, attrNotFound );
-			int found_time_l1b_echo_sar_ku = GetAtt( NC_GLOBAL, "time_l1b_echo_sar_ku", dummy, false, attrNotFound );
-			int found_time_l1a_echo_sar_ku = GetAtt( NC_GLOBAL, "time_l1a_echo_sar_ku", dummy, false, attrNotFound );
-			int found_time_l1bs_echo_sar_ku = GetAtt( NC_GLOBAL, "time_l1bs_echo_sar_ku", dummy, false, attrNotFound );
+            bool found_time_l1b_echo_sar_ku = VarExists("time_l1b_echo_sar_ku");
+            bool found_time_l1a_echo_sar_ku = VarExists("time_l1a_echo_sar_ku");
+            bool found_time_l1bs_echo_sar_ku = VarExists("time_l1bs_echo_sar_ku");
+
 			if ( found_ref_altimeter_level1 == NC_NOERR )
 			{
 				// if exists dimension "echo_sample_ind" the enhanced, if exists dimension "time_20_ku" then standard,  otherwise reduced
@@ -4415,19 +4470,19 @@ std::pair< std::string, std::string > CNetCDFFiles::IdentifyExistingFile( bool c
 					return { CExternalFilesSentinel3A_reduced::TypeOf(), "" };	//    S3A/SR_2_RED (s3a reduced level 2 product
 			}
 			else
-			if ( found_time_l1b_echo_sar_ku == NC_NOERR )
+            if ( found_time_l1b_echo_sar_ku == true )
 			{
 				//    S3A/SR_1_B - Mission name is Sentinel 3A and dimension "time_l1b_echo_sar_ku" exists.
 				return { CExternalFilesSentinel3A_l1b::TypeOf(), "" };
 			}
 			else
-			if ( found_time_l1a_echo_sar_ku == NC_NOERR )
+            if ( found_time_l1a_echo_sar_ku == true )
 			{
 				//    S3A/SR_1_A Mission name is Sentinel 3A and dimension "time_l1a_echo_sar_ku" exists.
 				return { CExternalFilesSentinel3A_l1a::TypeOf(), "" };
 			}
 			else
-			if ( found_time_l1bs_echo_sar_ku == NC_NOERR )
+            if ( found_time_l1bs_echo_sar_ku == true )
 			{
 				//    S3A/SR_1_BS Mission name is Sentinel 3A and dimension "time_l1bs_echo_sar_ku" exists.
 				return { CExternalFilesSentinel3A_l1bs::TypeOf(), "" };
@@ -4498,63 +4553,10 @@ std::pair< std::string, std::string > CNetCDFFiles::IdentifyExistingFile( bool c
 			}
 
 
-		int32_t pos = -1;
-
-		if ( foundDataSetAttr != NC_NOERR )
-		{
-			if ( foundTitleAttr == NC_NOERR )
-			{
-				pos = CTools::FindNoCase( titleAttrValue, SSHA_TITLE );
-				if ( pos >= 0 )
-				{
-					dataSetAttrValue = SSHA;
-					foundDataSetAttr = NC_NOERR;
-				}
-
-				// ----------------------------------------
-				// WARNING : first test "GDR" then "SGDR" 
-				// ----------------------------------------
-				pos = CTools::FindNoCase( titleAttrValue, GDR_TITLE );
-				if ( pos >= 0 )
-				{
-					dataSetAttrValue = GDR;
-					foundDataSetAttr = NC_NOERR;
-				}
-
-				pos = CTools::FindNoCase( titleAttrValue, SGDR_TITLE );
-				if ( pos >= 0 )
-				{
-					dataSetAttrValue = SGDR;
-					foundDataSetAttr = NC_NOERR;
-				}
-			}
-		}
-		//if ((foundMissionNameAttr == NC_NOERR) && (foundProductTypeAttr == NC_NOERR) && (foundDataSetAttr == NC_NOERR)) 
-		if ( ( foundMissionNameAttr == NC_NOERR ) && ( foundDataSetAttr == NC_NOERR ) )
-
-		{
-			CMission mission( "Jason-2", false );
-			CStringList aliases;
-			mission.LoadAliasName( aliases );
-			if ( aliases.ExistsNoCase( missionNameAttrValue ) )
-			{
-				//        fileTypeStr = CTools::StringToUpper(CTools::Format("%s/%s/%s",
-				//                                            mission.GetName(), 
-				//                                            dataSetAttrValue.c_str(),
-				//                                            productTypeAttrValue.c_str()
-				//                                            )
-				file_type.first = CTools::StringToUpper( CTools::Format( "%s/%s",
-					mission.GetName(),
-					dataSetAttrValue.c_str()
-				)
-				);
-				return file_type;
-			}
-		}
-
 		// ---------------------------------------------------------
 		// Generic Netcdf
 		// ---------------------------------------------------------
+
 		file_type.first = GENERIC_NETCDF_TYPE;
 
 	}
@@ -4570,56 +4572,6 @@ std::pair< std::string, std::string > CNetCDFFiles::IdentifyExistingFile( bool c
 	}
 
 	return file_type;
-
-	/*
-		char	*AttName;
-		char	AttValue[1024];
-
-
-		AttName	= FILE_TYPE_ATTR;
-		Status	= nc_inq_att(File, NC_GLOBAL, AttName, &Type, &Length);
-		if (Status != NC_NOERR)
-		{
-		  if ((Status != NC_ENOTATT) && CheckConvention)
-		  {
-		AttName	= CONVENTIONS_ATTR;
-			Status	= nc_inq_att(File, NC_GLOBAL, AttName, &Type, &Length);
-		  }
-		  if (Status != NC_NOERR)
-			throw CFileException(CTools::Format("Accessing global attribute '%s': %s", AttName, nc_strerror(Status)),
-					 Name,
-					 BRATHL_LOGIC_ERROR);
-		}
-		if (Length >= sizeof(AttValue))
-		{
-		  throw CFileException(CTools::Format("Global attribute '%s' is too long: type = %d", AttName, Length),
-				   Name,
-				   BRATHL_IO_ERROR);
-		}
-		if (Type != NC_CHAR)
-		{
-		  throw CFileException(CTools::Format("Global attribute 'FileType' is not a char: type = %d", Type),
-				   Name,
-				   BRATHL_LOGIC_ERROR);
-		}
-		Status	= nc_get_att_text(File, NC_GLOBAL, FILE_TYPE_ATTR, AttValue);
-		// Put the final '\0' and remove all trailing blanks
-		AttValue[Length]	= '\0';
-		while ((Length > 0) && (AttValue[Length-1] == ' '))
-		  AttValue[--Length] = '\0';
-		fileTypeStr	= AttValue;
-	  }
-	  catch (...)
-	  {
-		nc_close(File);
-		File	= -1;
-		if (! NoError)
-		  throw;
-	  }
-	  if (File != -1)
-		nc_close(File);
-	  return fileTypeStr;
-	  */
 }
 
 //----------------------------------------

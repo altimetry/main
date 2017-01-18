@@ -37,9 +37,115 @@
 using namespace brathl;
 
 
-
 namespace brathl
 {
+
+	enum  brathl_global_constants
+	{
+		EARTH_ROTATION = 0,
+		LIGHT_SPEED,
+		EARTH_GRAVITY,
+		EARTH_RADIUS,
+		ELLIPSOID_PARAM
+	};
+
+
+	static double GetGlobalConstant( brathl_global_constants constantValue )
+	{
+		switch (constantValue)
+		{
+			case EARTH_ROTATION:
+				return 360.0 / 86400.0;
+
+			case LIGHT_SPEED:
+				return 299792.458;
+
+			case EARTH_GRAVITY:
+				return 9.807;
+
+			case EARTH_RADIUS:
+				return 6378.1363;
+
+			case ELLIPSOID_PARAM:
+				return 298.257;
+				/*
+				case EARTH_RADIUS:
+				switch (Inv_IdMission)
+				{
+				case E_MIS_ERS1:
+				case E_MIS_ERS2:
+				case E_MIS_Envisat:
+				case E_MIS_ENN:
+				case E_MIS_Geosat:
+				case E_MIS_Cryosat1:
+				case E_MIS_Icesat1:
+				return 6378.137;
+
+				case E_MIS_TP:
+				case E_MIS_TPN:
+				case E_MIS_Topex:
+				case E_MIS_Poseidon:
+				case E_MIS_Jason1:
+				case E_MIS_J1N:
+				case E_MIS_Jason2:
+				case E_MIS_GFO:
+				return 6378.1363;
+
+				case E_MIS_Altika:
+				abort();
+
+				case E_MIS_inconnue:
+				return dc_SUDV_DefReal8;
+
+				default:
+				assert(0);
+				}
+				break;
+
+				case ELLIPSOID_PARAM:
+				switch (Inv_IdMission)
+				{
+				case E_MIS_ERS1:
+				case E_MIS_ERS2:
+				case E_MIS_Envisat:
+				case E_MIS_ENN:
+				case E_MIS_Geosat:
+				case E_MIS_Cryosat1:
+				case E_MIS_Icesat1:
+				return 298.257223563;
+
+				case E_MIS_TP:
+				case E_MIS_TPN:
+				case E_MIS_Topex:
+				case E_MIS_Poseidon:
+				case E_MIS_Jason1:
+				case E_MIS_J1N:
+				case E_MIS_Jason2:
+				case E_MIS_GFO:
+				return 298.257;
+
+				case E_MIS_Altika:
+				abort();
+
+				case E_MIS_inconnue:
+				return dc_SUDV_DefReal8;
+
+				default:
+				assert(0);
+				}
+				*/
+			default:
+				CException e(CTools::Format("GetGeneralConstant - invalid/unknown input constant '%d'", constantValue),
+					BRATHL_LOGIC_ERROR);
+				throw (e);
+		}
+		CException e(CTools::Format("GetGeneralConstant - invalid/unknown input constant '%d'", constantValue),
+			BRATHL_LOGIC_ERROR);
+		throw (e);
+		return 0;
+	}
+
+
 
   const std::string CBratAlgorithmGeosVel::m_LAT_PARAM_NAME = "%{lat}";
   const std::string CBratAlgorithmGeosVel::m_LON_PARAM_NAME = "%{lon}";
@@ -70,9 +176,9 @@ CBratAlgorithmGeosVel::~CBratAlgorithmGeosVel()
 //----------------------------------------
 void CBratAlgorithmGeosVel::Init()
 {
-  m_earthRadius = CMission::GetGlobalConstant(EARTH_RADIUS);
-  m_gravity = CMission::GetGlobalConstant(EARTH_GRAVITY);
-  m_omega = CTools::Deg2Rad(CMission::GetGlobalConstant(EARTH_ROTATION));
+  m_earthRadius = GetGlobalConstant(EARTH_RADIUS);
+  m_gravity = GetGlobalConstant(EARTH_GRAVITY);
+  m_omega = CTools::Deg2Rad(GetGlobalConstant(EARTH_ROTATION));
   m_beta = -m_gravity * m_earthRadius * 1000.0 / (2.0 * m_omega);
   m_degreeToRadianMutiplier = M_PI / 180.0;
   m_p2 = m_degreeToRadianMutiplier * m_earthRadius;

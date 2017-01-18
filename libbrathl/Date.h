@@ -278,7 +278,7 @@ public:
      \param muSeconds [out]: number of microseconds
      \param refDate [in]: date reference (default value is REF19500101 - see #brathl_refDate)
      \return #BRATHL_SUCCESS or error code (see \ref Date_error_codes) */
-  int32_t Convert2DSM(int32_t& days, int32_t& seconds, int32_t& muSeconds, const brathl_refDate refDate = REF19500101);
+  int32_t Convert2DSM(int32_t& days, int32_t& seconds, int32_t& muSeconds, const brathl_refDate refDate = REF19500101) const;
 
   /** Converts the date value into a number of days, seconds, microseconds
      \param days [out]: number of days (can be < 0)
@@ -286,14 +286,14 @@ public:
      \param muSeconds [out]: number of microseconds
      \param refDate [in]: date reference (default value is REF19500101 - see #brathl_refDate)
      \return #BRATHL_SUCCESS or error code (see \ref Date_error_codes) */
-  int32_t Convert2DSM(double& days, double& seconds, double& muSeconds, const brathl_refDate refDate = REF19500101);
+  int32_t Convert2DSM(double& days, double& seconds, double& muSeconds, const brathl_refDate refDate = REF19500101) const;
   
   
   /** Converts the date value into a decimal julian day
      \param julian [out]: decimal julian day (can be < 0)
      \param refDate [in]: date reference (default value is REF19500101 - see #brathl_refDate)
      \return #BRATHL_SUCCESS or error code (see \ref Date_error_codes) */
-  int32_t Convert2DecimalJulian(double& julian, const brathl_refDate refDate = REF19500101);
+  int32_t Convert2DecimalJulian( double& julian, const brathl_refDate refDate = REF19500101 ) const;
 
   /** Converts the date value into a decimal number of seconds
      \param seconds [out]: decimal number of seconds day (can be < 0)
@@ -518,7 +518,7 @@ private:
     \param refDate [in]: date reference (default value is REF19500101 - see #brathl_refDate)
     \param date [out] : CDate object whose value corresponds to the refDate parameter
     \return #BRATHL_SUCCESS or error code (see \ref Date_error_codes) */
-  int32_t GetDateRef(const brathl_refDate refDate, CDate& date);
+  int32_t GetDateRef( const brathl_refDate refDate, CDate &date ) const;
 
 public:
   /** Construct a date reference enumeration according to a CDate object 

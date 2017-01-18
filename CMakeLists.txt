@@ -1586,7 +1586,6 @@ set(CODADEF_FILES
 set(LIBBRATHL_DATA_FILES
   data/brathl_units.dat
   data/brathl_refmission.txt
-  data/brathl_aliasmission.txt
   data/brathl_transposefieldvalues.txt
   data/aliases.xml
   data/aliases.xsd
@@ -3464,12 +3463,36 @@ add_dependencies(doc codadoc)
 
 set(SOURCE_DISTRIB_FILE ${BRAT_BINARY_DIR}/brat-${BRAT_VERSION}.tar.gz)
 
+set(SOURCE_DIRECTORIES_TO_EXCLUDE
+	externals/coda
+	externals/curl
+	externals/hdf5
+	externals/libgeotiff
+	externals/netcdf-c
+	externals/proj
+	externals/SZip
+	externals/udunits
+	)
+
 add_custom_target(sdist
-  COMMENT "Creating source package tar file ${SOURCE_DISTRIB_FILE}"
-  COMMAND ${BRAT_SOURCE_DIR}/packager/CreateSourcePackage.pl ${BRAT_SOURCE_DIR} ${BRAT_BINARY_DIR} brat-${BRAT_VERSION}
-  COMMAND ${CMAKE_COMMAND} -E remove ${SOURCE_DISTRIB_FILE}
-  COMMAND ${CMAKE_COMMAND} -E tar cfz ${SOURCE_DISTRIB_FILE} brat-${BRAT_VERSION}
-  )
+	COMMENT "Creating source package tar file ${SOURCE_DISTRIB_FILE}"
+	COMMAND ${CMAKE_COMMAND} -E copy_directory ${BRAT_SOURCE_DIR} ${BRAT_BINARY_DIR}/brat-${BRAT_VERSION}
+
+	# How to replace these remove_directory commands with some kind of foreach that iterates over SOURCE_DIRECTORIES_TO_EXCLUDE?
+
+	COMMAND ${CMAKE_COMMAND} -E remove_directory ${BRAT_BINARY_DIR}/brat-${BRAT_VERSION}/externals/coda
+	COMMAND ${CMAKE_COMMAND} -E remove_directory ${BRAT_BINARY_DIR}/brat-${BRAT_VERSION}/externals/curl
+	COMMAND ${CMAKE_COMMAND} -E remove_directory ${BRAT_BINARY_DIR}/brat-${BRAT_VERSION}/externals/hdf5
+	COMMAND ${CMAKE_COMMAND} -E remove_directory ${BRAT_BINARY_DIR}/brat-${BRAT_VERSION}/externals/libgeotiff
+	COMMAND ${CMAKE_COMMAND} -E remove_directory ${BRAT_BINARY_DIR}/brat-${BRAT_VERSION}/externals/netcdf-c
+	COMMAND ${CMAKE_COMMAND} -E remove_directory ${BRAT_BINARY_DIR}/brat-${BRAT_VERSION}/externals/proj
+	COMMAND ${CMAKE_COMMAND} -E remove_directory ${BRAT_BINARY_DIR}/brat-${BRAT_VERSION}/externals/SZip
+	COMMAND ${CMAKE_COMMAND} -E remove_directory ${BRAT_BINARY_DIR}/brat-${BRAT_VERSION}/externals/udunits
+	COMMAND ${CMAKE_COMMAND} -E remove_directory ${BRAT_BINARY_DIR}/brat-${BRAT_VERSION}/generated
+
+	COMMAND ${CMAKE_COMMAND} -E remove ${SOURCE_DISTRIB_FILE}
+	COMMAND ${CMAKE_COMMAND} -E tar cfz ${SOURCE_DISTRIB_FILE} brat-${BRAT_VERSION}
+	)
 
 # Deprecated legacy target
 add_custom_target(source_package)
