@@ -262,6 +262,9 @@ protected:
 	int32_t m_dataMode = CMapDataMode::GetInstance().GetDefault();
 	std::string mDataModeDITimeName;
 	CDate mDataModeDIDateTime;
+	double mDataModeDIDistanceWeightingParameter = 0.;
+	double mDataModeDITimeWeightingParameter = 0.;
+
 
     bool mNorthComponent = false;
     bool mEastComponent = false;
@@ -506,8 +509,26 @@ public:
 
 	const std::string& DataModeDITimeName() const { return mDataModeDITimeName; }
 	void SetDataModeDITimeName( const std::string &name ) { mDataModeDITimeName = name; }
+
 	const CDate& DataModeDIDateTime() const { return mDataModeDIDateTime; }
 	void SetDataModeDIDateTime( const CDate &date_time ) { mDataModeDIDateTime = date_time; }
+
+	double DataModeDIDistanceWeightingParameter() const { return mDataModeDIDistanceWeightingParameter; }
+	void SetDataModeDIDistanceWeightingParameter( double v ) 
+	{ 
+		assert__( v >= 0. );
+
+		mDataModeDIDistanceWeightingParameter = v; 
+	}
+
+	double DataModeDITimeWeightingParameter() const { return mDataModeDITimeWeightingParameter; }
+	void SetDataModeDITimeWeightingParameter( double v ) 
+	{ 
+		assert__( v >= 0. );
+
+		mDataModeDITimeWeightingParameter = v; 
+	}
+
 
 	///Dump fonction
 	virtual void Dump( std::ostream& fOut = std::cerr );

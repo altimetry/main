@@ -516,6 +516,14 @@ bool CWorkspaceSettings::SaveConfig( const CFormula &f, const std::string& pathS
 		WriteValue( section, ENTRY_DATA_MODE, f.GetDataModeAsString() );
 		WriteValue( section, ENTRY_DATA_MODE_DI_TIME_FIELD_NAME, f.DataModeDITimeName() );
 		WriteValue( section, ENTRY_DATA_MODE_DI_DATE_TIME, f.DataModeDIDateTime().AsString() );
+		if ( !isDefaultValue( f.DataModeDIDistanceWeightingParameter() ) )
+		{
+			WriteValue( section, ENTRY_DATA_MODE_DI_DISTANCE_WEIGHTING, CTools::Format( "%.15g", f.DataModeDIDistanceWeightingParameter() ) );
+		}
+		if ( !isDefaultValue( f.DataModeDITimeWeightingParameter() ) )
+		{
+			WriteValue( section, ENTRY_DATA_MODE_DI_TIME_WEIGHTING, CTools::Format( "%.15g", f.DataModeDITimeWeightingParameter() ) );
+		}
 	}
 
 	return Status() == QSettings::NoError;
@@ -586,9 +594,11 @@ bool CWorkspaceSettings::LoadConfig( CFormula &f, std::string &error_msg, const 
 		k_v( ENTRY_STEP,							&f.m_step,					f.DEFAULT_STEP_GENERAL_ASSTRING ),
 		k_v( ENTRY_LOESSCUTOFF,						&f.m_loessCutOff,			defaultValue< int32_t >() ),
 		k_v( ENTRY_DATA_MODE,						&data_mode					),
-		k_v( ENTRY_DATA_MODE_DI_TIME_FIELD_NAME,	&f.mDataModeDITimeName,		empty_string() ),
-		k_v( ENTRY_DATA_MODE_DI_DATE_TIME,			&data_mode_di_date_time,	CDate().AsString() )
-	);
+		k_v( ENTRY_DATA_MODE_DI_TIME_FIELD_NAME,	&f.mDataModeDITimeName,					empty_string() ),
+		k_v( ENTRY_DATA_MODE_DI_DATE_TIME,			&data_mode_di_date_time,				CDate().AsString() ),
+		k_v( ENTRY_DATA_MODE_DI_DISTANCE_WEIGHTING,	&f.mDataModeDIDistanceWeightingParameter,	0. ),
+		k_v( ENTRY_DATA_MODE_DI_TIME_WEIGHTING,		&f.mDataModeDITimeWeightingParameter,		0. )
+		);
 
 	if ( f.m_step.empty() )
 		f.m_step = f.DEFAULT_STEP_GENERAL_ASSTRING;
