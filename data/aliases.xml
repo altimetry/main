@@ -203,8 +203,8 @@
     <defaultRecord name="data"/>
 
     <aliases>
-	  <alias name="lat">latitude</alias>
-	  <alias name="lon">longitude</alias>
+	  <alias name="lat">mean_latitude</alias>
+	  <alias name="lon">mean_longitude</alias>
 	  <alias name="time">time</alias>
 	</aliases>
 
