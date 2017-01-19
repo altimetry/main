@@ -225,9 +225,14 @@ public:
                 std::string data_mode_di_time_name = value->DataModeDITimeName();
                 if ( data_mode_di_time_name.empty() )
                     data_mode_di_time_name = "DV";
-				WriteLn( value->GetFieldPrefix() + DATA_MODE_SUFFIX +				"=" + value->GetDataModeAsString() );
-				WriteLn( value->GetFieldPrefix() + DATA_MODE_DI_TIME_NAME_SUFFIX +	"=" + data_mode_di_time_name );
-				WriteLn( value->GetFieldPrefix() + DATA_MODE_DI_DATE_TIME_SUFFIX +	"=" + value->DataModeDIDateTime().AsString() );
+
+				std::string distance_waiting = n2s<std::string>( value->DataModeDIDistanceWeightingParameter() );
+				std::string time_waiting = n2s<std::string>( value->DataModeDITimeWeightingParameter() );
+
+				WriteLn( value->GetFieldPrefix() + DATA_MODE_SUFFIX +						"=" + value->GetDataModeAsString() );
+				WriteLn( value->GetFieldPrefix() + DATA_MODE_DI_TIME_NAME_SUFFIX +			"=" + data_mode_di_time_name );
+				WriteLn( value->GetFieldPrefix() + DATA_MODE_DI_DISTANCE_WEIGHTING_SUFFIX +	"=" + distance_waiting );
+				WriteLn( value->GetFieldPrefix() + DATA_MODE_DI_TIME_WEIGHTING_SUFFIX +		"=" + time_waiting );
 			}
 
 			std::string valueString = ( value->GetTitle().empty() ) ? value->GetName() : value->GetTitle();

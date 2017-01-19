@@ -1561,7 +1561,10 @@ void COperationControls::SelectDataComputationMode()		//from COperationPanel::Ge
     else
         mDataComputation->setText( "" );
 
-	mDatasetInterpolationButton->setEnabled( CMapDataMode::GetInstance().IdToName( CBratProcess::pctTIME ).c_str() == action->text() );
+	mDatasetInterpolationButton->setEnabled( 
+		mAdvancedFieldsTree->Product() &&
+		CMapDataMode::GetInstance().IdToName( CBratProcess::pctTIME ).c_str() == action->text() 
+	);
 }
 
 // Assigns data computation mode to mUserFormula using caller (action) id
@@ -1593,9 +1596,15 @@ void COperationControls::HandleDataComputation()
 
 bool COperationControls::DatasetInterpolationRequested()
 {
-	assert__( mCurrentOperation && mAdvancedFieldsTree->Product() && mUserFormula && mUserFormula == mDataExpressionsTree->SelectedFormula() );
+	assert__( mCurrentOperation && mUserFormula && mUserFormula == mDataExpressionsTree->SelectedFormula() );
 	assert__( mCurrentOperation->GetSelect() != mUserFormula );
 	assert__( mUserFormula->GetDataMode() == CBratProcess::pctTIME );
+
+	if ( !mAdvancedFieldsTree->Product() )
+	{
+		SimpleWarnBox( "Cannot retrieve fields from an empty product." );
+		return false;
+	}
 
 	CProductInfo pi( mAdvancedFieldsTree->Product() );
 	std::vector< std::string > list;
@@ -1605,11 +1614,18 @@ bool COperationControls::DatasetInterpolationRequested()
 	}
 	);
 
-	CDatasetInterpolationDialog dlg( list, mUserFormula->DataModeDITimeName(), CBratFilter::brat2q( mUserFormula->DataModeDIDateTime() ), this );
+	CDatasetInterpolationDialog dlg( list, 
+		mUserFormula->DataModeDITimeName(), 
+		CBratFilter::brat2q( mUserFormula->DataModeDIDateTime() ), 
+		mUserFormula->DataModeDIDistanceWeightingParameter(),
+		mUserFormula->DataModeDITimeWeightingParameter(),
+		this );
 	if ( dlg.exec() == QDialog::Accepted )
 	{
 		mUserFormula->SetDataModeDIDateTime( CBratFilter::q2brat( dlg.DataModeDIDateTime() ) );
 		mUserFormula->SetDataModeDITimeName( dlg.DataModeDITimeName() );
+		mUserFormula->SetDataModeDIDistanceWeightingParameter( dlg.DistanceWeightingParameter() );
+		mUserFormula->SetDataModeDITimeWeightingParameter( dlg.TimeWeightingParameter() );
 		return true;
 	}
 

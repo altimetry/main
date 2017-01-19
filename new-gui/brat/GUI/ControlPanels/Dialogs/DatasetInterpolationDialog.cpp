@@ -42,6 +42,9 @@ void CDatasetInterpolationDialog::Setup()
 	);
 	mFieldsList->setCurrentRow( selected );
 
+	mDistanceWeightingParameterEdit->setText( n2q( mDistanceWeightingParameter ) );
+	mTimeWeightingParameterEdit->setText( n2q( mTimeWeightingParameter ) );
+
 	connect( mButtonBox, SIGNAL( accepted() ), this, SLOT( accept() ) );
     connect( mButtonBox, SIGNAL( rejected() ), this, SLOT( reject() ) );
 }
@@ -54,9 +57,19 @@ void CDatasetInterpolationDialog::CreateWidgets()
 	mDateTimeEdit = new QDateTimeEdit;							//mDateTimeEdit->setCalendarPopup(true);
 	mDateTimeEdit->setDisplayFormat("yyyy.MM.dd hh:mm:ss");
 
+	mDistanceWeightingParameterEdit = new QLineEdit;				mDistanceWeightingParameterEdit->setValidator( new QRegExpValidator( QRegExp( "[0-9.]+" ) ) );
+	mTimeWeightingParameterEdit = new QLineEdit;					mTimeWeightingParameterEdit->setValidator( new QRegExpValidator( QRegExp( "[0-9.]+" ) ) );
+
 	auto *widgets_l = CreateGroupBox( ELayoutType::Vertical,
 	{
-		new QLabel( "Time Field" ), mFieldsList, new QLabel( "Interpolation Date" ), mDateTimeEdit
+		new QLabel( "Time Field" ), 
+		mFieldsList, 
+		new QLabel( "Interpolation Date" ), 
+		mDateTimeEdit,
+		new QLabel( "Distance Weighting [meters]" ), 
+		mDistanceWeightingParameterEdit,
+		new QLabel( "Time Weighting [seconds]" ), 
+		mTimeWeightingParameterEdit
 	},
 	"", nullptr, 2, 2, 2, 2, 2 );
 
@@ -64,7 +77,7 @@ void CDatasetInterpolationDialog::CreateWidgets()
     //... Help
 
     mHelpText = new CTextWidget;
-	mHelpText->SetHelpProperties( "Select which of the product fields represents time and enter a date for Dataset Interpolation" , 1, 6, Qt::AlignCenter, true );
+	mHelpText->SetHelpProperties( "Select which of the product fields represents time and enter the values for Dataset Interpolation" , 1, 6, Qt::AlignCenter, true );
 	mHelpText->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
 	mHelpText->adjustSize();
 	auto help_group = CreateGroupBox( ELayoutType::Vertical, { mHelpText }, "", nullptr, 6, 6, 6, 6, 6 );
@@ -101,11 +114,14 @@ void CDatasetInterpolationDialog::CreateWidgets()
 }
 
 
-CDatasetInterpolationDialog::CDatasetInterpolationDialog( const std::vector< std::string > &list, const std::string &name, const QDateTime &dt, QWidget *parent )
+CDatasetInterpolationDialog::CDatasetInterpolationDialog( const std::vector< std::string > &list, const std::string &name, const QDateTime &dt, 
+	double distance_waiting, double time_waiting, QWidget *parent )
 	: base_t( parent )
 	, mFieldMNamesList ( list )
 	, mDataModeDITimeName( name )
 	, mDataModeDIDateTime( dt )
+	, mDistanceWeightingParameter( distance_waiting )
+	, mTimeWeightingParameter( time_waiting )
 {
 	CreateWidgets();
 }
@@ -119,9 +135,31 @@ CDatasetInterpolationDialog::~CDatasetInterpolationDialog()
 //virtual
 void CDatasetInterpolationDialog::accept()
 {
+	if ( !mFieldsList->currentItem() )
+	{
+		SimpleErrorBox( "The time field must be selected." );
+		return;
+	}
+
 	mDataModeDITimeName = q2a( mFieldsList->currentItem()->text() );
 	mDataModeDIDateTime = mDateTimeEdit->dateTime();
-	base_t::accept();
+
+	bool ok_conv = false;
+	double v = mDistanceWeightingParameterEdit->text().toDouble( &ok_conv );
+	if ( !ok_conv || v < 0. )
+		mDistanceWeightingParameterEdit->setText( n2s< std::string >( mDistanceWeightingParameter ).c_str() );
+	else
+	{
+		mDistanceWeightingParameter = v;
+		v = mTimeWeightingParameterEdit->text().toDouble( &ok_conv );
+		if ( !ok_conv|| v < 0. )
+			mTimeWeightingParameterEdit->setText( n2s< std::string >( mTimeWeightingParameter ).c_str() );
+		else
+			mTimeWeightingParameter = v;
+	}
+
+	if ( ok_conv )
+		base_t::accept();
 }
 
 

@@ -515,6 +515,8 @@ void CBratProcess::ResizeArrayDependOnFields(uint32_t size)
   m_dataMode.resize(size);
   mDataInterpolationTimeFieldName.resize(size);
   mDataInterpolationDateTime.resize(size);
+  mDataInterpolationDistanceWeighting.resize(size);
+  mDataInterpolationTimeWeighting.resize(size);
 
   m_countOffsets.resize(size);
   m_meanOffsets.resize(size);
@@ -598,30 +600,9 @@ CBratProcess::EMergeDataMode CBratProcess::GetDataMode
 	return GetDataMode( params, minOccurences, maxOccurences, tmpKey, index, defaultValue );
 }
 
-//std::vector< std::string > mDataInterpolationTimeFieldName;
-//std::vector< CDate > mDataInterpolationDateTime;
-
-
-//CDate d( 2020, 12, 25, 2, 3, 4 );
-//qDebug() << d.AsString().c_str();
-//
-//CDate d2( d.AsString().c_str() );
-//qDebug() << d2.GetYear();
-//qDebug() << d2.GetMonth();
-//qDebug() << d2.GetDay();
-//qDebug() << d2.GetHour();
-//qDebug() << d2.GetMinute();
-//qDebug() << d2.GetSecond();
-//
-//CDate d3( d2.GetYear(), d2.GetMonth(), d2.GetDay(), d2.GetHour(), d2.GetMinute(), d2.GetSecond() );
-//qDebug() << d3.AsString().c_str();
-//
-//return 0;
-//
-
 
 //static 
-std::string CBratProcess::GetDataModeDTTimeName( CFileParams &params, const std::string	&prefix, int32_t minOccurences,	int32_t	maxOccurences, int32_t index )	//minOccurences = 0,	int32_t	maxOccurences = 1, int32_t index = 0 
+std::string CBratProcess::GetDataModeDITimeName( CFileParams &params, const std::string	&prefix, int32_t minOccurences,	int32_t	maxOccurences, int32_t index )	//minOccurences = 0,	int32_t	maxOccurences = 1, int32_t index = 0 
 {
 	CTrace::GetInstance();
 
@@ -641,7 +622,7 @@ std::string CBratProcess::GetDataModeDTTimeName( CFileParams &params, const std:
 }
 
 //static 
-CDate CBratProcess::GetDataModeDTDateTime( CFileParams &params, const std::string &prefix, int32_t minOccurences, int32_t maxOccurences, int32_t index ) //minOccurences = 0, int32_t maxOccurences	= 1, int32_t index = 0
+CDate CBratProcess::GetDataModeDIDateTime( CFileParams &params, const std::string &prefix, int32_t minOccurences, int32_t maxOccurences, int32_t index ) //minOccurences = 0, int32_t maxOccurences	= 1, int32_t index = 0
 {
 	CTrace::GetInstance();
 
@@ -660,6 +641,50 @@ CDate CBratProcess::GetDataModeDTDateTime( CFileParams &params, const std::strin
 
 	return val;
 }
+
+//static 
+double CBratProcess::GetDataModeDIDistanceWeighting( CFileParams	&params, const std::string &prefix,	int32_t	minOccurences, int32_t maxOccurences, int32_t index )	//minOccurences = 0, int32_t maxOccurences = 1, int32_t index = 0
+{
+	CTrace::GetInstance();
+
+	const std::string Keyword = prefix + DATA_MODE_DI_DISTANCE_WEIGHTING_SUFFIX;
+
+	if (params.CheckCount( Keyword, minOccurences, maxOccurences ) == 0)
+	{
+		return defaultValue<double>();
+	}
+
+	std::string	str_val;
+	params.m_mapParam[Keyword]->GetValue( str_val, index );
+	double val = s2n<double>( str_val );
+
+	CTrace::Tracer( 1, CBratProcess::PCT_StrFmt2, "DI distance weighting ", str_val.c_str() );
+
+	return val;
+}
+
+//static 
+double CBratProcess::GetDataModeDITimeWeighting( CFileParams	&params, const std::string &prefix,	int32_t	minOccurences, int32_t maxOccurences, int32_t index )	//minOccurences = 0, int32_t maxOccurences = 1, int32_t index = 0
+{
+	CTrace::GetInstance();
+
+	const std::string Keyword = prefix + DATA_MODE_DI_TIME_WEIGHTING_SUFFIX;
+
+	if (params.CheckCount( Keyword, minOccurences, maxOccurences ) == 0)
+	{
+		return defaultValue<double>();
+	}
+
+	std::string	str_val;
+	params.m_mapParam[Keyword]->GetValue( str_val, index );
+	double val = s2n<double>( str_val );
+
+	CTrace::Tracer( 1, CBratProcess::PCT_StrFmt2, "DI time weighting ", str_val.c_str() );
+
+	return val;
+}
+
+
 
 
 
@@ -2584,6 +2609,9 @@ void CBratProcess::AddDimensionsFromNetCdf( CStringArray& dimNames )
 		m_dataMode.push_back( CBratProcess::pctFIRST );
 		mDataInterpolationTimeFieldName.push_back( "" );
 		mDataInterpolationDateTime.push_back( CDate() );
+		mDataInterpolationDistanceWeighting.push_back( defaultValue<double>() );
+		mDataInterpolationTimeWeighting.push_back( defaultValue<double>() );
+
 
 		//----------------------------------
 		m_listFieldsToRead.InsertUnique( netCDFDim->GetName() );
@@ -2855,6 +2883,8 @@ void CBratProcess::AddVarsFromNetCdf()
             m_dataMode.push_back(CBratProcess::pctFIRST);
 			mDataInterpolationTimeFieldName.push_back( "" );
 			mDataInterpolationDateTime.push_back( CDate() );
+			mDataInterpolationDistanceWeighting.push_back( defaultValue<double>() );
+			mDataInterpolationTimeWeighting.push_back( defaultValue<double>() );
 
             //----------------------------------
             m_listFieldsToRead.InsertUnique(addedVarDimIndex->GetName());

@@ -358,9 +358,11 @@ void CBratProcessZFXY::GetParameters()
     m_dataMode[index] = GetDataMode( params, kwFIELD, 0, nbFields, index, m_dataModeGlobal );
     if ( m_dataMode[index] == pctTIME )
     {
-        mDataInterpolationTimeFieldName[index] = GetDataModeDTTimeName( params, kwFIELD, 0, nbFields, index );
-        mDataInterpolationDateTime[index] = GetDataModeDTDateTime( params, kwFIELD, 0, nbFields, index );
-    }
+        mDataInterpolationTimeFieldName[index] = GetDataModeDITimeName( params, kwFIELD, 0, nbFields, index );
+        mDataInterpolationDateTime[index] = GetDataModeDIDateTime( params, kwFIELD, 0, nbFields, index );
+		mDataInterpolationDistanceWeighting[index] = GetDataModeDIDistanceWeighting(params, kwFIELD, 0, nbFields, index );
+		mDataInterpolationTimeWeighting[index] = GetDataModeDITimeWeighting(params, kwFIELD, 0, nbFields, index );
+	}
   }
 
 

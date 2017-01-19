@@ -55,12 +55,16 @@ class CDatasetInterpolationDialog : public QDialog
     QDialogButtonBox *mButtonBox = nullptr;
 	QDateTimeEdit *mDateTimeEdit = nullptr;
 	QListWidget *mFieldsList = nullptr;
+	QLineEdit *mDistanceWeightingParameterEdit = nullptr;
+	QLineEdit *mTimeWeightingParameterEdit = nullptr;
 
 	//...domain data
 
 	const std::vector< std::string > &mFieldMNamesList;
 	std::string mDataModeDITimeName;
 	QDateTime mDataModeDIDateTime;
+	double mDistanceWeightingParameter = 0.;
+	double mTimeWeightingParameter = 0.;
 
 
     /////////////////////////////
@@ -70,7 +74,8 @@ class CDatasetInterpolationDialog : public QDialog
 	void Setup();
 	void CreateWidgets();
 public:
-    CDatasetInterpolationDialog( const std::vector< std::string > &list, const std::string &name, const QDateTime &dt, QWidget *parent );
+    CDatasetInterpolationDialog( const std::vector< std::string > &list, const std::string &name, const QDateTime &dt, 
+		double distance_waiting, double time_waiting, QWidget *parent );
 
     virtual ~CDatasetInterpolationDialog();
 
@@ -82,6 +87,10 @@ public:
 	const std::string& DataModeDITimeName() const { return mDataModeDITimeName; }
 
 	const QDateTime& DataModeDIDateTime() const { return mDataModeDIDateTime; }
+
+	double DistanceWeightingParameter() const { return mDistanceWeightingParameter; }
+
+	double TimeWeightingParameter() const { return mTimeWeightingParameter; }
 
 
     /////////////////////////////
