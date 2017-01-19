@@ -1155,7 +1155,7 @@ int32_t CBratProcessZFXY::Execute( std::string& msg )
 
 		ReplaceFieldDefinition();
 
-		m_product->SetListFieldToRead( m_listFieldsToRead, false );
+        m_product->SetListFieldToRead( m_listFieldsToRead, false ); // TODO: Mark - add time variable to this list
 
 		// Get the number of record for the default record name (set in Open method of CProduct above)
 		int32_t nRecords = m_product->GetNumberOfRecords();
@@ -1163,7 +1163,7 @@ int32_t CBratProcessZFXY::Execute( std::string& msg )
 		for ( int32_t iRecord = 0; iRecord < nRecords; iRecord++ )
 		{
 			//Read fields for the record name  (listof field and record name are set in Open method of CProduct above)
-			m_product->ReadBratRecord( iRecord );
+            m_product->ReadBratRecord( iRecord );
 			RegisterData();
 		}
 
