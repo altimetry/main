@@ -64,7 +64,7 @@
 #define UNICODE
 #endif // UNICODE
 
-#include "../include/ntsecapi.h"	//for Log On As a Service Privilege
+#include <ntsecapi.h>	//for Log On As a Service Privilege
 
 #include "common/QtStringUtils.h"
 
@@ -129,7 +129,7 @@
 //    DWORD WinError              // DWORD WinError
 //    );
 //
-void DisplayWinError( LPSTR szAPI, DWORD WinError )
+void DisplayWinError( LPCSTR szAPI, DWORD WinError )
 {
 	LPSTR MessageBuffer;
 	DWORD dwBufferLength;
@@ -279,7 +279,7 @@ BOOL GetAccountSid( LPTSTR SystemName, LPCTSTR AccountName, PSID *Sid )
 //    LPWSTR String                  // source (Unicode)
 //    );
 //
-void InitLsaString( PLSA_UNICODE_STRING LsaString, LPWSTR String )
+void InitLsaString( PLSA_UNICODE_STRING LsaString, LPCWSTR String )
 {
 	DWORD StringLength;
 
@@ -291,7 +291,7 @@ void InitLsaString( PLSA_UNICODE_STRING LsaString, LPWSTR String )
 	}
 
 	StringLength = lstrlenW(String);
-	LsaString->Buffer = String;
+	LsaString->Buffer = const_cast<LPWSTR>( String );			//and hope for the best
 	LsaString->Length = (USHORT) StringLength * sizeof(WCHAR);
 	LsaString->MaximumLength=(USHORT)(StringLength+1) * sizeof(WCHAR);
 }
@@ -305,7 +305,7 @@ void InitLsaString( PLSA_UNICODE_STRING LsaString, LPWSTR String )
 //    BOOL bEnable                // enable or disable
 //    );
 //
-NTSTATUS SetPrivilegeOnAccount( LSA_HANDLE PolicyHandle, PSID AccountSid, LPWSTR PrivilegeName, BOOL bEnable )
+NTSTATUS SetPrivilegeOnAccount( LSA_HANDLE PolicyHandle, PSID AccountSid, LPCWSTR PrivilegeName, BOOL bEnable )
 {
 	LSA_UNICODE_STRING PrivilegeString;
 
@@ -380,7 +380,7 @@ NTSTATUS OpenPolicy( LPWSTR ServerName, DWORD DesiredAccess, PLSA_HANDLE PolicyH
 //    NTSTATUS Status             // NTSTATUS error value
 //    );
 //
-void DisplayNtStatus( LPSTR szAPI, NTSTATUS Status )
+void DisplayNtStatus( LPCSTR szAPI, NTSTATUS Status )
 {
 	//
 	// Convert the NTSTATUS to Winerror. Then call DisplayWinError().
@@ -446,8 +446,14 @@ bool HasLogOnAsServicePrivilege(  const std::string &pwcAccount, const std::stri
 		LSA_UNICODE_STRING *UserRights = nullptr;
 		ULONG CountOfRights = 0;
 
-		NTSTATUS status = LsaEnumerateAccountRights( PolicyHandle, AccountSid, &UserRights, &CountOfRights );
-		for ( ULONG i = 0; i < CountOfRights; ++i )
+        Status = LsaEnumerateAccountRights( PolicyHandle, AccountSid, &UserRights, &CountOfRights );
+        if(Status != STATUS_SUCCESS)
+        {
+            DisplayNtStatus("LsaEnumerateAccountRights", Status);
+            return false;
+        }
+
+        for ( ULONG i = 0; i < CountOfRights; ++i )
 		{
 			LSA_UNICODE_STRING *UserRight = &UserRights[ i ];
 			if ( std::wstring( UserRight->Buffer, UserRight->Length ) == std::wstring( L"SeServiceLogonRight" ) )

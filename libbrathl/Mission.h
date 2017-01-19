@@ -1,6 +1,4 @@
 /*
-* 
-*
 * This file is part of BRAT 
 *
 * BRAT is free software; you can redistribute it and/or
@@ -60,18 +58,6 @@ public:
   */
   CMission( const std::string &product_type, bool printWarnings = true );
  
-  /** Constructs a CMission object 
-    \param mission [in] : mission type (see #brathl_mission)
-    \param repeat [in] : duration that takes the satellite to return at the same point
-    \param dateRef [in] : date reference in decimal julian day
-    \param cycleRef [in] : cycle reference
-    \param passRef [in] : pass reference
-    \param nbPass [in] : numbers of half passes in a cycle
-    \param printWarnings [in] : set to true for printing warnings on standard output, false otherwise. Default value is true.
-  */
-  CMission(brathl_mission mission, const double repeat, const CDate& dateRef, const uint32_t cycleRef, 
-      	   const uint32_t passRef,  const uint32_t nbPass, bool printWarnings = true); 
-  
   virtual ~CMission();
 
 public:
@@ -102,22 +88,15 @@ public:
     \param cycle [out] : number of cycle
     \param pass [out] : number of pass in the cycle 
     \return #BRATHL_SUCCESS or error code (see \ref Cycle_date_error_codes) */
-  int32_t Convert(CDate& date, uint32_t& cycle, uint32_t& pass);
+  int32_t Convert( const CDate& date, uint_t& cycle, uint_t& pass ) const;
 
   /** Converts a cyle/pass into a CDate object 
     \param cycle [in] : number of cycle to convert
     \param pass [in] : number of pass in the cycle  to cinvert
     \param date [out] : date corresponding to the cycle/pass 
     \return #BRATHL_SUCCESS or error code (see \ref Cycle_date_error_codes) */
-  int32_t Convert(uint32_t cycle, uint32_t pass, CDate& date);
+  int32_t Convert( const uint_t cycle, const uint_t pass, CDate& date ) const;
 
-
-  /** Gets aliases names for the mission
-    \param aliases [out] : aliases for the mission
-    \return #BRATHL_SUCCESS or error code (see \ref Cycle_date_error_codes) */
-  int32_t LoadAliasName(CStringList& aliases);
-
-  static double GetGlobalConstant(brathl_global_constants constantValue);
 
   /** Assigns a new value to the CMission object, with a CMission object */
   const CMission& operator= (const CMission& m);
@@ -134,24 +113,6 @@ private:
 
 
 public:
-    
-  /** Name of the Topex/Poseidon mission */
-  static const char* m_nameTP;
-  /** Name of the Jason-1 mission */
-  static const char* m_nameJ1;
-  /** Name of the Jason-2 mission */
-  static const char* m_nameJ2;
-  /** Name of the ERS2 mission */
-  static const char* m_nameE2;
-  /** Name of the ENVISAT mission */
-  static const char* m_nameEN;
-  /** Name of the ERS1-A mission */
-  static const char* m_nameE_C;
-  /** Name of the ERS1-B mission */
-  static const char* m_nameE_G;
-  /** Name of the GFO mission */
-  static const char* m_nameG2;
-  /** Name of an unknown mission */
   static const char* m_nameUnknown;
 
 protected:
@@ -170,26 +131,10 @@ protected:
     Each field has to be separated by at least  a non-numeric character */
     static const char* m_refFileName;
 
-    /** Name of the mission aliases file
- 
-    An ascii file with records :
-     field 1 : Name of the mission
-     field 2 : Alias of the mission
-
-    Each field has to be separated by at least  a non-numeric character
-
-    The file can contained several record for a same mission. */
-    static const char* m_refAliasName;
-
-
 public:
 
   /** Max length of the name of the mission */
   static const int m_maxLenName;
-
-  
-  
-  
   
  
 private:

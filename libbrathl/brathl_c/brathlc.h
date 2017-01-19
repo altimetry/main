@@ -30,6 +30,7 @@ extern "C" {
 ** includes configuration parameters
 */
 #include "brathl.h"
+#include "common/ccore-types.h"
 #include "common/tools/brathl_error.h"
 
 
@@ -216,7 +217,7 @@ LIBRATHL_API int32_t brathl_Cycle2YMDHMSM(brathl_mission mission, uint32_t cycle
     \param[out] pass : number of pass in the cycle
     \return #BRATHL_SUCCESS or error code (see \ref Cycle_date_error_codes) */
 LIBRATHL_API int32_t brathl_YMDHMSM2Cycle(brathl_mission mission, brathl_DateYMDHMSM *dateYMDHMSM,
-      	      	      	      	          uint32_t *cycle, uint32_t *pass);
+      	      	      	      	          uint_t *cycle, uint_t *pass);
 
 /**@}*/
 

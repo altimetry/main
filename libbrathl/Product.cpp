@@ -161,9 +161,9 @@ bool CProductList::IsJason2() const
     return false;
   }
 
-  std::string str = CTools::StringToLower(m_productType).substr(0, CExternalFilesJason2::m_missionName.size());
+  std::string str = CTools::StringToLower(m_productType).substr(0, CExternalFilesJason2::smMissionName.size());
 
-  return (CTools::StringToUpper(str).compare(CExternalFilesJason2::m_missionName) == 0);
+  return (CTools::StringToUpper(str).compare(CExternalFilesJason2::smMissionName) == 0);
 
 }
 

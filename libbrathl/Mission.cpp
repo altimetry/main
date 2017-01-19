@@ -1,7 +1,4 @@
-
 /*
-* 
-*
 * This file is part of BRAT 
 *
 * BRAT is free software; you can redistribute it and/or
@@ -38,20 +35,19 @@ using namespace brathl;
 namespace brathl
 {
 
-const char* CMission::m_nameTP = "Topex/Poseidon";
-const char* CMission::m_nameJ1 = "Jason-1";
-const char* CMission::m_nameJ2 = "Jason-2";
-const char* CMission::m_nameE2 = "ERS2";
-const char* CMission::m_nameEN = "ENVISAT";
-const char* CMission::m_nameE_C = "ERS1-A";
-const char* CMission::m_nameE_G = "ERS1-B";
-const char* CMission::m_nameG2 = "GFO";
+//const char* CMission::m_nameTP = "Topex/Poseidon";
+//const char* CMission::m_nameJ1 = "Jason-1";
+//const char* CMission::m_nameJ2 = CExternalFilesJason2::smMissionName;
+//const char* CMission::m_nameE2 = "ERS2";
+//const char* CMission::m_nameEN = "ENVISAT";
+//const char* CMission::m_nameE_C = "ERS1-A";
+//const char* CMission::m_nameE_G = "ERS1-B";
+//const char* CMission::m_nameG2 = "GFO";
 const char* CMission::m_nameUnknown = "Unknown mission";
 
 
 
 const char* CMission::m_refFileName = "brathl_refmission.txt";
-const char* CMission::m_refAliasName = "brathl_aliasmission.txt";
 
 const int CMission::m_maxLenName = 30;
 
@@ -102,20 +98,6 @@ CMission::CMission( const std::string &product_type, bool printWarnings /* = tru
 }
 
 
-CMission::CMission(brathl_mission mission, const double repeat, const CDate& dateRef, const uint32_t cycleRef, 
-      	   const uint32_t passRef,  const uint32_t nbPass, bool printWarnings /* = true */)  
-{
-    m_mission     = mission;
-    m_missionName = CMission::m_nameUnknown;
-    m_repeat      = repeat;
-    m_dateRef     = dateRef ;
-    m_cycleRef    = cycleRef;
-    m_passRef     = passRef;
-    m_nbPass      = nbPass;
-    m_printWarnings = printWarnings;
-    m_errno = BRATHL_SUCCESS;
-}
-
 //----------------------------------------
 //dtor
 CMission::~CMission()  
@@ -162,7 +144,7 @@ int32_t CMission::LoadRefMission(bool searchByID /* = true */ )
     {
         if (m_printWarnings)
         {
-            printf( "\nWARNING - CMission::LoadRefMission - Unabled to open file '%s' "
+            printf( "\nWARNING - CMission::LoadRefMission - Unable to open file '%s' "
                     "\nCheck directory '%s'\n",
                     CMission::m_refFileName,
                     CTools::GetInternalDataDir().c_str());
@@ -177,7 +159,7 @@ int32_t CMission::LoadRefMission(bool searchByID /* = true */ )
     {
         if (m_printWarnings)
         {
-            printf( "\nWARNING - CMission::LoadRefMission - Unabled to open file '%s'\n", refFilePathName.c_str() );
+            printf( "\nWARNING - CMission::LoadRefMission - Unable to open file '%s'\n", refFilePathName.c_str() );
         }
         return BRATHL_WARNING_OPEN_FILE_REF_FILE;
     }
@@ -268,48 +250,48 @@ int32_t CMission::LoadRefMission(bool searchByID /* = true */ )
 
 
 //----------------------------------------
-int32_t CMission::Convert(CDate& date,  uint32_t& cycle, uint32_t& pass)
+int32_t CMission::Convert( const CDate &date, uint_t &cycle, uint_t &pass ) const
 {
-  double dateJulian = 0.0;
-  double dateJulianRef = 0.0;
- 
-  int32_t result = BRATHL_SUCCESS;
+	double dateJulian = 0.0;
+	double dateJulianRef = 0.0;
 
-  if (m_nbPass == 0)
-  {
-    return BRATHL_ERROR_INVALID_NB_PASS;
-  }
-  
-  if (m_repeat == 0)
-  {
-    return BRATHL_ERROR_INVALID_REPETITION;
-  }
-/*  
-  if ((cycle == NULL) || (size <= 0))
-  {
-    return BRATHL_ERROR_INVALID_CTODATE_PARAMETER;    
-  }
+	int32_t result = BRATHL_SUCCESS;
 
-*/
-  date.Convert2DecimalJulian(dateJulian);
-  m_dateRef.Convert2DecimalJulian(dateJulianRef);
-  
-  double absRef = m_passRef + (m_cycleRef - 1) * m_nbPass + 0.5;
-  double passLength = m_repeat / m_nbPass;
-  
-  double deltaPass = (dateJulian - dateJulianRef) / passLength;
- 
-  double abs = absRef + deltaPass - 1;
-  
-  cycle = 1 + static_cast<int32_t>((abs) / m_nbPass);
-  pass = 1 + static_cast<int32_t>((abs)) % m_nbPass;
-  
-      
-  return result;
-  
-} 
+	if ( m_nbPass == 0 )
+	{
+		return BRATHL_ERROR_INVALID_NB_PASS;
+	}
 
-int32_t CMission::Convert(uint32_t cycle, uint32_t pass, CDate& date) 
+	if ( m_repeat == 0 )
+	{
+		return BRATHL_ERROR_INVALID_REPETITION;
+	}
+	/*
+	  if ((cycle == NULL) || (size <= 0))
+	  {
+		return BRATHL_ERROR_INVALID_CTODATE_PARAMETER;
+	  }
+
+	*/
+	date.Convert2DecimalJulian( dateJulian );
+	m_dateRef.Convert2DecimalJulian( dateJulianRef );
+
+	double absRef = m_passRef + ( m_cycleRef - 1 ) * m_nbPass + 0.5;
+	double passLength = m_repeat / m_nbPass;
+
+	double deltaPass = ( dateJulian - dateJulianRef ) / passLength;
+
+	double abs = absRef + deltaPass - 1;
+
+	cycle = 1 + static_cast<int32_t>( ( abs ) / m_nbPass );
+	pass = 1 + static_cast<int32_t>( ( abs ) ) % m_nbPass;
+
+
+	return result;
+}
+
+
+int32_t CMission::Convert( const uint_t cycle, const uint_t pass, CDate& date) const
 {
   int32_t result = BRATHL_SUCCESS;
 
@@ -328,196 +310,6 @@ int32_t CMission::Convert(uint32_t cycle, uint32_t pass, CDate& date)
 
 }
 
-
-//----------------------------------------
-int32_t CMission::LoadAliasName(CStringList& aliases) 
-{
-    int32_t result = BRATHL_SUCCESS;
-  
-    const uint32_t MAX_LINE_LEN = 255;
-    char line[MAX_LINE_LEN+1];
-  
-    char name[MAX_LINE_LEN+1];
-    char alias[MAX_LINE_LEN+1];
-    bool bFoundInFile = false;
-  
-    aliases.InsertUnique(GetName());
-
-    
-    std::string refFilePathName = CTools::FindDataFile(CMission::m_refAliasName);
-    if (refFilePathName == "")
-    {
-        if (m_printWarnings)
-        {
-            printf("\nWARNING - CMission::LoadAliasName - Unabled to open file '%s' "
-                   "\nCheck directory '%s'",
-                    CMission::m_refAliasName,
-                    CTools::GetInternalDataDir().c_str());
-        }
-        return BRATHL_WARNING_OPEN_FILE_ALIAS_MISSION;
-    }
-
-
-    // reads file contains value reference
-    CFile fileRef(refFilePathName, CFile::modeRead);
-  
-    if (fileRef.IsOpen() == false)
-    {
-        if (m_printWarnings)
-        {
-            printf("\nWARNING - CMission::LoadAliasName - Unabled to open file '%s'\n",  refFilePathName.c_str());
-        }
-        return BRATHL_WARNING_OPEN_FILE_ALIAS_MISSION;
-    }
-  
-    int32_t nbFields = EOF;
-  
-    int32_t size = fileRef.ReadLineData(line, MAX_LINE_LEN);
-  
-    while (size > 0)
-    {
-        nbFields = sscanf ( line, "%s %s",
-      	      	      	    name,
-      	      	      	    alias);
-    
-    if ( (nbFields < 2) )
-    {
-        if (m_printWarnings)
-        {
-            printf("\nWARNING - CMission::LoadAliasName - Invalid reference mission file format - file name %s \n",
-            refFilePathName.c_str());
-        }
-     
-        return BRATHL_WARNING_INVALID_REF_FILE_FIELD;
-    }
-    
-    /*printf("name %s, alias %s\n", 
-	      	      	    name,
-      	      	      	    alias);
-    */
-	
-    if (strcmp(name, GetName()) == 0)
-    {
-      aliases.InsertUnique(CTools::StringTrim(alias));
-      bFoundInFile = true;
-    } 
-    
-    // reads next data
-    size = fileRef.ReadLineData(line, MAX_LINE_LEN);
-
-  }    
-  
-  if (bFoundInFile == false)
-    {
-      if (m_printWarnings) 
-      {
-        printf("\nWARNING - CMission::LoadAliasName - no alias for %s found in file %s \n"
-	      "Default values will be considered\n",
-	      name,
-	      refFilePathName.c_str());
-      }
-    }
-   
-  fileRef.Close(); 
-  
-  return result;
-}
-
-
-double CMission::GetGlobalConstant(brathl_global_constants constantValue)
-{
-    switch (constantValue)
-    {
-    case EARTH_ROTATION:
-        return 360.0 / 86400.0;
-
-    case LIGHT_SPEED:
-        return 299792.458;
-
-    case EARTH_GRAVITY:
-        return 9.807;
-
-    case EARTH_RADIUS:
-      return 6378.1363;
-
-    case ELLIPSOID_PARAM:
-      return 298.257;
-/*
-    case EARTH_RADIUS:
-        switch (Inv_IdMission)
-        {
-        case E_MIS_ERS1:
-        case E_MIS_ERS2:
-        case E_MIS_Envisat:
-        case E_MIS_ENN:
-        case E_MIS_Geosat:
-        case E_MIS_Cryosat1:
-        case E_MIS_Icesat1:
-            return 6378.137;
-
-        case E_MIS_TP:
-        case E_MIS_TPN:
-        case E_MIS_Topex:
-        case E_MIS_Poseidon:
-        case E_MIS_Jason1:
-        case E_MIS_J1N:
-        case E_MIS_Jason2:
-        case E_MIS_GFO:
-            return 6378.1363;
-
-        case E_MIS_Altika:
-            abort();
-
-        case E_MIS_inconnue:
-            return dc_SUDV_DefReal8;
-
-        default:
-            assert(0);
-        }
-        break;
-
-    case ELLIPSOID_PARAM:
-        switch (Inv_IdMission)
-        {
-        case E_MIS_ERS1:
-        case E_MIS_ERS2:
-        case E_MIS_Envisat:
-        case E_MIS_ENN:
-        case E_MIS_Geosat:
-        case E_MIS_Cryosat1:
-        case E_MIS_Icesat1:
-            return 298.257223563;
-
-        case E_MIS_TP:
-        case E_MIS_TPN:
-        case E_MIS_Topex:
-        case E_MIS_Poseidon:
-        case E_MIS_Jason1:
-        case E_MIS_J1N:
-        case E_MIS_Jason2:
-        case E_MIS_GFO:
-            return 298.257;
-
-        case E_MIS_Altika:
-            abort();
-
-        case E_MIS_inconnue:
-            return dc_SUDV_DefReal8;
-
-        default:
-            assert(0);
-        }
-*/
-    default:
-      CException e(CTools::Format("CMission::GetGeneralConstant - invalid/unknown input constant '%d'", constantValue),
-                   BRATHL_LOGIC_ERROR);
-      throw (e);
-    }
-    CException e(CTools::Format("CMission::GetGeneralConstant - invalid/unknown input constant '%d'", constantValue),
-                 BRATHL_LOGIC_ERROR);
-    throw (e);
-    return 0;
-}
 
 void CMission::Dump(std::ostream& fOut /* = std::cerr */)
 {

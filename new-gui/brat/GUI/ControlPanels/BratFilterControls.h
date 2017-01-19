@@ -90,7 +90,9 @@ class CBratFilterControls : public CDesktopControlsPanel
 	//when
 
     QToolButton *mClearWhen = nullptr;
-    QDateTimeEdit *mStartTimeEdit = nullptr;
+	QRadioButton *mUseTimeRadio = nullptr;
+	QRadioButton *mUseCyclePassRadio = nullptr;
+	QDateTimeEdit *mStartTimeEdit = nullptr;
     QDateTimeEdit *mStopTimeEdit = nullptr;
 
     QLineEdit *mStartCycleEdit = nullptr;
@@ -201,10 +203,12 @@ public slots:
     void HandleDeleteArea();
     void HandleAreaChecked(QListWidgetItem*area_item);
 
+	void HandleUseTimeToggled( bool toggled );
     void HandleStartDateTimeChanged(const QDateTime &start_datetime);
     void HandleStopDateTimeChanged (const QDateTime &stop_datetime);
 
-    void HandleStartCycleChanged();
+	void HandleUseCyclePass( bool toggled );
+	void HandleStartCycleChanged();
     void HandleStopCycleChanged();
     void HandleStartPassChanged();
     void HandleStopPassChanged();

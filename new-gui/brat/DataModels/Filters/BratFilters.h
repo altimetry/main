@@ -134,6 +134,9 @@ public:
 
 protected:
 
+	static const bool smUsingRelativeTimes;
+	static const bool smUsingCyclePass;
+
 	//	NOTE mRelativeReferenceTime and mStopTime default
 	//	to current time, and so have no matching static variable
 
@@ -157,6 +160,9 @@ protected:
 
     std::vector< std::string > mAreaNames;
 
+	bool mUsingRelativeTimes = smUsingRelativeTimes;
+
+	bool mUsingCyclePass = smUsingCyclePass;
     QDateTime mStartTime = smStartTime;
     QDateTime mStopTime = QDateTime::currentDateTime();
 
@@ -230,25 +236,49 @@ public:
 	/////////////////////////////
 
 
+	//getters
+
+	bool UsingRelativeTimes() const { return mUsingRelativeTimes; }
+
+	//...absolute times
+
+	bool UsingCyclePass() const { return mUsingCyclePass; }
+
     QDateTime StartTime() const { return mStartTime; }
     QDateTime StopTime() const { return mStopTime; }
-
     CDate BratStartTime() const { return q2brat( mStartTime ); }
     CDate BratStopTime() const { return q2brat( mStopTime ); }
 
-    int StartCycle() const { return mStartCycle; }
+	bool InvalidCyclePassValues() const;
+	int StartCycle() const { return mStartCycle; }
     int StopCycle() const { return mStopCycle; }
     int StartPass() const { return mStartPass; }
     int StopPass() const { return mStopPass; }
 
-    bool UsingRelativeTimes() const { return mRelativeStartDays != smRelativeStartDays || mRelativeStopDays != smRelativeStopDays; }
+	//...relative times
+
 	int RelativeStartDays() const { return mRelativeStartDays; }
     int RelativeStopDays() const { return mRelativeStopDays; }
 	bool UseCurrentTime() const { return mUseCurrentTime; }
 	QDateTime RelativeReferenceTime() const { return mRelativeReferenceTime; }
 
 
-    QDateTime& StartTime() { return mStartTime; }
+	//setters
+
+	void SetDefaultValues();
+
+	void EnableRelativeTimes( bool enable ) 
+	{ 
+		mUsingRelativeTimes = enable; 
+		if ( enable )
+			mUsingCyclePass = false;
+	}
+
+	//...absolute times
+
+	void EnableCyclePass( bool enable ) { mUsingCyclePass = enable; }
+
+	QDateTime& StartTime() { return mStartTime; }
     QDateTime& StopTime() { return mStopTime; }
 
     int& StartCycle() { return mStartCycle; }
@@ -256,7 +286,10 @@ public:
     int& StartPass() { return mStartPass; }
     int& StopPass() { return mStopPass; }
 
-	void DisableRelativeTimes() { SetDefaultRelativeDays(); }
+	void Relative2AbsoluteTimes();
+
+	//...relative times
+
 	int& RelativeStartDays() { return mRelativeStartDays; }
     int& RelativeStopDays() { return mRelativeStopDays; }
 	bool& UseCurrentTime() { return mUseCurrentTime; }
@@ -270,21 +303,22 @@ public:
 
 	void BoundingArea( double &lon1, double &lat1, double &lon2, double &lat2 ) const;
 
+
+protected:
+
 	bool GetTimeBounds( CDate &Start, CDate &Stop, const std::string &product_label, std::string &error_msg ) const;
 
+	void SetDefaultCyclePassValues();
+	void SetDefaultDateValues();
+	void SetDefaultRelativeDays();
+
+public:
 	std::pair< bool, bool > Apply( const CStringList& files_in, CStringList& files_out, std::string &error_msg, CProgressInterface *progress ) const;
 
 	// Argument product_label must be the value returned by CProduct::GetLabel()
 	//	(or CProductInfo::Label)
 	//
     std::string GetSelectionCriteriaExpression( const std::string &product_label ) const;
-
-
-    void Relative2AbsoluteTimes();
-    void SetDefaultValues();
-    void SetDefaultDateValues();
-    void SetDefaultCyclePassValues();
-    void SetDefaultRelativeDays();
 };
 
 

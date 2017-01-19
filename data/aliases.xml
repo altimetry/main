@@ -453,111 +453,174 @@
 
     <!-- RADS productTypes are formed by appending to class name 'RADS' a '-' and the mission_name attribute as read from files -->
     <!-- In the RADS productTypes description (TBC), the mission name as found in the RADS user manual is used -->
-    <!-- For RADS class, all aliases other than lon, lat and time are temporary, for development test purposes, probably wrong, and should be changed -->
 
     <aliases productType="RADS-CRYOSAT2" description="RADS CryoSat-2">
       <alias name="lat">lat</alias>
       <alias name="lon">lon</alias>
       <alias name="time">time</alias>
-      <alias name="ssh">ssha</alias>
-      <alias name="ssha">ssha</alias>
+      <alias name="sla">ssha</alias>
+	  <alias name="mean_sea_surface">mss_dtu13</alias>
+	  <alias name="ssh">%{sla} + %{mean_sea_surface}</alias>
+	  <alias name="swh">swh_ku</alias>
+	  <alias name="winds">wind_speed_alt</alias>
+	  <alias name="sigma0">sig0_ku</alias>
+	  <alias name="range">range_ku</alias>
     </aliases>
 
     <aliases productType="RADS-ERS-1" description="RADS ERS-1">
       <alias name="lat">lat</alias>
       <alias name="lon">lon</alias>
       <alias name="time">time</alias>
-      <alias name="ssh">ssha</alias>
-      <alias name="ssha">ssha</alias>
+	  <alias name="sla">ssha</alias>
+	  <alias name="mean_sea_surface">mss_dtu13</alias>
+	  <alias name="ssh">%{sla} + %{mean_sea_surface}</alias>
+	  <alias name="swh">swh_ku</alias>
+	  <alias name="winds">wind_speed_alt</alias>
+	  <alias name="sigma0">sig0_ku</alias>
+	  <alias name="range">range_ku</alias>
     </aliases>
 
     <aliases productType="RADS-ERS-2" description="RADS ERS-2">
       <alias name="lat">lat</alias>
       <alias name="lon">lon</alias>
       <alias name="time">time</alias>
-      <alias name="ssh">ssha</alias>
-      <alias name="ssha">ssha</alias>
+	  <alias name="sla">ssha</alias>
+	  <alias name="mean_sea_surface">mss_dtu13</alias>
+	  <alias name="ssh">%{sla} + %{mean_sea_surface}</alias>
+	  <alias name="swh">swh_ku</alias>
+	  <alias name="winds">wind_speed_alt</alias>
+	  <alias name="sigma0">sig0_ku</alias>
+	  <alias name="range">range_ku</alias>
     </aliases>
 
     <aliases productType="RADS-ENVISAT1" description="RADS Envisat">
       <alias name="lat">lat</alias>
       <alias name="lon">lon</alias>
       <alias name="time">time</alias>
+	  <alias name="sla">ssha</alias>
+	  <alias name="mean_sea_surface">mss_dtu13</alias>
+	  <alias name="ssh">%{sla} + %{mean_sea_surface}</alias>
       <alias name="swh">swh_ku</alias>
+	  <alias name="winds">wind_speed_alt</alias>
+	  <alias name="sigma0">sig0_ku</alias>
+	  <alias name="range">range_ku</alias>
     </aliases>
 
     <aliases productType="RADS-GFO-1" description="RADS GFO">
       <alias name="lat">lat</alias>
       <alias name="lon">lon</alias>
       <alias name="time">time</alias>
-      <alias name="ssh">ssha</alias>
-      <alias name="ssha">ssha</alias>
+	  <alias name="sla">ssha</alias>
+	  <alias name="mean_sea_surface">mss_dtu13</alias>
+	  <alias name="ssh">%{sla} + %{mean_sea_surface}</alias>
+	  <alias name="swh">swh_ku</alias>
+	  <alias name="winds">wind_speed_alt</alias>
+	  <alias name="sigma0">sig0_ku</alias>
+	  <alias name="range">range_ku</alias>
     </aliases>
 
     <aliases productType="RADS-GEOSAT" description="RADS Geosat">
       <alias name="lat">lat</alias>
       <alias name="lon">lon</alias>
       <alias name="time">time</alias>
-      <alias name="ssh">ssha</alias>
-      <alias name="ssha">ssha</alias>
+	  <alias name="sla">ssha</alias>
+	  <alias name="mean_sea_surface">mss_dtu13</alias>
+	  <alias name="ssh">%{sla} + %{mean_sea_surface}</alias>
+	  <alias name="swh">swh_ku</alias>
+	  <alias name="winds">wind_speed_alt</alias>
+	  <alias name="sigma0">sig0_ku</alias>
+	  <alias name="range">range_ku</alias>
     </aliases>
 
     <aliases productType="RADS-JASON-1" description="RADS Jason-1">
       <alias name="lat">lat</alias>
       <alias name="lon">lon</alias>
       <alias name="time">time</alias>
-      <alias name="ssh">ssha</alias>
-      <alias name="ssha">ssha</alias>
+	  <alias name="sla">ssha</alias>
+	  <alias name="mean_sea_surface">mss_dtu13</alias>
+	  <alias name="ssh">%{sla} + %{mean_sea_surface}</alias>
+	  <alias name="swh">swh_ku</alias>
+	  <alias name="winds">wind_speed_alt</alias>
+	  <alias name="sigma0">sig0_ku</alias>
+	  <alias name="range">range_ku</alias>
     </aliases>
     
     <aliases productType="RADS-JASON-2" description="RADS Jason-2">
       <alias name="lat">lat</alias>
       <alias name="lon">lon</alias>
       <alias name="time">time</alias>
-      <alias name="ssh">ssha</alias>
-      <alias name="ssha">ssha</alias>
+	  <alias name="sla">ssha</alias>
+	  <alias name="mean_sea_surface">mss_dtu13</alias>
+	  <alias name="ssh">%{sla} + %{mean_sea_surface}</alias>
+	  <alias name="swh">swh_ku</alias>
+	  <alias name="winds">wind_speed_alt</alias>
+	  <alias name="sigma0">sig0_ku</alias>
+	  <alias name="range">range_ku</alias>
     </aliases>
 
     <aliases productType="RADS-JASON-3" description="RADS Jason-3">
       <alias name="lat">lat</alias>
       <alias name="lon">lon</alias>
       <alias name="time">time</alias>
-      <alias name="ssh">ssha</alias>
-      <alias name="ssha">ssha</alias>
+	  <alias name="sla">ssha</alias>
+	  <alias name="mean_sea_surface">mss_dtu13</alias>
+	  <alias name="ssh">%{sla} + %{mean_sea_surface}</alias>
+	  <alias name="swh">swh_ku</alias>
+	  <alias name="winds">wind_speed_alt</alias>
+	  <alias name="sigma0">sig0_ku</alias>
+	  <alias name="range">range_ku</alias>
     </aliases>
 
     <aliases productType="RADS-POSEIDON" description="RADS Poseidon">
       <alias name="lat">lat</alias>
       <alias name="lon">lon</alias>
       <alias name="time">time</alias>
-      <alias name="ssh">ssha</alias>
-      <alias name="ssha">ssha</alias>
+	  <alias name="sla">ssha</alias>
+	  <alias name="mean_sea_surface">mss_dtu13</alias>
+	  <alias name="ssh">%{sla} + %{mean_sea_surface}</alias>
       <alias name="swh">swh_ku</alias>
+	  <alias name="winds">wind_speed_alt</alias>
+	  <alias name="sigma0">sig0_ku</alias>
+	  <alias name="range">range_ku</alias>
     </aliases>
 
     <aliases productType="RADS-SARAL" description="RADS SARAL">
       <alias name="lat">lat</alias>
       <alias name="lon">lon</alias>
       <alias name="time">time</alias>
-      <alias name="ssh">ssha</alias>
-      <alias name="ssha">ssha</alias>
+	  <alias name="sla">ssha</alias>
+	  <alias name="mean_sea_surface">mss_dtu13</alias>
+	  <alias name="ssh">%{sla} + %{mean_sea_surface}</alias>
       <alias name="swh">swh_ka</alias>
+	  <alias name="winds">wind_speed_alt</alias>
+	  <alias name="sigma0">sig0_ka</alias>
+	  <alias name="range">range_ka</alias>
     </aliases>
 
     <aliases productType="RADS-SNTNL-3A" description="RADS Sentinel-3A">
       <alias name="lat">lat</alias>
       <alias name="lon">lon</alias>
       <alias name="time">time</alias>
+	  <alias name="sla">ssha</alias>
+	  <alias name="mean_sea_surface">mss_dtu13</alias>
+	  <alias name="ssh">%{sla} + %{mean_sea_surface}</alias>
 	  <alias name="swh">swh_ku</alias>
+	  <alias name="winds">wind_speed_alt</alias>
+	  <alias name="sigma0">sig0_ku</alias>
+	  <alias name="range">range_ku</alias>
 	</aliases>
 
     <aliases productType="RADS-TOPEX" description="RADS TOPEX">
       <alias name="lat">lat</alias>
       <alias name="lon">lon</alias>
       <alias name="time">time</alias>
-      <alias name="ssh">ssha</alias>
-      <alias name="ssha">ssha</alias>
+	  <alias name="sla">ssha</alias>
+	  <alias name="mean_sea_surface">mss_dtu13</alias>
+	  <alias name="ssh">%{sla} + %{mean_sea_surface}</alias>
       <alias name="swh">swh_ku</alias>
+	  <alias name="winds">wind_speed_alt</alias>
+	  <alias name="sigma0">sig0_ku</alias>
+	  <alias name="range">range_ku</alias>
     </aliases>
 
 
@@ -940,8 +1003,8 @@
 	</aliases>
 
     <aliases productType="Generic NetCdf" description="Generic Netcdf Dataset Aliases">
-	  <alias name="lat">latitude</alias>
-	  <alias name="lon">longitude</alias>
+	  <alias name="lat">lat</alias>
+	  <alias name="lon">lon</alias>
 	  <alias name="time">time</alias>
 	</aliases>
 

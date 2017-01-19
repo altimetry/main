@@ -330,6 +330,7 @@ inline STRING QuotePath( const STRING &path )
 
 //"/usr/bin/rsync" -avrzR --del --password-file="/Users/brat/dev/bin/Qt-5.7.0/brat/x86_64/Debug/brat.app/Contents/MacOS/data/rads_pass.txt" radsuser@corads.tudelft.nl::rads/data/c2 radsuser@corads.tudelft.nl::rads/data/j2  "/Volumes/ext_My_Passport/user-data/rads"
 // /usr/bin/rsync -avrzR --del --password-file="/Users/brat/dev/bin/Qt-5.7.0/brat/x86_64/Debug/brat.app/Contents/MacOS/data/rads_pass.txt" radsuser@corads.tudelft.nl::'rads/data/c2 rads/data/j2'  "/Volumes/ext_My_Passport/user-data/rads"
+// /usr/bin/rsync -avrzR --del --password-file="/home/femm/dev/bin/Qt-5.7.0/brat/x86_64/Debug/data/rads_pass.txt" radsuser@corads.tudelft.nl::"rads/data/conf" "/home/femm/Documents/brat/user-data/rads"
 
 
 bool CRadsClient::Synchronize( bool force )		//force = false 

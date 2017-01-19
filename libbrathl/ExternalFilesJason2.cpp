@@ -46,7 +46,7 @@ namespace brathl
 //-------------------------------------------------------------
 //------------------- CExternalFilesJason2 class --------------------
 //-------------------------------------------------------------
-const std::string  CExternalFilesJason2::m_missionName = CTools::StringToUpper(CMission::m_nameJ2);
+const std::string  CExternalFilesJason2::smMissionName = CTools::StringToUpper( "Jason-2" );
 
 
 CExternalFilesJason2::CExternalFilesJason2
