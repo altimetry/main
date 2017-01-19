@@ -4375,6 +4375,7 @@ std::pair< std::string, std::string > CNetCDFFiles::IdentifyExistingFile( bool c
 		// ---------------------------------------------------------
 		// Jason-2 Netcdf
 		// ---------------------------------------------------------
+        int foundDataSetAttrJ2;
 
 		if ( foundDataSetAttr != NC_NOERR )
 		{
@@ -4384,7 +4385,7 @@ std::pair< std::string, std::string > CNetCDFFiles::IdentifyExistingFile( bool c
 				if ( pos >= 0 )
 				{
 					dataSetAttrValue = SSHA;
-					foundDataSetAttr = NC_NOERR;
+                    foundDataSetAttrJ2 = NC_NOERR;
 				}
 
 				// ----------------------------------------
@@ -4392,22 +4393,22 @@ std::pair< std::string, std::string > CNetCDFFiles::IdentifyExistingFile( bool c
 				// ----------------------------------------
 				pos = CTools::FindNoCase( titleAttrValue, GDR_TITLE );
 				if ( pos >= 0 )
-				{
-					dataSetAttrValue = GDR;
-					foundDataSetAttr = NC_NOERR;
-				}
+                {
+                    dataSetAttrValue = GDR;
+                    foundDataSetAttrJ2 = NC_NOERR;
+                }
 
 				pos = CTools::FindNoCase( titleAttrValue, SGDR_TITLE );
 				if ( pos >= 0 )
 				{
 					dataSetAttrValue = SGDR;
-					foundDataSetAttr = NC_NOERR;
+                    foundDataSetAttrJ2 = NC_NOERR;
 				}
 			}
 		}
 
 		//if ((foundMissionNameAttr == NC_NOERR) && (foundProductTypeAttr == NC_NOERR) && (foundDataSetAttr == NC_NOERR)) 
-		if ( ( foundMissionNameAttr == NC_NOERR ) && ( foundDataSetAttr == NC_NOERR ) )
+        if ( ( foundMissionNameAttr == NC_NOERR ) && ( foundDataSetAttrJ2 == NC_NOERR ) )
 		{
 			static const std::vector< std::string > j2_aliases { "Jason-2", "OSTM/Jason-2", "jason2", "j2", "mission_name", "(mission_name)", "{mission_name}" };
 

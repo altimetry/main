@@ -198,6 +198,19 @@
   </product>
 
   <!-- =================================================================== -->
+  <product class="River_Lake" description="River and Lake products">
+
+    <defaultRecord name="data"/>
+
+    <aliases>
+	  <alias name="lat">latitude</alias>
+	  <alias name="lon">longitude</alias>
+	  <alias name="time">time</alias>
+	</aliases>
+
+  </product>
+
+  <!-- =================================================================== -->
   <product class="PODAAC"
     description="PODAAC radar altimetry products for JASON-1 and Topex/Poseidon">
 
