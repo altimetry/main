@@ -122,9 +122,9 @@ void CBratProcess::Init()
   setDefaultValue(m_validMax);
 
   // set default values for time interpolation
-  m_tParam = 1.0;
+  m_tParam = 1e6;
   m_tFactor = 1.0;
-  m_dParam = 1.0;
+  m_dParam = 1e6;
   m_dFactor = 1.0;
 
 }
@@ -3290,7 +3290,7 @@ void CBratProcess::MergeDataValue
         d_param = auxParams[5]; // dist. weighting param
         d_factor = auxParams[6]; // dist. weighting exponent
         // calc. time weight for new data point
-        t_weight = exp( pow((-(t_out - value_t) / t_param),t_factor ));
+        t_weight = exp( pow((-abs(t_out - value_t) / t_param),t_factor ));
         // calc. distance wieght for new data point
         d_weight = exp( pow((-value_d / d_param), d_factor ));
 
@@ -3451,8 +3451,26 @@ void CBratProcess::FinalizeMergingOfDataValues
                                      BRATHL_LOGIC_ERROR);
 
             }
-            double mean = *meanValue / *countValue;
-            data = (data - mean * *weightValue) / *weightValue;
+            if (meanValue == nullptr)
+            {
+              throw CException(CTools::Format("ERROR: CBratProcess::FinalizeMergingOfDataValues() - mean value  is nullptr, but mode is '%s'\n",
+                                              CBratProcess::DataModeStr(mode).c_str()),
+                                     BRATHL_LOGIC_ERROR);
+
+            }
+            if (weightValue == nullptr)
+            {
+              throw CException(CTools::Format("ERROR: CBratProcess::FinalizeMergingOfDataValues() - weight value  is nullptr, but mode is '%s'\n",
+                                              CBratProcess::DataModeStr(mode).c_str()),
+                                     BRATHL_LOGIC_ERROR);
+            }
+            if (*weightValue == 0) {
+                setDefaultValue(data);
+            } else {
+                //double mean = *meanValue / *countValue;
+                //data = (data - mean * *weightValue) / *weightValue;
+                data = data / *weightValue;
+            }
         }
 
         break;

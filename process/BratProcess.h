@@ -269,7 +269,7 @@ namespace processes
 		virtual ~CBratProcess();
 
 
-		// ...
+        // ...
 
 		CStringArray* GetInputFiles() { return &m_inputFiles; };
 		void SetInputFiles( const CStringArray& value ) { m_inputFiles = value; };
@@ -627,7 +627,7 @@ namespace processes
 		void GetNetCdfDimensions(const std::vector<CExpression>& expressions, CStringArray& commonDimNames);
 		void GetNetCdfDimensions(const CExpression& expr, CStringArray& commonDimNames);
 		void GetNetCdfDimensions(const CStringArray& fields, CStringArray& commonDimNames);
-		*/
+        */
 		void SetExpandArray( const CExpression& expr, bool expandArray );
 		void SetExpandArray( const CStringArray* fields, bool expandArray );
 

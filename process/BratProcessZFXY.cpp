@@ -385,7 +385,7 @@ void CBratProcessZFXY::GetParameters()
     
     m_countOffsets[index] = -1;
     m_meanOffsets[index] = -1;
-    m_weightOffsets[index] = 1;
+    m_weightOffsets[index] = -1;
 
     switch (nbDataSlices)
     {
@@ -859,7 +859,7 @@ CMatrixDouble* CBratProcessZFXY::CreateGridDouble(uint32_t index)
       matrix->SetXName(m_xName);
       matrix->SetYName(m_yName);
 
-      m_grids[meanOffset] = matrix;
+      m_grids[weightOffset] = matrix;
 
     }
   }
@@ -1527,9 +1527,11 @@ double* CBratProcessZFXY::ComputeMergeDataValueParameters(CRecordSet* recordSet,
             auxData[1] = exprValue.GetValues()[0];
 
             // calc. distance from cell centre
-            double x_err = fmod((xPos - m_xMin), m_xStep);
-            double y_err = fmod((yPos - m_yMin), m_yStep);
-            double dist = sqrt(x_err*x_err + y_err*y_err);
+            double x_err = fmod((xPos - m_xMin), m_xStep) / 180.0 * 3.14159;
+            double y_err = fmod((yPos - m_yMin), m_yStep) / 180.0 * 3.14159;
+//            double dist = sqrt(x_err*x_err + y_err*y_err);
+            x_err *= cos(y_err / 2.0);
+            double dist = sqrt(x_err*x_err + y_err*y_err) * 6371e3; // earth rad. metres
 
             auxData[2] = dist;
 
