@@ -3291,13 +3291,13 @@ void CBratProcess::MergeDataValue
 
         if (t_weight == 0) {
             throw CException(CTools::Format(
-                "ERROR: CBratProcess::MergeDataValue() - time weighting evaluates to 0, but mode is '%s'\n Time weighting parameter is too small (current value: %f)\n",
+                "ERROR: CBratProcess::MergeDataValue(), '%s' mode - Time weighting parameter is too small (current value: %f)\n",
                 CBratProcess::DataModeStr(mode).c_str(), t_param),
                 BRATHL_LOGIC_ERROR);
         }
         if (d_weight == 0) {
             throw CException(CTools::Format(
-                "ERROR: CBratProcess::MergeDataValue() - distance weighting evaluates to 0, but mode is '%s'\n Time weighting parameter is too small (current value: %f)\n",
+                "ERROR: CBratProcess::MergeDataValue(),'%s' mode - Distance weighting parameter is too small (current value: %f)\n",
                 CBratProcess::DataModeStr(mode).c_str(), d_param),
                 BRATHL_LOGIC_ERROR);
         }
