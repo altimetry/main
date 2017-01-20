@@ -240,10 +240,7 @@ namespace processes
 
 		CIntArray m_countOffsets;
 		CIntArray m_meanOffsets;
-        CIntArray m_weightOffsets;
 
-        double m_tParam;
-        double m_dParam;
         double m_tFactor;
         double m_dFactor;
 
@@ -262,7 +259,7 @@ namespace processes
 
 		// construction / destruction
 
-	public:
+    public:
 
 		CBratProcess();
 
@@ -580,7 +577,6 @@ namespace processes
 			double value,
 			double*	countValue,
 			double*	meanValue,
-            double* weightValue,
             double* auxParams,
 			EMergeDataMode	mode );
 
@@ -589,7 +585,6 @@ namespace processes
 		( double& data,
 			double*	countValue,
 			double*	meanValue,
-            double* weightValue,
 			EMergeDataMode	mode );
 
 
@@ -684,7 +679,6 @@ namespace processes
 			uint32_t indexExpr,
 			double* countValues,
             double* meanValues,
-            double* weightValues,
             double* auxParams);
 
 		//void MergeDataValue
@@ -693,15 +687,14 @@ namespace processes
 		//	uint32_t nbValues,
 		//	uint32_t indexExpr,
 		//	double* countValue,
-		//	double* meanValue );
+        //	double* meanValue );
 
 		void FinalizeMergingOfDataValues
 		( double* data,
 			uint32_t indexExpr,
 			uint32_t nbValues,
 			double* countValues,
-            double* meanValues,
-            double* weightValues);
+            double* meanValues);
 
 	};
 
