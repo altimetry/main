@@ -3269,6 +3269,13 @@ void CBratProcess::MergeDataValue
 	//--------------------------
 	case CBratProcess::pctTIME:
 	//--------------------------
+          if (countValue == nullptr)
+          {
+            throw CException(CTools::Format("ERROR: CBratProcess::MergeDataValue() - count value  is nullptr, but mode is '%s'\n",
+                                            CBratProcess::DataModeStr(mode).c_str()),
+                                   BRATHL_LOGIC_ERROR);
+
+          }
         // read aux. params:
         t_out = auxParams[0]; // target interp. time
         value_t = auxParams[1]; // value of data point
@@ -3281,6 +3288,19 @@ void CBratProcess::MergeDataValue
         t_weight = CTools::Exp( pow((-abs(t_out - value_t) / t_param),t_factor ));
         // calc. distance wieght for new data point
         d_weight = CTools::Exp( pow((-value_d / d_param), d_factor ));
+
+        if (t_weight == 0) {
+            throw CException(CTools::Format(
+                "ERROR: CBratProcess::MergeDataValue() - time weighting evaluates to 0, but mode is '%s'\n Time weighting parameter is too small (current value: %f)\n",
+                CBratProcess::DataModeStr(mode).c_str(), t_param),
+                BRATHL_LOGIC_ERROR);
+        }
+        if (d_weight == 0) {
+            throw CException(CTools::Format(
+                "ERROR: CBratProcess::MergeDataValue() - distance weighting evaluates to 0, but mode is '%s'\n Time weighting parameter is too small (current value: %f)\n",
+                CBratProcess::DataModeStr(mode).c_str(), d_param),
+                BRATHL_LOGIC_ERROR);
+        }
 
         if (data == CBratProcess::MergeIdentifyUnsetData) {
             // if this is first point for output cell, init.
