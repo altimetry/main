@@ -123,6 +123,10 @@ void CBratLogger::QtMessageOutput( QtMsgType type, qt_raw_logtext_t msg, const Q
 			break;
 
 		case QtWarningMsg:
+        
+#if defined(Q_OS_MAC)
+            if ( !msg.startsWith( "QWidgetWindow" ) )
+#endif
 			QgsMessageLog::logMessage( msg, "Warning" );		//redirects recursively here (as QtDebugMsg) and to GUI
 			break;
 

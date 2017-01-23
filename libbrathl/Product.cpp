@@ -1960,9 +1960,6 @@ bool CProduct::Open()
 
   FillDescription();
 
-  // Adds any combined variable to the parameters tree
-  AddCombinedVariableToTree();
-
   return true;
 }
 
@@ -3676,7 +3673,7 @@ void CProduct::InitInternalFieldName(const std::string& dataSetName, CStringList
    * Initialises the internal field names that will combine to
    * create any combined variable
    */
-  initInternalFieldNamesForCombinedVariable(listField);
+  InitInternalFieldNamesForCombinedVariable( listField, dataSetName );
 
   for (itField = listField.begin() ; itField != listField.end() ; itField++)
   {
@@ -4813,16 +4810,9 @@ void CProduct::ReadBratFieldRecord(CField::CListField::iterator it, bool& skipRe
 
   CField *field = static_cast<CField*>(*(it));
 
-  it++;
-
-  bool returnNeeded = computeCombinedField(field);
-
-  if (returnNeeded) {
-
-      return;
-  }
-
   SetCursor(field, skipRecord);
+
+  it++;
 
   if (it == m_listFields.end())
   {
@@ -6277,7 +6267,7 @@ int32_t CProduct::ReadData(
 				product->ReadBratRecord( iRecord );
 				dataSet = product->GetDataSet();
 
-				CProduct::ReadDataForOneMeasure( dataSet, strRecordName, select, expressions, wantedUnits, results, sizes, actualSize, ignoreOutOfRange, statistics, product );
+				ReadDataForOneMeasure( dataSet, strRecordName, select, expressions, wantedUnits, results, sizes, actualSize, ignoreOutOfRange, statistics, product );
 			}
 
 			product->Close();

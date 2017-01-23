@@ -74,7 +74,7 @@ public:
 
  
   
-  bool GetAliases(CProduct* product);
+  //bool GetAliases(CProduct* product);
 
   void GetDefaultRecords(CXmlNode* parentNode, CObArray& mapDefaultRecord);
   void GetAliases(CXmlNode* parent, CObArray& arrayAliases);

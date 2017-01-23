@@ -128,7 +128,7 @@ public:
   virtual std::string GetSpecialTypeName();
 
   void SetKey(const std::string& key) { m_key = key; }
-  const std::string& GetKey() { return m_key; }
+  const std::string& GetKey() const { return m_key; }
 
   void SetName(const std::string& name) { m_name = name; }
   const std::string& GetName() const { return m_name; }

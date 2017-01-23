@@ -263,7 +263,7 @@ public:
         if ( mOp.Filter() )
         {
             CritExpression.empty() ? CritExpression += "" : CritExpression += " && ";
-            CritExpression += mOp.Filter()->GetSelectionCriteriaExpression( pi.Label() );
+            CritExpression += mOp.Filter()->GetSelectionCriteriaExpression( pi.LabelForCyclePass() );
         }
         /////////////////////////////////////////////////////////////////
 

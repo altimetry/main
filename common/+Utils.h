@@ -42,6 +42,7 @@
 #include <string>
 #include <iostream>
 #include <limits>
+#include <functional>
 
 #include <time.h>
 
@@ -864,7 +865,7 @@ protected:
 	~non_copyable() = default;
 
 	non_copyable( non_copyable const & ) = delete;
-	void operator=( non_copyable const &x ) = delete;
+	non_copyable& operator=( non_copyable const &x ) = delete;
 };
 
 

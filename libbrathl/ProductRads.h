@@ -64,6 +64,8 @@ namespace brathl
 
 		//overrides
 
+		virtual std::string GetLabelForCyclePass() const override;
+
 	protected:
 
 		virtual void InitDateRef() override;

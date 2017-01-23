@@ -293,8 +293,7 @@ protected:
 class CExternalFilesNetCDFCFGeneric : public CExternalFilesNetCDFCF
 {
 public:
-  CExternalFilesNetCDFCFGeneric
-		(const std::string	&name = "");
+  CExternalFilesNetCDFCFGeneric( const std::string &name = "" );
 
   virtual ~CExternalFilesNetCDFCFGeneric();
 

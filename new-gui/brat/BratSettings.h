@@ -186,8 +186,10 @@ public:
 
 private:
 
-    bool LoadConfigSelectionCriteria();
+#if defined(BRAT_V3)
+	bool LoadConfigSelectionCriteria();
     bool SaveConfigSelectionCriteria();
+#endif
 
 	bool LoadPaths();
 	bool SavePaths();

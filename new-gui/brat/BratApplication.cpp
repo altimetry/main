@@ -103,6 +103,8 @@ void CBratApplication::Prologue( int argc, char *argv[] )
 
 	SetAbortSignal();
 #endif
+    
+    qputenv( "QT_LOGGING_RULES", "qt.network.ssl.warning=false" );
 
 	safe_debug_envar_msg( "QGIS_LOG_FILE" );
 	safe_debug_envar_msg( "QGIS_DEBUG_FILE" );
@@ -335,10 +337,12 @@ CBratApplication::CBratApplication( int &argc, char **argv, bool GUIenabled, QSt
 
 	// Load configuration - II - can only be done after CodaInit
 	//
-    if ( !mSettings.LoadConfigSelectionCriteria() )
+#if defined(BRAT_V3)
+	if ( !mSettings.LoadConfigSelectionCriteria() )
 	{		
 		throw CException( "Error reading the configuration file." );
 	}
+#endif
 
 
     // (*) this can be statically set, but not statically 

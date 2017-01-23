@@ -207,7 +207,7 @@ LIBRATHL_API int32_t brathl_DiffJulian(brathl_DateJulian *dateJulian1, brathl_Da
     \param[in] pass : number of pass in the cycle  to convert
     \param[out] dateYMDHMSM : date corresponding to the cycle/pass
     \return #BRATHL_SUCCESS or error code (see \ref Cycle_date_error_codes) */
-LIBRATHL_API int32_t brathl_Cycle2YMDHMSM(brathl_mission mission, uint32_t cycle, uint32_t pass,
+LIBRATHL_API int32_t brathl_Cycle2YMDHMSM(brathl_mission mission, int32_t cycle, int32_t pass,
       	      	      	      	      	  brathl_DateYMDHMSM *dateYMDHMSM);
 
 /** Converts a date into a cycle/pass
@@ -217,7 +217,7 @@ LIBRATHL_API int32_t brathl_Cycle2YMDHMSM(brathl_mission mission, uint32_t cycle
     \param[out] pass : number of pass in the cycle
     \return #BRATHL_SUCCESS or error code (see \ref Cycle_date_error_codes) */
 LIBRATHL_API int32_t brathl_YMDHMSM2Cycle(brathl_mission mission, brathl_DateYMDHMSM *dateYMDHMSM,
-      	      	      	      	          uint_t *cycle, uint_t *pass);
+      	      	      	      	          int32_t *cycle, int32_t *pass);
 
 /**@}*/
 

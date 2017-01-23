@@ -39,6 +39,7 @@ namespace brathl
 
 class CProductRiverLake : public CProduct
 {
+	DECLARE_BASE_TYPE( CProduct );
 
 public:
 
@@ -77,17 +78,21 @@ public:
 
 
 protected:
-  virtual void InitDateRef();
+
+  virtual void InitDateRef() override;
+
+  virtual bool Open() override;
+
+  virtual void InitInternalFieldNamesForCombinedVariable( CStringList &listField, const std::string &record ) override;
+
+  virtual void ReadBratFieldRecord( CField::CListField::iterator it, bool& skipRecord ) override;
 
 
 private:
+
   void Init();
 
-  void AddCombinedVariableToTree() override;
 
-  void initInternalFieldNamesForCombinedVariable(CStringList& listField) override;
-
-  bool computeCombinedField(CField *field) override;
 };
 
 /** @} */

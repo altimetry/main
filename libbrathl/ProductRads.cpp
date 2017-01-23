@@ -39,7 +39,7 @@ namespace brathl
 
 	void CProductRads::Init()
 	{
-		mLabel = "RADS product";
+		mLabel = "RADS";
 
 		InitDateRef();
 		InitCriteriaInfo();
@@ -74,6 +74,12 @@ namespace brathl
 		m_refDate = REF19500101;
 	}
 
+
+	//virtual 
+	std::string CProductRads::GetLabelForCyclePass() const 
+	{ 
+		return GetProductType();		//see aliases file
+	}
 
 
 	//----------------------------------------

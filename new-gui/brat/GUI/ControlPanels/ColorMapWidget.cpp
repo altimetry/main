@@ -507,7 +507,7 @@ void CColorMapWidget::UpdateLabels()
 
 void CColorMapWidget::SetRange( double m, double M )
 {
-	assert__( m < M );
+	assert__( m <= M );
 
 	mColorRangeMin = std::min( M, m );
 	mColorRangeMax = M;

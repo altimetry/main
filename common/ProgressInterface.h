@@ -42,6 +42,8 @@ public:
 	{}
 
 
+	virtual void Abort() = 0;	//internal cancel
+
 	virtual void SetLabel( const std::string &label )
 	{
 		UNUSED( label );

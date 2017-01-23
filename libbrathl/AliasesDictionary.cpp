@@ -221,35 +221,35 @@ void CAliasesDictionary::DeleteRootNode()
 }
 
 //----------------------------------------------------
-bool CAliasesDictionary::GetAliases(CProduct* product)
-{
-  if (product == NULL)
-  {
-    return false;
-  }
-  CXmlNode* productNode = this->FindProductNode(product->GetProductClass());
-
-  if (productNode == NULL)
-  {
-    return false;
-  }
-
-  CXmlNode* child = productNode->GetChildren();
-  
-  while (child != NULL) 
-  {
-    if (!str_icmp(child->GetName(), CAliasesDictionary::m_PRODUCT_ELT))
-    {
-      child = child->GetNext();
-      continue;
-    }
-
-    child = child->GetNext();
-  }
-
-  return true;
-
-}
+//bool CAliasesDictionary::GetAliases(CProduct* product)
+//{
+//  if (product == NULL)
+//  {
+//    return false;
+//  }
+//  CXmlNode* productNode = this->FindProductNode(product->GetProductClass());
+//
+//  if (productNode == NULL)
+//  {
+//    return false;
+//  }
+//
+//  CXmlNode* child = productNode->GetChildren();
+//  
+//  while (child != NULL) 
+//  {
+//    if (!str_icmp(child->GetName(), CAliasesDictionary::m_PRODUCT_ELT))
+//    {
+//      child = child->GetNext();
+//      continue;
+//    }
+//
+//    child = child->GetNext();
+//  }
+//
+//  return true;
+//
+//}
 
 //----------------------------------------------------
 void CAliasesDictionary::Load(const std::string& fileName, const std::string& encoding, int flags)

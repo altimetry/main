@@ -20,7 +20,7 @@
 #include "new-gui/Common/QtUtils.h"
 
 #include "libbrathl/Product.h"
-#include "libbrathl/Mission.h"
+#include "libbrathl/CyclePassConverter.h"
 
 using namespace brathl;
 
@@ -189,23 +189,25 @@ void CBratFilter::BoundingArea( double &lon1, double &lat1, double &lon2, double
 }
 
 
-bool CBratFilter::GetTimeBounds( CDate &Start, CDate &Stop, const std::string &product_label, std::string &error_msg ) const
+bool CBratFilter::GetTimeBounds( CDate &Start, CDate &Stop, const std::string &label_for_cycle_pass, std::string &error_msg ) const
 {
     if ( UsingCyclePass() && !InvalidCyclePassValues() )
     {
         // 1- Uses Start/Stop Cycle/Pass defined by user
-        CMission m( product_label );
 
-        if ( m.CtrlMission() == BRATHL_SUCCESS )
+		const CCyclePassConverter &m = CCyclePassConverter::GetConverter( label_for_cycle_pass );
+        if ( m.ErrorCode() == BRATHL_SUCCESS )
         {
             m.Convert( StartCycle(), StartPass(), Start);
             m.Convert( StopCycle(), StopPass(), Stop);
+            
+            qDebug() << "Cycle/Pass converted to " + t2q( Start.AsString() ) + " - " + t2q( Stop.AsString() );
+            
             return true;
         }
-        else // Mission not found       TODO add string parameter for error messages
+        else // Mission not found
         {
-            error_msg.append( "Unable to convert Cycle and Pass to date: no mission found for product type '"
-                              + product_label + "'." );
+            error_msg.append( "Unable to convert Cycle and Pass to date with '" + label_for_cycle_pass + "':\n" + m.ErrorMessages() );
             return false;
         }
     }
@@ -218,11 +220,10 @@ bool CBratFilter::GetTimeBounds( CDate &Start, CDate &Stop, const std::string &p
 }
 
 
-// Argument product_label must be the value returned by CProduct::GetLabel()
-//	(or CProductInfo::Label)
+// Argument label_for_cycle_pass must be the value returned by CProduct::GetLabelForCyclePass()
 //
 //////// RCCC TODO /////////////////////////////////////
-std::string CBratFilter::GetSelectionCriteriaExpression( const std::string &product_label ) const
+std::string CBratFilter::GetSelectionCriteriaExpression( const std::string &label_for_cycle_pass ) const
 {
     std::string expression;
 
@@ -273,7 +274,7 @@ std::string CBratFilter::GetSelectionCriteriaExpression( const std::string &prod
     // TIME filtering expression //
     CDate Start, Stop;
     std::string error_msg;
-    if ( GetTimeBounds( Start, Stop, product_label, error_msg ) )
+    if ( GetTimeBounds( Start, Stop, label_for_cycle_pass, error_msg ) )
     {
         double start_seconds, stop_seconds;
         Start.Convert2Second( start_seconds ); // NOTE: Although some products have time fields in seconds since 2000-01-01,
@@ -559,7 +560,7 @@ bool CBratFilters::Load()
 }
 
 
-bool CBratFilters::Translate2SelectionCriteria( CProduct *product_ref, const std::string &name, std::string &error_msg ) const
+bool CBratFilters::Translate2SelectionCriteria( const std::string &label_for_cycle_pass, CProduct *product_ref, const std::string &name, std::string &error_msg ) const
 {
     auto const *filter = Find( name );
 
@@ -591,12 +592,12 @@ bool CBratFilters::Translate2SelectionCriteria( CProduct *product_ref, const std
     {
         CDate Start, Stop;
 
-        if ( filter->GetTimeBounds( Start, Stop, product_ref->GetLabel(), error_msg ) )
+        if ( filter->GetTimeBounds( Start, Stop, label_for_cycle_pass, error_msg ) )
         {
             // Start and Stop.Value() contains the date in a number of seconds since internal reference date, ie 1950.
             product_ref->GetDatetimeCriteria()->Set( Start.Value(), Stop.Value() );
             LOG_INFO("Filter '" + filter->Name() + "' applied a DateTimeCriteria from: " + Start.AsString() + " to: " + Stop.AsString()
-                     + ".\n(product type/label: '" + product_ref->GetLabel() + "')");
+                     + ".\n(product type/label: '" + label_for_cycle_pass + "')");
         }
         else
         {
@@ -717,7 +718,7 @@ std::pair< bool, bool > CBratFilters::Apply( const std::string &name, const CStr
 
 
         // 4. Translate Filter to selection criteria //
-        if ( !Translate2SelectionCriteria( product_ref, name, error_msg ) )
+        if ( !Translate2SelectionCriteria( product->GetLabelForCyclePass(), product_ref, name, error_msg ) )
         {
             // Unable to translate to selection criteria (no criteria info, unknown mission...)
 			return{ false, user_canceled };

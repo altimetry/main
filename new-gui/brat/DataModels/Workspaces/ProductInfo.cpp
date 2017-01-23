@@ -272,11 +272,17 @@ bool CProductInfo::IsNetCdfOrNetCdfCF() const
 
 	return mProduct->IsNetCdfOrNetCdfCFProduct();
 }
-const std::string CProductInfo::Label() const
+const std::string& CProductInfo::Label() const
 {
 	assert__( mProduct );
 
 	return mProduct->GetLabel();
+}
+std::string CProductInfo::LabelForCyclePass() const
+{
+	assert__( mProduct );
+
+	return mProduct->GetLabelForCyclePass();
 }
 
 

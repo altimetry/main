@@ -23,7 +23,6 @@
 
 #include "common/tools/TraceLog.h"
 #include "common/tools/Exception.h"
-#include "Mission.h" 
 #include "Expression.h" 
 #include "LatLonRect.h" 
 

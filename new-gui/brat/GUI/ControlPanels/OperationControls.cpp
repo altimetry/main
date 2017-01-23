@@ -1900,7 +1900,12 @@ CProduct* COperationControls::ConstructTemporaryFilteredProduct( std::string &er
 		if ( is_Ok )
 			filtered_dataset = filtered_result.second;
 		else
+		{
+			if ( filtering_confirmation.second )
+				filtering_confirmation.second->Abort();
+
 			ResetFilterSelection();
+		}
 	}
 
 	if ( is_Ok )
@@ -3521,7 +3526,10 @@ bool COperationControls::Execute( EExecutionType type, COperation *operation, bo
 	std::string error_msg;
 	if ( !operation->BuildCmdFile( type, mWFormula, mWOperation, error_msg, progress ) )	//v3 didn't seem to care if this fails
 	{
-		assert__( progress->Cancelled() || !error_msg.empty() );
+		assert__( ( !progress || progress->Cancelled() ) || !error_msg.empty() );
+
+		if ( progress )
+			progress->Abort();
 
 		ResetFilterSelection();
 		if ( !error_msg.empty() )
@@ -3533,11 +3541,19 @@ bool COperationControls::Execute( EExecutionType type, COperation *operation, bo
 
 	//Confirm execution
 
+	// If the operation has a filter, the user was already warned about the time it can take. Otherwise, warn.
+	//
+	std::string additional_warning;
+	if ( !operation->Filter() && operation->OriginalDataset()->Size() > mModel.Settings().MinimumFilesToWarnUser() )
+		additional_warning = "\n\nThe dataset has " + n2s<std::string>( operation->OriginalDataset()->Size() )
+		+ " files. Execution can take a long time.";
+
 	if ( !SimpleQuestion(
 		"A process for the operation '"
 		+ operation->GetName()
 		+ "' will be executed with the following command line\n\n"
 		+ operation->GetFullCmd( type )
+		+ additional_warning
 		+ "\n\nDo you want to proceed?" ) 
 		)
 		return false;
@@ -3601,6 +3617,9 @@ CBratTask* COperationControls::Schedule( EExecutionType type, const QDateTime &a
 	if ( !exporting_netcdf && !mCurrentOperation->BuildCmdFile( type, mWFormula, mWOperation, error_msg, progress ) )	//v3 didn't seem to care if this fails
 	{
 		assert__( progress->Cancelled() || !error_msg.empty() );
+
+		if ( progress )
+			progress->Abort();
 
 		wait.Restore();
 		ResetFilterSelection();

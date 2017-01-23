@@ -399,6 +399,9 @@ bool CRadsClient::Synchronize( bool force )		//force = false
 	cmd_line += "-avrzR --del --password-file=";
     cmd_line += QuotePath( win2cygwin( pass_file_path ) );		//TODO encrypt/decode: write unencrypted to temporary file passed here
 	cmd_line += " ";
+	cmd_line += "--timeout=";
+	cmd_line += n2s<std::string>( mSettings.TimeoutInSeconds() );
+	cmd_line += " ";
 	std::string src_missions;
     
     //Assuming mSettings.MissionNames() is not empty: //see (*) above before changing

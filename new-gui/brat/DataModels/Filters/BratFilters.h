@@ -306,7 +306,7 @@ public:
 
 protected:
 
-	bool GetTimeBounds( CDate &Start, CDate &Stop, const std::string &product_label, std::string &error_msg ) const;
+	bool GetTimeBounds( CDate &Start, CDate &Stop, const std::string &label_for_cycle_pass, std::string &error_msg ) const;
 
 	void SetDefaultCyclePassValues();
 	void SetDefaultDateValues();
@@ -315,10 +315,9 @@ protected:
 public:
 	std::pair< bool, bool > Apply( const CStringList& files_in, CStringList& files_out, std::string &error_msg, CProgressInterface *progress ) const;
 
-	// Argument product_label must be the value returned by CProduct::GetLabel()
-	//	(or CProductInfo::Label)
+	// Argument product_label must be the value returned by CProduct::GetLabelForCyclePass()
 	//
-    std::string GetSelectionCriteriaExpression( const std::string &product_label ) const;
+    std::string GetSelectionCriteriaExpression( const std::string &label_for_cycle_pass ) const;
 };
 
 
@@ -430,7 +429,12 @@ public:
     bool DeleteFilter( const std::string &name );
 
     std::pair< bool, bool > Apply( const std::string &name, const CStringList& files_in, CStringList& files_out, std::string& error_msg, CProgressInterface *progress ) const;
-    bool Translate2SelectionCriteria( CProduct *product_ref, const std::string &name , std::string &error_msg ) const;
+
+protected:
+	
+	bool Translate2SelectionCriteria( const std::string &label_for_cycle_pass, CProduct *product_ref, const std::string &name , std::string &error_msg ) const;
+
+public:
 
     // persistence
 

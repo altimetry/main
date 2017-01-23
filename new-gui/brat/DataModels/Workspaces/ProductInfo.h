@@ -106,7 +106,8 @@ public:
 	std::string ProductClassAndType() const;
 	bool IsNetCdf() const;
 	bool IsNetCdfOrNetCdfCF() const;
-	const std::string Label() const;
+	const std::string& Label() const;
+	std::string LabelForCyclePass() const;
 
 
 	//...aliases

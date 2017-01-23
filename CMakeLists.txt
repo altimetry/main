@@ -771,7 +771,7 @@ IF( WIN32)
 ELSE(WIN32)
 
     IF (ENABLE_QT5)
-	    file( GLOB GLOB_libqca	${QCA_BIN_DIR}/libqca.* )
+	    file( GLOB GLOB_libqca	${QCA_BIN_DIR}/libqca${DBG_SUFFIX}.* )
 	ENDIF(ENABLE_QT5)
 
 
@@ -1677,7 +1677,7 @@ set(LIBBRATHL_CXX_SOURCES
   libbrathl/LatLonRect.cpp
   libbrathl/List.cpp
   libbrathl/MapParameter.cpp
-  libbrathl/Mission.cpp
+  libbrathl/CyclePassConverter.cpp
   libbrathl/NetCDFFiles.cpp
   libbrathl/ObjectTree.cpp
   libbrathl/Parameter.cpp
@@ -3385,6 +3385,7 @@ if(NOT IS_CENTOS_SYSTEM)
 		refman.tex
 		refman.pdf
 		"${REFERENCE_MANUAL_PDF_OUT}"
+		COMMAND ${CMAKE_COMMAND} -E copy ${REFERENCE_MANUAL_PDF_OUT} ${BRAT_SOURCE_DIR}/doc/brat_reference_manual.pdf
 		DEPENDS ${HTML_TARGET}
 		COMMENT "Building the reference manual")
 

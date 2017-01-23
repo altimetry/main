@@ -202,6 +202,8 @@ class CRadsSettings : public CRadsSettingsBase
 
 	static const unsigned smDefaultPeriodicCheckInMinutes;
 
+	static const unsigned smDefaultTimeoutInSeconds;
+
 protected:
 
 	//////////////////////////////////////
@@ -210,6 +212,7 @@ protected:
 
 	bool mLockedFile = false;
 	unsigned mPeriodicCheckInMinutes = smDefaultPeriodicCheckInMinutes;
+	unsigned mTimeoutInSeconds = smDefaultTimeoutInSeconds;
 
 public:
 
@@ -243,6 +246,9 @@ public:
 	bool LockFile( bool lock );
 
 	unsigned PeriodicCheckInMinutes() const { return mPeriodicCheckInMinutes; }
+
+	unsigned TimeoutInSeconds() const { return mTimeoutInSeconds; }
+
 
 public:
 

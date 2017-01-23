@@ -109,6 +109,8 @@ const int CBratSettings::smPlotsTitleFontSize = 12;
 
 
 
+#if defined(BRAT_V3)
+
 bool CBratSettings::SaveConfigSelectionCriteria()
 {
 	CMapProduct& mapProductInstance = CMapProduct::GetInstance();
@@ -142,8 +144,6 @@ bool CBratSettings::SaveConfigSelectionCriteria()
 
 	return mSettings.status() == QSettings::NoError;
 }
-
-
 
 bool CBratSettings::LoadConfigSelectionCriteria()
 {
@@ -212,6 +212,7 @@ bool CBratSettings::LoadConfigSelectionCriteria()
 
 	return mSettings.status() == QSettings::NoError;
 }
+#endif    //BRAT_V3
 
 
 bool CBratSettings::LoadPaths()
@@ -288,8 +289,10 @@ bool CBratSettings::SaveConfig()
 		{ ENTRY_LAST, m_lastColorTable },
 	} 
 	)
+#if defined(BRAT_V3)
 	&&
 	SaveConfigSelectionCriteria()
+#endif
 	&&
 	SavePaths();
 }

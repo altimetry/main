@@ -28,7 +28,6 @@
 #include "List.h"
 #include "common/tools/Exception.h"
 #include "Expression.h"
-#include "Mission.h"
 #include "ProductNetCdf.h"
 
 #include "NetCDFFiles.h"
@@ -4375,7 +4374,7 @@ std::pair< std::string, std::string > CNetCDFFiles::IdentifyExistingFile( bool c
 		// ---------------------------------------------------------
 		// Jason-2 Netcdf
 		// ---------------------------------------------------------
-        int foundDataSetAttrJ2;
+        int foundDataSetAttrJ2 = foundDataSetAttr;
 
 		if ( foundDataSetAttr != NC_NOERR )
 		{
@@ -4412,8 +4411,9 @@ std::pair< std::string, std::string > CNetCDFFiles::IdentifyExistingFile( bool c
 		{
 			static const std::vector< std::string > j2_aliases { "Jason-2", "OSTM/Jason-2", "jason2", "j2", "mission_name", "(mission_name)", "{mission_name}" };
 
-			for ( auto const &s : j2_aliases )
+			for ( std::vector< std::string >::const_iterator it = j2_aliases.begin(); it != j2_aliases.end(); ++it )
 			{
+				auto const &s = *it;
 				if ( str_icmp( s, missionNameAttrValue ) )
 				{
 					//        fileTypeStr = CTools::StringToUpper(CTools::Format("%s/%s/%s",

@@ -23,7 +23,6 @@
 #include "netcdf.h"
 #include "BratObject.h"
 #include <string>
-#include "Mission.h"
 #include "ExternalFilesNetCDF.h"
 
 namespace brathl

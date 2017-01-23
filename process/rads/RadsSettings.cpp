@@ -24,11 +24,12 @@
 
 //entries in rads service ini file (operational)
 
-const std::string ENTRY_RADS_MISSIONS =				"missions";
-const std::string ENTRY_RADS_NUMBER_OF_DAYS =		"days";
-const std::string ENTRY_USER_DATA_DIR =				"user_data_dir";
-const std::string ENTRY_LAT_SYNC_TIME =				"last_sync_time";
-const std::string ENTRY_PERIODIC_CHECK_IN_MINUTES =	"periodic_check_in_minutes";
+static const std::string ENTRY_RADS_MISSIONS =				"missions";
+static const std::string ENTRY_RADS_NUMBER_OF_DAYS =		"days";
+static const std::string ENTRY_USER_DATA_DIR =				"user_data_dir";
+static const std::string ENTRY_LAT_SYNC_TIME =				"last_sync_time";
+static const std::string ENTRY_PERIODIC_CHECK_IN_MINUTES =	"periodic_check_in_minutes";
+static const std::string ENTRY_DEFAULT_TIMEOUT_IN_SECONDS =	"default_timeout_in_seconds";
 
 
 
@@ -241,6 +242,9 @@ const unsigned CRadsSettings::smDefaultPeriodicCheckInMinutes =
 	60;
 #endif
 
+//static 
+const unsigned CRadsSettings::smDefaultTimeoutInSeconds = 30;
+
 
 
 
@@ -263,6 +267,7 @@ std::ostream& operator << ( std::ostream &os, const CRadsSettings &o )
 	return os 
 		<< static_cast< const CRadsSettings::base_t& >( o )
 		<< "PeriodicCheckInMinutes == " << n2s<std::string>( o.mPeriodicCheckInMinutes ) << std::endl
+		<< "TimeoutInSeconds == " << n2s<std::string>( o.mTimeoutInSeconds ) << std::endl
 		;
 
 	return os;
@@ -281,7 +286,7 @@ bool CRadsSettings::LockFile( bool lock )
 }
 
 
-bool CRadsSettings::SaveConfig()
+bool CRadsSettings::SaveConfig() 
 {
 	bool result =
 		!mLockedFile
@@ -290,7 +295,8 @@ bool CRadsSettings::SaveConfig()
 		&&
 		WriteSection( GROUP_COMMON, 
 
-			k_v( ENTRY_PERIODIC_CHECK_IN_MINUTES, mPeriodicCheckInMinutes )
+			k_v( ENTRY_PERIODIC_CHECK_IN_MINUTES, mPeriodicCheckInMinutes ),
+			k_v( ENTRY_DEFAULT_TIMEOUT_IN_SECONDS, mTimeoutInSeconds )
 		)
 		&&
 		mSettings.status() == QSettings::NoError;
@@ -310,7 +316,8 @@ bool CRadsSettings::LoadConfig()
 		&&
 		ReadSection( GROUP_COMMON,
 
-			k_v( ENTRY_PERIODIC_CHECK_IN_MINUTES, &mPeriodicCheckInMinutes )
+			k_v( ENTRY_PERIODIC_CHECK_IN_MINUTES,	&mPeriodicCheckInMinutes, smDefaultPeriodicCheckInMinutes ),
+			k_v( ENTRY_DEFAULT_TIMEOUT_IN_SECONDS,	&mTimeoutInSeconds,	smDefaultTimeoutInSeconds )
 		)
 		&&
 		mSettings.status() == QSettings::NoError;

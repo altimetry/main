@@ -33,7 +33,7 @@
 #include "common/tools/brathl_error.h"
 
 #include "Date.h"
-#include "Mission.h"
+#include "CyclePassConverter.h"
 #include "List.h"
 #include "common/tools/Exception.h"
 #include "Product.h"
@@ -555,63 +555,63 @@ LIBRATHL_API int32_t brathl_DiffJulian(brathl_DateJulian *dateJulian1, brathl_Da
 
 //----------------------------------------
 
-LIBRATHL_API int32_t brathl_Cycle2YMDHMSM(brathl_mission mission, uint32_t cycle, uint32_t pass,
-      	      	      	      	      	  brathl_DateYMDHMSM *dateYMDHMSM)
+LIBRATHL_API int32_t brathl_Cycle2YMDHMSM( brathl_mission mission, int32_t cycle, int32_t pass,
+	brathl_DateYMDHMSM *dateYMDHMSM )
 {
-  brathl_errno = BRATHL_SUCCESS;
+	brathl_errno = BRATHL_SUCCESS;
 
-  CDate date;
-  CMission m(mission);
+	CDate date;
+	const CCyclePassConverter &m = CCyclePassConverter::GetConverter( ( CCyclePassConverter::ECyclePassMission )mission );
 
-  brathl_errno = m.CtrlMission();
+	brathl_errno = m.ErrorCode();
+	if ( brathl_errno != BRATHL_SUCCESS )
+	{
+		printf( m.ErrorMessages().c_str() );
+		return brathl_errno;
+	}
 
-  if (brathl_errno != BRATHL_SUCCESS)
-  {
-    return brathl_errno;
-  }
+	brathl_errno = m.Convert( cycle, pass, date );
 
-  brathl_errno = m.Convert(cycle, pass, date);
+	if ( brathl_errno != BRATHL_SUCCESS )
+	{
+		return brathl_errno;
+	}
 
-  if (brathl_errno != BRATHL_SUCCESS)
-  {
-    return brathl_errno;
-  }
+	brathl_errno = date.Convert2YMDHMSM( dateYMDHMSM->year, dateYMDHMSM->month, dateYMDHMSM->day,
+		dateYMDHMSM->hour, dateYMDHMSM->minute, dateYMDHMSM->second,
+		dateYMDHMSM->muSecond );
 
-  brathl_errno = date.Convert2YMDHMSM(dateYMDHMSM->year, dateYMDHMSM->month, dateYMDHMSM->day,
-      	      	      	  dateYMDHMSM->hour, dateYMDHMSM->minute, dateYMDHMSM->second,
-      	      	      	  dateYMDHMSM->muSecond);
-
-  return brathl_errno;
+	return brathl_errno;
 
 }
 
 //----------------------------------------
 
-LIBRATHL_API int32_t brathl_YMDHMSM2Cycle(brathl_mission mission, brathl_DateYMDHMSM *dateYMDHMSM,
-      	      	      	      	          uint_t *cycle, uint_t *pass)
+LIBRATHL_API int32_t brathl_YMDHMSM2Cycle( brathl_mission mission, brathl_DateYMDHMSM *dateYMDHMSM,
+	int32_t *cycle, int32_t *pass )
 {
-  brathl_errno = BRATHL_SUCCESS;
+	brathl_errno = BRATHL_SUCCESS;
 
-  CDate date;
-  CMission m(mission);
+	CDate date;
+	const CCyclePassConverter &m = CCyclePassConverter::GetConverter( ( CCyclePassConverter::ECyclePassMission )mission );
 
-  brathl_errno = m.CtrlMission();
+	brathl_errno = m.ErrorCode();
+	if ( brathl_errno != BRATHL_SUCCESS )
+	{
+		printf( m.ErrorMessages().c_str() );
+		return brathl_errno;
+	}
 
-  if (brathl_errno != BRATHL_SUCCESS)
-  {
-    return brathl_errno;
-  }
+	brathl_errno = date.SetDate( *dateYMDHMSM );
 
-  brathl_errno = date.SetDate(*dateYMDHMSM);
+	if ( brathl_errno != BRATHL_SUCCESS )
+	{
+		return brathl_errno;
+	}
 
-  if (brathl_errno != BRATHL_SUCCESS)
-  {
-    return brathl_errno;
-  }
+	brathl_errno = m.Convert( date, *cycle, *pass );
 
-  brathl_errno = m.Convert(date, *cycle, *pass);
-
-  return brathl_errno;
+	return brathl_errno;
 
 }
 //----------------------------------------

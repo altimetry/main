@@ -1335,7 +1335,7 @@ void C2DPlotWidget::SetNumberOfContours( double min_contour, double max_contour,
 		if ( !isDefaultValue( min_contour ) && !isDefaultValue( max_contour ) )
 		{
 			QwtValueList contour_levels;
-			double step = ( max_contour - min_contour ) / ncontours;						assert__( step > 0 );
+			double step = ( max_contour - min_contour ) / ncontours;						assert__( step >= 0 );
 			if ( step > 0 )
 				for ( double level = min_contour; level < max_contour; level += step )
 				{

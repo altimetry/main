@@ -779,7 +779,7 @@ public:
 
 //----------------------------------------
 
-  /**Finds a file path known only by its name. The path is retreived
+  /**Finds a file path known only by its name. The path is retrieved
      from compilation (intallation prefix) or by environment variable.
     \param[in] Name : File name
     \return Returns the path of found file or an empty std::string if not found*/

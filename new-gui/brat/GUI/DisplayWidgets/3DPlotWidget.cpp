@@ -1526,7 +1526,9 @@ void C3DPlotWidget::CorrectScale()
 	{
 		double xrange = xMax - xMin;			assert__( xrange > 0 );
 		double yrange = yMax - yMin;			assert__( yrange > 0 );
-		double zrange = zMax - zMin;			assert__( zrange > 0 );
+		double zrange = zMax - zMin;			assert__( zrange >= 0 );	//open an exception to allow zMin == zMax
+		if ( zrange == 0. )
+			zrange = std::numeric_limits<double>::lowest();
 
 		double range_max = std::max( xrange, std::max( yrange, zrange ) );
 

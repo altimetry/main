@@ -73,6 +73,11 @@ public:
 	//		Remaining
 	/////////////////////////////
 
+	virtual void Abort() override	//internal cancel
+	{
+		close();
+	}
+
 	virtual void SetLabel( const std::string &label ) override
 	{
 		progress_base_t::SetLabel( label );		//does nothing, so far
