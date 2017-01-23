@@ -52,7 +52,7 @@ void CProductInfo::ExtractInfo()
 
 	if ( mProduct->IsNetCdfOrNetCdfCFProduct() )
 	{
-		mRecord = CProductNetCdf::m_virtualRecordName;		//TODO this is done for COperation; should we do it HERE????
+		mRecord = CProductNetCdf::m_virtualRecordName;	//TODO check that a defaultRecord in aliases.xml is equivalent and m_virtualRecordName can be deleted
 	}
 	else
 	{

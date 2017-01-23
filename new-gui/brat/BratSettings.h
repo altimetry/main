@@ -50,6 +50,7 @@ class CBratSettings : public CApplicationSettings
     static const CMapWidget::ELayerBaseType smDefaultLayerBaseType;
 	static const bool smUseUnsupportedFields;
 	static const size_t smMinimumFilesToWarnUser;
+	static const size_t smMinimumFilesToProgressTrack;
 
 	static const double smHchildRatioNum;
 	static const double smHchildRatioDnm;
@@ -89,6 +90,7 @@ public:
 protected:
 
 	size_t mMinimumFilesToWarnUser = smMinimumFilesToWarnUser;
+	size_t mMinimumFilesToProgressTrack = smMinimumFilesToProgressTrack;
 
 	double mHchildRatioNum = smHchildRatioNum;
 	double mHchildRatioDnm = smHchildRatioDnm;
@@ -162,6 +164,8 @@ public:
 
 
 	size_t MinimumFilesToWarnUser() const { return mMinimumFilesToWarnUser; }
+
+	size_t MinimumFilesToProgressTrack() const { return mMinimumFilesToProgressTrack; }
 
 
 	//..plots 

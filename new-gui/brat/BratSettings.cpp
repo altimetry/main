@@ -60,6 +60,7 @@ static const std::string ENTRY_CHECK_OPENGL =						"check_opengl_capabilities";
 static const std::string ENTRY_USE_UNSUPPORTED_FIELDS =				"use_unsupported_fields";
 static const std::string ENTRY_DISPLAY_RADS_INSTALL_INFORMATION =	"display_rads_install_information";
 static const std::string ENTRY_MINIMUM_FILES_TO_WARN_USER =			"minimum_files_to_warn_user";
+static const std::string ENTRY_MINIMUM_FILES_TO_PROGRESS_TRACK =	"minimum_files_to_progress_track";
 
 static const std::string ENTRY_H_CHILD_RATIO_NUM =					"h_child_ratio_num";
 static const std::string ENTRY_H_CHILD_RATIO_DNM =					"h_child_ratio_dnm";
@@ -89,6 +90,9 @@ const bool CBratSettings::smUseUnsupportedFields = false;
 
 //static 
 const size_t CBratSettings::smMinimumFilesToWarnUser = 1000;
+
+//static 
+const size_t CBratSettings::smMinimumFilesToProgressTrack = 50;
 
 
 //static 
@@ -271,6 +275,7 @@ bool CBratSettings::SaveConfig()
 		k_v( ENTRY_USE_UNSUPPORTED_FIELDS,				mUseUnsupportedFields ),
 		k_v( ENTRY_DISPLAY_RADS_INSTALL_INFORMATION,	mDisplayRadsInstallInformation ),
 		k_v( ENTRY_MINIMUM_FILES_TO_WARN_USER,			mMinimumFilesToWarnUser ),
+		k_v( ENTRY_MINIMUM_FILES_TO_PROGRESS_TRACK,		mMinimumFilesToProgressTrack ),
 		k_v( ENTRY_H_CHILD_RATIO_NUM,					mHchildRatioNum ),
 		k_v( ENTRY_H_CHILD_RATIO_DNM,					mHchildRatioDnm ),
 		k_v( ENTRY_PLOTS_FONT_NAME,						mPlotsFontName ),
@@ -318,6 +323,7 @@ bool CBratSettings::LoadConfig()
 		k_v( ENTRY_USE_UNSUPPORTED_FIELDS,				&mUseUnsupportedFields, smUseUnsupportedFields ),
 		k_v( ENTRY_DISPLAY_RADS_INSTALL_INFORMATION,	&mDisplayRadsInstallInformation ),
 		k_v( ENTRY_MINIMUM_FILES_TO_WARN_USER,			&mMinimumFilesToWarnUser, smMinimumFilesToWarnUser ),
+		k_v( ENTRY_MINIMUM_FILES_TO_PROGRESS_TRACK,		&mMinimumFilesToProgressTrack, smMinimumFilesToProgressTrack ),
 		k_v( ENTRY_H_CHILD_RATIO_NUM,					&mHchildRatioNum, smHchildRatioNum ),
 		k_v( ENTRY_H_CHILD_RATIO_DNM,					&mHchildRatioDnm, smHchildRatioDnm ),
 		k_v( ENTRY_PLOTS_FONT_NAME,						&mPlotsFontName, smPlotsFontName ),

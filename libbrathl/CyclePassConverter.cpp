@@ -101,7 +101,12 @@ namespace brathl
 					+ " of file: " + refFilePathName
 					);
 
-				smError = BRATHL_WARNING_INVALID_REF_FILE_FIELD;
+				// (*) Preserve 1st error code found, but do not abort, maybe some work 
+				//	can still be done. Reporting the specific error is not so important,
+				//	the whole file should be correct.
+				//
+				if ( smError == BRATHL_SUCCESS )
+					smError = BRATHL_WARNING_INVALID_REF_FILE_FIELD;
 				continue;
 			}
 
@@ -129,7 +134,9 @@ namespace brathl
 					+ ", # passes " + n2s< std::string >( cc.m_nbPass )
 					);
 
-				smError = BRATHL_WARNING_INVALID_REF_FILE_FIELDDATE;
+				// see comment (*) above
+				if ( smError == BRATHL_SUCCESS )
+					smError = BRATHL_WARNING_INVALID_REF_FILE_FIELDDATE;
 
 				smCyclePassConverters.erase( smCyclePassConverters.end() - 1 );
 				continue;

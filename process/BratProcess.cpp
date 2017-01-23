@@ -1476,7 +1476,7 @@ bool CBratProcess::CheckCommandLineOptions
 	bool			help		= false;
 	bool			keywords	= false;
 	std::ostream	*out		= &std::cerr;
-	checked_dataset				= argv[ 1 ] == CHECKED_DATASET_CMD_LINE_PARAMETER;
+	checked_dataset				= argc > 1 && argv[ 1 ] == CHECKED_DATASET_CMD_LINE_PARAMETER;
 
 	int nfilearg = 1;
 	int nargs = 2;
@@ -1519,10 +1519,10 @@ bool CBratProcess::CheckCommandLineOptions
 
 	if ( error || help )
 	{
-		*out << "Usage : " << argv[ 0 ] << " [ -h | --help";
+		*out << "Usage : " << argv[ 0 ] << " [ " << CHECKED_DATASET_CMD_LINE_PARAMETER << " ] [ -h | --help";
 		if ( keywordList != nullptr )
 			*out << " | -k | --keywords";
-		*out << "] commandFileName" << std::endl;
+		*out << " ] commandFileName" << std::endl;
 		*out << "Where commandFileName is the name of a file containing runtime parameters" << std::endl;
 	}
 

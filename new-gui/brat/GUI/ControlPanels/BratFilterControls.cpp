@@ -28,6 +28,7 @@
 #include "GUI/ActionsTable.h"
 #include "GUI/ControlPanels/Dialogs/RegionSettingsDialog.h"
 #include "GUI/DisplayWidgets/MapWidget.h"
+#include "GUI/ProgressDialog.h"
 
 #include "BratLogger.h"
 #include "BratSettings.h"
@@ -1398,9 +1399,29 @@ void CBratFilterControls::HandleDatasetChanged( const CDataset *dataset )
     mMap->setRenderFlag( false );
     std::vector< std::string > paths = mDataset->GetFiles();
 	bool some_track_displayed = false;
+
+	CProgressInterface *pi = nullptr;
+	if ( paths.size() > mModel.Settings().MinimumFilesToProgressTrack() )
+	{
+		CProgressDialog *progress_dlg = new CProgressDialog( "Reading Track Data...", "Cancel", 0, paths.size(), parentWidget() );
+		progress_dlg->setAttribute( Qt::WA_DeleteOnClose );
+		pi = progress_dlg;
+		//progress_dlg->show();
+	}
+
     for ( auto &path : paths )
     {
-        WaitCursor wait;
+		WaitCursor wait;
+
+		if ( pi )
+		{
+			wait.Restore();
+			if ( pi->Cancelled() )
+			{
+				break;
+			}
+			pi->SetCurrentValue( pi->CurrentValue() + 1 );
+		}
 
 		bool is_netcdf = false, skip_iteration = false;
         std::vector< unsigned char > alias_used = { false, false, false };

@@ -40,7 +40,7 @@ using namespace brathl;
 
 
 
-const std::string CHECKED_DATASET_CMD_LINE_PARAMETER = "-rads";
+const std::string CHECKED_DATASET_CMD_LINE_PARAMETER = "-checked";
 
 const std::string DATA_MODE_SUFFIX = "_DATA_MODE";
 const std::string DATA_MODE_DI_TIME_NAME_SUFFIX = "_DATA_MODE_DI_TIME_NAME";
