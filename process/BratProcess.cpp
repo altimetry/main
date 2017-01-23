@@ -121,6 +121,10 @@ void CBratProcess::Init()
   setDefaultValue(m_validMin);
   setDefaultValue(m_validMax);
 
+  // set default values for time interpolation
+  m_tFactor = 1.0;
+  m_dFactor = 1.0;
+
 }
 
 //----------------------------------------
@@ -520,7 +524,6 @@ void CBratProcess::ResizeArrayDependOnFields(uint32_t size)
 
   m_countOffsets.resize(size);
   m_meanOffsets.resize(size);
-
 
 }
 
@@ -1435,19 +1438,13 @@ int32_t CBratProcess::GetMergedDataSlices( EMergeDataMode mode )
 
 	switch ( mode )
 	{
-		case pctMEAN:
+        case pctMEAN:
+        case pctTIME:
 			dataSlices = 2;
 			break;
 
 		case pctSTDDEV:
 			dataSlices = 3;
-			break;
-
-		case pctTIME:
-
-			//!!! GORKA !!!
-			//Please delete the whole case statement if 1 is good for pctTIME
-
 			break;
 
 		default:
@@ -2438,6 +2435,9 @@ void CBratProcess::BuildListFieldsToRead()
 
     }
     */
+    if (m_dataMode[i] == CBratProcess::pctTIME) {
+        m_listFieldsToRead.InsertUnique(mDataInterpolationTimeFieldName);
+    }
   }
 
   // build, from SELECT parameter, the list of the fields to read in the data files
@@ -3050,9 +3050,10 @@ void CBratProcess::MergeDataValue
 		(double* data,
 		 double* values,
 		 uint32_t nbValues,
-     uint32_t indexExpr,
+         uint32_t indexExpr,
 		 double* countValues,
-		 double* meanValues)
+         double* meanValues,
+         double* auxParams)
 {
 
   if (nbValues == 0)
@@ -3060,7 +3061,7 @@ void CBratProcess::MergeDataValue
     double* countValue = ((countValues != nullptr) ? (&countValues[0]) : nullptr);
     double* meanValue = ((meanValues != nullptr) ? (&meanValues[0]) : nullptr);
     
-    MergeDataValue(data[0], CTools::m_defaultValueDOUBLE, countValue, meanValue, m_dataMode[indexExpr]);
+    MergeDataValue(data[0], CTools::m_defaultValueDOUBLE, countValue, meanValue, auxParams, m_dataMode[indexExpr]);
     return;
   }
 
@@ -3073,7 +3074,7 @@ void CBratProcess::MergeDataValue
     double* countValue = ((countValues != nullptr) ? (&countValues[0]) : nullptr);
     double* meanValue = ((meanValues != nullptr) ? (&meanValues[0]) : nullptr);
     
-    CBratProcess::MergeDataValue(data[indexValues], value, countValue, meanValue, m_dataMode[indexExpr]);
+    CBratProcess::MergeDataValue(data[indexValues], value, countValue, meanValue, auxParams, m_dataMode[indexExpr]);
   }
 
 }
@@ -3109,6 +3110,7 @@ void CBratProcess::MergeDataValue
 		 double value,
 		 double*	countValue,
 		 double*	meanValue,
+         double*    auxParams,
 		 EMergeDataMode	mode)
 {
   if (isDefaultValue(value))
@@ -3117,6 +3119,12 @@ void CBratProcess::MergeDataValue
   }
 
   double dummy = 0.0;
+  double t_weight, d_weight;
+
+  double t_out, value_t;
+  double value_d;
+  double t_param, t_factor;
+  double d_param, d_factor;
 
   switch (mode)
   {
@@ -3261,9 +3269,51 @@ void CBratProcess::MergeDataValue
 	//--------------------------
 	case CBratProcess::pctTIME:
 	//--------------------------
+          if (countValue == nullptr)
+          {
+            throw CException(CTools::Format("ERROR: CBratProcess::MergeDataValue() - count value  is nullptr, but mode is '%s'\n",
+                                            CBratProcess::DataModeStr(mode).c_str()),
+                                   BRATHL_LOGIC_ERROR);
 
-		//!!! GORKA !!!
-        data = 1.0;
+          }
+        // read aux. params:
+        t_out = auxParams[0]; // target interp. time
+        value_t = auxParams[1]; // value of data point
+        value_d = auxParams[2]; // distance of data point for cell centre
+        t_param = auxParams[3]; // time wieghting param
+        t_factor = auxParams[4]; // time weighting exponent
+        d_param = auxParams[5]; // dist. weighting param
+        d_factor = auxParams[6]; // dist. weighting exponent
+        // calc. time weight for new data point
+        t_weight = CTools::Exp( pow((-abs(t_out - value_t) / t_param),t_factor ));
+        // calc. distance wieght for new data point
+        d_weight = CTools::Exp( pow((-value_d / d_param), d_factor ));
+
+        if (t_weight == 0) {
+            throw CException(CTools::Format(
+                "ERROR: CBratProcess::MergeDataValue(), '%s' mode - Time weighting parameter is too small (current value: %f)\n",
+                CBratProcess::DataModeStr(mode).c_str(), t_param),
+                BRATHL_LOGIC_ERROR);
+        }
+        if (d_weight == 0) {
+            throw CException(CTools::Format(
+                "ERROR: CBratProcess::MergeDataValue(),'%s' mode - Distance weighting parameter is too small (current value: %f)\n",
+                CBratProcess::DataModeStr(mode).c_str(), d_param),
+                BRATHL_LOGIC_ERROR);
+        }
+
+        if (data == CBratProcess::MergeIdentifyUnsetData) {
+            // if this is first point for output cell, init.
+            // weighted-sum and sum-of-weights (data & *countValue
+            // respectively) to current values
+            data = t_weight * d_weight * value;
+            *countValue = t_weight * d_weight;
+        }
+        else {
+            // otherwise, accumulate values
+            data += t_weight * d_weight * value;
+            *countValue += t_weight * d_weight;
+        }
 
 		break;
 
@@ -3283,7 +3333,7 @@ void CBratProcess::FinalizeMergingOfDataValues
      uint32_t indexExpr,
 		 uint32_t nbValues,
 		 double* countValues,
-		 double* meanValues)
+         double* meanValues)
 
 {
   uint32_t indexValues = 0;
@@ -3323,7 +3373,6 @@ void CBratProcess::FinalizeMergingOfDataValues
     case pctSUM:
     case pctSUBSTRACT:
     case pctPRODUCT:
-	case pctTIME:			//!!! GORKA !!! Please check if this is enough
 		//--------------------------
 	    if (data == CBratProcess::MergeIdentifyUnsetData)
 	    {
@@ -3387,6 +3436,31 @@ void CBratProcess::FinalizeMergingOfDataValues
 					                               dummy);
 	    }
 	    break;
+    //--------------------------
+    case pctTIME:
+    //--------------------------
+        if (data == CBratProcess::MergeIdentifyUnsetData)
+        {
+            setDefaultValue(data);
+        }
+        else
+        {
+            if (countValue == nullptr)
+            {
+              throw CException(CTools::Format("ERROR: CBratProcess::FinalizeMergingOfDataValues() - count value  is nullptr, but mode is '%s'\n",
+                                              CBratProcess::DataModeStr(mode).c_str()),
+                                     BRATHL_LOGIC_ERROR);
+
+            }
+            if (*countValue == 0 || CTools::IsDefaultFloat(*countValue)) {
+                //setDefaultValue(data);
+                setDefaultValue(data);
+            } else {
+                data = data / *countValue;
+            }
+        }
+
+        break;
 
 	default:
 	    throw CException(CTools::Format("PROGRAM ERROR: DataMode %d unknown (CBratProcess::MergeDataValue)",

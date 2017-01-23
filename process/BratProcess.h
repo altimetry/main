@@ -241,6 +241,9 @@ namespace processes
 		CIntArray m_countOffsets;
 		CIntArray m_meanOffsets;
 
+        double m_tFactor;
+        double m_dFactor;
+
 		uint32_t m_nbDataAllocated;
 
 		CStringArray m_fieldDefinitionToReplace;
@@ -256,14 +259,14 @@ namespace processes
 
 		// construction / destruction
 
-	public:
+    public:
 
 		CBratProcess();
 
 		virtual ~CBratProcess();
 
 
-		// ...
+        // ...
 
 		CStringArray* GetInputFiles() { return &m_inputFiles; };
 		void SetInputFiles( const CStringArray& value ) { m_inputFiles = value; };
@@ -574,6 +577,7 @@ namespace processes
 			double value,
 			double*	countValue,
 			double*	meanValue,
+            double* auxParams,
 			EMergeDataMode	mode );
 
 
@@ -618,7 +622,7 @@ namespace processes
 		void GetNetCdfDimensions(const std::vector<CExpression>& expressions, CStringArray& commonDimNames);
 		void GetNetCdfDimensions(const CExpression& expr, CStringArray& commonDimNames);
 		void GetNetCdfDimensions(const CStringArray& fields, CStringArray& commonDimNames);
-		*/
+        */
 		void SetExpandArray( const CExpression& expr, bool expandArray );
 		void SetExpandArray( const CStringArray* fields, bool expandArray );
 
@@ -674,7 +678,8 @@ namespace processes
 			uint32_t nbValues,
 			uint32_t indexExpr,
 			double* countValues,
-			double* meanValues );
+            double* meanValues,
+            double* auxParams);
 
 		//void MergeDataValue
 		//( double& data,
@@ -682,14 +687,14 @@ namespace processes
 		//	uint32_t nbValues,
 		//	uint32_t indexExpr,
 		//	double* countValue,
-		//	double* meanValue );
+        //	double* meanValue );
 
 		void FinalizeMergingOfDataValues
 		( double* data,
 			uint32_t indexExpr,
 			uint32_t nbValues,
 			double* countValues,
-			double* meanValues );
+            double* meanValues);
 
 	};
 

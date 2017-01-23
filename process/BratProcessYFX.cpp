@@ -731,8 +731,6 @@ void CBratProcessYFX::RegisterData()
         }
       }
 
-
-      
       if (base_t::IsProductNetCdf())
       {
         CNetCDFCoordinateAxis* coordVar = dynamic_cast<CNetCDFCoordinateAxis*>(m_internalFiles->GetNetCDFVarDef(m_names[indexExpr]));
@@ -751,7 +749,7 @@ void CBratProcessYFX::RegisterData()
       }
 
 
-      MergeDataValue(dataValues, exprValue.GetValues(), nbValues, indexExpr, countValues, meanValues);
+      MergeDataValue(dataValues, exprValue.GetValues(), nbValues, indexExpr, countValues, meanValues, NULL);
 
     }
 
@@ -1002,12 +1000,11 @@ int32_t CBratProcessYFX::WriteData()
           }
         }
       }
-
 	    FinalizeMergingOfDataValues(dataValues,
-				                          indexExpr,
-                                  cols,
-				                          countValues,
-                                  meanValues);
+                                    indexExpr,
+                                    cols,
+                                    countValues,
+                                    meanValues);
       
       //CDoubleArrayOb::iterator itDataValues;
       uint32_t indexValues = 0;
