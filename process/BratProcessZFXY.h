@@ -134,6 +134,7 @@ protected:
 		                   int32_t nbY, bool circularY, int32_t waveLengthY,
 		                   bool smoothData, bool extrapolData);
   */
+  double* ComputeMergeDataValueParameters(CRecordSet* recordSet, uint32_t index, double xPos, double yPos);
   
 
   CMatrix* GetMatrix(uint32_t index, bool withExcept = true);
@@ -200,7 +201,6 @@ protected:
 
 
 }
-
 
 
 
