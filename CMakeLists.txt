@@ -3385,7 +3385,8 @@ if(NOT IS_CENTOS_SYSTEM)
 		refman.tex
 		refman.pdf
 		"${REFERENCE_MANUAL_PDF_OUT}"
-		COMMAND ${CMAKE_COMMAND} -E copy ${REFERENCE_MANUAL_PDF_OUT} ${BRAT_SOURCE_DIR}/doc/brat_reference_manual.pdf
+		# This cannot be done here, otherwise the changed sources will trigger a config step again
+		# COMMAND ${CMAKE_COMMAND} -E copy ${REFERENCE_MANUAL_PDF_OUT} ${BRAT_SOURCE_DIR}/doc/brat_reference_manual.pdf
 		DEPENDS ${HTML_TARGET}
 		COMMENT "Building the reference manual")
 
