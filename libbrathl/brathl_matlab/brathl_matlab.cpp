@@ -1140,8 +1140,8 @@ static void brathlm_Cycle2YMDHMSM(int nlhs, mxArray *plhs[], int nrhs, const mxA
   brathl_DateYMDHMSM dateYMDHMSM;
   
   brathl_mission mission = static_cast<brathl_mission>((int) mxGetScalar(prhs[0]));
-  uint32_t cycle = static_cast<brathl_refDate>((int) mxGetScalar(prhs[1]));
-  uint32_t pass = static_cast<brathl_refDate>((int) mxGetScalar(prhs[2]));
+  int32_t cycle = static_cast<brathl_refDate>((int) mxGetScalar(prhs[1]));
+  int32_t pass = static_cast<brathl_refDate>((int) mxGetScalar(prhs[2]));
 
  
   brathl_Cycle2YMDHMSM(mission, cycle, pass, &dateYMDHMSM);
@@ -1171,8 +1171,8 @@ static void brathlm_YMDHMSM2Cycle(int nlhs, mxArray *plhs[], int nrhs, const mxA
   brathlm_FillStructYMDHMSMIn(prhs[1], &dateYMDHMSM);
   
   brathl_mission mission = static_cast<brathl_mission>((int) mxGetScalar(prhs[0]));
-  uint32_t cycle = 0;
-  uint32_t pass = 0;
+  int32_t cycle = 0;
+  int32_t pass = 0;
 
  
   brathl_YMDHMSM2Cycle(mission, &dateYMDHMSM, &cycle, &pass);
