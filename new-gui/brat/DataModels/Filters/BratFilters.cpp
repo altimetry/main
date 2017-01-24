@@ -20,6 +20,7 @@
 #include "new-gui/Common/QtUtils.h"
 
 #include "libbrathl/Product.h"
+#include "libbrathl/ProductNetCdf.h"
 #include "libbrathl/CyclePassConverter.h"
 
 using namespace brathl;
@@ -783,16 +784,18 @@ const std::string& CBratFilters::FindAliasValue( CProduct *product, const std::s
         return alias->GetValue();
     }
 
-    return empty_string< std::string >();
+    return empty_string();
 }
 
+// The std::string pair element is the alias value, if the name has a corresponding alias
+// The CField pair element means is the corresponding variable in product, if found and the alias values is not a formula
+//
 //static
-CField* CBratFilters::FindField( CProduct *product, const std::string &name, bool try_unsupported, bool &alias_used, std::string &field_error_msg )
+CAliasInfo CBratFilters::FindField( CProduct *product, const std::string &name, bool try_unsupported, bool &alias_used, std::string &field_error_msg )
 {
     std::string record;
     if ( product->IsNetCdfOrNetCdfCFProduct() )
-        //record = CProductNetCdf::m_virtualRecordName;		//this is done for COperation; should we do it HERE????
-        record = "";
+        record = CProductNetCdf::m_virtualRecordName;
     else
     {
         auto *aliases = product->GetAliases();
@@ -800,45 +803,45 @@ CField* CBratFilters::FindField( CProduct *product, const std::string &name, boo
             record = aliases->GetRecord();
     }
 
-    CField *field = nullptr;
+	CAliasInfo alias_info { empty_string(), nullptr };
     alias_used = true;
 
-    std::string value = FindAliasValue( product, name );
-    if ( !value.empty() )
+	alias_info.Value() = FindAliasValue( product, name );
+    if ( !alias_info.Value().empty() )
     {
-        field = product->FindFieldByName( value, false, &field_error_msg );		//true: throw on failure
+		alias_info.Field() = product->FindFieldByName( alias_info.Value(), false, &field_error_msg );		//true: throw on failure
 
         //guessing
 
-        if ( try_unsupported && !field && !record.empty() )
-            field = product->FindFieldByName( value, record, false );	//true: throw on failure
-        if ( !field )
-            field = product->FindFieldByInternalName( value, false );	//idem
+        if ( try_unsupported && !alias_info.Field() && !record.empty() )
+			alias_info.Field() = product->FindFieldByName( alias_info.Value(), record, false );	//true: throw on failure
+        if ( !alias_info.Field() )
+			alias_info.Field() = product->FindFieldByInternalName( alias_info.Value(), false );	//idem
     }
 
 	//guessing
 
-	if ( try_unsupported && !field )
+	if ( try_unsupported && !alias_info.Field() )
     {
         alias_used = false;
-        field = product->FindFieldByName( name, false, &field_error_msg );		//true: throw on failure
-        if ( !field && !record.empty() )
-            field = product->FindFieldByName( name, record, false );			//idem
-        if ( !field )
-            field = product->FindFieldByInternalName( name, false );			//idem
-        if (!field)
-            field = product->FindFieldByName( ToLowerCopy( name ), false, &field_error_msg );
+		alias_info.Field() = product->FindFieldByName( name, false, &field_error_msg );		//true: throw on failure
+        if ( !alias_info.Field() && !record.empty() )
+			alias_info.Field() = product->FindFieldByName( name, record, false );			//idem
+        if ( !alias_info.Field() )
+			alias_info.Field() = product->FindFieldByInternalName( name, false );			//idem
+        if (!alias_info.Field() )
+			alias_info.Field() = product->FindFieldByName( ToLowerCopy( name ), false, &field_error_msg );
     }
 
-    return field;
+    return alias_info;
 }
 
 
 //static
-std::pair<CField*, CField*> CBratFilters::FindLonLatFields( CProduct *product, bool try_unsupported, bool &lon_alias_used, bool &lat_alias_used, 
+std::pair<CAliasInfo, CAliasInfo> CBratFilters::FindLonLatFields( CProduct *product, bool try_unsupported, bool &lon_alias_used, bool &lat_alias_used, 
                                                             std::string &field_error_msg )
 {
-    std::pair<CField*, CField*> fields;
+    std::pair<CAliasInfo, CAliasInfo> fields;
     
     fields.first = FindField( product, lon_name(), try_unsupported, lon_alias_used, field_error_msg );
     
@@ -854,7 +857,7 @@ std::pair<CField*, CField*> CBratFilters::FindLonLatFields( CProduct *product, b
 
 
 //static
-CField* CBratFilters::FindTimeField( CProduct *product, bool try_unsupported, bool &alias_used, std::string &field_error_msg )
+CAliasInfo CBratFilters::FindTimeField( CProduct *product, bool try_unsupported, bool &alias_used, std::string &field_error_msg )
 {
     return FindField( product, time_name(), try_unsupported, alias_used, field_error_msg );
 }

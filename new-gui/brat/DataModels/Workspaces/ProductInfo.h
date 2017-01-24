@@ -18,7 +18,9 @@
 #if !defined(WORKSPACES_PRODUCT_INFO_H)
 #define WORKSPACES_PRODUCT_INFO_H
 
+#include "../Filters/BratFilters.h"
 #include "Dataset.h"
+
 
 
 // Constructs and opens a product based on 
@@ -122,6 +124,8 @@ public:
 
 	const CProductAlias* Alias( const std::string &key ) const;
 
+	const std::string& AliasesRecord() const;
+
 	const CStringMap* AliasesAsString() const;
 
 	void ReplaceNamesCaseSensitive( const std::string &in, std::string &out, bool force_reload = false ) const;
@@ -139,11 +143,11 @@ public:
 	bool IsLatitudeFieldName( const std::string& name ) const;
 
 
-	CField* FindField( const std::string &name, bool try_unsupported, bool &alias_used, std::string &field_error_msg ) const;
+	CAliasInfo FindField( const std::string &name, bool try_unsupported, bool &alias_used, std::string &field_error_msg ) const;
 
-	std::pair<CField*, CField*> FindLonLatFields( bool try_unsupported, bool &lon_alias_used, bool &lat_alias_used, std::string &field_error_msg ) const;
+	std::pair<CAliasInfo , CAliasInfo > FindLonLatFields( bool try_unsupported, bool &lon_alias_used, bool &lat_alias_used, std::string &field_error_msg ) const;
 
-	CField* FindTimeField( bool try_unsupported, bool &alias_used, std::string &field_error_msg ) const;
+	CAliasInfo FindTimeField( bool try_unsupported, bool &alias_used, std::string &field_error_msg ) const;
 
 	CField* FindFieldByName( const std::string& field_name, const std::string& dataset_name, std::string &error_msg ) const;
 	CField* FindFieldByName( const std::string& field_name, std::string &error_msg ) const;

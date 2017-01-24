@@ -109,12 +109,12 @@ const std::string& COperationControls::QuickFindAliasValue( const CProductInfo &
 }
 
 
-CField* COperationControls::QuickFindField( const CProductInfo &pi, EPredefinedVariables index, bool &alias_used, std::string &field_error_msg )
+CAliasInfo COperationControls::QuickFindField( const CProductInfo &pi, EPredefinedVariables index, bool &alias_used, std::string &field_error_msg )
 {
     return pi.FindField( QuickVariableAlias( index ), mModel.Settings().mUseUnsupportedFields, alias_used, field_error_msg );
 }
 
-CField* COperationControls::QuickFindField( const CProductInfo &pi, EPredefinedSelectionCriteria index, bool &alias_used, std::string &field_error_msg )
+CAliasInfo COperationControls::QuickFindField( const CProductInfo &pi, EPredefinedSelectionCriteria index, bool &alias_used, std::string &field_error_msg )
 {
     return pi.FindField( QuickCriteriaAlias( index ), mModel.Settings().mUseUnsupportedFields, alias_used, field_error_msg );
 }
@@ -403,8 +403,8 @@ void COperationControls::HandleSelectedDatasetChanged_Quick( int dataset_index )
 
 		std::string field_error_msg;
 		bool lon_alias_used, lat_alias_used;
-        std::pair<CField*, CField*> fields = pi.FindLonLatFields( mModel.Settings().mUseUnsupportedFields, lon_alias_used, lat_alias_used, field_error_msg );
-		if ( fields.first && fields.second )
+        std::pair<CAliasInfo, CAliasInfo> fields = pi.FindLonLatFields( mModel.Settings().mUseUnsupportedFields, lon_alias_used, lat_alias_used, field_error_msg );
+		if ( !fields.first.Empty() && !fields.second.Empty() )
 		{
 			has_lon_lat_fields = true;
 			break;
@@ -429,8 +429,9 @@ void COperationControls::HandleSelectedDatasetChanged_Quick( int dataset_index )
 				bool alias_used;
 				std::string field_error_msg;
 				EPredefinedVariables vi = (EPredefinedVariables)i;
-				const std::string expression = QuickFindAliasValue( pi, vi );
-				CField *field = QuickFindField( pi, vi, alias_used, field_error_msg );
+				CAliasInfo alias_info = QuickFindField( pi, vi, alias_used, field_error_msg );
+				const std::string expression = alias_info.Value();
+				const CField *field = alias_info.Field();
 				if ( !expression.empty() )
 				{
 					item->setFlags( item->flags() | Qt::ItemIsEnabled );
@@ -625,10 +626,8 @@ COperation* COperationControls::CreateQuickOperation( CMapTypeOp::ETypeOp type )
 	}
 	operation->SetOriginalDataset( mWDataset, QuickDatasetSelectedName() );
 
-	//CProduct *product = const_cast<const COperation*>( operation )->Dataset()->SafeOpenProduct();
 	CProductInfo pi( operation->OriginalDataset() );
 	if ( !pi.IsValid() )
-	//if ( !product )
 	{
 		std::string suggestion;
 		if ( operation->Filter() )
@@ -640,27 +639,29 @@ COperation* COperationControls::CreateQuickOperation( CMapTypeOp::ETypeOp type )
 
 
 
-	std::string operation_record = operation->GetRecord();
-
 	bool lon_alias_used, lat_alias_used;
 	std::string field_error_msg;
-    std::pair<CField*, CField*> lon_lat_fields = 
-		pi.FindLonLatFields( mModel.Settings().mUseUnsupportedFields, lon_alias_used, lat_alias_used, field_error_msg );		assert__( lon_lat_fields.first && lon_lat_fields.second );
-		//CBratFilters::FindLonLatFields( product, mModel.Settings().mUseUnsupportedFields, lon_alias_used, lat_alias_used, field_error_msg );		assert__( lon_lat_fields.first && lon_lat_fields.second );
+    std::pair<CAliasInfo, CAliasInfo> lon_lat_fields = 
+		pi.FindLonLatFields( mModel.Settings().mUseUnsupportedFields, lon_alias_used, lat_alias_used, field_error_msg );		assert__( !lon_lat_fields.first.Empty() && !lon_lat_fields.second.Empty() );
 
 	if ( !operation->HasFormula() )
 	{
-		std::string field_record = lon_lat_fields.first->GetRecordName();
+		std::string field_record = lon_lat_fields.first.Field() ? lon_lat_fields.first.Field()->GetRecordName() : pi.AliasesRecord();
 		operation->SetRecord( field_record );
-//		if ( operation->GetRecord().empty() && product->IsNetCdf() )
 		if ( operation->GetRecord().empty() && pi.IsNetCdf() )
 			operation->SetRecord( CProductNetCdf::m_virtualRecordName );
 	}
+
 	std::string error_msg;
-	CFormula* formula = operation->NewUserFormula( error_msg, lon_lat_fields.first, CMapTypeField::eTypeOpAsX, true, pi );
+	CFormula* 
+	formula = lon_lat_fields.first.Field() ?
+		operation->NewUserFormula( error_msg, lon_lat_fields.first.Field(), CMapTypeField::eTypeOpAsX, true, pi ) :
+		operation->NewUserFormula( error_msg, lon_name(), CMapTypeField::eTypeOpAsX, "", true );
 	operation->ComputeInterval( formula, error_msg );
 
-	formula = operation->NewUserFormula( error_msg, lon_lat_fields.second, CMapTypeField::eTypeOpAsY, true, pi );
+	formula = lon_lat_fields.second.Field() ?
+		operation->NewUserFormula( error_msg, lon_lat_fields.second.Field(), CMapTypeField::eTypeOpAsY, true, pi ) :
+		operation->NewUserFormula( error_msg, lat_name(), CMapTypeField::eTypeOpAsY, "", true );
 	operation->ComputeInterval( formula, error_msg );
 
   //Insert("asField", eTypeOpAsField);

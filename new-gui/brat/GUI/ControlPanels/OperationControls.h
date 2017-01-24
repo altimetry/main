@@ -330,8 +330,8 @@ protected:
     bool IsQuickOperationSelected() const;
     void UpdateFieldsCheckState();
 
-	CField* QuickFindField( const CProductInfo &pi, EPredefinedVariables index, bool &alias_used, std::string &field_error_msg );
-	CField* QuickFindField( const CProductInfo &pi, EPredefinedSelectionCriteria index, bool &alias_used, std::string &field_error_msg );
+	CAliasInfo QuickFindField( const CProductInfo &pi, EPredefinedVariables index, bool &alias_used, std::string &field_error_msg );
+	CAliasInfo QuickFindField( const CProductInfo &pi, EPredefinedSelectionCriteria index, bool &alias_used, std::string &field_error_msg );
 
 	//advanced
 

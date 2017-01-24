@@ -19,8 +19,6 @@
 
 #include "libbrathl/ProductNetCdf.h"
 
-#include "../Filters/BratFilters.h"
-
 #include "ProductInfo.h"
 
 
@@ -136,19 +134,19 @@ const std::string& CProductInfo::FindAliasValue( const std::string &alias_name )
 	return CBratFilters::FindAliasValue( mProduct, alias_name );
 }
 
-CField* CProductInfo::FindField( const std::string &name, bool try_unsupported, bool &alias_used, std::string &field_error_msg ) const
+CAliasInfo CProductInfo::FindField( const std::string &name, bool try_unsupported, bool &alias_used, std::string &field_error_msg ) const
 {
 	return CBratFilters::FindField( mProduct, name, try_unsupported, alias_used, field_error_msg );
 }
 
-std::pair<CField*, CField*> CProductInfo::FindLonLatFields( bool try_unsupported, bool &lon_alias_used, bool &lat_alias_used, std::string &field_error_msg ) const
+std::pair<CAliasInfo , CAliasInfo > CProductInfo::FindLonLatFields( bool try_unsupported, bool &lon_alias_used, bool &lat_alias_used, std::string &field_error_msg ) const
 {
     assert__( mProduct );
 
 	return CBratFilters::FindLonLatFields( mProduct, try_unsupported, lon_alias_used, lat_alias_used, field_error_msg );
 }
 
-CField* CProductInfo::FindTimeField( bool try_unsupported, bool &alias_used, std::string &field_error_msg ) const
+CAliasInfo CProductInfo::FindTimeField( bool try_unsupported, bool &alias_used, std::string &field_error_msg ) const
 {
 	assert__( mProduct );
 
@@ -226,6 +224,22 @@ const CStringMap* CProductInfo::AliasesAsString() const
 	assert__( mProduct );
 
 	return mProduct->GetAliasesAsString(); 
+}
+
+const std::string& CProductInfo::AliasesRecord() const
+{
+	assert__( mProduct );
+
+	if ( mProduct->IsNetCdfOrNetCdfCFProduct() )
+		return CProductNetCdf::m_virtualRecordName;
+	else
+	{
+		auto *aliases = mProduct->GetAliases();
+		if ( aliases )
+			return aliases->GetRecord();
+	}
+
+	return empty_string();
 }
 
 void CProductInfo::ReplaceNamesCaseSensitive( const std::string &in, std::string &out, bool force_reload ) const		//force_reload = false 

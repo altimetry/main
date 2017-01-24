@@ -1451,30 +1451,35 @@ void CBratFilterControls::HandleDatasetChanged( const CDataset *dataset )
 			record = product_info.Record();
 
 			std::string lonlat_error_msg, time_error_msg;
-			std::pair<CField*, CField*> fields = product_info.FindLonLatFields( mModel.Settings().mUseUnsupportedFields, 
+			std::pair<CAliasInfo, CAliasInfo> lon_lat_alias_info = product_info.FindLonLatFields( mModel.Settings().mUseUnsupportedFields, 
 				(bool&)alias_used[ eAliasIndexLon ], (bool&)alias_used[ eAliasIndexLat ], lonlat_error_msg );
-			CField *lon = fields.first;
-			CField *lat = fields.second;
-			CField *time = product_info.FindTimeField( mModel.Settings().mUseUnsupportedFields, (bool&)alias_used[ eAliasIndexTime ], time_error_msg );
-			if ( !lon || !lat || !time )
+			CAliasInfo time_alias_info = product_info.FindTimeField( mModel.Settings().mUseUnsupportedFields, (bool&)alias_used[ eAliasIndexTime ], time_error_msg );
+			if ( lon_lat_alias_info.first.Empty() || lon_lat_alias_info.second.Empty() || time_alias_info.Empty() )
 			{
-				skip_iteration = true;				
+				skip_iteration = true;
 				LOG_WARN( "File - " + path + "\n" + replace( lonlat_error_msg, "\n", " - " ) + " - " + time_error_msg );
 			}
 
+			CField *lon = lon_lat_alias_info.first.Field();
+			CField *lat = lon_lat_alias_info.second.Field();
+			CField *time = time_alias_info.Field();
+
 			expected_lon_dim = lon ? lon->GetDim()[ 0 ] : 0;
-			expected_lat_dim = lat ? lat->GetDim()[ 0 ] : 0;
-			expected_time_dim = time ? time->GetDim()[ 0 ] : 0;
+			expected_lat_dim = lat ? lat->GetDim()[ 0 ] : 0;	expected_time_dim = time ? time->GetDim()[ 0 ] : 0;
 			if ( expected_lon_dim != expected_lat_dim )
 			{
 				skip_iteration = true;
 				LOG_WARN( "Different latitude/longitude dimensions in file " + path );
 			}
 
+			const std::string &lon_value = lon_lat_alias_info.first.Empty() ? unknown : lon_lat_alias_info.first.Value();
+			const std::string &lat_value = lon_lat_alias_info.second.Empty() ? unknown : lon_lat_alias_info.second.Value();
+			const std::string &time_value = time_alias_info.Empty() ? unknown : time_alias_info.Value();
+
 			info =
-				( alias_used[ eAliasIndexLon ] ?	lon_alias() : lon_name() ) +	"==" + ( ( lon ? lon->GetName() : unknown ) + " " ) +
-				( alias_used[ eAliasIndexLat ] ?	lat_alias() : lat_name() ) +	"==" + ( ( lat ? lat->GetName() : unknown ) + " " ) +
-				( alias_used[ eAliasIndexTime ] ?	time_alias() : time_name() ) +	"==" + ( ( time ? time->GetName() : unknown ) );
+				( alias_used[ eAliasIndexLon ] ?	lon_alias() : lon_name() ) +	"==" + lon_value + " " +
+				( alias_used[ eAliasIndexLat ] ?	lat_alias() : lat_name() ) +	"==" + lat_value + " " +
+				( alias_used[ eAliasIndexTime ] ?	time_alias() : time_name() ) +	"==" + time_value;
 
 		}	//delete product;
 
@@ -1495,8 +1500,6 @@ void CBratFilterControls::HandleDatasetChanged( const CDataset *dataset )
         double *timev = nullptr;
 
         debug_log( "About to read variables from file " + path );
-
-        //https://decs.deimos.com.pt/pages/viewpage.action?spaceKey=S3ALTB&title=Aliases+Products+IDs
 
         int ReturnCode = ReadTrack( alias_used, path, record, lonv, lon_dim, latv, lat_dim, timev, time_dim );
         if ( ReturnCode == BRATHL_SUCCESS )

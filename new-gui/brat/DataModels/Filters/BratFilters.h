@@ -92,8 +92,12 @@ inline std::string func_is_bounded( double min, std::string field_alias, double 
 }
 
 
-/////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////
 
+
+//////////////////////////////////////////////////////////////////////////////////////////////
+//
+//////////////////////////////////////////////////////////////////////////////////////////////
 
 class CBratFilter
 {
@@ -323,7 +327,46 @@ public:
 
 
 
+//////////////////////////////////////////////////////////////////////////////////////////////
+//
+//////////////////////////////////////////////////////////////////////////////////////////////
 
+// The std::string pair element is the alias value, if the name has a corresponding alias
+// The CField pair element means is the corresponding variable in product, if found and the 
+//	alias values is not a formula
+//
+struct CAliasInfo
+{
+	std::pair< std::string, CField* > mInfo;
+
+	CAliasInfo()
+	{}
+
+	CAliasInfo( const std::string &s, CField *pf )
+		: mInfo( s, pf )
+	{}
+
+
+	bool Empty() const { return Value().empty(); }
+
+
+	std::string& Value() { return mInfo.first; }
+
+	const std::string& Value() const { return mInfo.first; }
+
+
+	CField*& Field() { return mInfo.second; }
+
+	const CField* Field() const { return mInfo.second; }
+};
+
+
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////
+//
+//////////////////////////////////////////////////////////////////////////////////////////////
 
 class CBratFilters : public CFileSettings
 {
@@ -359,10 +402,12 @@ public:
 
     static const std::string& FindAliasValue( CProduct *product, const std::string &alias_name );
 
-    static CField* FindField( CProduct *product, const std::string &name, bool try_unsupported, bool &alias_used, std::string &field_error_msg );
+    static CAliasInfo FindField( CProduct *product, const std::string &name, bool try_unsupported, bool &alias_used, std::string &field_error_msg );
 
-    static std::pair<CField*, CField*> FindLonLatFields( CProduct *product, bool try_unsupported, bool &lon_alias_used, bool &lat_alias_used, std::string &field_error_msg );
-    static CField* FindTimeField( CProduct *product, bool try_unsupported, bool &alias_used, std::string &field_error_msg );
+
+    static std::pair<CAliasInfo, CAliasInfo> FindLonLatFields( CProduct *product, bool try_unsupported, bool &lon_alias_used, bool &lat_alias_used, std::string &field_error_msg );
+
+    static CAliasInfo FindTimeField( CProduct *product, bool try_unsupported, bool &alias_used, std::string &field_error_msg );
 
 
 
