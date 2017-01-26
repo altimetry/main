@@ -1585,7 +1585,7 @@ set(CODADEF_FILES
 
 set(LIBBRATHL_DATA_FILES
   data/brathl_units.dat
-  data/brathl_refmission.txt
+  data/cycle-pass-references.txt
   data/brathl_transposefieldvalues.txt
   data/aliases.xml
   data/aliases.xsd
