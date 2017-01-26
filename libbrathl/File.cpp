@@ -20,7 +20,6 @@
 */
 
 
-#include <sys/stat.h>
 #include <cerrno>
 #include <cstdlib>
 #include <cstdio>
@@ -815,31 +814,6 @@ bool CFile::SetBufferingMode(bool mode /*  = true */)
   }
 
   return (result == 0);
-}
-
-//----------------------------------------
-
-bool CFile::GetStatus(struct stat& fileStatus)
-{
-  bool bOk = (fstat(_fileno(m_hFile), &fileStatus) != 0);
-
-  return bOk;
-
-}
-
-//----------------------------------------
-bool CFile::GetStatus(const std::string& fileName, struct stat& fileStatus)
-{
-  CFile file;
-  bool bOk = file.Open(fileName, modeRead);
-
-  if (bOk == false)
-  {
-    bOk = (fstat(_fileno(file.m_hFile), &fileStatus) != 0);
-  }
-
-  return bOk;
-
 }
 
 //----------------------------------------

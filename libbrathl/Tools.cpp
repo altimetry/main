@@ -23,7 +23,6 @@
 #include <cstring>
 #include <cstdlib>
 #include <cerrno>
-#include <sys/stat.h>
 #include <fstream>
 #include <sstream>
 #include <cassert>
@@ -1379,16 +1378,6 @@ bool CTools::FileExists
     return false;
   }  
 
-}
-
-//----------------------------------------
-bool CTools::DirectoryExists
-		(const std::string	&Name)
-{
-    struct stat statBuf;
-    const char *dir = Name.c_str();
-
-    return stat(dir, &statBuf) == 0 && S_ISDIR(statBuf.st_mode);
 }
 
 ////----------------------------------------

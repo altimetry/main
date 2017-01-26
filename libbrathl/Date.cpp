@@ -155,7 +155,7 @@ void CDate::InitDateZero()
 }
 
 //----------------------------------------
-double CDate::GetNbSeconds()
+double CDate::GetNbSeconds() const
 {
   double value = 0.0;
   if (IsDefaultValue())
@@ -215,7 +215,7 @@ const CDate& CDate::operator =(double seconds)
 }
 
 //----------------------------------------
-double CDate::ValueJulian()
+double CDate::ValueJulian() const
 {
   double julian;
   Convert2DecimalJulian(julian);

@@ -758,13 +758,6 @@ public:
 		(const std::string	&Name);
 
 //----------------------------------------
-  /**Indicates if a directory exists
-    \param[in] Name : Directory name
-    \return Returns true if directory exists*/
-  static bool DirectoryExists
-		(const std::string	&Name);
-
-//----------------------------------------
 
   /**Explicitly set the Data Directory.
     \param[in] DataDir : Full path to data directory.*/

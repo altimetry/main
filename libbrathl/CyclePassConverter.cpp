@@ -16,7 +16,6 @@
 * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
-#include <sys/stat.h>
 #include <cstdio>
 #include <cstring> 
 #include <string>
@@ -55,7 +54,7 @@ namespace brathl
 	//static 
 	bool CCyclePassConverter::LoadCyclePassParameters()
 	{
-		static const std::string refFileName = "brathl_refmission.txt";
+		static const std::string refFileName = "cycle-pass-references.txt";
 		static const std::string refFilePathName = CTools::FindDataFile( refFileName );
 		static bool initialized = false;
 
@@ -84,7 +83,8 @@ namespace brathl
 		int nline = 0;
 		for ( std::vector< std::string >::const_iterator it = vfile_content.begin(); it != vfile_content.end(); ++it )
 		{
-			auto const &entry = *it;
+			auto const &dirty_entry = *it;
+			std::string entry = replace( dirty_entry, "\t", " " );
 			std::vector< std::string > ventry, vdirty_entry = String2Vector( entry, std::string( " " ) );
 			for ( std::vector< std::string >::const_iterator it = vdirty_entry.begin(); it != vdirty_entry.end(); ++it )
 			{

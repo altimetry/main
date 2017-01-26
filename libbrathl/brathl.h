@@ -100,13 +100,6 @@ extern "C" {
 //#endif
 #include <direct.h>    
 
-/* include sys/stat.h because we are going to override stat */
-#include <sys/stat.h>
-    
-#ifndef S_ISDIR
-#define S_ISDIR(X) (((X) & _S_IFDIR) == _S_IFDIR)
-#endif
-
 #endif /* ifdef WIN32 */
 
 

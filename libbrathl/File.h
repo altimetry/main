@@ -20,7 +20,6 @@
 #if !defined(_File_h_)
 #define _File_h_
 
-#include <sys/stat.h>
 #include <string>
 
 #include "common/tools/brathl_error.h"
@@ -203,17 +202,6 @@ public:
     \param mode [in] : true if buffered I/O (default), false if unbuffered I/O
     \return true on success, otherwise false */
   bool SetBufferingMode(bool mode = true);
-
-  /** Gets information about the file.
-    \param fileStatus [in] : structure to store results
-    \return true on success, otherwise false */
-  bool GetStatus(struct stat& fileStatus);
-
-  /** Gets information about a file.
-    \param filename [in] : file toget the status
-    \param fileStatus [in] : structure to store results
-    \return true on success, otherwise false */
-  static bool GetStatus(const std::string& filename, struct stat& fileStatus);
 
 
   bool Write(const int character);

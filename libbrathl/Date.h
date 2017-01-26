@@ -108,10 +108,10 @@ public:
   uint32_t GetMuSecond() const;
   
   /// returns the date in a number of seconds since internal reference date, ie 1950)
-  double Value() {return GetNbSeconds();}
+  double Value() const {return GetNbSeconds();}
   
   /// returns the date in a decimal julian day (since internal reference date, ie 1950)
-  double ValueJulian();
+  double ValueJulian() const;
 
   /**  Formats a date as std::string.
      \param Format [in] : String controlling how the date
@@ -427,12 +427,12 @@ public:
   /** Minus operator redefinition
       Computes the difference between two dates,
       the result is expressed in a decimal number of seconds */
-  double operator- ( CDate &d ) { return this->Value() - d.Value(); }
+  double operator- ( const CDate &d ) { return this->Value() - d.Value(); }
   
   /** Plus operator redefinition
       Computes the addition of two dates,
       the result is expressed in a decimal number of seconds */
-  double operator+ ( CDate &d ) { return this->Value() + d.Value(); }
+  double operator+ ( const CDate &d ) { return this->Value() + d.Value(); }
 
   /** Assigns a new value to the CDate object, with a CDate object */
   const CDate& operator= (const CDate& date);
@@ -532,7 +532,7 @@ public:
 
 private:
   /** Retrieves the date value in a decimal number of seconds (since internal reference date, ie 1950) */
-  double GetNbSeconds(); 
+  double GetNbSeconds() const; 
   
   /** Adjusts the internal format units
       by converting the minutes contained in the seconds  */

@@ -1,0 +1,35 @@
+#  Satellite cycle/date conversion parameter file
+#
+#     field 1 : Name of the mission
+#     field 2 : cycle reference
+#     field 3 : pass reference
+#     field 4 : date reference in decimal CNES julian days (UTC start at January 1st, 1950) 
+#     field 5 : repeat period in decimal number of days
+#     field 6 : number of passes (in one repeat cycle)
+#
+# NOTE: You can edit conversion parameters and add new missions at the end of the list.
+#       Do NOT change the name or order of current missions. 
+# ----------------------------------------------------------
+#
+Topex/Poseidon	442 230	19987.9127535		9.91564				254
+Jason-1			99	230	19987.9081795		9.91564				254
+Jason-2			69	249	22061.0007638		9.91564897			254
+ERS2			66	598	18831.768334		35.0				1002
+ENVISAT			30	579	19986.106016		35.0				1002
+ERS1-A			15	1	15636.938955		35.0				1002
+ERS1-B			42	108	16538.6732895		35.0				1002
+GFO				137 400	19987.743864		17.05064			488
+
+RADS-CRYOSAT2	4	347	22109.9951967613	14.4666666666667	840
+RADS-ERS-1		1	61	15187.0174074149	34.9392993055556	1002
+RADS-ERS-2		0	530	16554.4020833343	34.9636534722222	1002
+RADS-ENVISAT1	7	1	19160.9328125061	34.9996048611111	1002
+RADS-GFO-1		37	1	18268.7279976929	17.0495				488
+RADS-GEOSAT		1	280	12873.00000001		17.0505166666667	488
+RADS-JASON-1	1	2	19007.254930565		9.91564179884259	254
+RADS-JASON-2	1	1	21377.0556134266	9.91564896611111	254
+RADS-JASON-3	1	1	24153.4366319472	9.9156				254
+RADS-POSEIDON	1	219	15614.6979513952	9.91605416666667	254
+RADS-SARAL		1	1	23083.2357291761	35					1002
+RADS-SNTNL-3A	2	688	24202.0045023148	27					770
+RADS-TOPEX		2	1	15616.0671759351	9.91605416666667	254
