@@ -89,8 +89,17 @@ inline void SetFileExtension( STRING &path, const STRING &extension )
 //
 inline QString NormalizedPath( const QString &path )
 {
-	QDir d( path );
-	return d.cleanPath( path );
+	QString qpath = path;
+	//
+	// Really does what qt5 documentation says it does, but doesn't:
+	//
+	// "Returns path with directory separators normalized (converted to "/")"
+	//
+	// In fact, cleanPath only does this in systems like Windows where the
+	//	separator is '\\'; in systems with separator '/', the '\\' are not 
+	//	replaced. Great...
+	//
+	return QDir::cleanPath( qpath.replace( QLatin1Char( '\\' ), QLatin1Char( '/' ) ) );
 }
 inline std::string NormalizedPath( const std::string &path )
 {
