@@ -661,7 +661,7 @@ double CBratProcess::GetDataModeDIDistanceWeighting( CFileParams	&params, const 
 	params.m_mapParam[Keyword]->GetValue( str_val, index );
 	double val = s2n<double>( str_val );
 
-	CTrace::Tracer( 1, CBratProcess::PCT_StrFmt2, "DI distance weighting ", str_val.c_str() );
+	CTrace::Tracer( 1, CBratProcess::PCT_StrFmt2, "DI distance weight ", str_val.c_str() );
 
 	return val;
 }
@@ -682,7 +682,7 @@ double CBratProcess::GetDataModeDITimeWeighting( CFileParams	&params, const std:
 	params.m_mapParam[Keyword]->GetValue( str_val, index );
 	double val = s2n<double>( str_val );
 
-	CTrace::Tracer( 1, CBratProcess::PCT_StrFmt2, "DI time weighting ", str_val.c_str() );
+	CTrace::Tracer( 1, CBratProcess::PCT_StrFmt2, "DI time weight ", str_val.c_str() );
 
 	return val;
 }

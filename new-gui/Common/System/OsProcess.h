@@ -26,6 +26,7 @@
 
 #include <QProcess>
 
+#include "common/QtUtilsIO.h"
 
 
 
@@ -34,25 +35,37 @@
 //								(Windows specific)
 /////////////////////////////////////////////////////////////////////////////////
 
+
 #if defined (Q_OS_WIN)
 
-inline bool IsElevated( ) 
+inline bool IsElevatedProcess( ) 
 {
 	bool result = false;
-	HANDLE hToken = NULL;
-	if( OpenProcessToken( GetCurrentProcess( ),TOKEN_QUERY,&hToken ) ) 
+
+	if ( IsWindowXP() )
 	{
-		TOKEN_ELEVATION Elevation;
-		DWORD cbSize = sizeof( TOKEN_ELEVATION );
-		if( GetTokenInformation( hToken, TokenElevation, &Elevation, sizeof( Elevation ), &cbSize ) )
+		HKEY key;
+		result = RegOpenKey( HKEY_USERS, L"S-1-5-19", &key ) == ERROR_SUCCESS;
+		RegCloseKey( key );
+	}
+	else
+	{
+		HANDLE hToken = NULL;
+		if ( OpenProcessToken( GetCurrentProcess(), TOKEN_QUERY, &hToken ) )
 		{
-			result = Elevation.TokenIsElevated != 0;
+			TOKEN_ELEVATION Elevation;
+			DWORD cbSize = sizeof( TOKEN_ELEVATION );
+			if ( GetTokenInformation( hToken, TokenElevation, &Elevation, sizeof( Elevation ), &cbSize ) )
+			{
+				result = Elevation.TokenIsElevated != 0;
+			}
+		}
+		if ( hToken )
+		{
+			CloseHandle( hToken );
 		}
 	}
-	if( hToken ) 
-	{
-		CloseHandle( hToken );
-	}
+
 	return result;
 }
 

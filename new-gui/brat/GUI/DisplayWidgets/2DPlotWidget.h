@@ -56,7 +56,7 @@ class CYFXValues;
 template< class PARAMS >
 class CGenericZFXYValues;
 struct CZFXYPlotParameters;
-using CZFXYValues = CGenericZFXYValues< CZFXYPlotParameters >;
+struct CZFXYValues;
 
 
 

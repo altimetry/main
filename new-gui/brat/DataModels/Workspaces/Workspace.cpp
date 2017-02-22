@@ -172,6 +172,12 @@ void CWorkspace::Dump( std::ostream& fOut /* = std::cerr */ )
 //------------------- CWorkspaceDataset class --------------------
 //-------------------------------------------------------------
 
+bool CWorkspaceDataset::IsRadsDataset( const std::string &name ) const
+{
+	return GetDataset< CRadsDataset>( name ) != nullptr;
+
+}
+
 
 bool CWorkspaceDataset::HasRadsDataset() const 
 { 
@@ -184,6 +190,23 @@ bool CWorkspaceDataset::HasRadsDataset() const
 
 	return false;
 }
+
+
+const std::string& CWorkspaceDataset::FindFirstStandardDataset() const
+{
+	if ( HasDataset() )
+		for ( auto const &dataset_pair : *this )
+		{
+			if ( dynamic_cast< const CRadsDataset* >( dataset_pair.second ) )
+				continue;
+
+			const CDataset *d = dynamic_cast<const CDataset*>( dataset_pair.second );		assert__( d );
+			return d->GetName();
+		}
+
+	return empty_string();
+}
+
 
 //----------------------------------------
 bool CWorkspaceDataset::Import( CWorkspace* wksi, std::string &errorMsg, CWorkspaceDataset *wks_data, CWorkspaceDisplay *wks_disp, CWorkspaceOperation *wks_op )
@@ -798,7 +821,7 @@ bool CWorkspaceOperation::UseDataset( const std::string& name, CStringArray *ope
 		COperation* operation = dynamic_cast<COperation*>( it->second );		assert__( operation != nullptr );
 
 		bool useIt = operation->UseDataset( name );
-		use |= useIt;
+		use = use | useIt;
 
 		if ( operation_names != nullptr )
 		{

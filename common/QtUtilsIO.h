@@ -11,7 +11,9 @@
 #include <QtCore/QFileInfo>
 #include <QtCore/QDir>
 #include <QTemporaryFile>
+#if QT_VERSION >= 0x050000
 #include <QStandardPaths>
+#endif
 #include <QCoreApplication>
 
 #include "common/ccore-types.h"
@@ -502,6 +504,20 @@ inline bool SafeDuplicateFile( const std::string &SourcePath, const std::string 
 }
 
 #endif
+
+
+
+
+
+//////////////////////////////////////////////////////////////////
+//						OS Identification
+//////////////////////////////////////////////////////////////////
+
+inline bool IsWindowXP()
+{
+	return QSysInfo::windowsVersion() == QSysInfo::WV_XP || QSysInfo::windowsVersion() == QSysInfo::WV_2003;
+}
+
 
 
 //////////////////////////////////////////////////////////////////

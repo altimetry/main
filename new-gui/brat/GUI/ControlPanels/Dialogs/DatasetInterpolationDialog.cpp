@@ -24,13 +24,15 @@
 #include "DatasetInterpolationDialog.h"
 
 
+static const double seconds_per_day = 24 * 60 * 60;
+
 
 void CDatasetInterpolationDialog::Setup()
 {
 	mDateTimeEdit->setMinimumDateTime( CBratFilter::brat2q( CDate() ) );
 	mDateTimeEdit->setDateTime( mDataModeDIDateTime );
 	int selected = -1, index = 0;
-    std::for_each( mFieldMNamesList.begin(), mFieldMNamesList.end(), [this, &selected, &index]( const std::string &name )
+    std::for_each( mFieldNamesList.begin(), mFieldNamesList.end(), [this, &selected, &index]( const std::string &name )
 	{
 		QListWidgetItem *item = new QListWidgetItem;
 		item->setText( name.c_str() );
@@ -43,7 +45,7 @@ void CDatasetInterpolationDialog::Setup()
 	mFieldsList->setCurrentRow( selected );
 
 	mDistanceWeightingParameterEdit->setText( n2q( mDistanceWeightingParameter ) );
-	mTimeWeightingParameterEdit->setText( n2q( mTimeWeightingParameter ) );
+	mTimeWeightingParameterEdit->setText( n2q( mTimeWeightingParameter / seconds_per_day ) );
 
 	connect( mButtonBox, SIGNAL( accepted() ), this, SLOT( accept() ) );
     connect( mButtonBox, SIGNAL( rejected() ), this, SLOT( reject() ) );
@@ -57,8 +59,8 @@ void CDatasetInterpolationDialog::CreateWidgets()
 	mDateTimeEdit = new QDateTimeEdit;							//mDateTimeEdit->setCalendarPopup(true);
 	mDateTimeEdit->setDisplayFormat("yyyy.MM.dd hh:mm:ss");
 
-	mDistanceWeightingParameterEdit = new QLineEdit;				mDistanceWeightingParameterEdit->setValidator( new QRegExpValidator( QRegExp( "[0-9.]+" ) ) );
-	mTimeWeightingParameterEdit = new QLineEdit;					mTimeWeightingParameterEdit->setValidator( new QRegExpValidator( QRegExp( "[0-9.]+" ) ) );
+	mDistanceWeightingParameterEdit = new QLineEdit;				mDistanceWeightingParameterEdit->setValidator( new QRegExpValidator( QRegExp( "[e0-9.]+" ) ) );
+	mTimeWeightingParameterEdit = new QLineEdit;					mTimeWeightingParameterEdit->setValidator( new QRegExpValidator( QRegExp( "[e0-9.]+" ) ) );
 
 	auto *widgets_l = CreateGroupBox( ELayoutType::Vertical,
 	{
@@ -66,9 +68,9 @@ void CDatasetInterpolationDialog::CreateWidgets()
 		mFieldsList, 
 		new QLabel( "Interpolation Date" ), 
 		mDateTimeEdit,
-		new QLabel( "Distance Weighting [meters]" ), 
+		new QLabel( "Distance Weighting [unit: meters]" ), 
 		mDistanceWeightingParameterEdit,
-		new QLabel( "Time Weighting [seconds]" ), 
+		new QLabel( "Time Weighting [unit: days]" ), 
 		mTimeWeightingParameterEdit
 	},
 	"", nullptr, 2, 2, 2, 2, 2 );
@@ -117,7 +119,7 @@ void CDatasetInterpolationDialog::CreateWidgets()
 CDatasetInterpolationDialog::CDatasetInterpolationDialog( const std::vector< std::string > &list, const std::string &name, const QDateTime &dt, 
 	double distance_waiting, double time_waiting, QWidget *parent )
 	: base_t( parent )
-	, mFieldMNamesList ( list )
+	, mFieldNamesList ( list )
 	, mDataModeDITimeName( name )
 	, mDataModeDIDateTime( dt )
 	, mDistanceWeightingParameter( distance_waiting )
@@ -135,31 +137,48 @@ CDatasetInterpolationDialog::~CDatasetInterpolationDialog()
 //virtual
 void CDatasetInterpolationDialog::accept()
 {
+	// time field 
+
 	if ( !mFieldsList->currentItem() )
 	{
 		SimpleErrorBox( "The time field must be selected." );
 		return;
 	}
 
+	// weighting parameters
+
 	mDataModeDITimeName = q2a( mFieldsList->currentItem()->text() );
 	mDataModeDIDateTime = mDateTimeEdit->dateTime();
 
 	bool ok_conv = false;
+	QWidget *focus_widget = nullptr;
 	double v = mDistanceWeightingParameterEdit->text().toDouble( &ok_conv );
 	if ( !ok_conv || v < 0. )
+	{
 		mDistanceWeightingParameterEdit->setText( n2s< std::string >( mDistanceWeightingParameter ).c_str() );
+		focus_widget = mDistanceWeightingParameterEdit;
+	}
 	else
 	{
 		mDistanceWeightingParameter = v;
 		v = mTimeWeightingParameterEdit->text().toDouble( &ok_conv );
-		if ( !ok_conv|| v < 0. )
-			mTimeWeightingParameterEdit->setText( n2s< std::string >( mTimeWeightingParameter ).c_str() );
+		if ( !ok_conv || v < 0. )
+		{
+			mTimeWeightingParameterEdit->setText( n2q( mTimeWeightingParameter / seconds_per_day ) );
+			focus_widget = mTimeWeightingParameterEdit;
+		}
 		else
-			mTimeWeightingParameter = v;
+			mTimeWeightingParameter = v * seconds_per_day;
 	}
 
-	if ( ok_conv )
-		base_t::accept();
+	if ( !ok_conv )
+	{
+		SimpleErrorBox( "Invalid real value." );
+		focus_widget->setFocus();
+		return;
+	}
+
+	base_t::accept();
 }
 
 

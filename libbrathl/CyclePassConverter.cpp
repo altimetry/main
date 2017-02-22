@@ -54,7 +54,7 @@ namespace brathl
 	//static 
 	bool CCyclePassConverter::LoadCyclePassParameters()
 	{
-		static const std::string refFileName = "cycle-pass-references.txt";
+		static const std::string refFileName = "brathl_cycle-pass-references.txt";
 		static const std::string refFilePathName = CTools::FindDataFile( refFileName );
 		static bool initialized = false;
 

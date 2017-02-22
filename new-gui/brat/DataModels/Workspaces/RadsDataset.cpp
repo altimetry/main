@@ -26,8 +26,15 @@ using namespace brathl;
 #include "RadsDataset.h"
 
 
+// Returns false if 
+//  - there are files not of RADS type 
+//  - an exception is thrown by CheckFiles
+//
 bool CRadsDataset::AddMissionFiles( const std::vector< std::string > &paths, std::string &warnings )
 {
+    if ( paths.empty() )
+        return true;
+    
 	for ( auto const& path : paths )
 	{
 		std::string normalized_path = NormalizedPath( path );
@@ -35,11 +42,16 @@ bool CRadsDataset::AddMissionFiles( const std::vector< std::string > &paths, std
 		GetProductList()->Insert( normalized_path );
 	}
 
+    bool result = false;
 	try
 	{
 		CheckFiles( true, true );		// Check only first file
 				
-		if ( !CExternalFilesRads::IsTypeOf( m_files.m_productType ) )
+		if ( CExternalFilesRads::IsTypeOf( m_files.m_productType ) )
+        {
+            result = true;
+        }
+        else
 		{
 			std::string msg = "Warning - Please make sure that all the files in the list belong to RADS,"
 				"\notherwise results may be ill-defined or BRAT may return a reading error.";
@@ -51,28 +63,34 @@ bool CRadsDataset::AddMissionFiles( const std::vector< std::string > &paths, std
 		warnings += ( std::string( "\nUnable to process files. Reason: " ) + e.what() );
 	}
 
-	return warnings.empty();
+	return result;
 }
 
-
+// Returns false if 
+//  - mission does not exist
+//  - AddMissionFiles returns false 
+//
 bool CRadsDataset::AddMission( const std::string &rads_server_address, const std::string &local_dir, const CRadsMission &mission, std::string &warnings )
 {
 	static const std::string filter( "*.nc" );
 
-	if ( std::find( mMissions.begin(), mMissions.end(), mission ) != mMissions.end() )
+	if ( std::find( mMissions.begin(), mMissions.end(), mission.mName ) != mMissions.end() )
 		return false;
 
 	mMissions.push_back( mission );
 
 	//add files
-	const std::string input_path = MissionPath( rads_server_address, local_dir, mission.mAbbr );
 	std::vector< std::string >paths;
-    TraverseDirectory<std::string>( input_path, empty_string(), { filter }, [&paths]( const std::string &s1, const std::string & ) -> bool
+	for ( auto &phase : mission.mPhases )
 	{
-		paths.push_back( s1 );
-		return true;
+		const std::string input_path = PhasePath( rads_server_address, local_dir, mission.mAbbr, phase );
+		TraverseDirectory<std::string>( input_path, empty_string(), { filter }, [&paths]( const std::string &s1, const std::string & ) -> bool
+		{
+			paths.push_back( s1 );
+			return true;
 
-	} );
+		} );
+	}
 
 	//$RADS_ROOT/data/<sat>/<phase>/cycle/<sat>p<pass>c<cycle>.nc
 
@@ -80,6 +98,8 @@ bool CRadsDataset::AddMission( const std::string &rads_server_address, const std
 }
 
 
+// Return value as AddMission
+//
 bool CRadsDataset::SetMission( const std::string &rads_server_address, const std::string &local_rads_dir, const CRadsMission &mission, std::string &warnings )
 {
 	return

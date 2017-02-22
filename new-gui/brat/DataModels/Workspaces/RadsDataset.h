@@ -34,7 +34,6 @@ class CRadsDataset : public CDataset
 	// See note in class declaration "access" section
 	//
 	std::vector< CRadsMission > mMissions;
-	std::string mPath;
 
 public:
 
@@ -47,7 +46,6 @@ public:
 	CRadsDataset( const CRadsDataset &o )
 		: base_t( o )
 		, mMissions( o.mMissions )
-		, mPath( o.mPath )
 	{}
 
 	CRadsDataset& operator= ( const CRadsDataset &o )
@@ -56,7 +54,6 @@ public:
 		{
 			static_cast< base_t& >( *this ) = o;
 			mMissions = o.mMissions;
-			mPath = o.mPath;
 		}
 		return *this;
 	}
@@ -86,7 +83,9 @@ public:
 
 	bool SetMission( const std::string &rads_server_address, const std::string &local_rads_dir, const CRadsMission &mission, std::string &warnings );
 
-    bool HasMission( const std::string &mission_name ) const;
+	bool HasMission() const { return !mMissions.empty(); }
+
+	bool HasMission( const std::string &mission_name ) const;
     
 protected:
 	bool AddMission( const std::string &rads_server_address, const std::string &local_rads_dir, const CRadsMission &mission, std::string &warnings );

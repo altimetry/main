@@ -23,6 +23,7 @@
 
 #include "DataModels/Workspaces/Operation.h"
 
+#include "BratApplication.h"
 #include "DesktopControlPanel.h"
 
 
@@ -38,6 +39,7 @@ class CProgressInterface;
 #if defined (_MSC_VER) && (_MSC_VER >= 1900 ) && defined (USE_DATA_VISUALIZATION)
 
 #include "../support/code/future/NewPlotEditor.h"
+#include "../support/code/future/BratMainWindowNew.h"
 
 using plot_editor_t = CNewPlotEditor;
 
@@ -144,7 +146,7 @@ protected:
 
 	QToolButton *mOperationExportButton = nullptr;
 	QAction *mExportOperationAction = nullptr;
-	QAction *mEditExportAsciiAction = nullptr;
+	QAction *mViewExportAsciiAction = nullptr;
 	QAction *mCreateExportedDisplaysAction = nullptr;
 	QToolButton *mOperationStatisticsButton = nullptr;
 
@@ -153,7 +155,6 @@ protected:
 	stack_button_type *mQuickPageButton = nullptr;
 	stack_button_type *mAdvancedPageButton = nullptr;
 
-	CMapWidget *mMap = nullptr;
 
 	//...advanced
 
@@ -167,7 +168,6 @@ protected:
 
 	QToolButton *mAdvancedExecuteButton = nullptr;
 	QAction *mDelayExecutionAction = nullptr;
-	QAction *mLaunchSchedulerAction = nullptr;
 	CProcessesTable *mProcessesTable = nullptr;
 	bool mSyncProcessExecuting = false;
 
@@ -263,12 +263,14 @@ protected:
 	void CreateAdvancedOperationsPage();
 
 public:
-	COperationControls( CProcessesTable *processes_table, CModel &model, CDesktopManagerBase *manager, QWidget *parent = nullptr, Qt::WindowFlags f = 0 );
+	COperationControls( CBratApplication &app, CDesktopManagerBase *manager, CProcessesTable *processes_table, QWidget *parent = nullptr, Qt::WindowFlags f = 0 );
 
 	virtual ~COperationControls();
 
 
 	// overrides
+
+	virtual void WorkspaceChanged() override;
 
 	virtual void UpdatePanelSelectionChange() override;
 
@@ -285,6 +287,8 @@ public:
 
 
 	// remaining operations
+
+	void LaunchScheduler();
 
 protected:
 
@@ -327,8 +331,9 @@ protected:
 	CDataset* QuickDatasetSelected() const;
 	COperation* GetOrCreateEmptyQuickOperation();
 	COperation* CreateQuickOperation( CMapTypeOp::ETypeOp type );
-    bool IsQuickOperationSelected() const;
-    void UpdateFieldsCheckState();
+    bool IsQuickOperationIndexSelected() const;
+	bool IsLockedOperationIndexSelected() const;
+	void UpdateFieldsCheckState();
 
 	CAliasInfo QuickFindField( const CProductInfo &pi, EPredefinedVariables index, bool &alias_used, std::string &field_error_msg );
 	CAliasInfo QuickFindField( const CProductInfo &pi, EPredefinedSelectionCriteria index, bool &alias_used, std::string &field_error_msg );
@@ -377,18 +382,15 @@ protected:
 
     void FillDatasets_Advanced( int index );
 
+	void LockRadsOperations( bool lock );
+
 signals:
 	void AsyncProcessExecution( bool executing );
 	void SyncProcessExecution( bool executing );
     void OperationModified( const COperation *operation );
 
-	// Notify to redraw tracks
-	//
-	void CurrentDatasetChanged( const CDataset *dataset );
-
 
 public slots:
-	void HandleLaunchScheduler();
 
 	//entry point
 	void HandleWorkspaceChanged();
@@ -436,7 +438,7 @@ protected slots:
 	void HandleOperationFilterButtonToggled_Advanced( bool );
 
 	void HandleExportOperation();
-	void HandleEditExportAscii();
+	void HandleViewExportAscii();
 	void HandleCreateExportedDisplays();
 	void HandleOperationStatistics();
 
@@ -460,6 +462,7 @@ protected slots:
 	void HandleShowInfo();
 
     // Sampling //////////////
+
     void HandleXLonMin_changed();
     void HandleXLonMax_changed();
     void HandleYLatMin_changed();
@@ -471,6 +474,9 @@ protected slots:
     void HandleGetDataMinMaxX();
     void HandleGetDataMinMaxY();
 
+	// RADS //////////////
+
+	void HandleRsyncStatusChanged( CBratApplication::ERadsNotification notification );
 };
 
 

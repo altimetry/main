@@ -54,10 +54,27 @@ class CRadsDatasetsTreeWidgetItem : public QObject, public QTreeWidgetItem
 	using base_t = QTreeWidgetItem;
 
 
+public:
+
+	enum ERadsDatasetsTreeWidgetItemColumnIndexes
+	{
+		eName,
+		eMissions,
+		ePhases
+	};
+
+
+private:
+
 	//instance data
 
 	QFrame *mComboFrame = nullptr;
 	QComboBox *mCombo = nullptr;
+
+
+	//...domain data
+
+	const std::vector< CRadsMission > mAllmissions;
 
 
 	//construction / destruction
@@ -73,7 +90,7 @@ public:
 
 	int currentIndex() const { return mCombo->currentIndex(); }
 
-	void setCurrentIndex( int index ) const { mCombo->setCurrentIndex( index ); }
+	//void setCurrentIndex( int index ) const { mCombo->setCurrentIndex( index ); }
 
 
 	QString DatasetName() const { return text( 0 ); }
@@ -90,11 +107,17 @@ public:
 	QTreeWidgetItem* parent() const { return base_t::parent(); }	
 
 
+	void UpdateMission();
+	void UpdatePhases();
+
 	void SetMissionToolTip();
 	void SetToolTip( int column, const QString &atoolTip );
 
 
 protected:
+
+	const CRadsDataset* Dataset();
+
 
 	virtual bool operator<(const QTreeWidgetItem &other) const override;
 

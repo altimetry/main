@@ -263,7 +263,7 @@ bool CApplicationPaths::SetUserPaths()
     if ( !IsDir( mUserDocumentsDirectory ) && !MakeDirectory( mUserDocumentsDirectory ) )
         return false;
 
-	//set defaults taking "mUserDocumentsDirectory" as root if existing values don't exist
+	//set defaults taking "mUserDocumentsDirectory" as root if current values don't exist
 
     return 
 		( IsDir( mUserDataDirectory ) || SetUserDataDirectory( mUsePortablePaths, data ) ) &&

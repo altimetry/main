@@ -49,7 +49,6 @@
 #include "OperationControls.h"
 #include "OperationControls.h"
 
-#include "new-gui/brat/BratSettings.h"
 
 
 
@@ -267,17 +266,15 @@ void COperationControls::CreateAdvancedOperationsPage()
     mAdvancedExecuteButton = CreateToolButton( "Execute", ":/images/OSGeo/execute.png", "<b>Execute</b><br>Execute the operation and edit resulting view" );
 	mAdvancedExecuteButton->setPopupMode( QToolButton::MenuButtonPopup );
 	mAdvancedExecuteButton->setToolButtonStyle( Qt::ToolButtonTextBesideIcon );
-    mDelayExecutionAction = new QAction( "Schedule Execution...", this );
-	mLaunchSchedulerAction = CActionInfo::CreateAction( this, eAction_Launch_Scheduler );
+	mDelayExecutionAction = CActionInfo::CreateAction( this, eAction_Delay_Execution );
 	mAdvancedExecuteButton->addAction( mDelayExecutionAction );
-	mAdvancedExecuteButton->addAction( mLaunchSchedulerAction );
 
 	mExportOperationAction = new QAction( "Export...", this );
-	mEditExportAsciiAction = new QAction( "Edit ASCII Export...", this );
+	mViewExportAsciiAction = new QAction( "View ASCII Export...", this );
 	mCreateExportedDisplaysAction = new QAction( "(Re)Create Views...", this );
     mOperationExportButton = CreateMenuButton( "", ":/images/OSGeo/operation_export.png", "<b>Export operation...</b><br>Export output data of selected operation",
 	{ 
-		mExportOperationAction, mEditExportAsciiAction, mCreateExportedDisplaysAction 
+		mExportOperationAction, mViewExportAsciiAction, mCreateExportedDisplaysAction 
 	} );
 
 	QWidget *top_buttons_row = CreateButtonRow( false, Qt::Horizontal, 
@@ -507,7 +504,7 @@ void COperationControls::Wire()
 	ResetFilterActions();
 
 	connect( mExportOperationAction, SIGNAL( triggered() ), this, SLOT( HandleExportOperation() ) );
-	connect( mEditExportAsciiAction, SIGNAL( triggered() ), this, SLOT( HandleEditExportAscii() ) );
+	connect( mViewExportAsciiAction, SIGNAL( triggered() ), this, SLOT( HandleViewExportAscii() ) );
 	connect( mCreateExportedDisplaysAction, SIGNAL( triggered() ), this, SLOT( HandleCreateExportedDisplays() ) );
 	connect( mOperationStatisticsButton, SIGNAL( clicked() ), this, SLOT( HandleOperationStatistics() ) );
 
@@ -530,7 +527,6 @@ void COperationControls::Wire()
 
 	connect( mAdvancedExecuteButton, SIGNAL( clicked() ), this, SLOT( HandleExecute() ) );
 	connect( mDelayExecutionAction, SIGNAL( triggered() ), this, SLOT( HandleDelayExecution() ) );
-	connect( mLaunchSchedulerAction, SIGNAL( triggered() ), this, SLOT( HandleLaunchScheduler() ) );
 
 	connect( mOperationsCombo, SIGNAL( currentIndexChanged( int ) ), this, SLOT( HandleSelectedOperationChanged( int ) ) );
 	connect( mAdvancedDatasetsCombo, SIGNAL( currentIndexChanged( int ) ), this, SLOT( HandleSelectedDatasetChanged_Advanced( int ) ) );
@@ -580,6 +576,8 @@ void COperationControls::Wire()
     connect( mGetDataMaxMinX, SIGNAL( clicked() ), this, SLOT( HandleGetDataMinMaxX() ) );
     connect( mGetDataMaxMinY, SIGNAL( clicked() ), this, SLOT( HandleGetDataMinMaxY() ) );
 
+	connect( &mApp, &CBratApplication::RadsNotification, this, &COperationControls::HandleRsyncStatusChanged, Qt::QueuedConnection );
+
 	mProcessesTable->HideColumns( { CProcessesTable::eTaskUid, CProcessesTable::eTaskStart, CProcessesTable::eTaskStatus, CProcessesTable::eTaskLogFile } );
 
 	mSwitchToMapButton->setChecked( true );
@@ -591,9 +589,8 @@ void COperationControls::Wire()
 }
 
 
-COperationControls::COperationControls( CProcessesTable *processes_table, CModel &model, CDesktopManagerBase *manager, QWidget *parent, Qt::WindowFlags f )	//parent = nullptr, Qt::WindowFlags f = 0 
-	: base_t( model, manager, parent, f )
-	, mMap( manager->Map() )
+COperationControls::COperationControls( CBratApplication &app, CDesktopManagerBase *manager, CProcessesTable *processes_table, QWidget *parent, Qt::WindowFlags f )	//parent = nullptr, Qt::WindowFlags f = 0 
+	: base_t( app, manager, parent, f )
 	, mProcessesTable( processes_table )
 	, mBratFilters( mModel.BratFilters() )
 {
@@ -644,10 +641,11 @@ void COperationControls::UpdatePanelSelectionChange()
 		const COperation *operation = AdvancedMode() ? mCurrentOperation : QuickOperation();
 		if ( operation && operation->Filter() )
 			operation->Filter()->BoundingArea( lon1, lat1, lon2, lat2 );
+
+		DrawDatasetTracks( current_dataset, false );	//Draw or clear tracks only if selected; false: do not force redraw if dataset is the same
 	}
 
-	mMap->SelectArea( lon1, lon2, lat1, lat2 );
-	emit CurrentDatasetChanged( current_dataset );
+	SelectAreaInMap( lon1, lon2, lat1, lat2 );	//Always draw or clear filter area (with all values==0, it clears)
 }
 
 
@@ -706,6 +704,98 @@ void COperationControls::HandlePageChanged( int index )
 
 
 /////////////////////////////////////////////////////////////////////////////////
+//					RADS notifications
+/////////////////////////////////////////////////////////////////////////////////
+
+void COperationControls::LockRadsOperations( bool lock )
+{
+	if ( mWOperation )
+		for ( auto &operation_entry : *mWOperation )
+		{
+			COperation *operation = dynamic_cast<COperation*>( operation_entry.second );		assert__( operation );
+			if ( operation->IsRadsDataset() )
+				operation->Lock( lock );
+		}
+
+	if ( mQuickOperation )
+        mQuickOperationsPage->setEnabled( !mQuickOperation->Locked() );
+
+	int current_operation_index = mOperationsCombo->currentIndex();
+	if ( current_operation_index != -1 )
+	{
+		mOperationsCombo->blockSignals( true );
+		mOperationsCombo->setCurrentIndex( -1 );
+		mOperationsCombo->blockSignals( false );
+		mOperationsCombo->setCurrentIndex( current_operation_index );
+	}
+}
+
+
+void COperationControls::HandleRsyncStatusChanged( CBratApplication::ERadsNotification notification )
+{
+	// The service always sends a 1st notification when connected by a client, to inform rsync state.
+	// After that, the application only emits a signal when rsync state changes.
+	//
+	static bool first_rsync_notification = true;
+    static bool processing = false;
+
+    // This function does not seem to be re-entered at the time of 1st implementation. But,
+    //  if callees (LockRadsOperations) implementation changes and/or happen to indirectly
+    //  call an event loop, it will be easily re-entered, so, serialize calls
+    //
+    if ( processing )
+    {
+        QTimer::singleShot( 2000, this,
+        [this, notification]()
+        {
+            HandleRsyncStatusChanged( notification );
+        }
+        );
+        return;
+    }
+
+    boolean_locker_t l ( processing );
+
+    switch ( notification )
+	{
+		case CBratApplication::eNotificationRsyncRunnig:
+		{
+			LockRadsOperations( true );
+			first_rsync_notification = false;
+		}
+		break;
+
+		case CBratApplication::eNotificationRsyncStopped:
+		{
+			if ( !first_rsync_notification )
+				LockRadsOperations( false );
+
+			first_rsync_notification = false;
+		}
+		break;
+
+		case CBratApplication::eNotificationUnknown:
+		{
+			first_rsync_notification = false;
+			// TODO: what ???
+			//
+		}
+		break;
+
+		// not our business
+
+		case CBratApplication::eNotificationConfigSaved:
+		{
+		}
+		break;
+
+		default:
+			break;
+	}
+}
+
+
+/////////////////////////////////////////////////////////////////////////////////
 //	Operation Control Panel Helpers
 /////////////////////////////////////////////////////////////////////////////////
 
@@ -744,7 +834,7 @@ void COperationControls::FillDatasets_Advanced( int suggested_index )
 }
 
 
-bool COperationControls::IsQuickOperationSelected() const
+bool COperationControls::IsQuickOperationIndexSelected() const
 {
 	static const std::string quick_opname = CWorkspaceOperation::QuickOperationName();
 
@@ -754,6 +844,20 @@ bool COperationControls::IsQuickOperationSelected() const
 }
 
 
+bool COperationControls::IsLockedOperationIndexSelected() const
+{
+	if ( !mWOperation )
+		return false;
+
+	const std::string opname = q2a( mOperationsCombo->currentText() );
+
+	const COperation *operation = mWOperation->GetOperation( opname );
+
+	return operation && operation->Locked();
+}
+
+
+
 /////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////
 //						Advanced Operation Entry Point
@@ -761,14 +865,15 @@ bool COperationControls::IsQuickOperationSelected() const
 /////////////////////////////////////////////////////////////////////////////////
 
 
-void COperationControls::HandleWorkspaceChanged()
+//virtual 
+void COperationControls::WorkspaceChanged() //override
 {
-	LOG_TRACEstd( "Operations tab started handling signal to change workspace" );
+	base_t::WorkspaceChanged();
 
 	mWDataset = nullptr;
-    mWOperation = nullptr;
-    mWDisplay = nullptr;
-    mWFormula = nullptr;
+	mWOperation = nullptr;
+	mWDisplay = nullptr;
+	mWFormula = nullptr;
 
 	// - I. Select NO operation 
 	//		- this does not necessarily clear the datasets dependent widgets, but 
@@ -782,10 +887,10 @@ void COperationControls::HandleWorkspaceChanged()
 		HandleSelectedOperationChanged( -1 );	//force call to HandleSelectedOperationChanged(-1)
 
 
-	// - II. Set core domain variables
-	//
-    mWRoot = mModel.RootWorkspace();
-    if ( mWRoot )
+												// - II. Set core domain variables
+												//
+	mWRoot = mModel.RootWorkspace();
+	if ( mWRoot )
 	{
 		mWDataset = mModel.Workspace< CWorkspaceDataset >();
 		mWOperation = mModel.Workspace< CWorkspaceOperation >();
@@ -799,7 +904,7 @@ void COperationControls::HandleWorkspaceChanged()
 
 	// - No workspace? Disable everything
 	//
-    setEnabled( mWRoot != nullptr );
+	setEnabled( mWRoot != nullptr );
 
 	// - III.A. Setup quick before advanced
 	//
@@ -812,29 +917,37 @@ void COperationControls::HandleWorkspaceChanged()
 	//
 	FillDatasets_Advanced( mWRoot ? 0 : -1 );	//disables tab if !mWDataset || !mWDataset->GetDatasetCount() > 0 
 
-	// - If no workspace, no operations or formulas, done
-	//
+												// - If no workspace, no operations or formulas, done
+												//
 	if ( !mWRoot )
 	{
 		return;
 	}
 
 	// - IV.B. Formulas	(no particular widgets involved)
-	
+
 	mWFormula->GetFormulaNames( mMapFormulaString );
 
-	
+
 	// - IV.C. Operations: fill (advanced) operation combo, selecting 1st operation
 	//
-    FillCombo( mOperationsCombo, *mWOperation->GetOperations(),
+	FillCombo( mOperationsCombo, *mWOperation->GetOperations(),
 
-        0, true,
+		0, true,
 
-        []( const CObMap::value_type &i ) -> const char*
-        {
-            return i.first.c_str();
-        }
-    );
+		[]( const CObMap::value_type &i ) -> const char*
+	{
+		return i.first.c_str();
+	}
+	);
+}
+
+
+void COperationControls::HandleWorkspaceChanged()
+{
+	LOG_TRACEstd( "Operations tab started handling signal to change workspace" );
+
+	WorkspaceChanged();
 
 	LOG_TRACEstd( "Operations tab finished handling signal to change workspace" );
 }
@@ -926,13 +1039,16 @@ void COperationControls::HandleFiltersChanged()		//always triggered by new, trig
 //	- operation existence
 //	- formula existence
 //	- operation file existence
+//	- locked operation (rsync running)
 //
 void COperationControls::UpdateGUIState()
 {
-	mExportOperationAction->setEnabled( mCurrentOperation && !IsQuickOperationSelected() && mCurrentOperation->HasFormula() );
-	mEditExportAsciiAction->setEnabled( mCurrentOperation && !IsQuickOperationSelected() && IsFile( mCurrentOperation->GetExportAsciiOutputPath() ) );
-	mCreateExportedDisplaysAction->setEnabled( mCurrentOperation && !IsQuickOperationSelected() && IsFile( mCurrentOperation->GetOutputPath() ) );
-	mOperationExportButton->setEnabled( mEditExportAsciiAction->isEnabled() || mExportOperationAction->isEnabled() || mCreateExportedDisplaysAction->isEnabled() );
+	const bool restricted_operation_selected = IsQuickOperationIndexSelected() || IsLockedOperationIndexSelected();
+
+	mExportOperationAction->setEnabled( mCurrentOperation && !restricted_operation_selected && mCurrentOperation->HasFormula() );
+	mViewExportAsciiAction->setEnabled( mCurrentOperation && !restricted_operation_selected && IsFile( mCurrentOperation->GetExportAsciiOutputPath() ) );
+	mCreateExportedDisplaysAction->setEnabled( mCurrentOperation && !restricted_operation_selected && IsFile( mCurrentOperation->GetOutputPath() ) );
+	mOperationExportButton->setEnabled( mViewExportAsciiAction->isEnabled() || mExportOperationAction->isEnabled() || mCreateExportedDisplaysAction->isEnabled() );
 }
 
 
@@ -944,29 +1060,29 @@ void COperationControls::HandleSelectedOperationChanged( int operation_index )	/
 
 	mSplitPlotsButton->setEnabled( operation_index >= 0 );
 
-	mOperationExportButton->setEnabled( operation_index >= 0 );
-	mOperationStatisticsButton->setEnabled( operation_index >= 0 );
+	// II. Enable/disable items that can(not) relate with quick/rads operations
 
-	mDuplicateOperationButton->setEnabled( operation_index >= 0 );
-
-
-	// II. Enable/disable items that can(not) relate with quick operation
-
-	const bool quick_operation_selected = IsQuickOperationSelected();
+	const bool quick_operation_selected = IsQuickOperationIndexSelected();
+	const bool locked_operation_selected = IsLockedOperationIndexSelected();
+	const bool restricted_operation_selected = quick_operation_selected || locked_operation_selected;
 
 	//the following 3 widgets are also controlled by quick operation code in HandleVariableStateChanged_Quick
 	//
-	mAdvancedExecuteButton->setEnabled( operation_index >= 0 && ( !quick_operation_selected || mCanExecuteQuickOperation ) );
-	mSwitchToMapButton->setEnabled( operation_index >= 0 && ( !quick_operation_selected || mCanExecuteQuickOperation ) );
-	mSwitchToPlotButton->setEnabled( operation_index >= 0 && ( !quick_operation_selected || mCanExecuteQuickOperation ) );
+	mAdvancedExecuteButton->setEnabled( operation_index >= 0 && ( !restricted_operation_selected || mCanExecuteQuickOperation ) );
+	mSwitchToMapButton->setEnabled( operation_index >= 0 && ( !restricted_operation_selected || mCanExecuteQuickOperation ) );
+	mSwitchToPlotButton->setEnabled( operation_index >= 0 && ( !restricted_operation_selected || mCanExecuteQuickOperation ) );
 
 	mDeleteOperationButton->setEnabled( operation_index >= 0 && !quick_operation_selected );
 	mRenameOperationButton->setEnabled( operation_index >= 0 && !quick_operation_selected );
-	mOperationFilterButton_Advanced->setEnabled( operation_index >= 0 && !quick_operation_selected );
-	mAdvancedDatasetsCombo->setEnabled( !quick_operation_selected );
-	mDataExpressionsTree->setEnabled( operation_index >= 0 && !quick_operation_selected );
-	mExpressionGroup->setEnabled( operation_index >= 0 && !quick_operation_selected );
-	mSamplingGroup->setEnabled( operation_index >= 0 && !quick_operation_selected );
+	mOperationFilterButton_Advanced->setEnabled( operation_index >= 0 && !restricted_operation_selected );
+	mAdvancedDatasetsCombo->setEnabled( !restricted_operation_selected );
+	mDataExpressionsTree->setEnabled( operation_index >= 0 && !restricted_operation_selected );
+	mExpressionGroup->setEnabled( operation_index >= 0 && !restricted_operation_selected );
+	mSamplingGroup->setEnabled( operation_index >= 0 && !restricted_operation_selected );
+
+	mOperationExportButton->setEnabled( operation_index >= 0 && !locked_operation_selected );
+	mOperationStatisticsButton->setEnabled( operation_index >= 0 && !locked_operation_selected );
+	mDuplicateOperationButton->setEnabled( operation_index >= 0 && !locked_operation_selected );
 
 
 	// III. Setup operation: mCurrentOperation assignment, updates fields and expressions
@@ -987,7 +1103,12 @@ void COperationControls::HandleSelectedOperationChanged( int operation_index )	/
 		const CDataset *dataset = mCurrentOperation->OriginalDataset();
 		if ( dataset )
 		{
-			UpdateDatasetSelection( dataset );			assert__( dataset == mWDataset->GetDataset( mCurrentOperation->OriginalDatasetName() ) );
+			assert__( dataset == mWDataset->GetDataset( mCurrentOperation->OriginalDatasetName() ) );
+
+			if ( mCurrentOperation->Locked() )
+				SelectOperationDatasetIndex( mCurrentOperation, mAdvancedDatasetsCombo );	//select dataset without assignment
+			else
+				UpdateDatasetSelection( dataset );
 		}
 		else
 		if ( !quick_operation_selected )
@@ -1218,7 +1339,7 @@ void COperationControls::HandleSelectedDatasetChanged_Advanced( int dataset_inde
 	auto cancel_dataset_change = [this]()
 	{
 		if ( mCurrentOperation )
-			SelectOperationDatasetIndex( mCurrentOperation, mAdvancedDatasetsCombo );	//rollback; select datset without assignment
+			SelectOperationDatasetIndex( mCurrentOperation, mAdvancedDatasetsCombo );		//rollback; select dataset without assignment
 	};
 
 
@@ -1229,9 +1350,15 @@ void COperationControls::HandleSelectedDatasetChanged_Advanced( int dataset_inde
 	if ( dataset_index >= 0 )
 	{
 		new_dataset_name = q2a( mAdvancedDatasetsCombo->itemText( dataset_index ) );
+		if ( mApp.IsRsyncActive() && mWDataset->IsRadsDataset( new_dataset_name ) )
+		{
+			cancel_dataset_change();
+			SimpleErrorBox( "Cannot use RADS datasets while synchronizing data." );
+			return;
+		}
 		if ( mCurrentOperation )
 		{
-            std::string current_dataset_name = mCurrentOperation->OriginalDatasetName();				//TODO why cannot assert__( !mCurrentOperation->HasFormula() || !current_dataset_name.empty() );
+			std::string current_dataset_name = mCurrentOperation->OriginalDatasetName();	//TODO why cannot assert__( !mCurrentOperation->HasFormula() || !current_dataset_name.empty() );
 			changing_used_dataset = mCurrentOperation->HasFormula() && new_dataset_name != current_dataset_name;
 		}
 		if ( changing_used_dataset )
@@ -2674,19 +2801,29 @@ void COperationControls::HandleNewOperation()
 {
 	assert__( mWOperation );
 
-	int dataset_index = mAdvancedDatasetsCombo->currentIndex();
-	CDataset *dataset = nullptr;
-	std::string dataset_name;
-	if ( dataset_index >= 0 )
+	//select a valid dataset
+
+	std::string dataset_name, msg;
+	if ( mApp.IsRsyncActive() )
 	{
-		dataset_name = q2a( mAdvancedDatasetsCombo->itemText( dataset_index ) );
-		dataset = mWDataset->GetDataset( dataset_name );						assert__( dataset );
+		dataset_name = mWDataset->FindFirstStandardDataset();
+		msg = "RADS datasets are not available while the service is synchronizing data.";
 	}
-	if ( dataset_index < 0 )
+	else
 	{
-		SimpleErrorBox( "Cannot create an operation without a dataset.\nPlease, select a valid dataset first." );
+		int dataset_index = mAdvancedDatasetsCombo->currentIndex();
+		if ( dataset_index >= 0 )
+		{
+			dataset_name = q2a( mAdvancedDatasetsCombo->itemText( dataset_index ) );
+		}
+	}
+	if ( dataset_name.empty() )
+	{
+		SimpleErrorBox( msg + "\nCannot create an operation without a dataset." );
 		return;
 	}
+
+    assert__( mWDataset->GetDataset( dataset_name ) );
 
 	auto result = ValidatedInputString( "Operation Name", mWOperation->GetOperationNewName(), "New Operation..." );
 	if ( !result.first )
@@ -3080,7 +3217,7 @@ void COperationControls::HandleExportOperation()
 	//function body
 	///////////////
 
-	assert__( mCurrentOperation && !IsQuickOperationSelected() );
+	assert__( mCurrentOperation && !IsQuickOperationIndexSelected() );
 
     // Check if operation has errors
     std::string msg;
@@ -3096,32 +3233,50 @@ void COperationControls::HandleExportOperation()
     }
 
 
-	//get min/max before export dialog
+	// Get color table min/max before export dialog
+	//	- do not abort on failure to calculate values; delegate error handling for operation
 
 	std::string error_msg;
+	double color_range_min = defaultValue<double>(), color_range_max = defaultValue<double>();
+
 	CProduct *product_tmp = ConstructTemporaryFilteredProduct( error_msg );
 	if ( !product_tmp )
 	{
-		if (!error_msg.empty() )
-			SimpleWarnBox( "Unable to get min/max values - Reason:\n" + error_msg );
-		return;
+		if ( error_msg.empty() )
+			error_msg = "Could not open product.";
 	}
-
-	CFormula *formula = mCurrentOperation->GetFormula( CMapTypeField::eTypeOpAsField );
-	CExpression expr;
-	if ( !CFormula::SetExpression( formula->GetDescription( true, &mMapFormulaString, product_tmp->GetAliasesAsString() ), expr, error_msg ) )
+	else
 	{
+		CFormula *formula = mCurrentOperation->GetFormula( CMapTypeField::eTypeOpAsField );
+		CExpression expr;
+		if ( !CFormula::SetExpression( formula->GetDescription( true, &mMapFormulaString, product_tmp->GetAliasesAsString() ), expr, error_msg ) )
+		{
+			error_msg = "Expression can't be set: '" + error_msg + "'";
+		}
+		else
+		{
+			try {
+				product_tmp->GetValueMinMax( expr, mCurrentOperation->GetRecord(), color_range_min, color_range_max, *formula->GetUnit() );
+			}
+			catch ( const CException &e )
+			{
+				error_msg = e.Message();
+			}
+			catch ( const EMessageCode &e )
+			{
+				error_msg = py_error_message( e );
+			}
+		}
 		delete product_tmp;
-		SimpleWarnBox( "Unable to calculate min/max. Expression can't be set:\n'" + error_msg + "'" );
-		return;		//v3 didn't return
+	}
+	if ( !error_msg.empty() )
+	{
+		error_msg = "Unable to calculate min/max for color table. Reason:\n" + error_msg;
+		SimpleWarnBox( error_msg + "\n\nDefault values will be used." );
 	}
 
-	double color_range_min = defaultValue<double>(), color_range_max = defaultValue<double>();
-	product_tmp->GetValueMinMax( expr, mCurrentOperation->GetRecord(), color_range_min, color_range_max, *formula->GetUnit() );
-	delete product_tmp;
 
-
-	//export dialog
+	// Export dialog
 
 	CExportDialog dlg( mModel.BratPaths().mInternalDataDir + "/BratLogo.png",  mWOperation, mCurrentOperation, color_range_min, color_range_max, this );
     if ( dlg.exec() == QDialog::Rejected )
@@ -3180,9 +3335,9 @@ void COperationControls::HandleExportOperation()
 }
 
 
-void COperationControls::HandleEditExportAscii()
+void COperationControls::HandleViewExportAscii()
 {
-	assert__( mCurrentOperation && !IsQuickOperationSelected() );
+	assert__( mCurrentOperation && !IsQuickOperationIndexSelected() );
 
 	const bool modal = true;
 	if ( modal )
@@ -3200,7 +3355,7 @@ void COperationControls::HandleEditExportAscii()
 
 void COperationControls::HandleCreateExportedDisplays()
 {
-	assert__( mCurrentOperation && !IsQuickOperationSelected() );
+	assert__( mCurrentOperation && !IsQuickOperationIndexSelected() );
 
 	OperationSyncExecutionFinishedWithDisplay( 0, QProcess::NormalExit, mCurrentOperation );
 }
@@ -3247,7 +3402,7 @@ void COperationControls::SchedulerProcessError( QProcess::ProcessError error )
 	SimpleErrorBox( message );
 	LOG_WARN( message );
 }
-void COperationControls::HandleLaunchScheduler()
+void COperationControls::LaunchScheduler()
 {
 	COsProcess *process = new COsProcess( false, "", this, "\"" + mModel.BratPaths().mExecBratSchedulerName + "\"" );
     connect( process, SIGNAL( error( QProcess::ProcessError ) ), this, SLOT( SchedulerProcessError( QProcess::ProcessError ) ) );
@@ -3302,7 +3457,7 @@ bool COperationControls::MapPlotSelected() const
 //
 bool COperationControls::HandleExecute()
 {
-	if ( IsQuickOperationSelected() )
+	if ( IsQuickOperationIndexSelected() )
 	{
 		if ( MapPlotSelected() )
 			HandleQuickMap();

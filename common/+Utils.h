@@ -83,6 +83,17 @@ typedef std::strstream stream_t;
 
 
 
+
+//////////////////////////////////////////
+//			build time strings
+//////////////////////////////////////////
+
+
+const std::string application_build_date( std::string(__DATE__) );
+const std::string application_build_time( std::string(__DATE__) + " - " + __TIME__ );
+
+
+
 //////////////////////////////////////////
 //	assert__ : cross-platform assert
 //////////////////////////////////////////
@@ -101,9 +112,9 @@ typedef std::strstream stream_t;
             #define assert__(TEST) assert( (TEST) )
     #endif
     
-    #else
+#else
     
-        #define assert__(TEST)
+    #define assert__(TEST)
 
 #endif
 
@@ -377,6 +388,13 @@ std::vector< STRING > String2Vector( const STRING &s, const STRING &nl = STRING(
 }
 
 
+template< class STRING >
+std::vector< STRING > String2Vector( const STRING &s, const typename STRING::value_type *separator )
+{
+	return String2Vector( s, STRING( separator ) );
+}
+
+
 // IMPORTANT (*) an assumption resulting from an interpretation of (cppreference.com):
 //	erase returns "Iterator following the last removed element. 
 //	If the iterator pos refers to the last element, the end() iterator is returned."
@@ -411,7 +429,7 @@ STRING Vector2String( const std::vector< STRING >&v, const STRING separator = ST
 	return result;
 }
 template< class STRING >
-inline STRING Vector2String( const std::vector< STRING >&v, const typename STRING::value_type *separator = ",")	//STRING::value_type => STRING (2015/12/12)
+inline STRING Vector2String( const std::vector< STRING >&v, const typename STRING::value_type *separator )	//STRING::value_type => STRING (2015/12/12)
 {
 	return Vector2String( v, STRING( separator ) );
 }

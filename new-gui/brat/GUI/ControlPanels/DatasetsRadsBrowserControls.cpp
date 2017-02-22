@@ -21,6 +21,7 @@
 #include "DataModels/Workspaces/RadsDataset.h"
 #include "DataModels/Workspaces/Workspace.h"
 #include "GUI/ControlPanels/DatasetsRadsBrowserControls.h"
+#include "GUI/ControlPanels/Dialogs/RadsPhasesDialog.h"
 
 #include "libbrathl/Field.h"
 
@@ -31,21 +32,22 @@
 /////////////////////////////////////////////////////////////////////////////////////
 
 
-void CRadsBrowserControls::Wire()
+
+void CDatasetsRadsBrowserControls::Wire()
 {
 	base_t::Wire();
 	
 	connect( RadsDatasetTree(), SIGNAL( currentIndexChanged( CRadsDatasetsTreeWidgetItem*, int ) ), this, SLOT( HandleCurrentIndexChanged( CRadsDatasetsTreeWidgetItem*,int ) ) );
-	connect( &mApp, &CBratApplication::RadsNotification, this, &CRadsBrowserControls::HandleRsyncStatusChanged, Qt::QueuedConnection );
+	connect( &mApp, &CBratApplication::RadsNotification, this, &CDatasetsRadsBrowserControls::HandleRsyncStatusChanged, Qt::QueuedConnection );
 }
 
 
 
 //explicit
-CRadsBrowserControls::CRadsBrowserControls( CBratApplication &app, CDesktopManagerBase *manager, QWidget *parent, Qt::WindowFlags f )	//parent = nullptr, Qt::WindowFlags f = 0
+CDatasetsRadsBrowserControls::CDatasetsRadsBrowserControls( CBratApplication &app, CDesktopManagerBase *manager, QWidget *parent, Qt::WindowFlags f )	//parent = nullptr, Qt::WindowFlags f = 0
     : base_t( app, manager, parent, f )
 	, mRadsServiceSettings( app.RadsServiceSettings() )
-	, mSharedMemory( RADS_SHARED_MEMORY_KEY.c_str(), this )
+    //, mSharedMemory( RADS_SHARED_MEMORY_KEY.c_str(), this )
 {
 	if ( !CheckRadsConfigStatus() )
 	{
@@ -63,7 +65,7 @@ CRadsBrowserControls::CRadsBrowserControls( CBratApplication &app, CDesktopManag
 
 	//datasets tree
 
-    mDatasetTree = new CRadsDatasetsTreeWidget( mRadsServiceSettings.AllAvailableMissions() );
+    mDatasetTree = new CRadsDatasetsTreeWidget( mRadsServiceSettings.AllMissions() );
 	//mDatasetTree->setToolTip("Tree of workspace RADS datasets");
 
 	AddSpecializedWgdets( buttons_row, "Datasets", "Files Description" );
@@ -77,19 +79,49 @@ CRadsBrowserControls::CRadsBrowserControls( CBratApplication &app, CDesktopManag
 
 
 //virtual 
-CRadsBrowserControls::~CRadsBrowserControls()
+CDatasetsRadsBrowserControls::~CDatasetsRadsBrowserControls()
 {
 }
 
 
+//virtual 
+void CDatasetsRadsBrowserControls::UpdatePanelSelectionChange() //override
+{
+	if ( SelectedPanel() )
+	{
+		DrawDatasetTracks( nullptr, false );	//draw RADS tracks, that is, nothing
+	}
+}
 
-CRadsDatasetsTreeWidget* CRadsBrowserControls::RadsDatasetTree()
+
+
+CRadsMission CDatasetsRadsBrowserControls::RadsMission( const std::string &mission_name, const std::vector< std::string> &phases ) const
+{
+	auto const &missions = mRadsServiceSettings.AllMissions();
+	CRadsMission mission = { mission_name, FindRadsMissionAbbr( mission_name, missions ), phases };
+	if ( mission.mAbbr.empty() )
+	{
+		SimpleErrorBox( "Invalid RADS mission name." );
+	}
+
+	return mission;
+}
+
+
+std::string CDatasetsRadsBrowserControls::RadsServerAddress() const
+{ 
+	return ReadRadsServerAddress( mBratPaths.mRadsConfigurationFilePath ); 
+}
+
+
+
+CRadsDatasetsTreeWidget* CDatasetsRadsBrowserControls::RadsDatasetTree()
 { 
 	return dynamic_cast< CRadsDatasetsTreeWidget* >( mDatasetTree ); 
 }
 
 
-QString CRadsBrowserControls::TreeItemSelectionChanged( QTreeWidgetItem *tree_item ) 
+QString CDatasetsRadsBrowserControls::TreeItemSelectionChanged( QTreeWidgetItem *tree_item ) 
 {
     QString dataset_name;
 
@@ -137,14 +169,14 @@ QString CRadsBrowserControls::TreeItemSelectionChanged( QTreeWidgetItem *tree_it
 //	- before invoking AddDatasetToTree iteratively to refill tree
 //
 //virtual 
-void CRadsBrowserControls::PrepareWorkspaceChange()
+void CDatasetsRadsBrowserControls::PrepareWorkspaceChange()
 {
 	RadsDatasetTree()->WorkspaceChanged( mWDataset );
 }
 
 
 //virtual 
-QTreeWidgetItem *CRadsBrowserControls::AddDatasetToTree( const QString &dataset_name )
+QTreeWidgetItem *CDatasetsRadsBrowserControls::AddDatasetToTree( const QString &dataset_name )
 {
 	QTreeWidgetItem *dataset_item = RadsDatasetTree()->AddDatasetToTree( dataset_name );
 
@@ -159,31 +191,54 @@ QTreeWidgetItem *CRadsBrowserControls::AddDatasetToTree( const QString &dataset_
 // Changed the mission selection in a dataset
 // Has the same purpose of AddFiles in sibling tab for standard datasets
 //
-void CRadsBrowserControls::HandleCurrentIndexChanged( CRadsDatasetsTreeWidgetItem *item, int index )
+void CDatasetsRadsBrowserControls::HandleCurrentIndexChanged( CRadsDatasetsTreeWidgetItem *item, int index )
 {
 	Q_UNUSED( index );
 
-	CWorkspaceOperation *wkso = mModel.Workspace<CWorkspaceOperation>();		assert__( wkso != nullptr );
-	const QString dataset_name = item->DatasetName();
+	const QString dataset_name = item->DatasetName();												assert__( mWDataset );
 
-	assert__( mWDataset && wkso );
+	CRadsDataset *current_dataset = mWDataset->GetDataset< CRadsDataset >( q2a( dataset_name ) );	assert__( current_dataset );
 
-	CRadsDataset *current_dataset = mWDataset->GetDataset< CRadsDataset >( q2a( dataset_name ) );				assert__( current_dataset );
-
-	const std::string rads_server_address = ReadRadsServerAddress( mBratPaths.mRadsConfigurationFilePath );
-	const std::string local_dir = CRadsSettings::FormatRadsLocalOutputFolder( mBratPaths.UserDataDirectory() );
 	const QString qmission_name = item->CurrentMission();
 	const std::string mission_name = q2a( qmission_name );
-
-	auto const &missions = mRadsServiceSettings.AllAvailableMissions();
-	CRadsMission mission = { mission_name, FindRadsMissionAbbr( mission_name, missions ) };
-	if ( mission.mAbbr.empty() )
-	{
-		SimpleErrorBox( "Invalid RADS mission name." );
+	if ( ( mission_name.empty() && !current_dataset->HasMission() )
+		||
+		current_dataset->HasMission( mission_name ) )
 		return;
-	}
 
-	// Get current files class and type
+
+	assert__( !mission_name.empty() );
+
+	// Ask for phases
+
+	CRadsMission mission = RadsMission( mission_name, std::vector< std::string>() );
+	const std::string mission_path = MissionPath( RadsServerAddress(), mRadsServiceSettings.DownloadDirectory(), mission.mAbbr );
+	QDir source_dir( t2q( mission_path ) );
+	std::vector< std::string > all_phases;
+	if ( source_dir.exists() )
+	{
+		QStringList dirs;
+		dirs = source_dir.entryList( QDir::AllDirs | QDir::NoDotAndDotDot );
+		for ( auto const &qs : dirs )
+			if ( qs.length() == 1 )
+				all_phases.push_back( q2a( qs ) );
+	}
+    if ( all_phases.empty() )
+    {
+        SimpleWarnBox("No data was found for mission '" + mission.mName + "'." );
+    }
+    else
+    {
+        CRadsPhasesDialog dlg( all_phases, mission.mPhases, mission_name, this );
+        if ( dlg.exec() != QDialog::Accepted )
+        {
+            item->UpdateMission();
+            return;
+        }
+    }
+
+	// Get current files class and type, then assign
+
 	std::string old_product_class = current_dataset->ProductClass();
 	std::string old_product_type = current_dataset->ProductType();
 
@@ -191,42 +246,16 @@ void CRadsBrowserControls::HandleCurrentIndexChanged( CRadsDatasetsTreeWidgetIte
 		WaitCursor wait;
 
 		std::string errors;
-		if ( !current_dataset->SetMission( rads_server_address, local_dir, mission, errors ) )
+		if ( !current_dataset->SetMission( RadsServerAddress(), mRadsServiceSettings.DownloadDirectory(), mission, errors ) )
 		{
 			LOG_WARN( errors );
 		}
-		else
-		{
-			item->SetMissionToolTip();
-		}
+        
+        item->SetMissionToolTip();
+        item->UpdatePhases();
 	}
 
-	// Check new files class and type
-	const bool is_same_product_class_and_type = 
-		str_icmp( old_product_class, current_dataset->ProductClass() ) &&
-		str_icmp( old_product_type, current_dataset->ProductType() );
-
-	CStringArray operation_names;
-	bool used_by_operations = wkso->UseDataset( current_dataset->GetName(), &operation_names );
-	if ( !is_same_product_class_and_type && used_by_operations )
-	{
-		std::string str = operation_names.ToString( "\n", false );
-		SimpleWarnBox( 
-			"Warning: Files contained in the dataset '"
-			+ current_dataset->GetName()
-			+ "' have been changed from '"
-			+ old_product_class
-			+ "/"
-			+ old_product_type
-			+ "' to '"
-			+ current_dataset->ProductClass()
-			+ "/"
-			+ current_dataset->ProductType()
-			+ "' product class/type.\n\nThis dataset is used by the operations below:\n"
-			+ str
-			+ "\n\nPlease review the fields used in these operations."
-		);
-	}
+	CheckNewFilesClassAndType( old_product_class, old_product_type, current_dataset );
 
 	HandleSelectionChanged();	//force files description update
 
@@ -241,7 +270,7 @@ void CRadsBrowserControls::HandleCurrentIndexChanged( CRadsDatasetsTreeWidgetIte
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-bool CRadsBrowserControls::CheckRadsConfigStatus()
+bool CDatasetsRadsBrowserControls::CheckRadsConfigStatus()
 {
 	std::string rads_error_msg;
 	bool result = mRadsServiceSettings.mValidRadsMissions;	//This variable records the status of reading RADS configuration file (not the service settings file)
@@ -269,46 +298,69 @@ bool CRadsBrowserControls::CheckRadsConfigStatus()
 }
 
 
-void CRadsBrowserControls::HandleRsyncStatusChanged( CBratApplication::ERadsNotification notification )
+void CDatasetsRadsBrowserControls::HandleRsyncStatusChanged( CBratApplication::ERadsNotification notification )
 {
-	static const std::string common_msg = "Any activity involving RADS Datasets can break the application stability or cause silent computation errors.\n\
-It is recommended not to use BRAT until synchronization is finished.";
+	static const std::string synchronizing_msg = "The RADS service is synchronizing data with the remote RADS server.";
+	static const std::string stopped_synchronizing_msg = "The RADS service stopped data synchronization with the remote RADS server.";
+	static const int auto_close_time = 5;
 
-	// The service always sends a 1st notification when connected by a client, to inform rsync state.
+    // The service always sends a 1st notification when connected by a client, to inform rsync state.
 	// After that, the application only emits a signal when rsync state changes: those changes, not
 	//	the 1st notification, should be announced to the user.
 	//
 	static bool first_rsync_notification = true;
+    static bool processing = false;
+
 
 	//nested lambdas
 
 	auto notify = []( const std::string &msg, bool warn )
 	{
-		//log before displaying dialogs: another notification can come 
-		//and the user closes the last dialog first, altering the log order
-		//
 		if ( warn )
 		{
 			LOG_WARN( msg );
-			AutoCloseWarnBox( msg, 10 );
+            AutoCloseWarnBox( msg, auto_close_time );
 		}
 		else
 		{
 			LOG_INFO( msg );
-			AutoCloseMsgBox( msg, 10 );
-		}
+            AutoCloseMsgBox( msg, auto_close_time );
+        }
 	};
 
+
 	//function body
+
+    // This function can easliy be re-entered. Ensure sequential processing,
+    //  furthermore because displayed dialogs have undefined time (<= auto_close_time)
+    //  to close but the thread's event loop keeps running.
+    //
+    if ( processing )
+    {
+        QTimer::singleShot( 2000, this,
+        [this, notification]()
+        {
+            HandleRsyncStatusChanged( notification );
+        }
+        );
+        return;
+    }
+
+    boolean_locker_t l ( processing );
+
+	bool change_enable_state = true;
 
 	switch ( notification )
 	{
 		case CBratApplication::eNotificationRsyncRunnig:
 		{
 			if ( first_rsync_notification )
+			{
 				first_rsync_notification = false;
+				LOG_WARN( synchronizing_msg );
+			}
 			else
-				notify( "The RADS service is synchronizing data with the remote RADS server.\n" + common_msg, true );
+				notify( synchronizing_msg, true );
 		}
 		break;
 
@@ -318,8 +370,7 @@ It is recommended not to use BRAT until synchronization is finished.";
 				first_rsync_notification = false;
 			else
 			{
-				const std::string recommendation = ( mWDataset && mWDataset->HasRadsDataset() ) ? "\nIn a workspace with RADS datasets, it is recommended to restart BRAT." : "";
-				notify( "The RADS service stopped data synchronization with the remote RADS server." + recommendation, false );
+                notify( stopped_synchronizing_msg, true );
 			}
 		}
 		break;
@@ -329,27 +380,34 @@ It is recommended not to use BRAT until synchronization is finished.";
 			if ( first_rsync_notification )
 				first_rsync_notification = false;
 			else
-				notify( "Cannot detect if the RADS service is synchronizing data with the remote RADS server.\n" + common_msg, true );
+                notify( "Cannot detect if the RADS service is synchronizing data with the remote RADS server.", true );
 		}
 		break;
 
 		case CBratApplication::eNotificationConfigSaved:
 		{
-			//do nothing besides validation check; so far, only AllAvailableMissions is used from mRadsServiceSettings,
+			change_enable_state = false;
+
+			//do nothing besides validation check; so far, only AllMissions is used from mRadsServiceSettings,
 			//and it is only affected by service configuration changes if a file reading error occurs.
 
 			if ( !CheckRadsConfigStatus() )
 			{
 				SimpleErrorBox( "RADS settings will not be available." );
 				setEnabled( false );
-				return;
+                return;
 			}
 		}
 		break;
 
-		default:        
+		default:
+			change_enable_state = false;
 			assert__( false );
 	}
+
+
+	if ( change_enable_state )
+		setEnabled( notification != CBratApplication::eNotificationRsyncRunnig );
 }
 
 

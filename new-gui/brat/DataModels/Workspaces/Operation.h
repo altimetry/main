@@ -41,6 +41,7 @@ namespace brathl
 
 
 
+const std::string SELECT_FORMULA = "Select";
 
 const std::string LOGFILE_EXTENSION = "log";
 const std::string COMMANDFILE_EXTENSION = "par";
@@ -201,6 +202,7 @@ protected:
 
 private:
 	std::string m_name;
+	bool mLocked = false;
 
 	//construction / destruction 
 
@@ -218,8 +220,8 @@ public:
 	CFormula* CreateSelectionCriteria( CFormula *f = nullptr )
 	{
 		delete mSelectionCriteria;
-		mSelectionCriteria = f ? new CFormula( *f ) : new CFormula( ENTRY_SELECT, false );
-		mSelectionCriteria->SetName( ENTRY_SELECT );
+		mSelectionCriteria = f ? new CFormula( *f ) : new CFormula( SELECT_FORMULA, false );
+		mSelectionCriteria->SetName( SELECT_FORMULA );
 		mSelectionCriteria->SetFieldType( CMapTypeField::eTypeOpAsSelect );
 		return mSelectionCriteria;
 	}
@@ -230,6 +232,23 @@ public:
 		delete mFilteredDataset;
 	}
 
+
+	//locking...
+
+	bool Locked() const { return mLocked; }
+
+	void Lock( bool lock ) { mLocked = lock; }
+
+
+protected:
+
+	void ThrowLockException()
+	{
+		throw CException( "Trying to use operation '" + m_name + "' while locked." );
+	}
+
+
+public:
 
 	//remaining...
 
@@ -594,7 +613,7 @@ public:
 	bool IsSelect( const CFormula* value ) const;
 	static bool IsSelect( const std::string& name )
 	{
-		return str_icmp( name, ENTRY_SELECT );
+		return str_icmp( name, SELECT_FORMULA );
 	}
 
 	std::string GetSelectName() const;

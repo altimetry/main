@@ -31,7 +31,7 @@
 //								Dataset Browser
 /////////////////////////////////////////////////////////////////////////////////////
 
-class CRadsBrowserControls : public CDatasetsBrowserControlsBase
+class CDatasetsRadsBrowserControls : public CDatasetsBrowserControlsBase
 {
 #if defined (__APPLE__)
 #pragma clang diagnostic push
@@ -52,11 +52,10 @@ class CRadsBrowserControls : public CDatasetsBrowserControlsBase
 	//instance data
 
 
-
 	//...doamin data
 
 	const CSharedRadsSettings &mRadsServiceSettings;
-	QSharedMemory mSharedMemory;
+    //QSharedMemory mSharedMemory;
    
 
     //construction / destruction
@@ -64,17 +63,17 @@ class CRadsBrowserControls : public CDatasetsBrowserControlsBase
     void Wire();
 
 public:
-    explicit CRadsBrowserControls( CBratApplication &app, CDesktopManagerBase *manager, QWidget *parent = nullptr, Qt::WindowFlags f = 0 );
+    explicit CDatasetsRadsBrowserControls( CBratApplication &app, CDesktopManagerBase *manager, QWidget *parent = nullptr, Qt::WindowFlags f = 0 );
 
-	virtual ~CRadsBrowserControls();
+	virtual ~CDatasetsRadsBrowserControls();
 
 
 protected:
 
 	// overrides
 
-	virtual void UpdatePanelSelectionChange() override
-	{}
+	virtual void UpdatePanelSelectionChange() override;
+
 
 	virtual EDatasetType DatasetType() const override
 	{
@@ -96,6 +95,14 @@ protected:
     // access
 
 	CRadsDatasetsTreeWidget* RadsDatasetTree();
+
+
+	// helpers
+
+	CRadsMission RadsMission( const std::string &mission_name, const std::vector< std::string> &phases ) const;
+
+	std::string RadsServerAddress() const;
+
 
 
 	// operations

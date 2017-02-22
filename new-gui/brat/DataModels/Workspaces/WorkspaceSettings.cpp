@@ -32,6 +32,22 @@
 
 
 
+// Use these macros for all new keys
+// Do NOT use these macros for existing keys declared with literal strings because it will break user's workspaces
+// Given the argument MY_KEY, creates:
+//	static const std::string ENTRY_MY_KEY =  "ENTRY_MY_KEY";
+//
+#define DEFINE_WORKSPACE_ENTRY( entry ) \
+	static const std::string ENTRY_##entry = "ENTRY_"#entry;
+
+// Given the arguments MY_KEY and SUFFIX, creates:
+//	static const std::string ENTRY_MY_KEY_REGEX = "MY_KEYSUFFIX";
+//
+#define DEFINE_WORKSPACE_ENTRY_REGEX( entry, reg ) \
+	static const std::string ENTRY_##entry##_REGEX = #entry#reg;
+
+
+
 
 
 //const std::string GROUP_GENERAL = "WorkspaceGeneral";		//General -> WorkspaceGeneral; moved from Constants.h
@@ -39,6 +55,174 @@
 
 static const std::string GROUP_GENERAL_READ =	"";				//GROUP_GENERAL -> GROUP_GENERAL_READ; "General" -> ""; moved from Constants.h
 static const std::string GROUP_GENERAL_WRITE =	"";				//GROUP_GENERAL -> GROUP_GENERAL_WRITE				  ; moved from Constants.h
+
+
+
+static const std::string GROUP_DATASETS = "Datasets";
+static const std::string GROUP_RADS_DATASETS = "RadsDatasets";
+static const std::string GROUP_OPERATIONS = "Operations";
+static const std::string GROUP_OPERATION_FILTERED_DATASETS = "OperationDatasets";
+static const std::string GROUP_FORMULAS = "Formulas";
+static const std::string GROUP_FUNCTIONS = "Functions";
+static const std::string GROUP_DISPLAY = "Displays";
+
+
+static const std::string ENTRY_WKSNAME = "WorkspaceName";
+static const std::string ENTRY_WKSLEVEL = "WorkspaceLevel";
+
+static const std::string ENTRY_RECORDNAME = "RecordName";
+static const std::string ENTRY_DSNAME = "DatasetName";
+static const std::string ENTRY_OPNAME = "OperationName";
+
+static const std::string ENTRY_UNIT = "Unit";
+static const std::string ENTRY_UNIT_REGEX = ENTRY_UNIT + "_(.+)";
+static const std::string ENTRY_DISPLAYNAME = "DisplayName";
+
+static const std::string ENTRY_DISPLAY_DATA = "DisplayData";
+static const std::string ENTRY_FORMULA = "Formula";
+
+static const std::string ENTRY_FILE = "File";
+static const std::string ENTRY_FILE_REGEX = ENTRY_FILE + "\\d+";
+
+static const std::string ENTRY_MISSION = "Mission";
+DEFINE_WORKSPACE_ENTRY_REGEX( Mission, \\d+ )		//static const std::string ENTRY_MISSION_REGEX = ENTRY_MISSION + "\\d+";
+DEFINE_WORKSPACE_ENTRY( MISSION_PHASES )
+
+static const std::string ENTRY_DEFINE = "Define";
+static const std::string ENTRY_COMMENT = "Comment";
+static const std::string ENTRY_TYPE = "Type";
+static const std::string ENTRY_OPERATION_FILTER = "v4Filter";
+static const std::string ENTRY_DATA_MODE = "DataMode";
+static const std::string ENTRY_DATA_MODE_DI_TIME_FIELD_NAME = "DataMode_di_time_field_name";
+static const std::string ENTRY_DATA_MODE_DI_DATE_TIME = "DataMode_di_date_time";
+static const std::string ENTRY_DATA_MODE_DI_DISTANCE_WEIGHTING = "DataMode_di_distance_waiting";
+static const std::string ENTRY_DATA_MODE_DI_TIME_WEIGHTING = "DataMode_di_time_waiting";
+static const std::string ENTRY_FIELD = "Field";
+static const std::string ENTRY_FIELDNAME = "FieldName";
+static const std::string ENTRY_FIELDTITLE = "FieldTitle";
+static const std::string ENTRY_FIELDTYPE = "FieldType";
+static const std::string ENTRY_DATATYPE = "DataType";
+static const std::string ENTRY_TITLE = "Title";
+static const std::string ENTRY_INTERVAL = "Interval";
+static const std::string ENTRY_STEP = "Step";
+static const std::string ENTRY_FILTER = "Filter";
+
+static const std::string ENTRY_MINVALUE = "MinValue";
+static const std::string ENTRY_MAXVALUE = "MaxValue";
+
+static const std::string ENTRY_CURRENT_MINVALUE = "CurrentMinValue";
+static const std::string ENTRY_CURRENT_MAXVALUE = "CurrentMaxValue";
+
+static const std::string ENTRY_MINXVALUE = "MinXValue";
+static const std::string ENTRY_MAXXVALUE = "MaxXValue";
+static const std::string ENTRY_MINYVALUE = "MinYValue";
+static const std::string ENTRY_MAXYVALUE = "MaxYValue";
+static const std::string ENTRY_LOESSCUTOFF = "LoessCutOff";
+static const std::string ENTRY_ANIMATION = "Animation";
+static const std::string ENTRY_PROJECTION = "Projection";
+static const std::string ENTRY_GROUP = "Group";
+static const std::string ENTRY_CONTOUR = "Contour";
+static const std::string ENTRY_INVERT_XYAXES = "InvertXYAxes";
+static const std::string ENTRY_NUMBER_OF_BINS = "number_of_bins";		//v4
+static const std::string ENTRY_SOLID_COLOR = "SolidColor";
+static const std::string ENTRY_COLOR_PALETTE = "ColorPalette";
+static const std::string ENTRY_COLOR_TABLE_CURVE = "ColorTableCurve";	//v4
+static const std::string ENTRY_EAST_COMPONENT = "EastComponent";
+static const std::string ENTRY_NORTH_COMPONENT = "NorthComponent";
+
+static const std::string ENTRY_X = "X";
+static const std::string ENTRY_XDESCR = "XDescr";
+static const std::string ENTRY_XUNIT = "XUnit";
+static const std::string ENTRY_Y = "Y";
+static const std::string ENTRY_YDESCR = "YDescr";
+static const std::string ENTRY_YUNIT = "YUnit";
+
+//const std::string ENTRY_Z = "Z";
+//const std::string ENTRY_ZDESCR = "ZDescr";
+//const std::string ENTRY_ZUNIT = "ZUnit";
+
+static const std::string ENTRY_X_AXIS = "XAxis";
+//const std::string ENTRY_X_AXIS_TEXT = "XAxisTitle";
+
+static const std::string ENTRY_OUTPUT = "Output";
+static const std::string ENTRY_EXPORT_ASCII_OUTPUT = "ExportAsciiOutput";
+static const std::string ENTRY_EXPORT_NETCDF_OUTPUT = "ExportNetcdfOutput";
+static const std::string ENTRY_EXPORT_GEOTIFF_OUTPUT = "ExportGeoTIFFOutput";
+
+static const std::string ENTRY_ZOOM = "Zoom";
+
+
+
+
+DEFINE_WORKSPACE_ENTRY( FIELD_DATA_NAME )
+DEFINE_WORKSPACE_ENTRY( FIELD_DESC_NAME )
+DEFINE_WORKSPACE_ENTRY( FIELD_DATA_TITLE )
+
+DEFINE_WORKSPACE_ENTRY( FIELD_DATA_OPACITY )
+
+DEFINE_WORKSPACE_ENTRY( FIELD_DATA_X_MAX )
+DEFINE_WORKSPACE_ENTRY( FIELD_DATA_Y_MAX )
+DEFINE_WORKSPACE_ENTRY( FIELD_DATA_X_MIN )
+DEFINE_WORKSPACE_ENTRY( FIELD_DATA_Y_MIN )
+
+DEFINE_WORKSPACE_ENTRY( DISPLAY_DATA_Z_NUM_TICKS )
+
+DEFINE_WORKSPACE_ENTRY( DISPLAY_X_NUM_TICKS )
+DEFINE_WORKSPACE_ENTRY( DISPLAY_Y_NUM_TICKS )
+DEFINE_WORKSPACE_ENTRY( DISPLAY_Z_NUM_TICKS )
+
+DEFINE_WORKSPACE_ENTRY( DISPLAY_DATA_Z_NUM_DIGITS )
+
+DEFINE_WORKSPACE_ENTRY( DISPLAY_X_NUM_DIGITS )
+DEFINE_WORKSPACE_ENTRY( DISPLAY_Y_NUM_DIGITS )
+DEFINE_WORKSPACE_ENTRY( DISPLAY_Z_NUM_DIGITS )
+
+DEFINE_WORKSPACE_ENTRY( DISPLAY_X_LABEL )
+DEFINE_WORKSPACE_ENTRY( DISPLAY_Y_LABEL )
+DEFINE_WORKSPACE_ENTRY( DISPLAY_Z_LABEL )
+
+DEFINE_WORKSPACE_ENTRY( FIELD_DATA_X_LOG )
+DEFINE_WORKSPACE_ENTRY( FIELD_DATA_Y_LOG )
+
+DEFINE_WORKSPACE_ENTRY( FIELD_DATA_COLOR_LABELS )
+DEFINE_WORKSPACE_ENTRY( FIELD_DATA_WITHCONTOUR )
+DEFINE_WORKSPACE_ENTRY( FIELD_DATA_NUMCONTOUR )
+DEFINE_WORKSPACE_ENTRY( FIELD_DATA_CONTOURPRECISIONGRID1 )
+DEFINE_WORKSPACE_ENTRY( FIELD_DATA_CONTOURPRECISIONGRID2 )
+DEFINE_WORKSPACE_ENTRY( FIELD_DATA_CONTOURLINEWIDTH )
+DEFINE_WORKSPACE_ENTRY( FIELD_DATA_CONTOURLINECOLOR )
+DEFINE_WORKSPACE_ENTRY( FIELD_DATA_MIN_CONTOURVALUE )
+DEFINE_WORKSPACE_ENTRY( FIELD_DATA_MAX_CONTOURVALUE )
+
+DEFINE_WORKSPACE_ENTRY( FIELD_DATA_WITHSOLIDCOLOR )
+
+DEFINE_WORKSPACE_ENTRY( FIELD_DATA_MAGNITUDE_FACTOR )
+
+DEFINE_WORKSPACE_ENTRY( FIELD_DATA_SHOW_LINES )
+DEFINE_WORKSPACE_ENTRY( FIELD_DATA_SHOW_POINTS )
+
+DEFINE_WORKSPACE_ENTRY( FIELD_DATA_POINTSIZE )
+DEFINE_WORKSPACE_ENTRY( FIELD_DATA_GLYPHTYPE )
+DEFINE_WORKSPACE_ENTRY( FIELD_DATA_FILLEDPOINT )
+
+DEFINE_WORKSPACE_ENTRY( FIELD_DATA_LINE_COLOR )
+DEFINE_WORKSPACE_ENTRY( FIELD_DATA_LINE_WIDTH )
+DEFINE_WORKSPACE_ENTRY( FIELD_DATA_STIPPLE_PATTERN )
+DEFINE_WORKSPACE_ENTRY( FIELD_DATA_POINT_COLOR )
+
+DEFINE_WORKSPACE_ENTRY( FIELD_DATA_MIN_HEIGHT_VALUE )
+DEFINE_WORKSPACE_ENTRY( FIELD_DATA_MAX_HEIGHT_VALUE )
+DEFINE_WORKSPACE_ENTRY( FIELD_DATA_MIN_CURRENT_HEIGHT_VALUE )
+DEFINE_WORKSPACE_ENTRY( FIELD_DATA_MAX_CURRENT_HEIGHT_VALUE )
+
+
+
+
+
+
+
+
+
 
 
 
@@ -234,6 +418,14 @@ bool CWorkspaceSettings::LoadConfigDataset( CWorkspaceDataset &data, std::string
 }
 
 
+
+inline std::string MakePhasesKey( const std::string &mission_unique_key )
+{
+	return ENTRY_MISSION_PHASES + "_" + mission_unique_key;
+}
+
+
+
 void CWorkspaceSettings::SaveDatasetSpecificUnit( CSection &section, const CDataset *d )
 {
 	for ( CStringMap::const_iterator itMap = d->GetFieldSpecificUnits()->begin(); itMap != d->GetFieldSpecificUnits()->end(); itMap++ )
@@ -252,7 +444,9 @@ bool CWorkspaceSettings::SaveConfig( const CRadsDataset *d )
 		for ( auto const &mission : missions )
 		{
 			index++;
-			WriteValue( section, ENTRY_MISSION + n2s<std::string>( index ), mission.mName );
+			const std::string mission_unique_key = ENTRY_MISSION + n2s<std::string>( index );
+			WriteValue( section, mission_unique_key, mission.mName );
+			WriteValue( section, MakePhasesKey( mission_unique_key ), Vector2String( mission.mPhases, " " ) );
 		}
 
 		SaveDatasetSpecificUnit( section, d );
@@ -278,10 +472,10 @@ bool CWorkspaceSettings::SaveConfig( const CDataset *d )
 	}
 	return Status() == QSettings::NoError;
 }
-void CWorkspaceSettings::LoadDatasetSpecificUnit( CStringArray &findStrings, const std::string &entry, const std::string &value_string, CDataset *d )
+void CWorkspaceSettings::LoadDatasetSpecificUnit( const std::string &entry, const std::string &value_string, CDataset *d )
 {
 	// Find specific unit entries
-	findStrings.RemoveAll();
+	CStringArray findStrings;
 	CTools::Find( entry, ENTRY_UNIT_REGEX, findStrings );
 	if ( findStrings.size() > 0 )
 	{
@@ -290,24 +484,30 @@ void CWorkspaceSettings::LoadDatasetSpecificUnit( CStringArray &findStrings, con
 }
 bool CWorkspaceSettings::LoadConfig( CRadsDataset *d )
 {
-	auto const &missions = smRadsServiceSettings->AllAvailableMissions();
+	auto const &missions = smRadsServiceSettings->AllMissions();
 	const std::string rads_server_address = ReadRadsServerAddress( smBratPaths->mRadsConfigurationFilePath );
-	const std::string local_dir = CRadsSettingsBase::FormatRadsLocalOutputFolder( smBratPaths->UserDataDirectory() );
+	const std::string local_dir = smRadsServiceSettings->DownloadDirectory();
 
 	{
 		CSection section( mSettings, d->GetName() );
-		auto const keys = section.Keys();
+		auto const qkeys = section.Keys();
 		CStringArray findStrings;
-		for ( auto const &key : keys )
+		for ( auto const &qkey : qkeys )
 		{
-			std::string entry = q2a( key );
-			std::string value_string = ReadValue( section, entry );			
+			const std::string key = q2a( qkey );
+			if ( key.find( ENTRY_MISSION_PHASES ) != std::string::npos )
+				continue;
+
+			const std::string value_string = ReadValue( section, key );
 
 			findStrings.RemoveAll();
-			CTools::Find( entry, ENTRY_MISSION_REGEX, findStrings );
+			CTools::Find( key, ENTRY_Mission_REGEX, findStrings );
 			if ( findStrings.size() > 0 )
 			{
-				CRadsMission mission = { value_string, FindRadsMissionAbbr( value_string, missions ) };
+				const std::string phases = ReadValue( section, MakePhasesKey( key ) );
+				auto vphases = String2Vector( phases, " " );
+				CleanStringVector( vphases );
+				CRadsMission mission = { value_string, FindRadsMissionAbbr( value_string, missions ), vphases };
 				if ( mission.mAbbr.empty() )
 				{
 					LOG_WARN( "Reading invalid mission name: " + value_string + ".\nDataset " + d->GetName() + " will not be complete." );
@@ -320,7 +520,7 @@ bool CWorkspaceSettings::LoadConfig( CRadsDataset *d )
 				continue;
 			}
 
-			LoadDatasetSpecificUnit( findStrings, entry, value_string, d );
+			LoadDatasetSpecificUnit( key, value_string, d );
 		}
 	}
 
@@ -348,7 +548,7 @@ bool CWorkspaceSettings::LoadConfig( CDataset *d )
 			}
 
 			// Find specific unit entries
-			LoadDatasetSpecificUnit( findStrings, entry, value_string, d );
+			LoadDatasetSpecificUnit( entry, value_string, d );
 		}
 	}
 

@@ -23,7 +23,6 @@
 
 #include "libbrathl/BratObject.h"
 
-#include "Constants.h"
 #include "Dataset.h"
 #include "Formula.h"
 
@@ -212,17 +211,26 @@ public:
 		m_datasets.RemoveAll();
 	}
 
+
 	// 
-
-	bool HasDataset() const { return GetDatasetCount() > 0; }
-	bool HasRadsDataset() const;
-
-	//bool CheckFiles( std::string &errorMsg );			// femm: Apparently not used...
-
 
 	virtual const_iterator begin() const override { return m_datasets.begin(); }
 
 	virtual const_iterator end() const override { return m_datasets.end(); }
+
+
+	// 
+
+	bool HasDataset() const { return GetDatasetCount() > 0; }
+
+	bool HasRadsDataset() const;
+
+	bool IsRadsDataset( const std::string &name ) const;
+
+	const std::string& FindFirstStandardDataset() const;
+
+
+	//bool CheckFiles( std::string &errorMsg );			// femm: Apparently not used...
 
 	virtual bool SaveConfig( std::string &errorMsg, CWorkspaceOperation *wkso, CWorkspaceDisplay *wksd, bool flush = true ) override;
 	virtual bool LoadConfig( std::string &errorMsg, CWorkspaceDataset *wks, CWorkspaceDisplay *wksd, CWorkspaceOperation *wkso ) override;
@@ -254,6 +262,11 @@ public:
 
     bool InsertDataset( const std::string& name, std::function< CDataset*(const std::string &) > factory );
 
+	template< typename DATASET = CDataset >
+	bool InsertDataset( const std::string& name )
+	{
+		return InsertDataset( name, []( const std::string &name ) { return new DATASET( name ); } );
+	}
 
     virtual void Dump( std::ostream& fOut = std::cerr ) override;
 

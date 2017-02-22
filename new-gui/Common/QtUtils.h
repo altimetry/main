@@ -238,6 +238,27 @@ inline QWidget* ApplicationWindow()
 
 
 
+inline void SimpleAboutBoxWithBuildDate( const std::string &version, const std::string &proc_arch, const std::string &copy_right, std::string app_name = std::string() )
+{
+	if ( app_name.empty() )
+		app_name = q2a( QCoreApplication::applicationName() );
+
+	std::string title = "About " + app_name;
+
+	QString sversion = QString( "Welcome to " ) + app_name.c_str() + " " + version.c_str() + " - " + proc_arch.c_str();
+	QString sdate = application_build_date.c_str();
+	QString scopy = QString( "(C)opyright " ) + copy_right.c_str();
+
+	QString msg = "<p align='center'>" 
+		+ sversion + "<br><br>"
+		+ scopy + ", "
+		+ sdate
+		+ "</p>";
+
+	QMessageBox::about( ApplicationWindow(), QObject::tr( title.c_str() ), msg );
+}
+
+
 inline void SimpleAboutBox( const std::string &version, const std::string &proc_arch, const std::string &copy_right, std::string app_name = std::string() )
 {
 	if ( app_name.empty() )
@@ -250,10 +271,12 @@ inline void SimpleAboutBox( const std::string &version, const std::string &proc_
 	QMessageBox::about( ApplicationWindow(), QObject::tr( title.c_str() ), msg );
 }
 
+
 inline bool SimpleSystemOpenURL( const std::string &url )
 {
 	return QDesktopServices::openUrl( QUrl( url.c_str(), QUrl::TolerantMode ) );
 }
+
 
 inline bool SimpleSystemOpenFile( const std::string &path )
 {
@@ -380,6 +403,20 @@ inline bool SimpleQuestion( const char *msg )
 	return SimpleQuestion( QString( msg ) );
 }
 
+
+inline bool SimpleConfirmation( const QString &msg )
+{
+	return QMessageBox::warning( ApplicationWindow(), "Confirmation", msg, QMessageBox::Ok | QMessageBox::Cancel ) == QMessageBox::Ok;
+}
+template< class STRING >
+inline bool SimpleConfirmation( const STRING &msg )
+{
+	return SimpleConfirmation( t2q( msg ) );
+}
+inline bool SimpleConfirmation( const char *msg )
+{
+	return SimpleConfirmation( QString( msg ) );
+}
 
 
 
@@ -1511,6 +1548,22 @@ public:
 	}
 };
 
+
+
+struct boolean_locker_t
+{
+    bool &mFlag;
+
+    boolean_locker_t( bool &flag )
+        : mFlag( flag )
+    {
+        mFlag = true;
+    }
+    ~boolean_locker_t()
+    {
+        mFlag = false;
+    }
+};
 
 
 

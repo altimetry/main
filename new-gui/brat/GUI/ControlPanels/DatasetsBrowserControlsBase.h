@@ -91,7 +91,6 @@ protected:
 
 	//...doamin data
 
-    CBratApplication &mApp;
 	const CApplicationPaths &mBratPaths;
 	CWorkspaceDataset *mWDataset = nullptr;
 
@@ -113,9 +112,12 @@ public:
 	virtual ~CDatasetsBrowserControlsBase();
 
 
+protected:
+
 	// overrides
 
-protected:
+	virtual void WorkspaceChanged() override;
+
 
 	// derived classes virtual interface
 
@@ -145,10 +147,12 @@ protected:
 
 	bool RenameDataset( QTreeWidgetItem *dataset_item );
 
-signals:
-	// Notify to redraw tracks. Item selection may not change, thus, is not catched by HandleTreeItemChanged (RCCC)
+	// Returning false if a warning was showed to the user, not an error that needs handling
 	//
-	void CurrentDatasetChanged( const CDataset *dataset );
+	bool CheckNewFilesClassAndType( const std::string &old_product_class, const std::string &old_product_type, const CDataset *current_dataset );
+
+
+signals:
 
 	// Notify about the change (dataset added, renamed, deleted or changed composition: files added or removed)
 	//
@@ -163,7 +167,7 @@ public slots:
 protected slots:
 
 	void HandleFieldChanged();
-	void HandleSelectionChanged();	//calls TreeItemSelectionChanged after ClearFieldList; emits CurrentDatasetChanged if dataset selection changed 
+	void HandleSelectionChanged();	//calls TreeItemSelectionChanged after ClearFieldList; calls DrawDatasetTracks if dataset selection changed 
 
 	void HandleNewDataset();
     void HandleDeleteDataset();

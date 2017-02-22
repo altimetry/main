@@ -41,16 +41,11 @@ void CApplicationSettingsDlg::CreateWidgets()
 	mUsePortablePathsCheckBox = new QCheckBox( "Use portable paths" );
 	mUsePortablePathsCheckBox->setToolTip( "If checked, datasets in the data directory are stored as relative paths,\nallowing workspaces to be copied across machines" );
 
-	auto *rads_info_label = new CTextWidget;
-	rads_info_label->SetHelpProperties(
-		"If you enable RADS, data will be downloaded to\nthe \"rads\" folder in this directory."
-		,0 , 6 );
-
 	auto *data_l =
 		LayoutWidgets( Qt::Vertical, {
 			new QLabel( "Default Data Directory" ),
 			LayoutWidgets( Qt::Horizontal, { mDataDirectoryLineEdit, mBrowseDataDirectoryPushButton }, nullptr, 2, 2, 2, 2, 2 ),
-			LayoutWidgets( Qt::Horizontal, { rads_info_label, nullptr, mUsePortablePathsCheckBox }, nullptr, 2, 2, 2, 2, 2 ),
+			mUsePortablePathsCheckBox
 		}, nullptr, 2, 2, 2, 2, 2 );
 
 
@@ -147,11 +142,9 @@ void CApplicationSettingsDlg::CreateWidgets()
 		icon = QIcon( "://images/uac-icon-vista.png" );
 	QPixmap pixmap = icon.pixmap( icon.actualSize( QSize( icon_size, icon_size ) ) );
 	picon->setPixmap( pixmap );
-	const bool is_xp = QSysInfo::windowsVersion() == QSysInfo::WV_XP || QSysInfo::windowsVersion() == QSysInfo::WV_2003;
-	const bool is_elevated = is_xp ? true : IsElevated();       //FIXME: find a way of implementing an IsElevatedXP() 
-	if ( is_xp || !is_elevated )
-		picon->setToolTip( "To install and enable the RADS service you may need to run BRAT as administrator." );
-	picon->setEnabled( is_elevated );
+	if ( !mIsElevatedProcess )
+		picon->setToolTip( "To install and enable the RADS service you need to run BRAT as administrator." );
+	picon->setEnabled( mIsElevatedProcess );
 #endif
 
     auto *admin_box_l = LayoutWidgets( Qt::Horizontal,
@@ -166,9 +159,15 @@ void CApplicationSettingsDlg::CreateWidgets()
 
 	//...settings box
 
-	mRadsOutputEdit = new QLineEdit;
-	SetReadOnlyEditor( mRadsOutputEdit, true );
-	mRadsOutputEdit->setToolTip( "Change location by changing the default BRAT data directory" );
+	mRadsOutputLineEdit = new QLineEdit;
+	mBrowseRadsOutputPushButton = new QPushButton( "Browse..." );
+	mRadsOutputBox = CreateGroupBox( ELayoutType::Horizontal,
+	{
+		LayoutWidgets( Qt::Horizontal, { mRadsOutputLineEdit, mBrowseRadsOutputPushButton }, nullptr, 2, 2, 2, 2, 2 )
+	}, "Destination Path", nullptr );
+	mRadsOutputBox->setToolTip( "Directory to download the RADS data.\nSelect a location where all BRAT users can read/write files." );
+	//mRadsOutputBox->setAlignment( Qt::AlignCenter );
+
 	mRadsViewLogFile = new QPushButton( "Log..." );
 	mRadsViewRADSConfigurationFile = new QPushButton( "Configuration..." );
 	mRadsViewRADSServiceSettingsFile = new QPushButton( "Service Settings..." );
@@ -211,7 +210,7 @@ void CApplicationSettingsDlg::CreateWidgets()
 
 	auto *sync_settings_l = LayoutWidgets( Qt::Vertical,
 	{
-		LayoutWidgets( Qt::Horizontal, { new QLabel( "Destination Path" ), mRadsOutputEdit }, nullptr, 2,2,2,2,2 ),
+		mRadsOutputBox,
 		LayoutWidgets( Qt::Horizontal, 
 		{ 
 			sync_date_box,
@@ -309,13 +308,10 @@ void CApplicationSettingsDlg::Wire()
 	//	ApplicationPaths Page
 
 	mDataDirectoryLineEdit->setText( settings_paths->UserDataDirectory().c_str() );				//for data portable paths
-	mDataDirectoryLineEdit->setEnabled( !mApp.RsyncIsActive() );
-	mBrowseDataDirectoryPushButton->setEnabled( !mApp.RsyncIsActive() );
 	mProjectsDirectoryLineEdit->setText( settings_paths->WorkspacesDirectory().c_str() );
 
 	mUsePortablePathsCheckBox->setChecked( settings_paths->UsePortablePaths() );
 
-	connect( mDataDirectoryLineEdit, SIGNAL( editingFinished() ), this, SLOT( HandleDataDirectoryLineEditEditingFinished() ) );
 	connect( mBrowseDataDirectoryPushButton, SIGNAL( clicked() ), this, SLOT( HandleBrowseDataDirectory() ) );
 	connect( mBrowseWorkspacesDirectoryPushButton, SIGNAL( clicked() ), this, SLOT( HandleBrowseProjectsPath() ) );
 
@@ -352,14 +348,12 @@ void CApplicationSettingsDlg::Wire()
 
 	if ( CheckRadsConfigStatus() )				//can disable page
 	{
-		// See comment in HandleDataDirectoryLineEditEditingFinished
-		//
-		HandleDataDirectoryLineEditEditingFinished();
+		mRadsOutputLineEdit->setText( mRadsServiceSettings.UserWritableDirectory().c_str() );
 		mRadsSpin->setValue( mRadsServiceSettings.NumberOfDays() );
 
 		size_t max_len = 0;
 		auto const &user_missions = mRadsServiceSettings.MissionNames();
-		for ( auto const &mission : mRadsServiceSettings.AllAvailableMissions() )
+		for ( auto const &mission : mRadsServiceSettings.AllMissions() )
 		{
 			max_len = std::max( max_len, mission.mName.length() );
 			QListWidgetItem* item = new QListWidgetItem;
@@ -372,7 +366,7 @@ void CApplicationSettingsDlg::Wire()
 		}
 		// Sort items (ascending order)
 		mRadsMissionsList->sortItems();
-		SetMaximumVisibleItems( mRadsMissionsList, 7 );
+		SetMaximumVisibleItems( mRadsMissionsList, 6 );
 		mRadsMissionsList->setMaximumWidth( max_len * mRadsMissionsList->fontMetrics().width('W') + qApp->style()->pixelMetric( QStyle::PM_ScrollBarExtent ) );
 
 		const bool installed = mRadsController.isInstalled();
@@ -387,6 +381,7 @@ void CApplicationSettingsDlg::Wire()
 		connect( mRadsStartButton, SIGNAL( toggled( bool ) ), this, SLOT( HandleRadsUserStart( bool ) ) );
 		connect( mRadsStartButton_Test, SIGNAL( toggled( bool ) ), this, SLOT( HandleRadsStart_Test( bool ) ) );
         connect( mRadsRefreshConnectionButton, SIGNAL( clicked() ), this, SLOT( HandleRadsRefreshConnection() ) );
+		connect( mBrowseRadsOutputPushButton, SIGNAL( clicked() ), this, SLOT( HandleBrowseRadsOutputDirectory() ) );
 		connect( mRadsPauseButton, SIGNAL( toggled( bool ) ), this, SLOT( HandleRadsPause( bool ) ) );
 		connect( mRadsViewLogFile, SIGNAL( clicked() ), this, SLOT( HandleViewLogFile() ) );
 		connect( mRadsViewRADSConfigurationFile, SIGNAL( clicked() ), this, SLOT( HandleViewRADSConfigurationFile() ) );
@@ -399,10 +394,14 @@ void CApplicationSettingsDlg::Wire()
 		HandleRadsSpinValueChanged( mRadsSpin->value() );
 		HandleRsyncStatusChanged( 
 			running ? (
-				mApp.RsyncIsActive() ? 
+				mApp.IsRsyncActive() ? 
 				CBratApplication::ERadsNotification::eNotificationRsyncRunnig : 
 				CBratApplication::ERadsNotification::eNotificationRsyncStopped )
 			: CBratApplication::ERadsNotification::eNotificationUnknown );
+
+#if defined (Q_OS_WIN)
+		mRadsOptionsPage->setEnabled( mIsElevatedProcess );
+#endif
 	}
 
 
@@ -435,6 +434,9 @@ CApplicationSettingsDlg::CApplicationSettingsDlg( CBratApplication &app, QWidget
 	, mSettings( mApp.Settings() )
 	, mRadsController( mApp.RadsServiceController() )
 	, mRadsServiceSettings( mApp.mRadsServiceSettings )
+#if defined (Q_OS_WIN)
+	, mIsElevatedProcess( IsElevatedProcess() )
+#endif
 {
 	CreateWidgets();
 	setWindowTitle( "BRAT Options" );
@@ -457,28 +459,8 @@ void CApplicationSettingsDlg::HandleBrowseDataDirectory()
     QString dir = BrowseDirectory( this, "Select Default Data Directory", mDataDirectoryLineEdit->text() );
 	if ( !dir.isEmpty() )
 	{
-		if ( mApp.RsyncIsActive() )
-		{
-			//It can happen that a notification of rsync activity arrives while the dialog box is open
-			//
-			SimpleWarnBox( "The data directory cannot be changed because a data synchronization with RADS has started.\nPlease, try again when it finishes." );
-		}
-		else
-		{
-			mDataDirectoryLineEdit->setText( dir );
-			HandleDataDirectoryLineEditEditingFinished();
-		}
+		mDataDirectoryLineEdit->setText( dir );
 	}
-}
-
-
-void CApplicationSettingsDlg::HandleDataDirectoryLineEditEditingFinished()
-{
-	// Do not use mRadsServiceSettings.OutputDirectory(); this is not a stored path, it is always constructed
-	//	based on UserDataDirectory; besides, if this is the first time, UserDataDirectory will not be configured
-	//	inside rads settings
-	//
-	mRadsOutputEdit->setText( CRadsSettings::FormatRadsLocalOutputFolder( q2a( mDataDirectoryLineEdit->text() ) ).c_str() );
 }
 
 
@@ -566,6 +548,25 @@ void CApplicationSettingsDlg::SetExecNowText()
 
 void CApplicationSettingsDlg::HandleRsyncStatusChanged( CBratApplication::ERadsNotification notification )
 {
+    static bool processing = false;
+
+    // This function can be re-entered. Ensure sequential processing,
+    //  furthermore because displayed dialogs have undefined time (<= auto_close_time)
+    //  to close but the thread's event loop keeps running.
+    //
+    if ( processing )
+    {
+        QTimer::singleShot( 2000, this,
+        [this, notification]()
+        {
+            HandleRsyncStatusChanged( notification );
+        }
+        );
+        return;
+    }
+
+    boolean_locker_t l ( processing );
+    
 	QString text = mRsyncStatusLabel->text();			//preserve existing text in case notification is not related
 	mRadsExecuteNow->blockSignals( true );
 
@@ -614,8 +615,7 @@ void CApplicationSettingsDlg::HandleRsyncStatusChanged( CBratApplication::ERadsN
 	mRadsExecuteNow->blockSignals( false );
 
 	mRsyncStatusLabel->setText( text );
-	mDataDirectoryLineEdit->setEnabled( !mApp.RsyncIsActive() );
-	mBrowseDataDirectoryPushButton->setEnabled( !mApp.RsyncIsActive() );
+	mRadsOutputBox->setEnabled( !mApp.IsRsyncActive() );
 }
 
 
@@ -872,6 +872,25 @@ void CApplicationSettingsDlg::HandleRadsExecuteNow( bool toggled )
 }
 
 
+void CApplicationSettingsDlg::HandleBrowseRadsOutputDirectory()
+{
+	QString dir = BrowseDirectory( this, "Select RADS Data Directory", mRadsOutputLineEdit->text() );
+	if ( !dir.isEmpty() )
+	{
+		if ( mApp.IsRsyncActive() )
+		{
+			//It can happen that a notification of rsync activity arrives while the dialog box is open
+			//
+			SimpleWarnBox( "The data directory cannot be changed because a data synchronization with RADS has started.\nPlease, try again when it finishes." );
+		}
+		else
+		{
+			mRadsOutputLineEdit->setText( dir );
+		}
+	}
+}
+
+
 void CApplicationSettingsDlg::HandleRadsSpinValueChanged( int i )
 {
 	assert__( i = mRadsSpin->value() );
@@ -942,7 +961,10 @@ bool AskCreateDir( const std::string &dir_name, const std::string &dir )
 
 
 // IMPORTAT: if called with validate_paths false, call this only after validating user data path
-// Returns false only when the user cancels
+//
+// Returns false only when 
+//	- the user cancels
+//	- could not write or synchronize configuration settings with RADS service
 //
 bool CApplicationSettingsDlg::ValidateAndAssignRadsValues( bool ask_user, bool validate_paths )	//validate_paths = true 
 {
@@ -961,7 +983,7 @@ bool CApplicationSettingsDlg::ValidateAndAssignRadsValues( bool ask_user, bool v
 			auto *item = mRadsMissionsList->item( i );
 			if ( item->checkState() == Qt::Checked )
 			{
-				const std::string &abbr = q2a( item->data( Qt::UserRole ).toString() );		assert__( FindRadsMissionAbbr( q2a( item->text() ), mRadsServiceSettings.AllAvailableMissions() ) == abbr );
+				const std::string &abbr = q2a( item->data( Qt::UserRole ).toString() );		assert__( FindRadsMissionAbbr( q2a( item->text() ), mRadsServiceSettings.AllMissions() ) == abbr );
 				if ( !missions_str.empty() )
 					missions_str += missions_separator;
 				missions_str += abbr;
@@ -971,7 +993,7 @@ bool CApplicationSettingsDlg::ValidateAndAssignRadsValues( bool ask_user, bool v
 		int ndays = mRadsSpin->value();
 		const bool running = mRadsController.isRunning();
 
-		std::string rads_dir = CRadsSettingsBase::FormatRadsLocalOutputFolder( mSettings.BratPaths().UserDataDirectory() );
+		std::string rads_dir = q2a( mRadsOutputLineEdit->text() );
 		if ( !IsDir( rads_dir ) && !AskCreateDir( "RADS data download directory", rads_dir ) )
 		{
 			return false;
@@ -982,7 +1004,7 @@ bool CApplicationSettingsDlg::ValidateAndAssignRadsValues( bool ask_user, bool v
 		{
 			// This validity (valid_values truth) must be ensured by the programmer, not the user
 			//
-			bool valid_values = mRadsServiceSettings.SetApplicationParameterValues( missions_str, ndays, mSettings.BratPaths().UserDataDirectory() );		assert__( valid_values );
+			bool valid_values = mRadsServiceSettings.SetApplicationParameterValues( missions_str, ndays, rads_dir );		assert__( valid_values );
 			cmd_success = 
 				valid_values
 				&&
@@ -990,19 +1012,21 @@ bool CApplicationSettingsDlg::ValidateAndAssignRadsValues( bool ask_user, bool v
 		}
 		if ( !cmd_success )
 		{
-			std::string msg = "Could not write or synchronize configuration settings with RADS service.\n";
+			std::string msg = "Could not write or synchronize configuration settings with the RADS service.\n";
 			msg += "Some parameter values may not be updated.";
 			SimpleErrorBox( msg );
 			return false;
 		}
 
-		assert__( mRadsServiceSettings.OutputDirectory() == CRadsSettings::FormatRadsLocalOutputFolder( mSettings.BratPaths().UserDataDirectory() ) );
+		assert__( IsSubDirectory( mRadsServiceSettings.UserWritableDirectory(), mRadsServiceSettings.DownloadDirectory() ) );
 	}
 
 	return true;
 }
 
 
+// Returns false only when the user cancels
+//
 bool CApplicationSettingsDlg::ValidateAndAssignPaths()
 {
 	std::string user_dir = q2a(mDataDirectoryLineEdit->text());
@@ -1085,7 +1109,8 @@ bool CApplicationSettingsDlg::ValidateAndAssign()
 	//	3. RADS
 
 	
-	ValidateAndAssignRadsValues( false, false );	//Can we disregard possible failure on RADS parameters save an let the dialog close?
+	if ( mRadsController.isInstalled() )
+		ValidateAndAssignRadsValues( false, false );	//Can we disregard possible failure on RADS parameters save an let the dialog close?
 
 
 	//	4. Application Styles

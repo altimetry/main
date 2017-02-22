@@ -18,8 +18,6 @@
 #if !defined(WORKSPACES_DATASET_H)
 #define WORKSPACES_DATASET_H
 
-#include "Constants.h"
-
 #include "libbrathl/brathl.h"
 #include "libbrathl/Product.h"
 
@@ -99,12 +97,17 @@ public:
 
 protected:
 
+	// TODO
+	// SetFieldSpecificUnit is used in v3, in the fields list menu at the operations level
+	//	- the menu item is enabled if "CField::GetFieldNetCdfCFAttr( field, false ) != NULL";
+	//	- it is odd that a change in the operation affects a dataset that can be used by multiple operations
+	//	- it is odd that all values in m_fieldSpecificUnits are written to the configuration and only the first one loaded
+	//
 	CStringMap* GetFieldSpecificUnits() { return &m_fieldSpecificUnits; }
 	void SetFieldSpecificUnit( const std::string& key, const std::string& value );
 
 
 	// dataset files
-
 
 protected:
 
@@ -159,7 +162,7 @@ public:
 
 	void AddProduct( const std::string &file )
 	{
-		m_files.InsertUnique( file, true );					//true: make sure file is 
+		m_files.InsertUnique( file, true );
 		m_files.CheckFile( std::prev( m_files.end() ), true );
 	}
 

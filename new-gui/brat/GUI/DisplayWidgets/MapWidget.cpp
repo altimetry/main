@@ -341,7 +341,8 @@ void CMapWidget::Init()
 				throw CException( "Loading layer from URL or file failed. Cannot continue." );
 
 			mLayerBaseType = eRasterLayer;
-			mMainRasterLayer = AddRasterLayer( t2q( smRasterLayerPath ), "raster", "" );
+            // mMainRasterLayer = AddRasterLayer( t2q( "L:/project/dev/source/data/maps/raster-image/world_GoogleMaps_TMS.xml" ), "raster", "" );
+            mMainRasterLayer = AddRasterLayer( t2q( smRasterLayerPath ), "raster", "" );
 			LOG_WARN( "Raster layer URL seems invalid. Tried to load the default layer instead." );
 		}
 		mMainLayer = mMainRasterLayer;
@@ -793,7 +794,7 @@ inline QgsFields TimeFields()
 
 static const double default_data_step = 0.333;
 static const double track_symbol_width = default_data_step;	// 0.1;
-static const int data_layer_tranparency = 10;
+static const int data_layer_transparency = 10;
 
 //static 
 QgsFeatureList& CMapWidget::CreatePointDataFeature( QgsFeatureList &list, double lon, double lat, double value )
@@ -1419,7 +1420,7 @@ QgsVectorLayer* CMapWidget::CreateDataLayer( const std::string &name, double sym
 
 	if ( l )
 	{
-		l->setLayerTransparency( data_layer_tranparency );
+		l->setLayerTransparency( data_layer_transparency );
 	}
 
 	return l;
@@ -1456,13 +1457,12 @@ bool CreateCountourFeatures( QWidget *parent, QgsFeatureList &flist, const CMapP
 	contours.SetFieldFcn(
 		[&map]( double x, double y ) -> double
 	{
-		return map.vvalue( x, y );
-		//return map.nan_vvalue( x, y );
+		return map.value_v( x, y, 0. );
 	} );
 
 	//2. limits
 
-	double pLimits[ 4 ] = { map.mMinX, map.mMaxX, map.mMinY, map.mMaxX };		//double pLimits[ 4 ] = { -180, 180, -90, 90 };
+	double pLimits[ 4 ] = { map.MinX360(), map.MaxX360(), map.mMinY, map.mMaxY };		//double pLimits[ 4 ] = { -180, 180, -90, 90 };
 	contours.SetLimits( pLimits );
 
 	//3. planes (contours)
@@ -1507,22 +1507,37 @@ bool CreateCountourFeatures( QWidget *parent, QgsFeatureList &flist, const CMapP
 			if ( pstrip->empty() )
 				continue;
 
+
+			// Eliminate strips that cross boundary 180 <-> -180
+
+			bool has_border_left = false;
+			bool has_border_right = false;
+			for ( auto index : *pstrip )
+			{
+				double x = contours.GetXi( index );
+				has_border_left = has_border_left || x < 180.;
+				has_border_right = has_border_right || x > 180.;
+				if ( has_border_left && has_border_right ) 
+				{
+					break;
+				}
+			}
+			if ( has_border_left && has_border_right ) 
+				continue;
+
+
+			// Create contour points
+
 			QgsPolyline points;
 			for ( auto index : *pstrip )
 			{
 				double x = contours.GetXi( index );
 				double y = contours.GetYi( index );
 
-				//if ( x > -179.99 && y > -89.99 && x < 179.99 && y < 89.99 )
-				//if ( x > map.mMinX && y > map.mMinY && x < map.mMaxX && y < map.mMaxY )
-				if ( x >= map.mMinX && y >= map.mMinY && x <= map.mMaxX && y <= map.mMaxY )
-				{
-					//glVertex2f((GLfloat)(pLimits[0]+x),(GLfloat)(pLimits[2]+y));
-					points.append( QgsPoint( x, y ) );
-				}
-				else
-					LOG_TRACEstd( "Point discarded " + n2s( x ) + ", " + n2s( y ) );
+				auto lon = CTools::NormalizeLongitude( -180., x );
+				points.append( QgsPoint( lon, y ) );
 			}
+
 			if ( points.size() > 1 )
 				CreateLineDataFeature( flist, map.mMaxHeightValue - i * vstep, points );
 		}

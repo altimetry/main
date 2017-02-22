@@ -362,7 +362,7 @@ void CZFXYPlotField::Create( CZFXYPlot *plot )
 			}
 		}
 
-		back().OrderAxis();
+		back().OrderAxes();
 	}
 
 

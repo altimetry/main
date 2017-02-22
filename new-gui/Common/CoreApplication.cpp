@@ -255,7 +255,7 @@ CCoreApplication< APPLICATION, SETTINGS >::CCoreApplication( int &argc, char **a
 
 	// Keep v3 happy
 	//
-	CTools::SetInternalDataDir( mSettings.BratPaths().mInternalDataDir );	assert__( CTools::DirectoryExists( CTools::GetInternalDataDir() ) );
+	CTools::SetInternalDataDir( mSettings.BratPaths().mInternalDataDir );	assert__( IsDir( CTools::GetInternalDataDir() ) );
 
 
 	// Register Brat algorithms

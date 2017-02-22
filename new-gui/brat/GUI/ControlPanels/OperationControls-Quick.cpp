@@ -485,7 +485,7 @@ void COperationControls::HandleVariableStateChanged_Quick( QListWidgetItem * )
 	mDisplayMapButton->setEnabled( mCanExecuteQuickOperation );
 	mDisplayPlotButton->setEnabled( mCanExecuteQuickOperation );
 
-	if ( IsQuickOperationSelected() )
+	if ( IsQuickOperationIndexSelected() )
 	{
 		mAdvancedExecuteButton->setEnabled( mCanExecuteQuickOperation );
 		mSwitchToMapButton->setEnabled( mCanExecuteQuickOperation );

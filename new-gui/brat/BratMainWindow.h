@@ -35,7 +35,7 @@ class CRecentFilesProcessor;
 
 class CControlPanel;
 class CDatasetsBrowserControls;
-class CRadsBrowserControls;
+class CDatasetsRadsBrowserControls;
 class CBratFilterControls;
 class COperationControls;
 class CProcessesTable;
@@ -211,7 +211,7 @@ public:
 	template< CBratMainWindow::ETabName INDEX >
 	struct ControlsPanelType
 	{
-		using panels_factory_t = std::tuple< CDatasetsBrowserControls, CRadsBrowserControls, CBratFilterControls, COperationControls >;
+		using panels_factory_t = std::tuple< CDatasetsBrowserControls, CDatasetsRadsBrowserControls, CBratFilterControls, COperationControls >;
 
 		using type = typename std::tuple_element< INDEX, panels_factory_t >::type;
 	};
@@ -291,8 +291,6 @@ protected slots:
     void UpdateToolsMenu();
     void UpdateWindowMenu();
 
-    void HandleRsyncStatusChanged( CBratApplication::ERadsNotification notification );
-    
 
 private slots:
 

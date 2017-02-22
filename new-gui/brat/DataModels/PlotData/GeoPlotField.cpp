@@ -203,10 +203,11 @@ void CGeoPlotField::Create()
 		//if ( isDefaultValue( back().mMaxHeightValue ) )
 		//	back().mMaxHeightValue = back().mMaxHeightValue;
 
-		for ( int32_t iX = 0; iX < back().mPlotWidth; iX++ )
+		for ( int iX = 0; iX < back().mPlotWidth; iX++ )
 		{
-			////////////////longitudes->InsertNextValue( CTools::NormalizeLongitude( -180.0, varLon.GetValues()[ iX ] ) ); //longitudes->InsertNextValue(varLon.GetValues()[iX]);
-			AddX(CTools::NormalizeLongitude( -180.0, varLon.GetValues()[ iX ] ));
+			const double raw_lon = varLon.GetValues()[ iX ];
+			const double norm_lon = CTools::NormalizeLongitude( -180.0, raw_lon );
+			AddLongitude( raw_lon, norm_lon );
 		}
 
 		//////vtkGeoMapFilter *geoMapFilter = vtkGeoMapFilter::New();
@@ -244,7 +245,7 @@ void CGeoPlotField::Create()
 		////////////longitudes->Delete();
 		////////////latitudes->Delete();
 
-		back().OrderAxis();
+		back().OrderAxes();
 	}
 	
 
@@ -591,8 +592,9 @@ void CGeoPlotVelocityField::Create( const std::vector< CInternalFiles* > &north_
 
 		for ( int32_t iX = 0; iX < maxX; iX++ )
 		{
-			////////////////////longitudes->InsertNextValue( CTools::NormalizeLongitude( -180.0, varLon.GetValues()[ iX ] ) );			//v3 original comment longitudes->InsertNextValue(varLon.GetValues()[iX]);
-			AddX(CTools::NormalizeLongitude( -180.0, varLon.GetValues()[ iX ] ));
+			const double raw_lon = varLon.GetValues()[ iX ];
+			const double norm_lon = CTools::NormalizeLongitude( -180.0, raw_lon );
+			AddLongitude( raw_lon, norm_lon );
 		}
 
 		/////////vtkVelocityGlyphFilter* geoMapFilter = vtkVelocityGlyphFilter::New();
@@ -631,7 +633,7 @@ void CGeoPlotVelocityField::Create( const std::vector< CInternalFiles* > &north_
 		////////////longitudes->Delete();
 		////////////latitudes->Delete();
 
-		back().OrderAxis();
+		back().OrderAxes();
 	}
 
 

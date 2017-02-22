@@ -1030,6 +1030,7 @@
       <alias name="mean_sea_surface">mean_sea_surf_sol1_01</alias>
       <alias name="ssh">%{altitude} - %{range} - %{iono_corr} - %{dry_tropo_corr} - %{wet_tropo_corr} - %{solid_tides_corr} - %{ocean_tides_corr} - %{load_tides_corr} - %{pole_tides_corr} - %{inv_baro_corr} - %{sea_state_bias_corr}</alias>
       <alias name="sla">%{ssh} - %{mean_sea_surface}</alias>
+	  <alias name="ocean_editing">%{Ocean_data_editing_Envisat_2P}</alias>
     </aliases>
 
     <aliases productType="Generic NetCdf" description="Generic Netcdf Dataset Aliases">

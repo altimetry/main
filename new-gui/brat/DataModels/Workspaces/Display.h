@@ -41,6 +41,10 @@ using namespace brathl;
 
 
 
+// v4
+const std::string PROJECTION_3D_VALUE = "3D";
+
+
 class CDisplay;
 
 

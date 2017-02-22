@@ -47,12 +47,29 @@ inline const FLOATING_POINT& Invalid()
 }
 
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//													2D
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//									Frame Container & Frame (nested)
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
 class CYFXValues : public QwtData
 {
 	//types
 
 	friend class CQwtFitData;
+
+
+	////////////////////////////
+	//			Frame
+	////////////////////////////
 
 
 	struct CCurve
@@ -450,8 +467,9 @@ public:
 
 
 
-
-
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//													Linear Fit
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 class CQwtFitData : public QwtData
@@ -546,13 +564,25 @@ public:
 
 
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//													3D
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-struct CZFXYPlotParameters
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//													Frames
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+struct CGeneric3DlotParameters
 {
-	std::vector<double>	mValues;
-	std::vector<bool>	mBits;
-	std::vector<double>	mXaxis;
-	std::vector<double>	mYaxis;
+	// instance data 
+
+	std::vector< double>	mValues;
+	std::vector< bool >		mBits;
+	std::vector< double >	mXaxis;
+	std::vector< double >	mYaxis;
 
 	int mPlotWidth = 0;
 	int mPlotHeight = 0;
@@ -566,20 +596,47 @@ struct CZFXYPlotParameters
 	double mMinHeightValue = 0.;
 	double mMaxHeightValue = 0.;
 
-
-	std::set< double > mXmap;
-	std::set< double > mYmap;
-
-	mutable std::vector< double > mXvector;
-	mutable std::vector< double > mYvector;
+protected:
 	mutable bool mOrdered = false;
 
+	// In fact, ordered axis, such as these and std::set members in ZFXY derived 
+	//	class, are redundant for ZFXY (NOT for maps!) because x and y data seem to 
+	//	always come ordered, but at least serve to compare the efficiency of set and 
+	//	vector containers std::distance
+
+	mutable std::vector< double > mOrderedXaxis;
+	mutable std::vector< double > mOrderedYaxis;
+
+public:
+
+	// axis assignment
+
+	inline virtual void AddX( double value )
+	{
+		mXaxis.push_back( value );
+	}
+
+
+	inline virtual void AddY( double value )
+	{
+		mYaxis.push_back( value );
+	}
+
+
+	// nearest neighbor
+
 protected:
+
+	// ER
+	//	- equal range iterator abstracting set and vector
+	//	- used for computing index of value through std::distance
+
 	template< class IT >
 	static inline std::pair< IT, IT > ER( const std::set< double > &c, double v )
 	{
 		return c.equal_range( v );
 	}
+
 	template< class IT >
 	static inline std::pair< IT, IT > ER( const std::vector< double > &c, double v  )
 	{
@@ -587,67 +644,37 @@ protected:
 	}
 
 
-	template< class ORDERED_CONTAINER >
-	static size_t compute_nearest( double raster_x, const ORDERED_CONTAINER &nearest_map, const std::vector<double> &axis )
+	// The parameter "axis" exists only for ORDERED_CONTAINERs that do not define []; otherwise the "nearest_map" and
+	// "axis" parameters can be used with the same argument. If different, it is critical that both containers have 
+	//	the same elements, equally ordered
+	//
+	template< class ORDERED_CONTAINER, class AXIS >
+	static size_t ComputeNearestIndex( double raster_v, const ORDERED_CONTAINER &nearest_map, const AXIS &axis )
 	{
-		auto pair = ER< typename ORDERED_CONTAINER::const_iterator >( nearest_map, raster_x );
+		auto pair = ER< typename ORDERED_CONTAINER::const_iterator >( nearest_map, raster_v );
 
-		if ( pair.first == nearest_map.end() )
-			//return m;
+		if ( pair.first == nearest_map.end() )			//return m;
 			return 0;
 
 		size_t index = std::distance( nearest_map.begin(), pair.first );
 		if ( index == 0 )
 			return index;
 
-		if ( *pair.first - raster_x < raster_x - axis[ index - 1 ] )
+		if ( *pair.first - raster_v < raster_v - axis[ index - 1 ] )
 			return index;
 
 		return index - 1;
 	}
 
-	static size_t nearest( double raster_x, const std::set< double > &nearest_map, const std::vector<double> &axis )
+
+	template< typename ORDERED_AXIS, typename AXIS >
+	inline double compute_value( double ix, double iy, const double DEFAULT, const ORDERED_AXIS &oaxis_x, const ORDERED_AXIS &oaxis_y,
+		const AXIS &axis_x, const AXIS &axis_y ) const
 	{
-		auto pair = nearest_map.equal_range( raster_x );
+		ix = ComputeNearestIndex( ix, oaxis_x, axis_x );
+		iy = ComputeNearestIndex( iy, oaxis_y, axis_y );
 
-		if ( pair.first == nearest_map.end() )
-			//return m;
-			return 0;
-
-		size_t index = std::distance( nearest_map.begin(), pair.first );
-		if ( index == 0 )
-			return index;
-
-		if ( *pair.first - raster_x < raster_x - axis[ index - 1 ] )
-			return index;
-
-		return index - 1;
-	}
-	size_t nearest_x( double raster_x ) const
-	{
-		return nearest( raster_x, mXmap, mXaxis );
-	}
-	size_t nearest_y( double raster_y ) const
-	{
-		return nearest( raster_y, mYmap, mYaxis );
-	}
-
-	size_t vnearest_x( double raster_x ) const
-	{
-		return compute_nearest( raster_x, mXvector, mXaxis );
-	}
-	size_t vnearest_y( double raster_y ) const
-	{
-		return compute_nearest( raster_y, mYvector, mYaxis );
-	}
-
-	template< typename NEAREST >
-	inline double compute_value( double x, double y, const double DEFAULT, NEAREST nx, NEAREST ny ) const
-	{
-		x = (this->*nx)( x );
-		y = (this->*ny)( y );
-
-		auto index = y * mXaxis.size() + x;								assert__( index >= 0 && index < mBits.size() );
+		auto index = iy * mXaxis.size() + ix;							assert__( index >= 0 && index < mBits.size() );
 		if ( index < 0 || index >= mBits.size() || !mBits.at( index ) )
 			return DEFAULT;
 
@@ -656,37 +683,60 @@ protected:
 
 public:
 
-	inline double value( double x, double y ) const
-	{
-		//return compute_value< size_t (CZFXYPlotParameters::* )(double) const >( x, y, 0., &CZFXYPlotParameters::nearest_x, &CZFXYPlotParameters::nearest_y );
-
-		x = nearest_x( x );
-		y = nearest_y( y );
-
-		auto index = y * mXaxis.size() + x;								assert__( index >= 0 && index < mBits.size() );
-		if ( index < 0 || index >= mBits.size() || !mBits.at( index ) )
-			//return 0.;		//rasters do not seem to support NANs std::numeric_limits<double>::quiet_NaN();
-			return Invalid< double >();
-
-		return mValues.at( index );
-	}
-
-	inline double vvalue( double x, double y ) const
+	// The "_v" suffix means: using equal_range iterator with std::vector for std::distance (index computation)
+	//
+	//	In the map case the ordered axis can have different values of the respective raw axis, and this leads
+	//	to undetected errors, such as the nearest neighbor being always one before/after the correct index, 
+	//	because the interval to compute the nearest value uses one value of each vector
+	//
+	// QWT and qwtplot3d support NANs, which should be used (std::numeric_limits<double>::quiet_NaN()) for absent values
+	// Map contours do not support NANs
+	//
+	inline double value_v( double x, double y, double invalid = Invalid< double >() ) const
 	{
 		assert__( mOrdered );
-		return compute_value( x, y, 0., &CZFXYPlotParameters::vnearest_x, &CZFXYPlotParameters::vnearest_y );
+
+		return compute_value( x, y, invalid, mOrderedXaxis, mOrderedYaxis, mOrderedXaxis, mOrderedYaxis );
 	}
 
-	inline double nan_vvalue( double x, double y ) const
+
+protected:
+
+	inline bool CheckOrderedAxis( const std::vector< double > &ordered_axis, const std::vector< double > &unordered_axis ) const
 	{
-		assert__( mOrdered );
-		return compute_value( x, y, Invalid< double >(), &CZFXYPlotParameters::vnearest_x, &CZFXYPlotParameters::vnearest_y );
+#if defined (DEBUG) || defined(_DEBUG)
+
+		if ( ordered_axis.size() != unordered_axis.size() )
+			return false;
+
+		double m = std::numeric_limits< double >::lowest();
+		for ( auto const &v : ordered_axis )
+		{
+			if ( v < m )
+			{
+				mOrdered = false;
+				break;
+			}
+			m = v;
+		}
+
+#else
+		UNUSED( ordered_axis );        UNUSED( unordered_axis );
+#endif
+
+		return true;
 	}
 
 
+public:
+
+	virtual bool OrderAxes() = 0;
+
+
+	// diagnostics
 
 	// NOTE: "to" is one after
-	//
+	
 	template< class F >
 	size_t GetDataCountIf( size_t from, size_t to, const F &f ) const
 	{
@@ -699,43 +749,80 @@ public:
 	{
         return GetDataCountIf( 0, mValues.size(), f );
 	}
+};
 
+
+
+
+struct CZFXYPlotParameters : public CGeneric3DlotParameters
+{
+	//types
+
+	using base_t = CGeneric3DlotParameters;
+
+
+	//instance data
+
+protected:
+
+	std::set< double > mXmap;
+	std::set< double > mYmap;
+
+
+public:
+
+	//axis assignment
+
+	inline virtual void AddX( double value ) override
+	{
+		base_t::AddX( value );
+		mXmap.insert( value );
+	}
+
+
+	inline virtual void AddY( double value ) override
+	{
+		base_t::AddY( value );
+		mYmap.insert( value );
+	}
+
+
+	// nearest neighbor
+
+
+	// The "_s" suffix means: using std::set iterator for std::distance (index computation)
+	// This is equivalent to base class value_v, and could be used instead. But here we test 
+	//	std::set behavior
+	//
+	// qwtplot3d supports NANs, which should be used for absent values
+	//
+	inline double value_s( double x, double y, double invalid = Invalid< double >() ) const
+	{
+		return compute_value( x, y, invalid, mXmap, mYmap, mXaxis, mYaxis );
+	}
 
 
 protected:
 
-	template< class AXIS >
-	inline bool CheckOrder( const AXIS &axis ) const
+	inline bool OrderAxis( const std::set< double > &ordered_set, std::vector< double > &ordered_axis, const std::vector< double > &axis ) const
 	{
-#if defined (DEBUG) || defined(_DEBUG)
-		double m = std::numeric_limits< double >::lowest();
-		for ( auto const &v : axis )
-		{
-			if ( v < m )
-				return false;
-			m = v;
-		}
-#else
-        UNUSED( axis );
-#endif
-		return true;
+		// Filling the ordered vectors is mandatory to support the inherited functions value_v
+		//
+		for ( auto const &v : ordered_set )
+			ordered_axis.push_back( v );
+
+		return CheckOrderedAxis( ordered_axis, axis ) && ( ordered_axis == axis );
 	}
 
-
-	template< class ORDERED_AXIS, class AXIS >
-	inline bool OrderAxis( const ORDERED_AXIS &ordered_axis, AXIS &axis ) const
-	{
-		for ( auto const &v : ordered_axis )
-			axis.push_back( v );
-
-		return CheckOrder( axis );
-	}
 
 public:
-	inline virtual bool OrderAxis()
+
+	inline virtual bool OrderAxes() override
 	{
 		if ( !mOrdered )
-			mOrdered = OrderAxis( mXmap, mXvector ) && OrderAxis( mYmap, mYvector );
+			mOrdered = 
+			OrderAxis( mXmap, mOrderedXaxis, mXaxis ) && 
+			OrderAxis( mYmap, mOrderedYaxis, mYaxis );
 
 		return mOrdered;
 	}
@@ -745,15 +832,43 @@ public:
 
 
 
-struct CMapPlotParameters : public CZFXYPlotParameters
+struct CMapPlotParameters : public CGeneric3DlotParameters
 {
-	using base_t = CZFXYPlotParameters;
+	//types
+
+	using base_t = CGeneric3DlotParameters;
+
+	//instance data
 
 	std::vector< bool >	mValidMercatorLatitudes;
-	std::vector<double>	mValuesEast;				//for velocity maps
+	std::vector<double>	mValuesEast;			//for velocity maps
 
 	double mLongitudeOffset = 0.;
 	double mLatitudeOffset = 0.;
+
+private:
+	double mMinX360 = 0.;
+	double mMaxX360 = 0.;
+
+	//axis assignment
+
+	//	hide AddX
+
+	using base_t::AddX;
+
+public:
+
+	inline void AddLongitude( double raw, double normalized )
+	{
+		base_t::AddX( normalized );
+		mOrderedXaxis.push_back( raw );
+	}
+
+	inline virtual void AddY( double value ) override
+	{
+		base_t::AddY( value );
+		mOrderedYaxis.push_back( value );
+	}
 
 
 	bool IsValidPoint( size_t index ) const
@@ -773,7 +888,7 @@ struct CMapPlotParameters : public CZFXYPlotParameters
 	{
 		assert__( index < mValues.size() );
 
-		auto x = index % mXaxis.size();				assert__( x < mXaxis.size() );
+		auto x = index % mXaxis.size();			assert__( x < mXaxis.size() );
 		return mXaxis.at( x );
 	}
 
@@ -782,7 +897,7 @@ struct CMapPlotParameters : public CZFXYPlotParameters
 	{
 		assert__( index < mValues.size() );
 
-		auto y = index / mXaxis.size();				assert__( y < mYaxis.size() );
+		auto y = index / mXaxis.size();			assert__( y < mYaxis.size() );
 		return mYaxis.at( y );
 	}
 
@@ -803,21 +918,49 @@ struct CMapPlotParameters : public CZFXYPlotParameters
 	}
 
 
+	// nearest neighbor
 
-	inline virtual bool OrderAxis()
+	double MinX360() const
 	{
-		if ( base_t::OrderAxis() )
+		return mMinX360;
+	}
+
+	double MaxX360() const
+	{
+		return mMaxX360;
+	}
+
+public:
+
+	inline virtual bool OrderAxes() override
+	{
+		if ( !mOrdered )
 		{
-			mMinX = mXvector.front();
-			mMaxX = mXvector.back();
-			mMinY = mYvector.front();
-			mMaxY = mYvector.back();
+			mOrdered =
+				CheckOrderedAxis( mOrderedXaxis, mXaxis ) &&
+				CheckOrderedAxis( mOrderedYaxis, mYaxis );
+
+			mMinX360 = mOrderedXaxis.front();
+			mMaxX360 = mOrderedXaxis.back();
+
+			mMinX = mXaxis.front();
+			mMaxX = mXaxis.back();
+
+			mMinY = mYaxis.front();
+			mMaxY = mYaxis.back();
 		}
 
 		return mOrdered;
 	}
 };
 
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//												Frame Containers
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 template< class PARAMS >
@@ -886,6 +1029,7 @@ public:
 	void GetYRange( double& min, double& max ) const { GetYRange( min, max, mCurrentFrame ) ; }
 
 
+	// used at least for diagnostics
 
 	template< class F >
 	size_t GetDataCountIf( size_t iframe, const F &f ) const
@@ -943,7 +1087,7 @@ public:
 	virtual double value( double x, double y ) const override
     {
 		const parameters_t &frame = ( *this )[ mCurrentFrame ];
-        return frame.nan_vvalue( x, y );
+        return frame.value_v( x, y );
     }
 
 
@@ -960,7 +1104,7 @@ public:
 
 	inline void AddMap()
 	{
-		push_back(parameters_t());
+		push_back( parameters_t() );
 	}
 
 
@@ -976,17 +1120,9 @@ public:
 	}
 
 
-	inline void AddX( double value )
+	inline virtual void AddY( double value )
 	{
-		back().mXaxis.push_back( value );
-		back().mXmap.insert( value );
-	}
-
-
-	inline void AddY( double value )
-	{
-		back().mYaxis.push_back( value );
-		back().mYmap.insert( value );
+		back().AddY( value );
 	}
 
 
@@ -1000,6 +1136,37 @@ public:
 		return at( i );
 	}
 };
+
+
+
+
+
+
+struct CZFXYValues : CGenericZFXYValues< CZFXYPlotParameters >
+{
+	//types
+
+	using parameters_t = CZFXYPlotParameters;
+
+	using base_t = CGenericZFXYValues< parameters_t >;
+
+
+	// construction / destruction
+
+	CZFXYValues() 
+		: base_t()
+	{}
+	virtual ~CZFXYValues()
+	{}
+
+
+	inline virtual void AddX( double value )
+	{
+		back().AddX( value );
+	}
+};
+
+
 
 
 
@@ -1022,6 +1189,13 @@ struct CMapValues : CGenericZFXYValues< CMapPlotParameters >
 	{}
 
 
+
+	inline void AddLongitude( double raw, double normalized )
+	{
+		back().AddLongitude( raw, normalized );
+	}
+
+
 	// operations
 
 	inline void AddmValidMercatorLatitude( bool value )
@@ -1040,7 +1214,6 @@ struct CMapValues : CGenericZFXYValues< CMapPlotParameters >
 
 using CYFXPlotParameters = CYFXValues::CYFXPlotParameters;
 
-using CZFXYValues = CGenericZFXYValues< CZFXYPlotParameters >;
 
 
 #endif			// DATAMODELS_PLOTDATA_PLOT_VALUES_H

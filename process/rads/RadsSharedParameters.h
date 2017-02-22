@@ -92,14 +92,28 @@ struct CRadsMission
 {
 	std::string mName;
 	std::string mAbbr;
+	std::vector< std::string > mPhases;
 
-	bool operator == ( const CRadsMission &o ) const { return mName == o.mName && mAbbr == o.mAbbr; }
+	bool operator == ( const std::string &mission ) const
+	{ 
+		return mName == mission;
+	}
+
+	bool operator == ( const CRadsMission &o ) const
+	{ 
+		return
+			*this == o.mName &&
+			mAbbr == o.mAbbr &&
+			mPhases == o.mPhases
+			;
+	}
 
 	friend inline std::ostream& operator << ( std::ostream &os, const CRadsMission &o )
 	{
 		return os
 			<< "Name == " << o.mName << std::endl
 			<< "Abbreviation == " << o.mAbbr << std::endl
+			<< "Phases == " << Vector2String( o.mPhases ) << std::endl
 			;
 	}
 };
@@ -309,6 +323,11 @@ inline std::string MissionPath( const std::string &rads_server_address, const st
 	return local_dir + local_subdir + mission;
 }
 
+
+inline std::string PhasePath( const std::string &rads_server_address, const std::string &local_dir, const std::string &mission, const std::string &phase )
+{
+	return MissionPath( rads_server_address, local_dir, mission ) + "/" + phase;
+}
 
 
 

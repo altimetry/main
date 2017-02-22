@@ -167,10 +167,10 @@ CControlPanel* CBratMainWindow::MakeWorkingPanel( ETabName tab )
 			return new ControlsPanelType< eRADS >::type( mApp, mDesktopManager );
 			break;
 		case eFilter:
-			return new ControlsPanelType< eFilter >::type( mModel, mDesktopManager );
+			return new ControlsPanelType< eFilter >::type( mApp, mDesktopManager );
 			break;
 		case eOperations:
-			return new ControlsPanelType< eOperations >::type( mProcessesTable, mModel, mDesktopManager );
+			return new ControlsPanelType< eOperations >::type( mApp, mDesktopManager, mProcessesTable );
 			break;
 		default:
 			assert__( false );
@@ -217,11 +217,7 @@ void CBratMainWindow::CreateWorkingDock()
 	connect( WorkingPanel< eOperations >(), SIGNAL( SyncProcessExecution( bool ) ), this, SLOT( HandleSyncProcessExecution( bool ) ) );
 	connect( WorkingPanel< eOperations >(), SIGNAL( AsyncProcessExecution( bool ) ), this, SLOT( HandleAsyncProcessExecution( bool ) ) );
 
-	action_Satellite_Tracks->setChecked( WorkingPanel< eFilter >()->AutoSatelliteTrack() );
-
-	//notifications from datasets && operations datasets to filters (for track plot, not filtering)
-	connect( WorkingPanel< eDataset >(), SIGNAL( CurrentDatasetChanged( const CDataset* ) ), WorkingPanel< eFilter >(), SLOT( HandleDatasetChanged( const CDataset* ) ) );
-	connect( WorkingPanel< eOperations >(), SIGNAL( CurrentDatasetChanged( const CDataset* ) ), WorkingPanel< eFilter >(), SLOT( HandleDatasetChanged( const CDataset* ) ) );
+	action_Satellite_Tracks->setChecked( CDesktopControlsPanel::AutoDrawSatelliteTrack() );
 
 	//notifications from datasets to operations
     connect( WorkingPanel< eDataset >(), SIGNAL( DatasetsChanged(const CDataset*) ), WorkingPanel< eOperations >(), SLOT( HandleDatasetsChanged_Quick(const CDataset*) ) );
@@ -331,19 +327,10 @@ void CBratMainWindow::ProcessMenu()
 {
 	LOG_TRACE( "Starting main menu processing..." );
 
-    // Fill Actions Table
+    // Link to Actions Table
     //
-	const QList< QMenu* > lst = mMainMenuBar->findChildren< QMenu* >();
-	foreach( QMenu *m, lst )
-	{
-		qDebug() << m->title();
-		foreach( QAction *a, m->actions() )
-		{
-            qDebug() << a->text();
-            auto tag = CActionInfo::UpdateActionProperties( a );		assert__( tag < EActionTag::EActionTags_size );
-            qDebug() << tag;
-		}
-	}
+	CActionInfo::UpdateMenuActionsProperties( mMainMenuBar );
+
 
     // Menu File
     //
@@ -382,16 +369,6 @@ void CBratMainWindow::ProcessMenu()
 	mDesktopManager->Map()->ConnectParentMapTipsAction( mActionMapTips );
 	mActionMapTips->setChecked( true );
 
-//	mSelectionButton = CMapWidget::CreateMapSelectionActions( mMainToolsToolBar, mActionSelectFeatures, mActionDeselectAll );
-//	mMainToolsToolBar->insertAction( after, mActionDeselectAll );
-//	mMainToolsToolBar->insertWidget( mActionDeselectAll, mSelectionButton );
-//#if defined(ENABLE_POLYGON_SELECTION)
-//	CMapWidget::AddMapSelectionPolygon( mSelectionButton, mMainToolsToolBar, mActionSelectPolygon );
-//	mDesktopManager->Map()->ConnectParentSelectionActions( mSelectionButton, mActionSelectFeatures, mActionSelectPolygon, mActionDeselectAll );
-//#else
-//	mDesktopManager->Map()->ConnectParentSelectionActions( mSelectionButton, mActionSelectFeatures, nullptr, mActionDeselectAll );
-//#endif
-
 
     // Menu View / ToolBars
     //
@@ -408,6 +385,10 @@ void CBratMainWindow::ProcessMenu()
     {
         menu_View->addAction( dock->toggleViewAction() );
     }
+
+#if defined (_MSC_VER) && (_MSC_VER >= 1900 ) && defined (USE_DATA_VISUALIZATION)
+	AddFutureActions( this, menu_Help, mSettings.BratPaths().mExecutableDir, mModel );
+#endif
 
     // Global Wiring
     //
@@ -768,7 +749,7 @@ CBratMainWindow::CBratMainWindow( CBratApplication &app )
     }
 
 
-	mApp.ShowSplash( "Loading display or workspace..." );
+	mApp.ShowSplash( "Loading workspace..." );
 
 
     // Load command line or user settings referenced files 
@@ -806,7 +787,6 @@ The service can be installed and configured from the " + options_name + " dialog
 	}
 
     mApp.ResetRadsSocketConnection();
-	connect( &mApp, &CBratApplication::RadsNotification, this, &CBratMainWindow::HandleRsyncStatusChanged, Qt::QueuedConnection );
     
     
     RemoteCount();
@@ -1261,8 +1241,11 @@ void CBratMainWindow::SetCurrentWorkspace( const CWorkspace *wks )
 	assert__( wks );
 
 	mDesktopManager->CloseAllSubWindows();
-    mMainWorkingDock->SelectTab( ETabName::eDataset );
-    EmitWorkspaceChanged();
+	EmitWorkspaceChanged();
+	auto previous_tab = mMainWorkingDock->SelectedTab();
+	mMainWorkingDock->SelectTab( ETabName::eDataset );
+	if ( previous_tab == ETabName::eDataset )			//signal not emitted in this case, so, force selection notification
+		TabSelected( ETabName::eDataset );
 
 	QString cur_file = t2q( wks->GetPath() );
     QString shownName;
@@ -1351,8 +1334,8 @@ void CBratMainWindow::on_action_Open_triggered()
 	CWorkspaceDialog dlg( this, CTreeWorkspace::eOpen, nullptr, last_path, mModel );
 	if ( dlg.exec() == QDialog::Accepted )
 	{
-		last_path = t2q( dlg.mPath );
-		OpenWorkspace( dlg.mPath );
+		if ( OpenWorkspace( dlg.mPath ) )
+			last_path = t2q( GetDirectoryFromPath( dlg.mPath ) );
 	}
 }
 
@@ -1445,7 +1428,7 @@ void CBratMainWindow::on_action_Delete_Workspace_triggered()
 
 		mRecentFilesProcessor->DeleteEntry( dlg.mPath.c_str() );
 
-		WorkingPanel< ETabName::eFilter >()->HandleDatasetChanged( nullptr );
+		WorkingPanel< ETabName::eFilter >()->DrawDatasetTracks( nullptr, false );
 	}
 }
 
@@ -1505,7 +1488,7 @@ void CBratMainWindow::on_action_Refresh_Map_triggered()
 
 void CBratMainWindow::on_action_Satellite_Tracks_toggled( bool checked )
 {
-	WorkingPanel< eFilter >()->SetAutoSatelliteTrack( checked );
+	WorkingPanel< eFilter >()->SetAutoDrawSatelliteTrack( checked );	//could be any tab panel
 }
 
 void CBratMainWindow::on_action_Save_Map_Image_triggered()
@@ -1595,7 +1578,7 @@ void CBratMainWindow::on_action_Operation_Views_triggered()
 
 void CBratMainWindow::on_action_Launch_Scheduler_triggered()
 {
-	WorkingPanel<eOperations>()->HandleLaunchScheduler();
+	WorkingPanel<eOperations>()->LaunchScheduler();
 }
 
 
@@ -1669,7 +1652,7 @@ void CBratMainWindow::UpdateWindowMenu()
 
 void CBratMainWindow::on_action_About_triggered()
 {
-	SimpleAboutBox( BRAT_VERSION_STRING, PROCESSOR_ARCH, "CNES/ESA" );
+	SimpleAboutBoxWithBuildDate( BRAT_VERSION_STRING, PROCESSOR_ARCH, "CNES/ESA" );
 }
 
 
@@ -1684,7 +1667,15 @@ void CBratMainWindow::on_action_Youtube_Video_Tutorials_triggered()
 {
     static const std::string s = "https://www.youtube.com/playlist?list=PLWLKr3OylZcHbPKlAsmRLQp6aqAq2NChr";
 	static const bool is_xp = QSysInfo::windowsVersion() == QSysInfo::WV_XP || QSysInfo::windowsVersion() == QSysInfo::WV_2003;	//WV_2003: xp x64
-	static const std::string default_firefox_location = "C:\\Program Files (x86)\\Mozilla Firefox\\firefox.exe";
+	static const std::string default_firefox_location =
+
+	//Trying defaults of Firefox installation in XP
+
+#if defined(BRAT_ARCHITECTURE_64)
+		"C:\\Program Files (x86)\\Mozilla Firefox\\firefox.exe";
+#else
+		"C:\\Program Files\\Mozilla Firefox\\firefox.exe";
+#endif
 
 	if ( is_xp && IsFile( default_firefox_location ) )
 	{
@@ -1732,35 +1723,6 @@ void CBratMainWindow::on_action_Test_triggered()
 /////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////
 
-
-void CBratMainWindow::HandleRsyncStatusChanged( CBratApplication::ERadsNotification notification )
-{
-    switch ( notification )
-    {
-		case CBratApplication::eNotificationRsyncRunnig:
-		{
-			mMainWorkingDock->SetTabTextColor( 1, Qt::red );
-		}
-		break;
-          
-		case  CBratApplication::eNotificationRsyncStopped:
-		{
-			mMainWorkingDock->SetTabTextColor( 1, Qt::black );
-		}
-		break;
-
-		case  CBratApplication::eNotificationUnknown:
-		{
-			mMainWorkingDock->SetTabTextColor( 1, Qt::yellow );
-		}
-		break;
-        
-        case  CBratApplication::eNotificationConfigSaved:
-        {
-        }
-        break;
-    }
-}
 
 
 

@@ -304,7 +304,13 @@ public:
 			m_step = o.m_step;
 			m_title = o.m_title;
 			m_unit = o.m_unit;
+            
 			m_dataMode = o.m_dataMode;
+            mDataModeDITimeName = o.mDataModeDITimeName;
+            mDataModeDIDateTime = o.mDataModeDIDateTime;
+            mDataModeDIDistanceWeightingParameter = o.mDataModeDIDistanceWeightingParameter;
+            mDataModeDITimeWeightingParameter = o.mDataModeDITimeWeightingParameter;
+            
             mNorthComponent = o.mNorthComponent;
             mEastComponent = o.mEastComponent;
         }

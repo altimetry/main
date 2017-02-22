@@ -90,7 +90,7 @@ public:
 
 
 	void SaveDatasetSpecificUnit( CSection &section, const CDataset *d );
-	void LoadDatasetSpecificUnit( CStringArray &findStrings, const std::string &entry, const std::string &value_string, CDataset *d );
+	void LoadDatasetSpecificUnit( const std::string &entry, const std::string &value_string, CDataset *d );
 	bool SaveConfig( const CDataset *d );
 	bool LoadConfig( CDataset *d );
 	bool SaveConfig( const CRadsDataset *d );

@@ -43,7 +43,7 @@ void CProgressDialog::PostConstruction( int minimum = 0 )
 {
 	if ( parentWidget() && parentWidget()->isVisible() )
 	{
-		setWindowModality( Qt::WindowModal );
+		setWindowModality( Qt::ApplicationModal );
 	}
 	base_t::setValue( minimum );
 	setMaximumHeight( height() );

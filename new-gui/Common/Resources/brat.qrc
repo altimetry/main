@@ -226,5 +226,6 @@
         <file>images/rads.gif</file>
         <file>images/OSGeo/vector_plot.png</file>
         <file>images/uac-icon-vista.png</file>
+        <file>images/OSGeo/operation.png</file>
     </qresource>
 </RCC>

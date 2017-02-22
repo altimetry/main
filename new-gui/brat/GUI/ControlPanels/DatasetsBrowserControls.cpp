@@ -86,15 +86,17 @@ void CDatasetsBrowserControls::UpdatePanelSelectionChange()
 	CDataset *current_dataset = nullptr;
 	if ( SelectedPanel() )
 	{
-		QTreeWidgetItem *current_dataset_item = mDatasetTree->currentItem();
-		if ( current_dataset_item && current_dataset_item->parent() ) //check if selected item has parent (is a file)
+		QList<QTreeWidgetItem*> l = mDatasetTree->selectedItems();				assert__( l.size() <= 1 );
+		QTreeWidgetItem *current_dataset_item = l.empty() ? nullptr : l[0];		//mDatasetTree->currentItem(); can be inaccurate
+
+		if ( current_dataset_item && current_dataset_item->parent() )			//check if selected item has parent (is a file)
 		{
 			current_dataset_item = current_dataset_item->parent();
 		}
 		current_dataset = current_dataset_item ? mWDataset->GetDataset( current_dataset_item->text( 0 ).toStdString() ) : nullptr;
-	}
 
-	emit CurrentDatasetChanged( current_dataset );
+		DrawDatasetTracks( current_dataset, true );
+	}
 }
 
 
@@ -223,7 +225,8 @@ void CDatasetsBrowserControls::AddFiles( QStringList &paths_list )
 	}
 	CDataset *current_dataset = mWDataset->GetDataset( current_dataset_item->text( 0 ).toStdString() );
 
-	// Get current files class and type
+	// Get current files class and type, then assign
+
 	std::string old_product_class = current_dataset->ProductClass();
 	std::string old_product_type = current_dataset->ProductType();
 
@@ -257,40 +260,15 @@ void CDatasetsBrowserControls::AddFiles( QStringList &paths_list )
 	}
 
 
-	// Check new files class and type
-	const bool is_same_product_class_and_type = 
-		str_icmp( old_product_class, current_dataset->ProductClass() ) &&
-		str_icmp( old_product_type, current_dataset->ProductType() );
+	CheckNewFilesClassAndType( old_product_class, old_product_type, current_dataset );
 
-	CWorkspaceOperation *wks = mModel.Workspace<CWorkspaceOperation>();		assert__( wks != nullptr );
-	CStringArray operation_names;
-	bool used_by_operations = wks->UseDataset( current_dataset->GetName(), &operation_names );
-	if ( !is_same_product_class_and_type && used_by_operations )
-	{
-		std::string str = operation_names.ToString( "\n", false );
-		SimpleWarnBox( 
-			"Warning: Files contained in the dataset '"
-			+ current_dataset->GetName()
-			+ "' have been changed from '"
-			+ old_product_class
-			+ "/"
-			+ old_product_type
-			+ "' to '"
-			+ current_dataset->ProductClass()
-			+ "/"
-			+ current_dataset->ProductType()
-			+ "' product class/type.\n\nThis dataset is used by the operations below:\n"
-			+ str
-			+ "\n\nPlease review the fields used in these operations."
-		);
-	}
 
 	// Clear all files and fill with new list
 	qDeleteAll( current_dataset_item->takeChildren() );
 	FillFileTree( current_dataset_item );
 
-	// Notify to redraw tracks. Item selection may not change, thus, is not catched by HandleTreeItemChanged()
-	emit CurrentDatasetChanged( current_dataset );
+	// Redraw tracks. Item selection may not change, thus, is not catched by HandleTreeItemChanged()
+	DrawDatasetTracks( current_dataset, true );
 
 	// Notify about the change (files added)
 	emit DatasetsChanged( current_dataset );
@@ -403,7 +381,7 @@ void CDatasetsBrowserControls::HandleRemoveFile()
 
     // Notify about the change (file removed)
     emit DatasetsChanged( current_dataset );
-    emit CurrentDatasetChanged( current_dataset );
+	DrawDatasetTracks( current_dataset, true );
 }
 
 
@@ -437,8 +415,8 @@ void CDatasetsBrowserControls::HandleClearFiles()
 
     ClearFieldList();
 
-    // Notify to redraw tracks. Item selection may not change, thus, is not catched by HandleTreeItemChanged()
-    emit CurrentDatasetChanged( current_dataset );
+    // Redraw tracks
+	DrawDatasetTracks( current_dataset, true );
 
     // Notify about the change (files removed) TODO: try to merge with previous signal??
     emit DatasetsChanged( current_dataset );

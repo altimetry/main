@@ -204,7 +204,7 @@ CRadsClient::CRadsClient( CRadsSettings &settings, QObject *parent )	//parent = 
 	, mTimer( this )
 	, mDisabled( false )
 	, mRadsServerAddress( ReadRadsServerAddress( mSettings.RadsPaths().mRadsConfigurationFilePath ) )
-	, mSharedMemory( RADS_SHARED_MEMORY_KEY.c_str(), this )
+    //, mSharedMemory( RADS_SHARED_MEMORY_KEY.c_str(), this )
 	, mSocketServer( new QLocalServer( this ) )
 {
 	//setup
@@ -301,7 +301,11 @@ void CRadsClient::ForceRsyncEnd()
 		//loop does not handle the WM_CLOSE message, can only be terminated by calling kill()."
 		//
 		LOG_INFO( "Received request to terminate any current synchronization." );
-		mCurrentProcess->Kill();
+#if defined (Q_OS_MAC)
+        mCurrentProcess->terminate();
+#else
+        mCurrentProcess->Kill();
+#endif
 		LOG_INFO( "The request to terminate any current synchronization was processed." );
 	}
 }
@@ -365,17 +369,24 @@ bool CRadsClient::Synchronize( bool force )		//force = false
 	{
 		return true;
 	}
+    else
+    if ( !force )
+    {
+        LOG_INFO( "Trying to start scheduled data synchronization with RADS." );
+    }
 
 	bool disable = !force && mDisabled;
-	if ( mCurrentProcess || disable || mSettings.OutputDirectory().empty() || mSettings.MissionNames().size() == 0 )
+	if ( mCurrentProcess || disable || !IsDir( mSettings.DownloadDirectory() ) || mSettings.MissionNames().size() == 0 )
 	{
 		std::string msg = "Skipping one data synchronization event. Reason(s):\n";
 		if ( mCurrentProcess )
 			msg += "-An rsync process is still executing.\n";
 		if ( disable )
 			msg += "-The service was temporarily paused.\n";
-		if ( mSettings.OutputDirectory().empty() )
+		if ( mSettings.DownloadDirectory().empty() )
 			msg += "-No output directory was specified.\n";
+		if ( !IsDir( mSettings.DownloadDirectory() ) )
+			msg += "-Output directory does not exist.\n";
 		if ( mSettings.MissionNames().size() == 0 )             //see (*) below before changing
 			msg += "-No missions were specified.\n";
 
@@ -427,7 +438,7 @@ bool CRadsClient::Synchronize( bool force )		//force = false
     
     cmd_line += src_missions;
 	cmd_line += " ";
-	cmd_line += QuotePath( win2cygwin( mSettings.OutputDirectory() ) );
+	cmd_line += QuotePath( win2cygwin( mSettings.DownloadDirectory() ) );
 
 	const bool sync = false;
 	mCurrentProcess = new COsProcess( sync, "", this, cmd_line );
@@ -513,7 +524,7 @@ bool CRadsClient::BroadcastRsyncStatusToSocketClients( const char *msg )
 
 	//test = !test;
 
-	LOG_INFO( "Broadcasting status..." );
+    LOG_INFO( QString( "Broadcasting status..." ) + msg );
 
 	mBroadcasting = true;
 
@@ -525,22 +536,30 @@ bool CRadsClient::BroadcastRsyncStatusToSocketClients( const char *msg )
 	out.device()->seek( 0 );
 	out << (quint16)( block.size() - sizeof(quint16) );
 
-	bool need_cleanup = false;					//apparently, a remote disconnection does not emit remotely...
-	for ( auto *connection : mSocketConnections )
+    size_t need_cleanup = 0;		//apparently, a remote disconnection does not emit remotely...
+    size_t notifications_sent = 0;
+    for ( auto *connection : mSocketConnections )
 	{
 		if ( !connection->isValid() )
 		{
-			need_cleanup = true;
+            need_cleanup++;
 			continue;
 		}
 
 		connection->write( block );
 		connection->flush();
 		//connection->disconnectFromServer();
-	}
 
-	if ( need_cleanup )
-		QTimer::singleShot( 5000, this, &CRadsClient::HandleSocketDisconnected );
+        notifications_sent++;
+    }
+
+    LOG_INFO( "Number of connections notified == " + n2q( notifications_sent ) );
+
+    if ( need_cleanup )
+    {
+        LOG_INFO( n2q( need_cleanup ) + " stale connections found: scheduling clean-up." );
+        QTimer::singleShot( 5000, this, &CRadsClient::HandleSocketDisconnected );
+    }
 
 	mBroadcasting = false;
 
@@ -574,7 +593,7 @@ void CRadsClient::CleanRsyncProcess( bool kill )		//kill = false
 //slot
 void CRadsClient::HandleRsyncError( QProcess::ProcessError error )
 {
-	auto message = "An error occurred launching " + mSettings.RadsPaths().mRsyncExecutablePath.mPath + "\n" + q2a( COsProcess::ProcessErrorMessage( error ) );
+    auto message = "An error occurred with " + mSettings.RadsPaths().mRsyncExecutablePath.mPath + "\n" + q2a( COsProcess::ProcessErrorMessage( error ) );
 	QtServiceBase::instance()->logMessage( message.c_str() );
 	LOG_FATAL( message.c_str() );
 	CleanRsyncProcess();		//TODO consider removing this: apparently, HandleProcessFinished is always called, even when HandleRsyncError is called

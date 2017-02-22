@@ -22,16 +22,13 @@
 #include "DataModels/Model.h"
 #include "DataModels/Workspaces/Workspace.h"
 #include "DataModels/Filters/BratFilters.h"
-#include "DataModels/Workspaces/RadsDataset.h"
-#include "DataModels/PlotData/MapColor.h"
 
 #include "GUI/ActionsTable.h"
 #include "GUI/ControlPanels/Dialogs/RegionSettingsDialog.h"
 #include "GUI/DisplayWidgets/MapWidget.h"
-#include "GUI/ProgressDialog.h"
 
 #include "BratLogger.h"
-#include "BratSettings.h"
+#include "BratApplication.h"
 
 #include "BratFilterControls.h"
 
@@ -134,16 +131,16 @@ void CBratFilterControls::CreateWidgets()
                                                } );
 
 	QToolBar *toolbar = new QToolBar;
-	mSelectionButton = CMapWidget::CreateMapSelectionActions( toolbar, mActionSelectFeatures, mActionDeselectAll );
+	mMapSelectionButton = CMapWidget::CreateMapSelectionActions( toolbar, mActionSelectFeatures, mActionDeselectAll );
 	toolbar->addAction( mActionDeselectAll );
-	toolbar->insertWidget( mActionDeselectAll, mSelectionButton );
+	toolbar->insertWidget( mActionDeselectAll, mMapSelectionButton );
 #if defined(ENABLE_POLYGON_SELECTION)
-	CMapWidget::AddMapSelectionPolygon( mSelectionButton, mMainToolsToolBar, mActionSelectPolygon );
-	mDesktopManager->Map()->ConnectParentSelectionActions( mSelectionButton, mActionSelectFeatures, mActionSelectPolygon, mActionDeselectAll );
+	CMapWidget::AddMapSelectionPolygon( mMapSelectionButton, mMainToolsToolBar, mActionSelectPolygon );
+	mDesktopManager->Map()->ConnectParentSelectionActions( mMapSelectionButton, mActionSelectFeatures, mActionSelectPolygon, mActionDeselectAll );
 #else
-	mDesktopManager->Map()->ConnectParentSelectionActions( mSelectionButton, mActionSelectFeatures, nullptr, mActionDeselectAll );
+	mDesktopManager->Map()->ConnectParentSelectionActions( mMapSelectionButton, mActionSelectFeatures, nullptr, mActionDeselectAll );
 #endif
-	mSelectionButton->setAutoRaise( false );
+	mMapSelectionButton->setAutoRaise( false );
 	((QToolButton*)toolbar->widgetForAction( mActionDeselectAll ))->setAutoRaise( false );
 	toolbar->setIconSize( QSize( tool_icon_size, tool_icon_size ) );
 	toolbar->layout()->setSpacing( 2 );
@@ -296,24 +293,6 @@ void CBratFilterControls::CreateWidgets()
 
 
     AddTopSpace( 0, 0, QSizePolicy::Expanding, QSizePolicy::Expanding );
-    AddTopWidget( WidgetLine( nullptr, Qt::Horizontal ) );
-
-
-    // IV. "Total Nb Records Selected" Description group
-    //
-    mTotalRecordsSelectedEdit = new QLineEdit( this );
-    mTotalRecordsSelectedEdit->setReadOnly( true );
-    mTotalRecordsSelectedEdit->setAlignment( Qt::AlignCenter );
-    mTotalRecordsSelectedEdit->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
-    QBoxLayout *TotalRecords_box = LayoutWidgets( Qt::Horizontal, { new QLabel( "Total Number of Records Selected" ), mTotalRecordsSelectedEdit });
-    TotalRecords_box->setAlignment(Qt::AlignRight);
-
-    //    Adding previous widgets to this...
-    QGroupBox *Records_topBox = AddTopGroupBox( ELayoutType::Horizontal, { TotalRecords_box});
-    Records_topBox->setDisabled( true );
-
-
-    //AddTopSpace( 0, 0, QSizePolicy::Expanding, QSizePolicy::Expanding );
 
     Wire();
 }
@@ -373,9 +352,8 @@ void CBratFilterControls::Wire()
 
 
 //explicit
-CBratFilterControls::CBratFilterControls( CModel &model, CDesktopManagerBase *manager, QWidget *parent, Qt::WindowFlags f )	//parent = nullptr, Qt::WindowFlags f = 0
-    : base_t( model, manager, parent, f )
-    , mMap( manager->Map() )
+CBratFilterControls::CBratFilterControls( CBratApplication &app, CDesktopManagerBase *manager, QWidget *parent, Qt::WindowFlags f )	//parent = nullptr, Qt::WindowFlags f = 0
+    : base_t( app, manager, parent, f )
     , mBratFilters( mModel.BratFilters() )
     , mBratAreas( mBratFilters.Areas() )
     , mBratRegions( mBratFilters.Regions() )
@@ -502,11 +480,43 @@ void CBratFilterControls::UpdatePanelSelectionChange()
 		HandleAreasSelectionChanged();
 	else
 	{
-		mSelectionButton->setChecked( false );
+		mMapSelectionButton->setChecked( false );
 		mActionSelectFeatures->setChecked( false );
 
-		mMap->RemoveAreaSelection(); // clean the map selection
+		RemoveAreaSelectionFromMap();
 	}
+}
+
+
+//virtual 
+void CBratFilterControls::WorkspaceChanged() //override
+{
+	base_t::WorkspaceChanged();
+
+	auto *root = mModel.RootWorkspace();
+	if ( root )
+	{
+		mWOperation = mModel.Workspace< CWorkspaceOperation >();
+	}
+	else
+	{
+		mWOperation = nullptr;
+	}
+	mFilter = nullptr;
+	mFiltersCombo->clear();
+	if ( root )
+		ReloadFilters();
+}
+
+
+//public slots:
+void CBratFilterControls::HandleWorkspaceChanged()
+{
+	LOG_TRACEstd( "Filters tab started handling signal to change workspace" );
+
+	WorkspaceChanged();
+
+	LOG_TRACEstd( "Filters tab finished handling signal to change workspace" );
 }
 
 
@@ -546,32 +556,6 @@ void CBratFilterControls::HandleCurrentLayerSelectionChanged( QRectF box )	// = 
 
     // Disable button new area if selection is not valid
     mNewArea->setDisabled( invalid_selection );
-}
-
-
-//public slots:
-void CBratFilterControls::HandleWorkspaceChanged()
-{
-	LOG_TRACEstd( "Filters tab started handling signal to change workspace" );
-
-	auto *root = mModel.RootWorkspace();
-    if ( root )
-    {
-        mWDataset = mModel.Workspace< CWorkspaceDataset >();
-        mWOperation = mModel.Workspace< CWorkspaceOperation >();
-    }
-    else
-    {
-        mWDataset = nullptr;
-        mWOperation = nullptr;
-    }
-    mFilter = nullptr;
-    mDataset = nullptr;
-    mFiltersCombo->clear();
-    if ( root )
-        ReloadFilters();
-
-	LOG_TRACEstd( "Filters tab finished handling signal to change workspace" );
 }
 
 
@@ -737,7 +721,7 @@ void CBratFilterControls::HandleAreasSelectionChanged()
     mMinLatEdit->setText( n2q( area->GetLatMin() ) );
     mMaxLatEdit->setText( n2q( area->GetLatMax() ) );
 
-    mMap->SelectArea( area->GetLonMin(), area->GetLonMax(), area->GetLatMin(), area->GetLatMax() );
+	SelectAreaInMap( area->GetLonMin(), area->GetLonMax(), area->GetLatMin(), area->GetLatMax() );
 }
 
 
@@ -1283,265 +1267,6 @@ void CBratFilterControls::updateRelativeTimeWidgets()
     // SET Checked/Unchecked
     mUseCurrentDateTime->setChecked( mFilter->UseCurrentTime() );
 }
-
-
-//////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////
-//					Satellite Tracks Processing TODO change place???
-//////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
-enum AliasIndex
-{
-	eAliasIndexLon,
-	eAliasIndexLat,
-	eAliasIndexTime,
-};
-
-
-// Here is an expression using the  alias 'swh': %{sig_wave_height} -->  'swh' field in tha aliases dictionary (Jason-1)
-//Expressions[1]	= "%{sig_wave_height}";
-//Units[1]		= "count";
-//
-// Here is an expression calling the 'BratAlgoFilterMedianAtp' algorithm
-//Expressions[1] = "exec(\"BratAlgoFilterMedianAtp\", %{sig_wave_height}, 7, 1, 0)";
-//Units[1]		= "count";
-//
-int ReadTrack( const std::vector< unsigned char > &can_use_alias, 
-	const std::string &path, const std::string &record, double *&x, size_t &sizex, double *&y, size_t &sizey, double *&z, size_t &sizez, int nfields = -1 )
-{
-	static const int default_nfields = 3;
-	static const char *Units[ default_nfields ] = { "count", "count", "second" };
-
-    const char *Expressions[] =
-    {
-        can_use_alias[eAliasIndexLon]	? lon_alias().c_str()	: lon_name().c_str(),
-        can_use_alias[eAliasIndexLat]	? lat_alias().c_str()	: lat_name().c_str(),
-        can_use_alias[eAliasIndexTime]	? time_alias().c_str()	: time_name().c_str()
-    };
-    char *Names[] = { const_cast<char*>( path.c_str() ) };
-
-    double	*Data[ default_nfields ]	= { nullptr, nullptr, nullptr };
-    int32_t	Sizes[ default_nfields ]	= { -1, -1, -1 };
-
-    size_t	ActualSize;
-    if ( nfields < 0 )
-		nfields = default_nfields;
-
-
-    int ReturnCode = CProduct::ReadData(
-                1, Names,
-                record.c_str(),		//"data",
-                nullptr,			//"latitude > 20 && latitude < 30",
-                nfields,
-                const_cast< char** >( Expressions ),
-                const_cast< char** >( Units ),
-                Data,
-                Sizes,
-                &ActualSize,
-                1,
-                0,
-                defaultValue< double >()
-                );
-
-    LOG_TRACEstd( "Return code          : " + n2s<std::string>( ReturnCode ) );
-    LOG_TRACEstd( "Actual number of data: " + n2s<std::string>( ActualSize ) );
-
-    x = Data[ 0 ];
-    y = Data[ 1 ];
-    z = Data[ 2 ];
-
-    sizez = sizex = sizey = ActualSize;
-
-    return ReturnCode;
-}
-
-
-
-void CBratFilterControls::HandleDatasetChanged( const CDataset *dataset )
-{
-    static CMapColor &mc = CMapColor::GetInstance();        Q_UNUSED(mc);
-    static const std::string unknown( "???" );
-
-    //lambdas
-
-    auto debug_log = []( const std::string &msg )
-    {
-        LOG_TRACEstd( msg  );
-        qApp->processEvents();
-    };
-
-
-    //function body
-
-    mMap->RemoveTracksLayerFeatures( true );
-	mMap->setWindowTitle( "" );
-	mTotalRecordsSelectedEdit->setText( "" );
-
-	if ( dynamic_cast< const CRadsDataset* >( dataset ) )
-		dataset = nullptr;
-
-    if ( !mAutoSatelliteTrack || !dataset || mDataset != dataset )	//even if dataset is the same (mDataset), its composition can be different: skip this condition and print
-    {
-        if ( mDataset == dataset )
-            return;
-
-        mDataset = dataset;
-        if ( !mDataset || !mAutoSatelliteTrack )
-            return;
-    }
-
-    std::string error_msg;
-    int total_records = -1;
-
-    mMap->setRenderFlag( false );
-    std::vector< std::string > paths = mDataset->GetFiles();
-	bool some_track_displayed = false;
-
-	CProgressInterface *pi = nullptr;
-	if ( paths.size() > mModel.Settings().MinimumFilesToProgressTrack() )
-	{
-		CProgressDialog *progress_dlg = new CProgressDialog( "Reading Track Data...", "Cancel", 0, paths.size(), parentWidget() );
-		progress_dlg->setAttribute( Qt::WA_DeleteOnClose );
-		pi = progress_dlg;
-		//progress_dlg->show();
-	}
-
-    for ( auto &path : paths )
-    {
-		WaitCursor wait;
-
-		if ( pi )
-		{
-			wait.Restore();
-			if ( pi->Cancelled() )
-			{
-				break;
-			}
-			pi->SetCurrentValue( pi->CurrentValue() + 1 );
-		}
-
-		bool is_netcdf = false, skip_iteration = false;
-        std::vector< unsigned char > alias_used = { false, false, false };
-
-		std::string record, info;
-
-		auto ref_date = REF19500101;	//Use ReadData ref date instead of product->GetRefDate();
-
-		long expected_lon_dim = 0, expected_lat_dim = 0; auto expected_time_dim = 0;                Q_UNUSED( expected_time_dim );
-
-		{
-			CProductInfo product_info( mDataset, path );
-			if ( !product_info.IsValid() )
-			{
-				error_msg += ( "\n\n" + path + " caused error: " + product_info.ErrorMessages() );
-				continue;
-			}
-
-			//total_records += product_info->GetNumberOfRecords();
-			skip_iteration = !product_info.HasAliases();
-			if ( skip_iteration )
-			{
-				LOG_WARN( "Aliases not supported: reading file " + path );
-			}
-			is_netcdf = product_info.IsNetCdfOrNetCdfCF();
-
-			record = product_info.Record();
-
-			std::string lonlat_error_msg, time_error_msg;
-			std::pair<CAliasInfo, CAliasInfo> lon_lat_alias_info = product_info.FindLonLatFields( mModel.Settings().mUseUnsupportedFields, 
-				(bool&)alias_used[ eAliasIndexLon ], (bool&)alias_used[ eAliasIndexLat ], lonlat_error_msg );
-			CAliasInfo time_alias_info = product_info.FindTimeField( mModel.Settings().mUseUnsupportedFields, (bool&)alias_used[ eAliasIndexTime ], time_error_msg );
-			if ( lon_lat_alias_info.first.Empty() || lon_lat_alias_info.second.Empty() || time_alias_info.Empty() )
-			{
-				skip_iteration = true;
-				LOG_WARN( "File - " + path + "\n" + replace( lonlat_error_msg, "\n", " - " ) + " - " + time_error_msg );
-			}
-
-			CField *lon = lon_lat_alias_info.first.Field();
-			CField *lat = lon_lat_alias_info.second.Field();
-			CField *time = time_alias_info.Field();
-
-			expected_lon_dim = lon ? lon->GetDim()[ 0 ] : 0;
-			expected_lat_dim = lat ? lat->GetDim()[ 0 ] : 0;	expected_time_dim = time ? time->GetDim()[ 0 ] : 0;
-			if ( expected_lon_dim != expected_lat_dim )
-			{
-				skip_iteration = true;
-				LOG_WARN( "Different latitude/longitude dimensions in file " + path );
-			}
-
-			const std::string &lon_value = lon_lat_alias_info.first.Empty() ? unknown : lon_lat_alias_info.first.Value();
-			const std::string &lat_value = lon_lat_alias_info.second.Empty() ? unknown : lon_lat_alias_info.second.Value();
-			const std::string &time_value = time_alias_info.Empty() ? unknown : time_alias_info.Value();
-
-			info =
-				( alias_used[ eAliasIndexLon ] ?	lon_alias() : lon_name() ) +	"==" + lon_value + " " +
-				( alias_used[ eAliasIndexLat ] ?	lat_alias() : lat_name() ) +	"==" + lat_value + " " +
-				( alias_used[ eAliasIndexTime ] ?	time_alias() : time_name() ) +	"==" + time_value;
-
-		}	//delete product;
-
-
-        if ( skip_iteration )
-        {
-			LOG_WARN( info );
-			continue;
-        }
-
-		LOG_INFO( info );
-
-        size_t lon_dim = 0;
-        size_t lat_dim = 0;
-        size_t time_dim = 0;
-        double *lonv = nullptr;
-        double *latv = nullptr;
-        double *timev = nullptr;
-
-        debug_log( "About to read variables from file " + path );
-
-        int ReturnCode = ReadTrack( alias_used, path, record, lonv, lon_dim, latv, lat_dim, timev, time_dim );
-        if ( ReturnCode == BRATHL_SUCCESS )
-        {
-            assert__( lon_dim == lat_dim );
-            assert__( !is_netcdf || ( lon_dim == expected_lon_dim && lat_dim == expected_lat_dim ) );
-
-			some_track_displayed = true;
-
-            debug_log( "Normalizing longitudes..." );
-
-            for ( size_t i = 0; i < lon_dim; ++i )
-                lonv[ i ] = CTools::NormalizeLongitude( -180.0, lonv[ i ] );
-
-            debug_log( "About to plot..." );
-
-            mMap->PlotTrack( lonv, latv, timev, lon_dim, ref_date, Qt::red );	// <QColor>( mc.NextPrimaryColors() ) );
-
-            debug_log( "Finished plotting..." );
-        }
-        else
-            error_msg += ( "\n\nError reading " + path + ".\nReturn code: " + n2s<std::string>( ReturnCode ) );
-
-        free( lonv );
-        free( latv );
-    }
-
-	if ( some_track_displayed )
-		mMap->setWindowTitle( t2q( dataset->GetName() ) );
-	mMap->setRenderFlag( true );
-    if ( total_records >= 0 )
-        mTotalRecordsSelectedEdit->setText( n2s<std::string>( total_records ).c_str() );
-
-    if ( !error_msg.empty() )
-    {
-        LOG_WARN( mDataset ?
-            ( "Problems reading satellite tracks from " + mDataset->GetName() + ":\n" + error_msg )
-            : error_msg );
-    }
-}
-
-
 
 
 

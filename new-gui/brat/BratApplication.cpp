@@ -20,6 +20,7 @@
 #include <QtOpenGL>
 
 #include "process/BratEmbeddedPythonProcess.h"
+#include "externals/hdf5/src/winxp_hack.h"
 
 #if defined (WIN32) || defined(_WIN32)
 #include "new-gui/Common/System/Service/qtservice_win.h"
@@ -125,6 +126,12 @@ void CBratApplication::Prologue( int argc, char *argv[] )
 
 	smApplicationPaths = &brat_paths;	LOG_TRACEstd( smApplicationPaths->ToString() );
 
+
+	// Check Windows stat function ////////////////////////////////////
+	//
+	CheckWindowsStat();
+
+
 	// Qt MetaTypes ////////////////////////////////////
 
 	RegisterAsQtTypes();
@@ -203,6 +210,25 @@ void CBratApplication::CheckOpenGL( bool extended )		//extended = false
 				"The program will now exit." );
 		}
 	}
+}
+
+
+void CBratApplication::CheckWindowsStat()
+{
+#if defined (WIN32) || defined(_WIN32)
+
+	if ( is_xp_32() )
+	{
+		LOG_TRACE( "Running in Windows XP 32 bits" );
+	}
+	struct stat s { brat_sign };
+	if ( stat( "", &s ) == brat_sign )
+		LOG_TRACE( "Using stat replacement" );
+	struct stat fs { brat_sign };
+	if ( fstat( 0, &fs ) == brat_sign )
+		LOG_TRACE( "Using fstat replacement" );
+
+#endif
 }
 
 
@@ -292,7 +318,7 @@ CBratApplication::CBratApplication( int &argc, char **argv, bool GUIenabled, QSt
 	RegisterAlgorithms();
 
 
-	// OpenGL
+	// Check OpenGL
 	//
 	ShowSplash( "Checking OpenGL..." );
 	if ( mSettings.mCheckOpenGL )
@@ -450,7 +476,6 @@ inline QString ServiceUserName()
 }
 
 
-
 bool CBratApplication::InstallRadsService( QWidget *parent )
 {
 	static const QString rads_service_name( RADS_SERVICE_NAME );
@@ -458,10 +483,23 @@ bool CBratApplication::InstallRadsService( QWidget *parent )
 	bool installed = mServiceController.isInstalled();
 	if ( !installed ) 
 	{
-		const std::string license = "RADS Temporary License Agreement (to be replaced by oficial text)\n\nAccess to RADS is only granted for own (academic/institutional/scientific) use, excluding \
-any kind of commercial exploitation.\nWhen using the retrieved data in publications and/or presentations, there always should be a reference to the usage of RADS.\n\n\
-Do you agree with these license terms?";
-		if ( SimpleQuestion( license ) )
+		const std::string license = 
+std::string("<p align='left'>" ) +
+"RADS was developed at TU Delft, and is now a joint venture between TU Delft, NOAA, and EUMETSAT (http://rads.tudelft.nl). "
+"The use of RADS is only intended for academic and institutional purposes.</p>"
++ "<p align='left'>"                
+"Please acknowledge or refer usage of RADS in any publication:"
++ "<ul>"
+"<li>Either put in the reference list: "
+"\"Remko Scharroo, Eric Leuliette, John Lillibridge, Deirdre Byrne, Marc Naeije, and Gary Mitchum. RADS: Consistent Multi-Mission Products. "
+"In Symposium on 20 Years of Progress in Radar Altimetry, Venice, 20-28 September 2012, volume SP-710. ESA, 2013\";"
++"</li>"
+"<li>or put in the acknowledgements: \"We thank the developers of the altimeter database RADS at TU Delft, NOAA, and EUMETSAT\".</li>"
++ "</ul>"
+"\n\nBy clicking ok you acknowledge to have read and accepted the RADS license above."
++ "</p>";
+
+		if ( SimpleConfirmation( license ) )
 		{
 			LoginDialog *dlg = new LoginDialog( "Install " + rads_service_name, parent );
 			dlg->SetUsername( ServiceUserName(), false );
@@ -617,52 +655,72 @@ bool CBratApplication::RegisterAlgorithms()
 //const std::string RSYNC_STOPPED_SIGN = "STOPPED";
 
 
-void CBratApplication::HandleSocketReadyRead()
+bool CBratApplication::ReadSingleSocketMessage()
 {
-	QDataStream in( mSocket );
-	in.setVersion(QDataStream::Qt_4_0);
+    QDataStream in( mSocket );
+    in.setVersion(QDataStream::Qt_4_0);
 
-	quint16 block_size = 0;
+    quint16 block_size = 0;
 
-	if ( mSocket->bytesAvailable() < (int)sizeof(quint16) )
-		return;
+    if ( mSocket->bytesAvailable() < (int)sizeof(quint16) )
+        return false;
 
-	in >> block_size;
+    in >> block_size;
 
-	LOG_TRACEstd( "About to read " + n2s<std::string>(block_size) + " bytes from RADS socket." );
+    LOG_TRACEstd( "About to read " + n2s<std::string>(block_size) + " bytes from RADS socket." );
 
-	if ( in.atEnd() )
-		return;
+    if ( in.atEnd() )
+        return false;
 
-	QString rads_msg;
-	in >> rads_msg;
+    QString rads_msg;
+    in >> rads_msg;
 
     auto prev_rsync_status = mRsyncStatus;
-	auto notification = eNotificationUnknown;
-    
-	if ( rads_msg == RSYNC_STOPPED_SIGN.c_str() )
+    auto notification = eNotificationUnknown;
+
+    if ( rads_msg == RSYNC_STOPPED_SIGN.c_str() )
     {
-		mRsyncStatus = Convert( ( notification = eNotificationRsyncStopped ) );
+        mRsyncStatus = Convert( ( notification = eNotificationRsyncStopped ) );
     }
-	else        
-	if ( rads_msg == RSYNC_RUNNING_SIGN.c_str() )
+    else
+    if ( rads_msg == RSYNC_RUNNING_SIGN.c_str() )
     {
-		mRsyncStatus = Convert( ( notification = eNotificationRsyncRunnig ) );
+        mRsyncStatus = Convert( ( notification = eNotificationRsyncRunnig ) );
     }
-	else        
-	if ( rads_msg == CONFIG_UPDATED_SIGN.c_str() )
-	{
-		notification = eNotificationConfigSaved;
-		mRadsServiceSettings.LoadConfig();		//FIXME : clients should be notified of notification reading errors
-	}
-	else
+    else
+    if ( rads_msg == CONFIG_UPDATED_SIGN.c_str() )
     {
-		mRsyncStatus = Convert( ( notification = eNotificationUnknown ) );
+        notification = eNotificationConfigSaved;
+        mRadsServiceSettings.LoadConfig();		//FIXME : clients should be notified of notification reading errors
     }
-    
-    
+    else
+    {
+        mRsyncStatus = Convert( ( notification = eNotificationUnknown ) );
+    }
+
+    LOG_TRACE( "Read " + rads_msg + " from RADS socket." );
+
     if ( ( prev_rsync_status != mRsyncStatus ) || notification == eNotificationConfigSaved )
         emit RadsNotification( notification );
+
+    return true;
+}
+
+
+void CBratApplication::HandleSocketReadyRead()
+{
+    //TODO: this a safety escape; ReadSingleSocketMessage never had
+    //  issues, but was not tested enough when enclosed in a loop,
+    //  and if a bug in the service triggers too many messages, we
+    //  don't want brat to hang reading them. Conclusion: consider
+    //  deleting after proper testing, or replace by proper excpetion
+    //  mechanism.
+    //
+    static const size_t max_iterations = 10;
+
+    size_t iterations = 0;
+    while( ReadSingleSocketMessage() && iterations < max_iterations ) iterations++;
+    LOG_TRACE( "Read " + n2q( iterations ) + " notification(s) from RADS service" );
 }
 
 

@@ -68,7 +68,7 @@ enum EActionTag : int
 	eAction_Full_Screen,
 	eAction_Re_center,
 	eAction_Zoom_In,
-    eAction_Zoom_Out, eLastAutomaticAction = eAction_Zoom_Out,
+    eAction_Zoom_Out, eLastAutomaticAction = eAction_Zoom_Out,	//so far, "automatic" and "permanent-menu-action" is equivalent
 
 	eAction_DisplayEditor2D,
 	eAction_DisplayEditor3D,
@@ -113,6 +113,8 @@ enum EActionTag : int
 	eAction_PauseRadsService,
 	eAction_ExecuteOrStopRadsService,
 
+	eAction_Delay_Execution,
+
 	//add new items before this line
 
 	EActionTags_size
@@ -136,6 +138,114 @@ struct CActionInfo : non_copyable
 
 public:
 
+	///////////////////////////////////
+	//	Table Management Section
+	//	(all static member functions)
+	///////////////////////////////////
+
+	// static members: query  process hidden Actions Table
+
+
+	static std::string IconPath( EActionTag tag )
+	{
+		return ActionInfo( tag ).mIconPath;
+	}
+
+
+	// Calls SetActionProperties
+	//
+	static QAction* CreateAction( QObject *parent, EActionTag tag );
+
+
+	// Groups actions under a new menu button. Besides that, actions are left untouched.
+	//	A menu button is a special kind of action, that nevertheless can figure in the actions 
+	//	table, so the properties of the new action/button are assigned based on the table entry.
+	//	Being (so far) a more limited type of action, SetActionProperties is not used.
+	//
+	static QToolButton* CreateMenuButton( EActionTag button_tag, const QList< QAction* > &actions );
+
+
+	static QToolButton* CreatePopupButton( EActionTag button_tag, const QList<QAction*> &actions, QAction *default_action = nullptr );
+
+
+	static QToolButton* CreateToolButton( EActionTag button_tag, bool auto_raise = false );
+
+
+	// Calls CreateAction
+	//
+	static QActionGroup* CreateActionGroup( QWidget *group_parent, const std::vector< EActionTag > &tags, bool exclusive );
+
+
+	// For the Qt dock widgets actions, automatically created to view/hide them
+	// Calls SetActionProperties
+	//
+	static QAction* SetDockActionProperties( QDockWidget *dock, EActionTag tag );
+
+
+private:
+	// Intended for automatically created (designer) actions, such as brat's main menu 
+	//	bar. The implementation does not impose any restriction, but there is no reason 
+	//	for "a" to be an action defined in the source code. As in all other cases, the
+	//	entry that matches "a" must exist in the table; see operator == for the	properties 
+	//	used to consider a successful equality match between a table entry and "a".
+	//
+	// RecentFileActions are not considered and return EActionTags_size as failure result.
+	// Separators return the separator tag and are not affected.
+	//
+	static EActionTag UpdateActionProperties( QAction *a );
+
+public:
+	static bool UpdateMenuActionsProperties( QMenuBar *menu_bar );
+
+
+	static void UpdateActionsState( std::initializer_list< EActionTag > tags, bool enable );
+
+
+	static void TriggerAction( EActionTag tag );
+
+private:
+
+	static const CActionInfo& ActionInfo( EActionTag tag );
+
+
+	// Assigns to "a"
+	//	- tool-top
+	//	- icon
+	//	- checkable property if "on" icon is also specified in table
+	//	- "on" icon, if specified in table
+	//
+	// Updates 
+	//	- ActionsTable entry identified by "tag", adding "a" to its 
+	//	physical actions list (which is not intended for runtime production 
+	//	use)
+	//
+	// Returns
+	//	- the same received action "a"
+	//
+	static QAction* SetActionProperties( QAction *a, EActionTag tag );
+
+
+	// RecentFileAction not considered. EActionTags_size is returned with "not found" meaning.
+	//
+	static EActionTag FindEntry( const QAction *a );
+
+
+	//not used
+	static QToolButton* CreateMenuButton( QObject *parent, EActionTag button_tag, const std::vector< EActionTag > &tags );
+
+
+	// diagnostic
+
+	static bool ActionsTableIntegrityChecked;
+
+
+	static bool CheckActionsTableIntegrity();
+
+
+	// Tools
+
+public:
+
 	static std::string FormatTip( const std::string &tip )
 	{
 		size_t delimiter = tip.find( smTipDelimiter );
@@ -152,6 +262,7 @@ public:
 	{
 		return FormatTip( title + smTipDelimiter + tip );
 	}
+
 
 
 	///////////////////////////
@@ -195,6 +306,8 @@ public:
 
 	// access - testers
 
+protected:
+
 	bool IsAutomatic() const
 	{
 		return mTag != eAction_Separator && mTag <= eLastAutomaticAction;
@@ -205,104 +318,6 @@ public:
 
     bool operator == ( const CActionInfo &o ) const;
 
-
-	///////////////////////////////////
-	//	Table Management Section
-	//	(all static member functions)
-	///////////////////////////////////
-
-public:
-	// static members: query process hidden Actions Table
-
-	static std::string IconPath( EActionTag tag )
-	{
-		return ActionInfo( tag ).mIconPath;
-	}
-
-
-	// Calls SetActionProperties
-	//
-	static QAction* CreateAction( QObject *parent, EActionTag tag );
-	
-
-	// Groups actions under a new menu button. Besides that, actions are left untouched.
-	//	A menu button is a special kind of action, that nevertheless can figure in the actions 
-	//	table, so the properties of the new action/button are assigned based on the table entry.
-	//	Being (so far) a more limited type of action, SetActionProperties is not used.
-	//
-	static QToolButton* CreateMenuButton( EActionTag button_tag, const QList< QAction* > &actions );
-
-
-	static QToolButton* CreatePopupButton( EActionTag button_tag, const QList<QAction*> &actions, QAction *default_action = nullptr );
-
-
-	static QToolButton* CreateToolButton( EActionTag button_tag, bool auto_raise = false );
-
-
-	// Calls CreateAction
-	//
-	static QActionGroup* CreateActionGroup( QWidget *group_parent, const std::vector< EActionTag > &tags, bool exclusive );
-
-
-	// For the Qt dock widgets actions, automatically created to view/hide them
-	// Calls SetActionProperties
-	//
-	static QAction* SetDockActionProperties( QDockWidget *dock, EActionTag tag );
-
-
-	// Intended for automatically created (designer) actions, such as brat's main menu 
-	//	bar. The implementation does not impose any restriction, but there is no reason 
-	//	for "a" to be an action defined in the source code. As in all other cases, the
-	//	entry that matches "a" must exist in the table; see operator == for the	properties 
-	//	used to consider a successful equality match between a table entry and "a".
-	//
-	// RecentFileActions are not considered and return EActionTags_size as failure result.
-	// Separators return the separator tag and are not affected.
-	//
-	static EActionTag UpdateActionProperties( QAction *a );
-
-
-	static void UpdateActionsState( std::initializer_list< EActionTag > tags, bool enable );
-
-	static void TriggerAction( EActionTag tag );
-
-private:
-
-	static const CActionInfo& ActionInfo( EActionTag tag );
-
-	
-	// Assigns 
-	//	- tool-top
-	//	- icon
-	//	- checkable property if "on" icon is also specified in table
-	//	- "on" icon, if specified in table
-	//
-	// Updates 
-	//	- ActionsTable entry identified by "tag", adding "a" to its 
-	//	physical actions list (which is not intended for runtime production 
-	//	use)
-	//
-	// Returns
-	//	- the same received action "a"
-	//
-    static QAction* SetActionProperties( QAction *a, EActionTag tag );
-
-
-	// RecentFileAction not considered. EActionTags_size is returned with "not found" meaning.
-	//
-	static EActionTag FindEntry( const QAction *a );
-
-
-	//not used
-	static QToolButton* CreateMenuButton( QObject *parent, EActionTag button_tag, const std::vector< EActionTag > &tags );
-
-
-	// diagnostic
-
-	static bool ActionsTableIntegrityChecked;
-
-
-	static bool CheckActionsTableIntegrity();
 };
 
 

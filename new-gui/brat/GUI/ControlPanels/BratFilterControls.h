@@ -83,7 +83,7 @@ class CBratFilterControls : public CDesktopControlsPanel
 
 	QAction *mActionSelectFeatures = nullptr;
 	QAction *mActionDeselectAll = nullptr;
-	QToolButton *mSelectionButton = nullptr;
+	QToolButton *mMapSelectionButton = nullptr;
 
 	QWidget *mWhereBox = nullptr;
 
@@ -109,13 +109,6 @@ class CBratFilterControls : public CDesktopControlsPanel
 
     QWidget *mWhenBox = nullptr;
 
-	//
-	QLineEdit *mTotalRecordsSelectedEdit = nullptr;
-
-    CMapWidget *mMap = nullptr;
-
-	bool mAutoSatelliteTrack = true;
-
 
 	//...domain data
 
@@ -124,9 +117,7 @@ class CBratFilterControls : public CDesktopControlsPanel
 	CBratRegions &mBratRegions;
 	CBratFilter *mFilter = nullptr;
 
-	CWorkspaceDataset *mWDataset = nullptr;
 	CWorkspaceOperation *mWOperation = nullptr;
-    const CDataset *mDataset = nullptr;
 
 
 	//construction / destruction
@@ -134,7 +125,7 @@ class CBratFilterControls : public CDesktopControlsPanel
 	void CreateWidgets();
 	void Wire();
 public:
-	explicit CBratFilterControls( CModel &model, CDesktopManagerBase *manager, QWidget *parent = nullptr, Qt::WindowFlags f = 0 );
+	explicit CBratFilterControls( CBratApplication &app, CDesktopManagerBase *manager, QWidget *parent = nullptr, Qt::WindowFlags f = 0 );
 
 	virtual ~CBratFilterControls()
 	{}	
@@ -142,22 +133,9 @@ public:
 
 	// overrides
 
+	virtual void WorkspaceChanged() override;
+
 	virtual void UpdatePanelSelectionChange() override;
-
-
-	// access 
-
-	bool AutoSatelliteTrack() const
-	{
-		return mAutoSatelliteTrack;
-	}
-
-
-	void SetAutoSatelliteTrack( bool track )
-	{
-		mAutoSatelliteTrack = track;
-		HandleDatasetChanged( mDataset );
-	}
 
 
 	// operations
@@ -218,7 +196,6 @@ public slots:
     void HandleRelativeReferenceTimeChanged(const QDateTime &ref_datetime);
 
 	void HandleWorkspaceChanged();
-    void HandleDatasetChanged( const CDataset *dataset );
 
     void HandleCurrentLayerSelectionChanged( QRectF box = QRectF() );
 	void HandleRelativeTimesBoxChecked( bool checked );

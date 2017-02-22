@@ -223,7 +223,10 @@ void CExportDialog::Wire()
 		KMLAlongTrackDataCheck->setChecked( mCreateKMLTrackData );
 		KMLFieldsDataCheck->setChecked( mCreateKMLFieldsData );
 		mCreateGeoTiffFilesCheck->setChecked( mCreateGeoTIFFs );
-		mColorMapWidget->SetLUT( mLUT, mColorRangeMin, mColorRangeMax );
+		if ( isDefaultValue(mColorRangeMin) || isDefaultValue( mColorRangeMax ) )
+			mColorMapWidget->setEnabled( false );
+		else
+			mColorMapWidget->SetLUT( mLUT, mColorRangeMin, mColorRangeMax );
 		connect( mColorMapWidget, SIGNAL( CurrentIndexChanged( int ) ), this, SLOT( HandleColorTablesIndexChanged( int ) ) );
 	}
 	else
@@ -459,8 +462,11 @@ void CExportDialog::HandleDelayExecution()
 
 void CExportDialog::HandleColorTablesIndexChanged( int )
 {
-	mColorRangeMin = mColorMapWidget->ColorRangeMin();
-	mColorRangeMax = mColorMapWidget->ColorRangeMax();
+	if ( mColorMapWidget->isEnabled() )
+	{
+		mColorRangeMin = mColorMapWidget->ColorRangeMin();
+		mColorRangeMax = mColorMapWidget->ColorRangeMax();
+	}
 }
 
 
@@ -513,13 +519,17 @@ bool CExportDialog::Validate()
 
 		case eGEOTIFF:
 		{
-			mColorRangeMin = mColorMapWidget->ColorRangeMin();	//v4 not used
-			mColorRangeMax = mColorMapWidget->ColorRangeMax();	//v4 not used
+			const bool color_table_valid = mColorMapWidget->isEnabled();
+			if ( color_table_valid )
+			{
+				mColorRangeMin = mColorMapWidget->ColorRangeMin();	//v4 not used
+				mColorRangeMax = mColorMapWidget->ColorRangeMax();	//v4 not used
+			}
 
 			mCreateKMLFieldsData = mCreateGoogleKMLFileGroup->isChecked() && KMLFieldsDataCheck->isChecked();
 			mCreateKMLTrackData = mCreateGoogleKMLFileGroup->isChecked() && KMLAlongTrackDataCheck->isChecked();
 			mCreateGeoTIFFs = mCreateGeoTiffFilesCheck->isChecked();
-			mColorTable = q2a( mColorMapWidget->currentText() );
+			mColorTable = color_table_valid ? q2a( mColorMapWidget->currentText() ) : mLUT->GetDefaultColorTable();
 
 			mOperation->SetExportGeoTiffProperties( mCreateKMLFieldsData, mCreateKMLTrackData, mCreateGeoTIFFs, mColorTable, mLogoPath );
 		}

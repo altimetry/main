@@ -226,13 +226,14 @@ public:
                 if ( data_mode_di_time_name.empty() )
                     data_mode_di_time_name = "DV";
 
-				std::string distance_waiting = n2s<std::string>( value->DataModeDIDistanceWeightingParameter() );
-				std::string time_waiting = n2s<std::string>( value->DataModeDITimeWeightingParameter() );
+				std::string distance_weighting = n2s<std::string>( value->DataModeDIDistanceWeightingParameter() );
+				std::string time_weighting = n2s<std::string>( value->DataModeDITimeWeightingParameter() );
 
 				WriteLn( value->GetFieldPrefix() + DATA_MODE_SUFFIX +						"=" + value->GetDataModeAsString() );
 				WriteLn( value->GetFieldPrefix() + DATA_MODE_DI_TIME_NAME_SUFFIX +			"=" + data_mode_di_time_name );
-				WriteLn( value->GetFieldPrefix() + DATA_MODE_DI_DISTANCE_WEIGHTING_SUFFIX +	"=" + distance_waiting );
-				WriteLn( value->GetFieldPrefix() + DATA_MODE_DI_TIME_WEIGHTING_SUFFIX +		"=" + time_waiting );
+				WriteLn( value->GetFieldPrefix() + DATA_MODE_DI_DATE_TIME_SUFFIX +			"=" + value->DataModeDIDateTime().AsString() );
+				WriteLn( value->GetFieldPrefix() + DATA_MODE_DI_DISTANCE_WEIGHTING_SUFFIX +	"=" + distance_weighting );
+				WriteLn( value->GetFieldPrefix() + DATA_MODE_DI_TIME_WEIGHTING_SUFFIX +		"=" + time_weighting );
 			}
 
 			std::string valueString = ( value->GetTitle().empty() ) ? value->GetName() : value->GetTitle();
@@ -580,6 +581,10 @@ public:
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+static const std::string WKS_EXPRESSION_NAME = "Expression";
 
 
 
@@ -980,11 +985,16 @@ bool COperation::IsRadsDataset() const
 }
 
 
+// Throws if operation locked
+//
 // Can return true and null dataset, if original dataset is empty
 // Can return false and valid dataset, if filter could not be applied
 //
 std::pair< bool, const CDataset* > COperation::FilteredDataset( std::string &error_msg, CProgressInterface *progress )
 { 
+	if ( mLocked )
+		ThrowLockException();
+
 	bool result = mFilteredDataset ? true : CreateFilteredDataset( error_msg, progress );
 
 	return { result, mFilteredDataset };

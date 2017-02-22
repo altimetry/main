@@ -178,13 +178,15 @@ CActionInfo ActionsTable[ EActionTags_size ] =
 
     { eAction_DataDisplayProperties, "", CActionInfo::FormatTip("Vector Plot Properties\nSet selected field as East or North component."), ":images/OSGeo/vector_plot.png" },
 
-	{ eAction_InstallRadsService, "Install service", CActionInfo::FormatTip("Installation\nInstall/Uninstall RADS service in operating system."), ":images/ledoff.png", ":images/ledon.png" },
+	{ eAction_InstallRadsService, "Install service", CActionInfo::FormatTip("Installation\nInstall/Uninstall the RADS service."), ":images/ledoff.png", ":images/ledon.png" },
 
     { eAction_StartRadsService, "Start service", CActionInfo::FormatTip("Execution (optional)\nManually start or stop the RADS service."), ":/images/themes/default/media/media-play-16.png", ":/images/themes/default/media/media-stop-16.png" },		//:/images/themes/default/media/media-seek-forward-16.png
 
 	{ eAction_PauseRadsService, "", CActionInfo::FormatTip("Suspend\nPause/Resume data synchronization with RADS."), ":/images/themes/default/media/media-play-16.png", ":/images/themes/default/media/media-pause-16.png" },
 
-	{ eAction_ExecuteOrStopRadsService, "Synchronize now...", "Immediately start or stop synchronization with RADS .", ":/images/OSGeo/execute.png", ":/images/themes/default/media/media-stop-16.png" },
+	{ eAction_ExecuteOrStopRadsService, "Synchronize now...", "Immediately start or stop synchronization with RADS.\nThis does not affect periodic synchronizations.", ":/images/OSGeo/execute.png", ":/images/themes/default/media/media-stop-16.png" },
+
+	{ eAction_Delay_Execution, "Schedule Execution...", CActionInfo::FormatTip("Schedule Operation", "Execute later by the scheduler application"), ":/images/brat_scheduler.png" },
 
 };
 
@@ -200,7 +202,7 @@ CActionInfo ActionsTable[ EActionTags_size ] =
 //static 
 bool CActionInfo::CheckActionsTableIntegrity()
 {
-	// nested lambdas section
+	// nested lambdas
 
 	auto has_equal_entry = []( const CActionInfo &ai ) -> bool
 	{
@@ -288,6 +290,26 @@ EActionTag CActionInfo::UpdateActionProperties( QAction *a )
 		SetActionProperties( a, tag );
 
 	return tag;
+}
+
+
+//static 
+bool CActionInfo::UpdateMenuActionsProperties( QMenuBar *menu_bar )
+{
+	const QList< QMenu* > lst = menu_bar->findChildren< QMenu* >();
+	bool result = true;
+	foreach( QMenu *m, lst )
+	{
+		qDebug() << m->title();
+		foreach( QAction *a, m->actions() )
+		{
+			qDebug() << a->text();
+			auto tag = CActionInfo::UpdateActionProperties( a );	
+			result = result && tag < EActionTag::EActionTags_size;		assert__( result );
+			qDebug() << tag;
+		}
+	}
+	return result;
 }
 
 

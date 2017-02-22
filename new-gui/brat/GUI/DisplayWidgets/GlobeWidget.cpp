@@ -234,18 +234,17 @@ void CGlobeWidget::SetupMap( bool enable_base_map )	//it needs renderer in tile 
 	imageLayersChanged();
 
     // And what remains of
-    if ( false )
-		elevationLayersChanged();
-	else
-	{
-		assert__( mMapNode->getMap()->getNumElevationLayers() == 0 );
+#if defined(USE_DATA_VISUALIZAAION)
+    elevationLayersChanged();
+#else
+    assert__( mMapNode->getMap()->getNumElevationLayers() == 0 );
 
-		ElevationLayerVector list;
-		map->getElevationLayers( list );		assert__( list.size() == 0 );
+    ElevationLayerVector list;
+    map->getElevationLayers( list );		assert__( list.size() == 0 );
 
-		double scale = 1.;
-		setVerticalScale( scale );
-	}
+    double scale = 1.;
+    setVerticalScale( scale );
+#endif
 }
 
 
@@ -308,7 +307,7 @@ void CGlobeWidget::elevationLayersChanged()
 //    }
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL( 2, 5, 0 )
     //double scale = QgsProject::instance()->readDoubleEntry( "Globe-Plugin", "/verticalScale", 1 );
-    setVerticalScale( 20./*scale */);
+    setVerticalScale( 10./*scale */);
 #endif
 }
 
@@ -556,7 +555,7 @@ bool CGlobeWidget::ScheduleClose()
 
 void CGlobeWidget::Home()
 {
-	mOsgViewer->getCameraManipulator()->home( 0. );
+	mOsgViewer->getCameraManipulator()->home( 0. );	//argument is not used
 }
 
 
@@ -659,7 +658,6 @@ CGlobeWidget::CGlobeWidget( QWidget *parent, CMapWidget *the_canvas )
 	manip->getSettings()->bindScroll( osgEarth::Util::EarthManipulator::ACTION_ZOOM_IN, osgGA::GUIEventAdapter::SCROLL_UP ); 
 	mOsgViewer->setCameraManipulator( manip );
 
-
 	SetupMap( false );		//creates and attaches the map node, graticule, layers...
 
 
@@ -692,7 +690,9 @@ CGlobeWidget::CGlobeWidget( QWidget *parent, CMapWidget *the_canvas )
 	//mOsgViewer->getDatabasePager()->setUpThreads( 0, 0 );					//leaves 1 thread
 
 	// Set a home viewpoint
-	manip->setHomeViewpoint( osgEarth::Util::Viewpoint( nullptr, -90, 0, 0, 0.0, -90.0, 2e7 ), 1.0 );	//changed from the original: osgEarth::Util::Viewpoint( osg::Vec3d( -90, 0, 0 ), 0.0, -90.0, 2e7 )
+	//	- changed from the original: osgEarth::Util::Viewpoint( osg::Vec3d( -90, 0, 0 ), 0.0, -90.0, 2e7 )
+
+	manip->setHomeViewpoint( osgEarth::Util::Viewpoint( nullptr, 0, 0, 0, 0.0, -90.0, 2e7 ), 1.0 );
 
 	// add our handlers
 	mOsgViewer->addEventHandler( new FlyToExtentHandler( this ) );
@@ -703,6 +703,11 @@ CGlobeWidget::CGlobeWidget( QWidget *parent, CMapWidget *the_canvas )
 
 
 	mControls = new CGlobeControls( this );
+#if defined(USE_DATA_VISUALIZAAION)
+	SetupControls( true );
+#else
+	SetupControls( false );
+#endif
 
 	mGlobeViewerWidget = new CGlobeViewerWidget( mCanvas, mOsgViewer );	
 
@@ -953,8 +958,9 @@ void CGlobeWidget::syncExtent()
 
 	OE_NOTICE << "map extent: " << height << " camera distance: " << distance << std::endl;
 
-	osgEarth::Util::Viewpoint viewpoint( nullptr, extent.center().x(), extent.center().y(), 0.0, 0.0, -90.0, distance );
 	//osgEarth::Util::Viewpoint viewpoint( osg::Vec3d( extent.center().x(), extent.center().y(), 0.0 ), 0.0, -90.0, distance ); //femm
+
+	osgEarth::Util::Viewpoint viewpoint( nullptr, extent.center().x(), extent.center().y(), 0.0, 0.0, -90.0, distance );
 	manip->setViewpoint( viewpoint, 4.0 );
 }
 

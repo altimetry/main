@@ -239,7 +239,7 @@ struct CBrat3DFunction : public Qwt3D::Function
 
     virtual double operator()( double x, double y ) override
     {
-        return CorrectedValue( mPlotParameters->value( x, y ) );
+		return CorrectedValue( mPlotParameters->value_v( x, y ) );		//mPlotParameters->value_s( x, y )
     }
 };
 

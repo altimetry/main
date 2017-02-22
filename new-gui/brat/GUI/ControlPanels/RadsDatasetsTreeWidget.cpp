@@ -36,9 +36,11 @@ Q_DECLARE_METATYPE( CRadsDataset* )
 
 
 
+
 CRadsDatasetsTreeWidgetItem::CRadsDatasetsTreeWidgetItem( const std::vector< CRadsMission > &missions, CRadsDataset *dataset, QTreeWidget *view )
 	: qobject_base_t( view )
 	, base_t( view )
+	, mAllmissions( missions )
 {
 	assert__( view );
 
@@ -48,11 +50,11 @@ CRadsDatasetsTreeWidgetItem::CRadsDatasetsTreeWidgetItem( const std::vector< CRa
 
 	const QString dataset_name = dataset->GetName().c_str();
 
-	setText(0, dataset_name );
-	setToolTip(0, dataset_name );
-	setIcon( 0, QIcon( ":/images/OSGeo/dataset.png" ) );
+	setText( eName, dataset_name );
+	setToolTip( eName, dataset_name );
+	setIcon( eName, QIcon( ":/images/OSGeo/dataset.png" ) );
 	setFlags( flags() | Qt::ItemIsEditable );
-	setData( 0, Qt::UserRole, QVariant::fromValue( dataset ) );
+	setData( eName, Qt::UserRole, QVariant::fromValue( dataset ) );
 
 	view->addTopLevelItem( this );		//this is necessary before what follows
 
@@ -66,17 +68,12 @@ CRadsDatasetsTreeWidgetItem::CRadsDatasetsTreeWidgetItem( const std::vector< CRa
 
 	// ...fill with missions
 
-	auto const &selected_user_missions = dataset->Missions();
-	int index = 0, selected_index = -1;
-	for ( auto const &mission : missions )
+	for ( auto const &mission : mAllmissions )
 	{
-		mCombo->addItem(mission.mName.c_str());
-		bool selected = std::find( selected_user_missions.begin(), selected_user_missions.end(), mission ) != selected_user_missions.end();
-		if ( selected )
-			selected_index = index;
-		index++;
+		mCombo->addItem( mission.mName.c_str() );
 	}
-	mCombo->setCurrentIndex( selected_index );
+	UpdateMission();
+
 
 	// ...aesthetics
 
@@ -125,18 +122,54 @@ CRadsDatasetsTreeWidgetItem::CRadsDatasetsTreeWidgetItem( const std::vector< CRa
 
 	mComboFrame = new QFrame;
 	LayoutWidgets( Qt::Horizontal, { mCombo }, mComboFrame, 4, 4, 4, 4, 4 );
-	view->setItemWidget( this, 1, mComboFrame );
+	view->setItemWidget( this, eMissions, mComboFrame );
 	SetMissionToolTip();
 
 	view->blockSignals( false );
 }
 
 
+const CRadsDataset* CRadsDatasetsTreeWidgetItem::Dataset()
+{
+	return data( eName, Qt::UserRole ).value< CRadsDataset* >();
+}
+
+
+void CRadsDatasetsTreeWidgetItem::UpdateMission()
+{
+	auto const &selected_user_missions = Dataset()->Missions();	//only one...
+
+	//if/when implemented more than 1 mission, selected_index must be turned into vector
+
+	int selected_index = selected_user_missions.size() == 0 ? -1 : mCombo->findText( selected_user_missions[ 0 ].mName.c_str() );
+	mCombo->setCurrentIndex( selected_index );
+
+	UpdatePhases();
+}
+
+void CRadsDatasetsTreeWidgetItem::UpdatePhases()
+{
+	const CRadsDataset *rads_dataset = Dataset();					assert__( rads_dataset);
+	auto const &selected_user_missions = rads_dataset->Missions();	//only one...
+    std::string phases;
+    for ( auto const &mission : selected_user_missions )
+	{
+		phases += Vector2String( mission.mPhases );	//if there really was more than 1 mission, the mission name should be added to each phases substring
+		setText( ePhases, phases.c_str() );
+	}
+
+	setTextAlignment( ePhases, Qt::AlignCenter );
+}
+
+
 //virtual 
 bool CRadsDatasetsTreeWidgetItem::operator< ( const QTreeWidgetItem &o ) const
 {
-	if ( treeWidget()->sortColumn() == 0 )
+	if ( treeWidget()->sortColumn() == eName )
 		return base_t::operator< ( o );
+
+	if ( treeWidget()->sortColumn() == ePhases )
+		return false;
 
 	const auto &rads_o = dynamic_cast< const CRadsDatasetsTreeWidgetItem& >( o );
 
@@ -150,7 +183,7 @@ bool CRadsDatasetsTreeWidgetItem::operator< ( const QTreeWidgetItem &o ) const
 void CRadsDatasetsTreeWidgetItem::SetMissionToolTip()
 {
 	QString tip;
-	const CRadsDataset *rads_dataset = data( 0, Qt::UserRole ).value< CRadsDataset* >();
+	const CRadsDataset *rads_dataset = Dataset();					assert__( rads_dataset);
 	if ( rads_dataset )
 	{
 		const QString mission_name = CurrentMission();
@@ -158,15 +191,15 @@ void CRadsDatasetsTreeWidgetItem::SetMissionToolTip()
 		{
 			if ( rads_dataset->IsEmpty() )
 			{
-				tip = "No files found for mission " + mission_name;
+				tip = "No files found for the selected phases of mission " + mission_name;
 			}
 			else
 			{
-				tip = n2q( rads_dataset->Size() ) + " files found for mission " + mission_name;
+				tip = n2q( rads_dataset->Size() ) + " files found for the selected phases of mission " + mission_name;
 			}
 		}
 	}
-	SetToolTip( 1, tip );
+	SetToolTip( eMissions, tip );
 }
 
 
@@ -175,7 +208,7 @@ void CRadsDatasetsTreeWidgetItem::SetToolTip( int column, const QString &atoolTi
 	setToolTip( column, atoolTip );
 	setData( column, Qt::ToolTipRole, atoolTip );
 
-	if ( column == 1 )
+	if ( column == eMissions )
 	{
 		mCombo->setToolTip( atoolTip );
 		mCombo->lineEdit()->setToolTip( atoolTip );
@@ -204,19 +237,28 @@ void CRadsDatasetsTreeWidgetItem::currentIndexChanged( int index )
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
+
 // Assumes a checked and valid all_available_missions
 //
 CRadsDatasetsTreeWidget::CRadsDatasetsTreeWidget( const std::vector< CRadsMission > &all_available_missions, QWidget *parent )	//parent = nullptr 
 	: base_t( parent )
 	, mAllAvailableMissions( all_available_missions )
 {
-    setHeaderLabels( QStringList() << tr("Dataset") << tr("Mission") );
+    setHeaderLabels( QStringList() << tr("Dataset") << tr("Mission") << tr("Phases") );
     setHeaderHidden( false );
 	header()->setStretchLastSection( true );
 	header()->setSectionResizeMode( QHeaderView::Interactive );
 	header()->setDefaultAlignment( Qt::AlignCenter );
+	header()->setSectionsMovable( false );
 
-	//setRootIsDecorated( false );	the problem with this: the highest level items have no node icon, can only be expanded/collapsed by double-clicking
+	header()->viewport()->installEventFilter( this );
+
+
+	// Do not leave left space for expandable nodes, items occupy the whole row length
+	//	which is what we want here: highest level items have no children. If they had,
+	//	without node icons could only be expanded/collapsed by double-clicking,
+	//
+	setRootIsDecorated( false );
 	setDragEnabled( false );
 
 	setSortingEnabled( true );
@@ -288,6 +330,21 @@ bool CRadsDatasetsTreeWidget::eventFilter( QObject *o, QEvent *e )
 			default:            
 				return false;
 				break;
+		}
+	}
+	else
+	if ( header()->viewport() == o )
+	{
+		QMouseEvent *me = dynamic_cast<QMouseEvent*>( e );
+		if ( me )
+		{
+			// Prevent phases column header mouse clicks
+
+			if ( e->type() != QEvent::MouseMove && header()->logicalIndexAt( me->pos() ) == CRadsDatasetsTreeWidgetItem::ePhases )
+			{
+				e->ignore();
+				return true;
+			}
 		}
 	}
 

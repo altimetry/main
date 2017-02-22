@@ -53,6 +53,8 @@ public:
 	}
 
 	
+protected:
+
 	static std::string FormatRadsLocalOutputFolder( const std::string &user_data_dir );
 
 
@@ -71,11 +73,11 @@ protected:
 	// for the service to operate
 	//
 	std::vector< std::string > mMissionNames;
-	std::string mUserDataDir;							//data folder and log path dynamically formed based on this
+	std::string mUserWritableDirectory;					//data folder and log path dynamically formed based on this
 
-	int mNumberOfDays = smDefaultNumberOfDays;			//signed: we must be able to do arithmetic with negative mNumberOfDays
+	int mNumberOfDays = smDefaultNumberOfDays;	//signed: we must be able to do arithmetic with negative mNumberOfDays
 
-	std::vector< CRadsMission > mAllAvailableMissions;	//initialized by CommonConstruct
+	std::vector< CRadsMission > mAllMissions;	//initialized by CommonConstruct
 
 
 	// This parameter is for rads client private use
@@ -127,9 +129,13 @@ public:
 
 	const std::vector< std::string >& MissionNames() const { return mMissionNames; }
 
-	std::string OutputDirectory() const { return FormatRadsLocalOutputFolder( mUserDataDir ); }
+public:
 
-	std::string LogFilePath() const { return FormatRadsLogFilePath( mUserDataDir ); }
+	const std::string& UserWritableDirectory() const { return mUserWritableDirectory; }
+
+	std::string DownloadDirectory() const { return FormatRadsLocalOutputFolder( UserWritableDirectory() ); }
+
+	std::string LogFilePath() const { return FormatRadsLogFilePath( UserWritableDirectory() ); }
 
 
 	//... time related
@@ -145,6 +151,8 @@ public:
 
 protected:
 
+    std::string WritableDocumentsFolder();
+    
 	// Synchronization time computations
 
 	// Function effectively used to trigger a synchronization
@@ -310,7 +318,7 @@ public:
 	//////////////////////////////////////
 
 
-	const std::vector< CRadsMission >& AllAvailableMissions() const { return mAllAvailableMissions; }
+	const std::vector< CRadsMission >& AllMissions() const { return mAllMissions; }
 
 
 	// Calls to this function should be enveloped in lock/unlock command calls to the rads service

@@ -72,7 +72,9 @@ class CApplicationSettingsDlg : public QDialog
 	QCheckBox *mVectorSimplifyMethodCheck = nullptr;
 	QWidget *mStartupOptionsPage = nullptr;
 
-	QLineEdit *mRadsOutputEdit = nullptr;
+	QGroupBox *mRadsOutputBox = nullptr;
+	QLineEdit *mRadsOutputLineEdit = nullptr;
+	QPushButton *mBrowseRadsOutputPushButton = nullptr;
 	QSpinBox *mRadsSpin = nullptr;
 	QListWidget *mRadsMissionsList = nullptr;
 	QLabel *mNextSyncLabel = nullptr;
@@ -102,6 +104,11 @@ class CApplicationSettingsDlg : public QDialog
 	CBratSettings &mSettings;
 	const QtServiceController &mRadsController;
 	CSharedRadsSettings &mRadsServiceSettings;
+
+#if defined (Q_OS_WIN)
+
+	const bool mIsElevatedProcess;
+#endif
 
 
 	//construction / destruction
@@ -133,7 +140,6 @@ private slots:
 	void UpdateRadsButtons();
 
 	void HandleBrowseDataDirectory();
-	void HandleDataDirectoryLineEditEditingFinished();
     void HandleBrowseProjectsPath();
     void HandleMainLayerTypeChanged( bool toggled );
     void HandleViewsLayerTypeChanged( bool toggled );
@@ -141,6 +147,7 @@ private slots:
 	void HandleRadsInstall( bool toggled );
 	void HandleRadsStart_Test( bool toggled );
     void HandleRadsRefreshConnection();
+	void HandleBrowseRadsOutputDirectory();
 	void HandleRadsUserStart( bool toggled );
 	void HandleRadsPause( bool toggled );
 	void HandleViewLogFile();

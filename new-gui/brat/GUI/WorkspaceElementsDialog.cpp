@@ -75,7 +75,14 @@ const std::string& GenericTip( const VALUE &v )
 {
     Q_UNUSED( v );
 
-    return empty_string<std::string>();
+    return empty_string();
+}
+template< typename VALUE >
+const std::string& GenericIcon( const VALUE &v )
+{
+    Q_UNUSED( v );
+
+    return empty_string();
 }
 template<>
 const std::string& GenericName( const int &v )
@@ -106,6 +113,32 @@ const std::string& GenericTip( const CTreeWorkspace &v )
 {
 	return v.GetRootData()->GetPath();
 }
+template<>
+const std::string& GenericIcon( const CDataset & )
+{
+	static const std::string icon = ":/images/OSGeo/dataset.png";
+	return icon;
+}
+template<>
+const std::string& GenericIcon( const COperation & )
+{
+	static const std::string icon = ":/images/OSGeo/operation.png";
+	return icon;
+}
+template<>
+const std::string& GenericIcon( const CFormula & )
+{
+	static const std::string icon = ":/images/OSGeo/expression.png";
+	return icon;
+}
+template<>
+const std::string& GenericIcon( const CDisplay & )
+{
+	static const std::string icon = ":/images/OSGeo/2d-view.png";
+	return icon;
+}
+
+
 
 
 template< typename VALUE, typename ITERATOR, typename CHILD_NODE >
@@ -130,6 +163,8 @@ struct WkspcTreeNodeBase
 	{
 		item->setText( 0, t2q( GenericName( v ) ) );
 		item->setToolTip( 0, t2q( GenericTip( v ) ) );
+		if ( !GenericIcon( v ).empty() )
+			item->setIcon( 0, QIcon( GenericIcon( v ).c_str() ) );
 		return true;
 	}
 

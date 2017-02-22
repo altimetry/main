@@ -65,7 +65,7 @@ class CRadsClient : public QObject
 	bool mDisabled = false;
 	const std::string mRadsServerAddress;
 	COsProcess *mCurrentProcess = nullptr;
-	QSharedMemory mSharedMemory;
+    //QSharedMemory mSharedMemory;
 	QLocalServer *mSocketServer = nullptr;
 	std::vector< QLocalSocket* > mSocketConnections;
 	bool mBroadcasting = false;

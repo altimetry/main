@@ -35,7 +35,7 @@ class Example_J2WindSpeedCat(PyBratAlgoBase):
 
     def Run(self, PyAlgoParams):
         self.SetParamValues(PyAlgoParams)
-        self.Dump()
+        # self.Dump()
 
         if self.m4_surface_type > 2 : return -1  # float('NaN')
 

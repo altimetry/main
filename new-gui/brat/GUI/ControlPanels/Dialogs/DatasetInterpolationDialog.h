@@ -60,7 +60,7 @@ class CDatasetInterpolationDialog : public QDialog
 
 	//...domain data
 
-	const std::vector< std::string > &mFieldMNamesList;
+	const std::vector< std::string > &mFieldNamesList;
 	std::string mDataModeDITimeName;
 	QDateTime mDataModeDIDateTime;
 	double mDistanceWeightingParameter = 0.;

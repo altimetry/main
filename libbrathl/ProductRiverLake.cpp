@@ -163,41 +163,56 @@ namespace brathl
 
 		const bool qualified = listField.begin()->find( '.' ) != std::string::npos;
 		const std::string qualifier = qualified ? record + "." : "";
-		const std::string qualified_time = qualifier + m_TIME_NAME;
 
-		bool timePresent = false;
+		const std::string qualified_time = qualifier + m_TIME_NAME;
+		const std::string qualified_year = qualifier + m_YEAR_NAME;
+		const std::string qualified_month = qualifier + m_MONTH_NAME;
+		const std::string qualified_day = qualifier + m_DAY_NAME;
+		const std::string qualified_hour = qualifier + m_HOUR_NAME;
+		const std::string qualified_minute = qualifier + m_MINUTE_NAME;
+
+		bool time_present = false, year_present = false, month_present = false, day_present = false, hour_present = false, minute_present = false;
 
 		/*
-		 * In this product, the "time" field is a combined variable.
-		 * If it is in the list, the variables that will combine to create the
-		 * "time" value will be added to the list
-		 */
+		* In this product, the "time" field is a combined variable.
+		* If it is in the list, the variables that will combine to create the
+		* "time" value will be added to the list if not already there.
+		*/
 		for ( CStringList::iterator itField = listField.begin(); itField != listField.end(); itField++ )
 		{
-			/*
-			 * If "time" is present, then the fields that will combine are
-			 * added to the list, and "time" is moved back of the list
-			 */
-			if ( *itField == qualified_time )
-			{
-				timePresent = true;
-
-				*itField = qualifier + m_YEAR_NAME;
-			}
+			time_present = time_present || *itField == qualified_time;
+			year_present = year_present || *itField == qualified_year;
+			month_present = month_present || *itField == qualified_month;
+			day_present = day_present || *itField == qualified_day;
+			hour_present = hour_present || *itField == qualified_hour;
+			minute_present = minute_present || *itField == qualified_minute;
 		}
 
-		if ( timePresent )
+		/*
+		* If "time" is present, then the fields that will combine are
+		* added to the list, and "time" is moved back of the list
+		*/
+		if ( time_present )
 		{
-			listField.push_back( qualifier + m_MONTH_NAME );
+			listField.erase( std::find( listField.begin(), listField.end(), qualified_time ) );
 
-			listField.push_back( qualifier + m_DAY_NAME );
+			if ( !year_present )
+				listField.push_back( qualified_year );
+
+			if ( !month_present )
+				listField.push_back( qualified_month );
+
+			if ( !day_present )
+				listField.push_back( qualified_day );
 
 			if ( m_fileList.m_productType == m_PROD_TYPE_RLH )
-				listField.push_back( qualifier + m_HOUR_NAME );
+				if ( !hour_present )
+					listField.push_back( qualified_hour );
 
-			listField.push_back( qualifier + m_MINUTE_NAME );
+			if ( !minute_present )
+				listField.push_back( qualified_minute );
 
-			listField.push_back( qualifier + m_TIME_NAME );
+			listField.push_back( qualified_time );
 		}
 	}
 
@@ -273,11 +288,11 @@ namespace brathl
 
 		if ( m_fileList.m_productType == m_PROD_TYPE_RLH )
 		{
-			dateYMDHMSM.year = yearValue;
-			dateYMDHMSM.month = monthValue;
-			dateYMDHMSM.day = dayValue;
-			dateYMDHMSM.hour = hourValue;
-			dateYMDHMSM.minute = minuteValue;
+			dateYMDHMSM.year = static_cast<uint32_t>( yearValue );
+			dateYMDHMSM.month = static_cast<uint32_t>( monthValue );
+			dateYMDHMSM.day = static_cast<uint32_t>( dayValue );
+			dateYMDHMSM.hour = static_cast<uint32_t>( hourValue );
+			dateYMDHMSM.minute = static_cast<uint32_t>( minuteValue );
 			dateYMDHMSM.second = 0;
 			dateYMDHMSM.muSecond = 0;
 
@@ -285,9 +300,9 @@ namespace brathl
 		}
 		else
 		{
-			dateYMDHMSM.year = yearValue;
-			dateYMDHMSM.month = monthValue;
-			dateYMDHMSM.day = dayValue;
+			dateYMDHMSM.year = static_cast<uint32_t>( yearValue );
+			dateYMDHMSM.month = static_cast<uint32_t>( monthValue );
+			dateYMDHMSM.day = static_cast<uint32_t>( dayValue );
 			dateYMDHMSM.hour = 0;
 			dateYMDHMSM.minute = 0;
 			dateYMDHMSM.second = 0;

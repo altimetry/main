@@ -1195,274 +1195,274 @@ int32_t CBratProcessZFXY::Execute( std::string& msg )
 void CBratProcessZFXY::RegisterData()
 {
 
-  if (m_product == NULL)
-  {
-	  throw CException("PROGRAM ERROR: product is NULL (CBratProcessZFXY::RegisterData) - Perhaps, initialization has not been called",
-			   BRATHL_LOGIC_ERROR);
-  }
+	if ( m_product == NULL )
+	{
+		throw CException( "PROGRAM ERROR: product is NULL (CBratProcessZFXY::RegisterData) - Perhaps, initialization has not been called",
+			BRATHL_LOGIC_ERROR );
+	}
 
-  //CTrace *p = CTrace::GetInstance();
+	//CTrace *p = CTrace::GetInstance();
 
-  //p->Tracer(1,"Registering data ...");
+	//p->Tracer(1,"Registering data ...");
 
-  CDataSet* dataSet = NULL;
-  CObArray::iterator itDataSet;
+	CDataSet* dataSet = NULL;
+	CObArray::iterator itDataSet;
 
-  CRecordSet* recordSet = NULL;
+	CRecordSet* recordSet = NULL;
 
-  CExpressionValue exprValue;
+	CExpressionValue exprValue;
 
-  double xValue;
-  double yValue;
-  
-  setDefaultValue(xValue);
+	double xValue;
+	double yValue;
 
-//  OneMeasure	Measure;
+	setDefaultValue( xValue );
 
-  dataSet = m_product->GetDataSet();
+	//  OneMeasure	Measure;
 
-  //---------------------------------
-  // Picks up data from the recordset
-  //---------------------------------
-  for (itDataSet = dataSet->begin(); itDataSet != dataSet->end() ; itDataSet++)
-  {
-    recordSet = dataSet->GetRecordSet(itDataSet);
+	dataSet = m_product->GetDataSet();
 
-    ///bool firstRecord = (record == dataSet->front());
+	//---------------------------------
+	// Picks up data from the recordset
+	//---------------------------------
+	for ( itDataSet = dataSet->begin(); itDataSet != dataSet->end(); itDataSet++ )
+	{
+		recordSet = dataSet->GetRecordSet( itDataSet );
 
-    //---------------------------------
-    // Tests condition expression (select expression)
-    //---------------------------------
-    if (m_alwaysTrue == false)
-    {
-      recordSet->ExecuteExpression(m_select, m_recordName, exprValue, m_product);
-      if (exprValue.IsTrue() != 1)
-      {
-        //data doesn't match SELECT options,
-        //-------------
-        continue;
-        //-------------
-      }
+		///bool firstRecord = (record == dataSet->front());
 
-    }
+		//---------------------------------
+		// Tests condition expression (select expression)
+		//---------------------------------
+		if ( m_alwaysTrue == false )
+		{
+			recordSet->ExecuteExpression( m_select, m_recordName, exprValue, m_product );
+			if ( exprValue.IsTrue() != 1 )
+			{
+				//data doesn't match SELECT options,
+				//-------------
+				continue;
+				//-------------
+			}
 
-
-    //---------------------------------
-    // Reads X value
-    //---------------------------------
-    recordSet->ExecuteExpression(m_xField, m_recordName, exprValue, m_product);
-    
-    uint32_t nbValues = exprValue.GetNbValues();
-
-    if (nbValues == 0)
-    {
-      continue;
-    }
-
-    if (nbValues == 1)
-    {
-      xValue = exprValue.GetValues()[0];
-      
-      if (isDefaultValue(xValue))
-      {
-        //---------
-        continue;
-        //---------
-      }
-
-      xValue = base_t::CheckLongitudeValue(xValue, m_xMin, m_xType);
-    }
-    else
-    {
-      throw CException("X value must be scalar not a std::vector or a matrix",
-		       BRATHL_LIMIT_ERROR);
-    }
+		}
 
 
-    //---------------------------------
-    // Reads Y value
-    //---------------------------------
-    recordSet->ExecuteExpression(m_yField, m_recordName, exprValue, m_product);
-    
-    nbValues	= exprValue.GetNbValues();
+		//---------------------------------
+		// Reads X value
+		//---------------------------------
+		recordSet->ExecuteExpression( m_xField, m_recordName, exprValue, m_product );
 
-    if (nbValues == 0)
-    {
-      continue;
-    }
+		uint32_t nbValues = exprValue.GetNbValues();
 
-    if (nbValues == 1)
-    {
-      yValue = exprValue.GetValues()[0];
-      
-      if (isDefaultValue(yValue))
-      {
-        //---------
-        continue;
-        //---------
-      }
+		if ( nbValues == 0 )
+		{
+			continue;
+		}
 
-      yValue = base_t::CheckLongitudeValue(yValue, m_yMin, m_yType);
-    }
-    else
-    {
-      throw CException("Y value must be scalar not a std::vector or a matrix",
-		       BRATHL_LIMIT_ERROR);
-    }
+		if ( nbValues == 1 )
+		{
+			xValue = exprValue.GetValues()[ 0 ];
 
-    //-----------------------------
-    // Searches data x an y indexes
-    //-----------------------------
-    uint32_t xPos = 0;
-    uint32_t yPos = 0;
+			if ( isDefaultValue( xValue ) )
+			{
+				//---------
+				continue;
+				//---------
+			}
 
-    if (base_t::CheckOutsideValue(xValue, m_xMin, m_xMax, m_xStep, m_outsideMode))
-    {
-      continue;
-    }
-
-    if (base_t::CheckOutsideValue(yValue, m_yMin, m_yMax, m_yStep, m_outsideMode))
-    {
-      continue;
-    }
-
-    if (base_t::CheckPositionValue(xValue, m_xMin, m_xStep, m_xCount, m_positionMode, xPos))
-    {
-      continue;
-    }
-
-    if (base_t::CheckPositionValue(yValue, m_yMin, m_yStep, m_yCount, m_positionMode, yPos))
-    {
-      continue;
-    }
+			xValue = base_t::CheckLongitudeValue( xValue, m_xMin, m_xType );
+		}
+		else
+		{
+			throw CException( "X value must be scalar not a std::vector or a matrix",
+				BRATHL_LIMIT_ERROR );
+		}
 
 
-    //---------------------
-    // Gets data
-    //---------------------
+		//---------------------------------
+		// Reads Y value
+		//---------------------------------
+		recordSet->ExecuteExpression( m_yField, m_recordName, exprValue, m_product );
 
-    uint32_t indexExpr = 0;
-/*
-    for (indexExpr = 0 ; indexExpr < m_fields.size() ; indexExpr++)
-    {
-      CMatrix* matrix = GetMatrix(indexExpr, false);
-      if (matrix = NULL)
-      {
-        recordSet->ExecuteExpression(m_fields.at(indexExpr), m_recordName, exprValue, m_product);
-        
-        matrix = CreateGrid(indexExpr, exprValue); 
-      }
-      //---------------------------------
-      // Finds each data (expression) dimensions
-      //---------------------------------
+		nbValues	= exprValue.GetNbValues();
 
-      CMatrixDoublePtr* matrix = CBratProcessZFXY::GetMatrixDoublePtr(m_grids.at(indexExpr));
-      
-      if (matrix->IsMatrixDataSet())
-      {
-        //---------------------------------
-        // matrix data have already been set
-        //---------------------------------
-        break;
-        //---------------------------------
-      }
-    
-      p->Tracer(1, CTools::Format("Allocating and initialising gridded data structures of field '%s'", matrix->GetName().c_str()));
-      
-      recordSet->ExecuteExpression(m_fields.at(indexExpr), m_recordName, exprValue, m_product);
+		if ( nbValues == 0 )
+		{
+			continue;
+		}
 
-      //---------------------------------
-      matrix->InitMatrixDimsData(exprValue.GetDimensions(), base_t::MergeIdentifyUnsetData);
-      //---------------------------------
-    
-      int32_t countOffset = m_countOffsets.at(indexExpr);
-      int32_t meanOffset = m_meanOffsets.at(indexExpr);
-    
-      if (countOffset > 0)
-      {
-        matrix = CBratProcessZFXY::GetMatrixDoublePtr(m_grids.at(countOffset));
-  
-      //---------------------------------
-        matrix->InitMatrixDimsData(exprValue.GetDimensions(), base_t::MergeIdentifyUnsetData);
-      //---------------------------------
-      }
+		if ( nbValues == 1 )
+		{
+			yValue = exprValue.GetValues()[ 0 ];
 
-      if (meanOffset > 0)
-      {
-        matrix = CBratProcessZFXY::GetMatrixDoublePtr(m_grids.at(meanOffset));
-      
-      //---------------------------------
-        matrix->InitMatrixDimsData(exprValue.GetDimensions(), base_t::MergeIdentifyUnsetData);
-      //---------------------------------
+			if ( isDefaultValue( yValue ) )
+			{
+				//---------
+				continue;
+				//---------
+			}
 
-      }
-    }
-*/
-    //---------------------------------
-    // Reads data values (expression result)
-    //---------------------------------
-    for (indexExpr = 0 ; indexExpr < m_fields.size() ; indexExpr++)
-    {
-      recordSet->ExecuteExpression(m_fields.at(indexExpr), m_recordName, exprValue, m_product);
+			yValue = base_t::CheckLongitudeValue( yValue, m_yMin, m_yType );
+		}
+		else
+		{
+			throw CException( "Y value must be scalar not a std::vector or a matrix",
+				BRATHL_LIMIT_ERROR );
+		}
 
-      CMatrix* matrix = GetMatrix(indexExpr, false);
-      if (matrix == NULL)
-      {
-        //recordSet->ExecuteExpression(m_fields.at(indexExpr), m_recordName, exprValue, m_product);
-        
-        matrix = CreateGrid(indexExpr, exprValue); 
-      }
+		//-----------------------------
+		// Searches data x an y indexes
+		//-----------------------------
+		uint32_t xPos = 0;
+		uint32_t yPos = 0;
+
+		if ( base_t::CheckOutsideValue( xValue, m_xMin, m_xMax, m_xStep, m_outsideMode ) )
+		{
+			continue;
+		}
+
+		if ( base_t::CheckOutsideValue( yValue, m_yMin, m_yMax, m_yStep, m_outsideMode ) )
+		{
+			continue;
+		}
+
+		if ( base_t::CheckPositionValue( xValue, m_xMin, m_xStep, m_xCount, m_positionMode, xPos ) )
+		{
+			continue;
+		}
+
+		if ( base_t::CheckPositionValue( yValue, m_yMin, m_yStep, m_yCount, m_positionMode, yPos ) )
+		{
+			continue;
+		}
 
 
-      //int32_t countOffset = m_countOffsets.at(indexExpr);
-      //int32_t meanOffset = m_meanOffsets.at(indexExpr);
-      
-      
-      double* dataValues = NULL;
-      double* countValues = NULL;
-      double* meanValues = NULL;
+		//---------------------
+		// Gets data
+		//---------------------
 
-      GetDataValuesFromMatrix(indexExpr, xPos, yPos, dataValues, countValues, meanValues, nbValues);
+		uint32_t indexExpr = 0;
+		/*
+			for (indexExpr = 0 ; indexExpr < m_fields.size() ; indexExpr++)
+			{
+			  CMatrix* matrix = GetMatrix(indexExpr, false);
+			  if (matrix = NULL)
+			  {
+				recordSet->ExecuteExpression(m_fields.at(indexExpr), m_recordName, exprValue, m_product);
 
-      
-      if (base_t::IsProductNetCdf())
-      {
-        CNetCDFCoordinateAxis* coordVar = dynamic_cast<CNetCDFCoordinateAxis*>(m_internalFiles->GetNetCDFVarDef(m_names[indexExpr]));
-        if (coordVar != NULL)
-        {
-          std::string msg;
-          bool areValuesSimilar = CheckValuesSimilar(indexExpr, exprValue.GetValues(), nbValues, xPos, yPos, msg);
-          if (! areValuesSimilar)
-          {
-            CTrace::Tracer(2, ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
-            CTrace::Tracer(2, msg);
-            CTrace::Tracer(2, ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+				matrix = CreateGrid(indexExpr, exprValue);
+			  }
+			  //---------------------------------
+			  // Finds each data (expression) dimensions
+			  //---------------------------------
 
-          }
-        }
-      }
+			  CMatrixDoublePtr* matrix = CBratProcessZFXY::GetMatrixDoublePtr(m_grids.at(indexExpr));
+
+			  if (matrix->IsMatrixDataSet())
+			  {
+				//---------------------------------
+				// matrix data have already been set
+				//---------------------------------
+				break;
+				//---------------------------------
+			  }
+
+			  p->Tracer(1, CTools::Format("Allocating and initialising gridded data structures of field '%s'", matrix->GetName().c_str()));
+
+			  recordSet->ExecuteExpression(m_fields.at(indexExpr), m_recordName, exprValue, m_product);
+
+			  //---------------------------------
+			  matrix->InitMatrixDimsData(exprValue.GetDimensions(), base_t::MergeIdentifyUnsetData);
+			  //---------------------------------
+
+			  int32_t countOffset = m_countOffsets.at(indexExpr);
+			  int32_t meanOffset = m_meanOffsets.at(indexExpr);
+
+			  if (countOffset > 0)
+			  {
+				matrix = CBratProcessZFXY::GetMatrixDoublePtr(m_grids.at(countOffset));
+
+			  //---------------------------------
+				matrix->InitMatrixDimsData(exprValue.GetDimensions(), base_t::MergeIdentifyUnsetData);
+			  //---------------------------------
+			  }
+
+			  if (meanOffset > 0)
+			  {
+				matrix = CBratProcessZFXY::GetMatrixDoublePtr(m_grids.at(meanOffset));
+
+			  //---------------------------------
+				matrix->InitMatrixDimsData(exprValue.GetDimensions(), base_t::MergeIdentifyUnsetData);
+			  //---------------------------------
+
+			  }
+			}
+		*/
+		//---------------------------------
+		// Reads data values (expression result)
+		//---------------------------------
+		for ( indexExpr = 0; indexExpr < m_fields.size(); indexExpr++ )
+		{
+			recordSet->ExecuteExpression( m_fields.at( indexExpr ), m_recordName, exprValue, m_product );
+
+			CMatrix* matrix = GetMatrix( indexExpr, false );
+			if ( matrix == NULL )
+			{
+				//recordSet->ExecuteExpression(m_fields.at(indexExpr), m_recordName, exprValue, m_product);
+
+				matrix = CreateGrid( indexExpr, exprValue );
+			}
 
 
-      CMatrixDouble* matrixDouble = CBratProcessZFXY::GetMatrixDouble(matrix, false);
-      
-      CMatrixDoublePtr* matrixDoublePtr = CBratProcessZFXY::GetMatrixDoublePtr(matrix, false);
+			//int32_t countOffset = m_countOffsets.at(indexExpr);
+			//int32_t meanOffset = m_meanOffsets.at(indexExpr);
 
-      double* auxParams = ComputeMergeDataValueParameters(recordSet, indexExpr, xValue, yValue);
 
-      if (matrixDouble != NULL)
-      {
-        MergeDataValue(*dataValues, exprValue.GetValues()[0], countValues, meanValues, auxParams, m_dataMode[indexExpr]);
-      }
-      else if (matrixDoublePtr != NULL)
-      {
-        MergeDataValue(dataValues, exprValue.GetValues(), nbValues, indexExpr, countValues, meanValues, auxParams);
-      }
+			double* dataValues = NULL;
+			double* countValues = NULL;
+			double* meanValues = NULL;
 
-    }
+			GetDataValuesFromMatrix( indexExpr, xPos, yPos, dataValues, countValues, meanValues, nbValues );
 
-  }
 
-  //p->Tracer(1,"End registering data");
+			if ( base_t::IsProductNetCdf() )
+			{
+				CNetCDFCoordinateAxis* coordVar = dynamic_cast<CNetCDFCoordinateAxis*>( m_internalFiles->GetNetCDFVarDef( m_names[ indexExpr ] ) );
+				if ( coordVar != NULL )
+				{
+					std::string msg;
+					bool areValuesSimilar = CheckValuesSimilar( indexExpr, exprValue.GetValues(), nbValues, xPos, yPos, msg );
+					if ( ! areValuesSimilar )
+					{
+						CTrace::Tracer( 2, ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" );
+						CTrace::Tracer( 2, msg );
+						CTrace::Tracer( 2, ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" );
+
+					}
+				}
+			}
+
+
+			CMatrixDouble* matrixDouble = CBratProcessZFXY::GetMatrixDouble( matrix, false );
+
+			CMatrixDoublePtr* matrixDoublePtr = CBratProcessZFXY::GetMatrixDoublePtr( matrix, false );
+
+			double* auxParams = ComputeMergeDataValueParameters( recordSet, indexExpr, xValue, yValue );
+
+			if ( matrixDouble != NULL )
+			{
+				MergeDataValue( *dataValues, exprValue.GetValues()[ 0 ], countValues, meanValues, auxParams, m_dataMode[ indexExpr ] );
+			}
+			else if ( matrixDoublePtr != NULL )
+			{
+				MergeDataValue( dataValues, exprValue.GetValues(), nbValues, indexExpr, countValues, meanValues, auxParams );
+			}
+
+		}
+
+	}
+
+	//p->Tracer(1,"End registering data");
 }
 
 double* CBratProcessZFXY::ComputeMergeDataValueParameters(CRecordSet* recordSet, uint32_t index, double xPos, double yPos) {

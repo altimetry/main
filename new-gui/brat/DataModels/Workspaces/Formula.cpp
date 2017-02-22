@@ -31,7 +31,6 @@ using namespace brathl;
 using namespace processes;
 
 #include "Workspace.h"
-#include "Constants.h"
 #include "Formula.h"
 #include "WorkspaceSettings.h"
 

@@ -82,8 +82,7 @@ void CDatasetsBrowserControlsBase::AddSpecializedWgdets( QWidget *buttons_row, c
 
 //explicit
 CDatasetsBrowserControlsBase::CDatasetsBrowserControlsBase( CBratApplication &app, CDesktopManagerBase *manager, QWidget *parent, Qt::WindowFlags f )	//parent = nullptr, Qt::WindowFlags f = 0
-    : base_t( app.DataModel(), manager, parent, f )
-    , mApp( app )
+    : base_t( app, manager, parent, f )
 	, mBratPaths( mModel.BratPaths() )
 {
 }
@@ -136,13 +135,11 @@ void CDatasetsBrowserControlsBase::HandleDatasetExpanded()
 }
 
 
-void CDatasetsBrowserControlsBase::HandleWorkspaceChanged( CWorkspaceDataset *wksd )
+
+//virtual 
+void CDatasetsBrowserControlsBase::WorkspaceChanged() //override;
 {
-	const std::string tab_name = DatasetType() == eStandard ? "Datasets" : "RADS Datasets";
-
-	LOG_TRACEstd( tab_name + " tab started handling signal to change workspace" );
-
-	mWDataset = wksd;
+	base_t::WorkspaceChanged();
 
 	mDatasetTree->blockSignals( true );
 	mDatasetTree->clear();
@@ -154,7 +151,7 @@ void CDatasetsBrowserControlsBase::HandleWorkspaceChanged( CWorkspaceDataset *wk
 
 	// Fill DatasetTree with Datasets items
 	//
-	if (wksd)
+	if ( mWDataset )
 	{
 		auto *datasets = mWDataset->GetDatasets();
 		for( auto const &it : *datasets )
@@ -164,6 +161,18 @@ void CDatasetsBrowserControlsBase::HandleWorkspaceChanged( CWorkspaceDataset *wk
 				AddDatasetToTree( name );
 		}
 	}
+}
+
+
+void CDatasetsBrowserControlsBase::HandleWorkspaceChanged( CWorkspaceDataset *wksd )
+{
+	const std::string tab_name = DatasetType() == eStandard ? "Datasets" : "RADS Datasets";
+
+	LOG_TRACEstd( tab_name + " tab started handling signal to change workspace" );
+
+	mWDataset = wksd;
+
+	WorkspaceChanged();
 
 	LOG_TRACEstd( tab_name + " tab finished handling signal to change workspace" );
 }
@@ -287,7 +296,12 @@ bool CDatasetsBrowserControlsBase::RenameDataset( QTreeWidgetItem *dataset_item 
 			// Dataset renamed. Update tool-tip and notify the change
 			//
 			dataset_item->setToolTip( 0, new_name );	//this triggers another itemChanged
+
 			emit DatasetsChanged( current_dataset );
+
+			if ( CurrentMapDataset() == current_dataset )
+				UpdateMapTitle();
+
 			return true;
 		}
 		else // Repeated name
@@ -306,6 +320,46 @@ bool CDatasetsBrowserControlsBase::RenameDataset( QTreeWidgetItem *dataset_item 
 	dataset_item->setText( 0, old_name );
 
 	return false;
+}
+
+
+bool CDatasetsBrowserControlsBase::CheckNewFilesClassAndType
+( 
+	const std::string &old_product_class, const std::string &old_product_type, const CDataset *current_dataset 
+)
+{
+	const bool is_same_product_class_and_type = 
+		str_icmp( old_product_class, current_dataset->ProductClass() ) &&
+		str_icmp( old_product_type, current_dataset->ProductType() );
+
+	CWorkspaceOperation *wkso = mModel.Workspace<CWorkspaceOperation>();		assert__( wkso != nullptr );
+
+	CStringArray operation_names;
+	bool used_by_operations = wkso->UseDataset( current_dataset->GetName(), &operation_names );
+	//if old_product_class.empty there was no data, so there is no product change
+	if ( !old_product_class.empty() && !is_same_product_class_and_type && used_by_operations )
+	{
+		std::string str = operation_names.ToString( "\n", false );
+		SimpleWarnBox( 
+			"Warning: Files contained in the dataset '"
+			+ current_dataset->GetName()
+			+ "' have been changed from '"
+			+ old_product_class
+			+ "/"
+			+ old_product_type
+			+ "' to '"
+			+ current_dataset->ProductClass()
+			+ "/"
+			+ current_dataset->ProductType()
+			+ "' product class/type.\n\nThis dataset is used by the operations below:\n"
+			+ str
+			+ "\n\nPlease review the fields used in these operations."
+		);
+
+		return false;
+	}
+
+	return true;
 }
 
 
@@ -334,17 +388,16 @@ void CDatasetsBrowserControlsBase::HandleSelectionChanged( )
 	//
 	ClearFieldList();
 
-	QString dataset_name = TreeItemSelectionChanged( mDatasetTree->currentItem() );
+	QList<QTreeWidgetItem *> l = mDatasetTree->selectedItems();						assert__( l.size() <= 1 );
+	QString dataset_name = TreeItemSelectionChanged( l.empty() ? nullptr : l[0] );
 	if ( dataset_name.isEmpty() )
 		return;
 
-	// notify the world (different dataset)
-	//
 	CDataset *dataset = WorkspaceDataset( dataset_name );		assert__( dataset );
 	if( current_dataset != dataset )
 	{
 		current_dataset = dataset;
-		emit CurrentDatasetChanged( current_dataset );
+		DrawDatasetTracks( current_dataset, false );
 	}
 }
 
@@ -453,7 +506,7 @@ void CDatasetsBrowserControlsBase::HandleDeleteDataset()
 	// Notify about the change ( dataset deleted )
 	//
 	emit DatasetsChanged( nullptr );
-	emit CurrentDatasetChanged( nullptr );
+	DrawDatasetTracks( nullptr, false );
 
 	// -TODO -- Old Brat code ----------------------
 	//EnableCtrl();

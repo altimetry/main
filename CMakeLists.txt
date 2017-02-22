@@ -1292,37 +1292,44 @@ INSTALL(
 # Globe
 #######################################################
 
-IF(WIN32)
+INSTALL(
+	DIRECTORY
+	new-gui/brat/Resources/globe
+	DESTINATION ${RUNTIME_DESTINATION}
+	COMPONENT brat_runtime
+	)
 
-	INSTALL(
-		DIRECTORY
-		${QGIS_DIR}/globe
-		DESTINATION ${RUNTIME_DESTINATION}
-		COMPONENT brat_runtime
-		)
-
-ELSE(WIN32)
-
-	IF (APPLE)
-
-		INSTALL(
-			DIRECTORY
-			${QGIS_DIR}/Resources/globe
-			DESTINATION ${RUNTIME_DESTINATION}
-			COMPONENT brat_runtime
-			)
-
-	ELSE (APPLE)
-		INSTALL(
-			DIRECTORY
-			${QGIS_DIR}/share/qgis/globe
-			DESTINATION ${RUNTIME_DESTINATION}
-			COMPONENT brat_runtime
-			OPTIONAL
-			)
-	ENDIF(APPLE)
-
-ENDIF(WIN32)
+#IF(WIN32)
+#
+#	INSTALL(
+#		DIRECTORY
+#		${QGIS_DIR}/globe
+#		DESTINATION ${RUNTIME_DESTINATION}
+#		COMPONENT brat_runtime
+#		)
+#
+#ELSE(WIN32)
+#
+#	IF (APPLE)
+#
+#		INSTALL(
+#			DIRECTORY
+#			${QGIS_DIR}/Resources/globe
+#			DESTINATION ${RUNTIME_DESTINATION}
+#			COMPONENT brat_runtime
+#			)
+#
+#	ELSE (APPLE)
+#		INSTALL(
+#			DIRECTORY
+#			${QGIS_DIR}/share/qgis/globe
+#			DESTINATION ${RUNTIME_DESTINATION}
+#			COMPONENT brat_runtime
+#			OPTIONAL
+#			)
+#	ENDIF(APPLE)
+#
+#ENDIF(WIN32)
 
 	
 #######################################################
@@ -1568,28 +1575,13 @@ add_custom_target(externals-install
 
 # The data/ subdirectory
 
-set(CODADEF_FILES
-	#data/CRYOSAT-20120130.codadef
-	data/CRYOSAT-20150601.codadef
-	#data/ENVISAT_RA2MWR-20110125.codadef
-	data/ENVISAT_RA2MWR-20120623.codadef
-	data/ERS_MWR-20110820.codadef
-	data/ERS_RA-20110820.codadef
-	data/GFO-20110125.codadef
-	data/JASON-20110125.codadef
-	data/PODAAC-20110125.codadef
-	data/RADS-20080701.codadef
-	data/River_Lake-20110125.codadef
-	data/Topex_Poseidon-20110125.codadef
-  )
+file( GLOB CODADEF_FILES			data/*.codadef )
+file( GLOB BRATHL_REFERENCE_FILES	data/brathl_* )
+file( GLOB BRATHL_ALIASES_FILES		data/aliases.* )
 
 set(LIBBRATHL_DATA_FILES
-  data/brathl_units.dat
-  data/cycle-pass-references.txt
-  data/brathl_transposefieldvalues.txt
-  data/aliases.xml
-  data/aliases.xsd
-  data/aliases.xsd.html
+	${BRATHL_REFERENCE_FILES}
+	${BRATHL_ALIASES_FILES}
   )
 
 set(GUI_DATA_FILES
@@ -1620,7 +1612,6 @@ set(BRAT_TOOLS_SOURCES_H
     common/tools/CoreTypes.h
     common/+Utils.h
     common/ccore-types.h
-
   )
 
 
@@ -2786,6 +2777,7 @@ if(BRAT_BUILD_GUI)
 		new-gui/brat/GUI/ControlPanels/Dialogs/DatasetInterpolationDialog.cpp
 		new-gui/brat/GUI/ControlPanels/DatasetsBrowserControlsBase.cpp
 		new-gui/brat/DataModels/Workspaces/ProductInfo.cpp
+		new-gui/brat/GUI/ControlPanels/Dialogs/RadsPhasesDialog.cpp
 	)
 
 		
@@ -2805,7 +2797,6 @@ if(BRAT_BUILD_GUI)
 		new-gui/brat/GUI/DisplayWidgets/3DPlotWidget.h
 		new-gui/brat/GUI/DisplayWidgets/GlobeWidget.h
 		new-gui/brat/GUI/DisplayWidgets/MapWidget.h
-		new-gui/brat/DataModels/Workspaces/Constants.h
 		new-gui/brat/DataModels/Workspaces/Dataset.h
 		new-gui/brat/DataModels/Workspaces/Operation.h
 		new-gui/brat/DataModels/Workspaces/Formula.h
@@ -2913,6 +2904,7 @@ if(BRAT_BUILD_GUI)
 		new-gui/brat/GUI/DisplayWidgets/PlotsGraphicParameters.h
 		new-gui/brat/GUI/ControlPanels/DatasetsBrowserControlsBase.h
 		new-gui/brat/DataModels/Workspaces/ProductInfo.h
+		new-gui/brat/GUI/ControlPanels/Dialogs/RadsPhasesDialog.h
 	)
 
 

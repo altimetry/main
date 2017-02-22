@@ -26,7 +26,6 @@
 
 using namespace brathl;
 
-#include "Constants.h"
 #include "WorkspaceSettings.h"
 
 #include "Function.h"

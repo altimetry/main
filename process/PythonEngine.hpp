@@ -458,7 +458,8 @@ protected:
               //case CBratAlgorithmParam::T_VECTOR_DOUBLE:  break;
               default:
                std::cout << "Error while creating PyArguments: Brat algorithm type " << ParamTypeVal << " is not valid!" << std::endl;
-            }
+			   throw e_error_create_python_arg;
+			}
 
             if (PyErr_Occurred()) {
                 PyErr_Print();

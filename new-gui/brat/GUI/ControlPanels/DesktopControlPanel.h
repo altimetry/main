@@ -25,6 +25,7 @@
 #include "GUI/StackedWidget.h"
 
 
+class CBratApplication;
 class CWorkspaceDataset;
 class CWorkspaceOperation;
 class CWorkspaceDisplay;
@@ -54,8 +55,48 @@ class CDesktopControlsPanel : public CControlPanel
 
 	using base_t = CControlPanel;
 
+
+	struct CPendingTracks
+	{
+		const CDataset *mDataset;
+		bool mForceRedraw;
+	};
+
+
 protected:
+
 	using stack_button_type = CStackedWidget::stack_button_type;
+
+
+	//static members
+
+private:
+
+	static CPendingTracks *smPendingTrack;
+
+	static bool smAutoSatelliteTrack;
+	static const CDataset *smDataset;
+	static bool smSomeTrackDisplayed;
+	static int smTotalRecords;
+
+
+protected:
+
+	static const CDataset* CurrentMapDataset()
+	{
+		return smDataset;
+	}
+
+
+public:
+
+	// Setter must redraw map; so, it must be instance member,
+	//	for instance, to access the widget's parent
+	//
+	static bool AutoDrawSatelliteTrack()
+	{
+		return smAutoSatelliteTrack;
+	}
 
 
 	//instance data
@@ -64,17 +105,44 @@ private:
 	bool mSelectedPanel = false;					
 
 protected:
+	CBratApplication &mApp;
 	CModel &mModel;
 	CDesktopManagerBase *mDesktopManager = nullptr;
+	CMapWidget *mMap = nullptr;
+
 
 	//construction / destruction
 
 public:
-	explicit CDesktopControlsPanel( CModel &model, CDesktopManagerBase *manager, QWidget *parent = nullptr, Qt::WindowFlags f = 0 );
+	explicit CDesktopControlsPanel( CBratApplication &app, CDesktopManagerBase *manager, QWidget *parent = nullptr, Qt::WindowFlags f = 0 );
 
-	virtual ~CDesktopControlsPanel()
-	{}	
+	virtual ~CDesktopControlsPanel();
 
+
+	// access 
+
+	//...satellite tracks
+
+	void SetAutoDrawSatelliteTrack( bool track )
+	{
+		smAutoSatelliteTrack = track;
+		DrawDatasetTracks( smDataset, false );
+	}
+
+	// force_redraw: 
+	//	- always redraw if dataset exists, even if equal to the cached smDataset
+	//	- always clear if dataset is null, even if equal to the cached smDataset (that is, smDataset is also null)
+	//	(if smAutoSatelliteTrack is false, it has no effect)
+	//
+	// Returns true if tracks were refreshed (even if reading data issued errors and nothing was drawn)
+	// Returns false if 
+	//	- tracks were only cleared and/or there was nothing to refresh (no new data to read)
+	//	- function was busy and dataset saved to draw tracks later
+	//
+	bool DrawDatasetTracks( const CDataset *dataset, bool force_redraw );
+
+
+	//...panel selection
 
 	bool SelectedPanel() const { return mSelectedPanel; }
 
@@ -82,13 +150,32 @@ public:
 	//
 	void ChangePanelSelection( bool selected );
 
+
 protected:
+
+	// This a pure function BUT it has a (base class) implementation
+	// Derived classes must call base class WorkspaceChanged() whenever they receive 
+	//	the respective signal. 
+	//
+	virtual void WorkspaceChanged() = 0;
+
 
 	// Derived classes must call SelectedPanel() in overrider methods to know their current
 	//	selection status
 	//
 	virtual void UpdatePanelSelectionChange() = 0;
 
+
+	int TotalRecords() const { return smTotalRecords; }
+
+
+	void SelectAreaInMap( double lonm, double lonM, double latm, double latM );
+
+
+	void RemoveAreaSelectionFromMap();
+
+
+	void UpdateMapTitle();
 
 public:
 
@@ -103,6 +190,11 @@ public:
 	{
 		return ::CreateGroupBox< QgsCollapsibleGroupBox >( o, v, title, parent, spacing, left, top, right, bottom);
 	}
+
+
+protected slots:
+
+	void ProcessPendingTracks();
 };
 
 

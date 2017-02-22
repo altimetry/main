@@ -39,7 +39,7 @@
                 </shortcut>
                 <shortcut>
                     <comment>${product_fullname} ${product_version} @BRAT_TARGET_PROCESSOR@ Scheduler Interface</comment>
-                    <exec>${installdir}/bin/brat</exec>
+                    <exec>${installdir}/bin/scheduler</exec>
                     <icon>${installdir}/bin/data/BratIcon.png</icon>
                     <name>${product_shortname} Scheduler ${product_version} @BRAT_TARGET_PROCESSOR@</name>
                     <path></path>

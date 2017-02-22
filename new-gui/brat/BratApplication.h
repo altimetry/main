@@ -107,6 +107,8 @@ private:
 
 	static void CheckOpenGL( bool extended = false );
 
+	static void CheckWindowsStat();
+
 
 	static ERadsNotification Convert( ERsyncStatus status )
 	{
@@ -227,7 +229,7 @@ public:
 
 	bool SendRadsServiceCommand( int code );
 
-	bool RsyncIsActive() const { return mRsyncStatus == eRsyncRunnig; }
+	bool IsRsyncActive() const { return mRsyncStatus == eRsyncRunnig; }
 	bool ResetRadsSocketConnection();
     
 	const QtServiceController& RadsServiceController() const { return mServiceController; }
@@ -262,6 +264,9 @@ protected:
 
 
     bool RegisterAlgorithms();
+
+
+    bool ReadSingleSocketMessage();
 
 
 signals:
