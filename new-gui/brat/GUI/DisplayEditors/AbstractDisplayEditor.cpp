@@ -842,7 +842,7 @@ void CAbstractDisplayEditor::HandleRenameButtonClicked()
 {
     assert__( mDisplay );
 
-    auto result = ValidatedInputString( "View Name", mDisplay->GetName(), "Rename View" );
+    auto result = SimpleInputStringValidated( "View Name", mDisplay->GetName(), "Rename View" );
 	if ( !result.first )
 		return;
 

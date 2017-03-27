@@ -2538,7 +2538,7 @@ void CMapWidget::SetNextTip( const QgsPoint &geo_point, bool globe )
 		mLastMapPosition = geo_point;
 
 		// Clear the map tip (this is done conditionally)
-		mpMaptip->Clear( this );
+		mpMaptip->Clear();
 
 		// TODO Activate globe tips AFTER computing searchRadiusMU for globe layer; see note in CGlobeWidget::HandleMapTipTriggerd
 		if ( globe )

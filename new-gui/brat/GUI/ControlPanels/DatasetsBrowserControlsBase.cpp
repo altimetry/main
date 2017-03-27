@@ -408,7 +408,7 @@ void CDatasetsBrowserControlsBase::HandleNewDataset()
 	assert__( mWDataset != nullptr );
 
 	const bool is_rads = DatasetType() == eRADS;
-	auto result = ValidatedInputString( "Dataset Name", mWDataset->GetDatasetNewName( is_rads ), "New Dataset..." );
+	auto result = SimpleInputStringValidated( "Dataset Name", mWDataset->GetDatasetNewName( is_rads ), "New Dataset..." );
 	if ( !result.first )
 		return;
 

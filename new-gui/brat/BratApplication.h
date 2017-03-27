@@ -210,7 +210,8 @@ public:
 		mLeakExceptions = leak;
 	}
 
-
+    
+    QStringList CleanArgumentsList() const;
 	bool OperatingInDisplayMode() const { return mOperatingInDisplayMode; }
     bool OperatingInInstantPlotSaveMode() const { return mOperatingInInstantPlotSaveMode; }
 

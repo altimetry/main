@@ -242,15 +242,34 @@ void CBratApplication::RegisterAsQtTypes()
 }
 
 
+// Remove all arguments starting with "--", because they are not
+//  for direct brat use, only for its dependencies, such as Qt
+//
+QStringList CBratApplication::CleanArgumentsList() const
+{
+    QStringList args = arguments();
+    args.removeFirst();
+    
+    int i = 0;
+    while ( i < args.size() )
+    {
+        if ( args[i].startsWith( "--" ) )
+            args.removeAt(i);
+        else
+            i++;
+    }
+    
+    return args;
+}
+
 void CBratApplication::CheckRunMode()
 {
 	LOG_TRACE( "Operating mode check..." );			assert__( !mOperatingInDisplayMode );
 	
-    QStringList args = arguments();
-    args.removeFirst();
-    if ( args.empty() )
+    QStringList args = CleanArgumentsList();
+    if ( args.isEmpty() )
         return;
-
+    
     QString wkspc_dir = args[ 0 ];
     mOperatingInDisplayMode = !IsDir( wkspc_dir );	//no workspace, but there are command line arguments: let old BratDisplay ghost take the command
     mOperatingInInstantPlotSaveMode = IsDir( args[ 0 ] ) && args.size() >= 3 && args.size() <= 4;

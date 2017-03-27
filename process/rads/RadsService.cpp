@@ -319,23 +319,6 @@ inline STRING QuotePath( const STRING &path )
 	return "\"" + path + "\"";
 }
 
-//September 2016:
-//server: corads.tudelft.nl
-//user: radsuser
-//pass. rat@tu1
-
-//$RADS_ROOT/data/<sat>/<phase>/cycle/<sat>p<pass>c<cycle>.nc
-//rsync -avrz --password-file=/cygdrive/l/bin/v140_xp/x64/Debug/brat/data/rads_pass.txt --del radsuser@corads.tudelft.nl::rads/tables .
-//rsync -avrz --password-file=/cygdrive/l/bin/v140_xp/x64/Debug/brat/data/rads_pass.txt --del radsuser@corads.tudelft.nl::rads/data/j2 radsuser@corads.tudelft.nl::rads/data/c2 "/cygdrive/p/My Documents/brat/user-data/rads"
-//rsync -avrzR --no-p --password-file=/cygdrive/l/bin/v140_xp/x64/Debug/brat/data/rads_pass.txt --del 
-//radsuser@corads.tudelft.nl::rads/data/j2/a/c000 
-//radsuser@corads.tudelft.nl::rads/data/c2/a/c004 "/cygdrive/p/My Documents/brat/user-data/rads"
-//rd /q /s .\rads
-
-//"/usr/bin/rsync" -avrzR --del --password-file="/Users/brat/dev/bin/Qt-5.7.0/brat/x86_64/Debug/brat.app/Contents/MacOS/data/rads_pass.txt" radsuser@corads.tudelft.nl::rads/data/c2 radsuser@corads.tudelft.nl::rads/data/j2  "/Volumes/ext_My_Passport/user-data/rads"
-// /usr/bin/rsync -avrzR --del --password-file="/Users/brat/dev/bin/Qt-5.7.0/brat/x86_64/Debug/brat.app/Contents/MacOS/data/rads_pass.txt" radsuser@corads.tudelft.nl::'rads/data/c2 rads/data/j2'  "/Volumes/ext_My_Passport/user-data/rads"
-// /usr/bin/rsync -avrzR --del --password-file="/home/femm/dev/bin/Qt-5.7.0/brat/x86_64/Debug/data/rads_pass.txt" radsuser@corads.tudelft.nl::"rads/data/conf" "/home/femm/Documents/brat/user-data/rads"
-
 
 bool CRadsClient::Synchronize( bool force )		//force = false 
 {

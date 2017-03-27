@@ -355,7 +355,7 @@ QSize CMapEditor::sizeHint() const
 {
 	static const double hchild_ratio = mModel->Settings().HchildRatio();
 
-	return mModel ? QSize( GlobeWidgetWidth( hchild_ratio ), GlobeWidgetHeight( hchild_ratio ) ) : base_t::sizeHint();
+	return mModel ? QSize( GlobeEditorWidth( hchild_ratio ), GlobeEditorHeight( hchild_ratio ) ) : base_t::sizeHint();
 }
 
 

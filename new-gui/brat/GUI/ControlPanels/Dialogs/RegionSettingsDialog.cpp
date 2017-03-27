@@ -176,7 +176,7 @@ void CRegionSettingsDialog::FillAreasList()
 
 void CRegionSettingsDialog::HandleNewRegion()
 {
-    auto result = ValidatedInputString( "Region Name", mBratRegions.MakeNewName(), "New Region..." );
+    auto result = SimpleInputStringValidated( "Region Name", mBratRegions.MakeNewName(), "New Region..." );
     if ( !result.first )
         return;
 
@@ -197,7 +197,7 @@ void CRegionSettingsDialog::HandleRenameRegion()
 {
     std::string region_name = mRegionsCombo->currentText().toStdString();
 
-    auto result = ValidatedInputString( "Region Name", region_name, "Rename Region..." );
+    auto result = SimpleInputStringValidated( "Region Name", region_name, "Rename Region..." );
     if ( !result.first )
         return;
 

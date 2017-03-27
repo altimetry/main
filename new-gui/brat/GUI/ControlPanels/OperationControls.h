@@ -36,7 +36,7 @@ class CBratTask;
 class CProgressInterface;
 
 
-#if defined (_MSC_VER) && (_MSC_VER >= 1900 ) && defined (USE_DATA_VISUALIZATION)
+#if defined (USE_DATA_VISUALIZATION)
 
 #include "../support/code/future/NewPlotEditor.h"
 #include "../support/code/future/BratMainWindowNew.h"

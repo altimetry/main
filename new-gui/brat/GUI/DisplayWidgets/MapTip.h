@@ -74,14 +74,15 @@ public:
 	//         in map coordinates.
 	//  - thePixelPosition a reference to the position of the cursor
 	//         in pixel coordinates.
-	//  - map_canvas a map canvas on which the tip is drawn
+	//  - map_canvas the map canvas that owns the layer (can be equal to dest)
+    //  - dest the widget on which the tip is drawn
 	// 
 	void ShowMapTip( QgsMapLayer *layer, QgsPoint & map_position, const QPoint &pixel_position, CMapWidget *map_canvas, QWidget *dest );
 
 	// Clear the current map tip if it exists 
 	//	- map_canvas the canvas from which the tip should be cleared.
 	//
-	void Clear( CMapWidget *map_canvas );
+	void Clear();
 
 private:
 	// Fetch the feature to use for the map tip text. Only the first feature in the search radius is used

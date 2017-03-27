@@ -85,7 +85,11 @@ void CBratFilterControls::CreateWidgets()
 
     mRegionSettings = CreateToolButton( "", ":/images/OSGeo/region_settings.png", "<b>Regions settings...</b><br>Configure regions properties." );
 
-    QBoxLayout *regions_layout = LayoutWidgets( Qt::Horizontal, { mShowAllAreas, nullptr, new QLabel("Show region"), mRegionsCombo });
+    QBoxLayout *regions_layout = LayoutWidgets( Qt::Vertical, 
+    { 
+        LayoutWidgets( { new QLabel("Show region"), mRegionsCombo } ),
+        mShowAllAreas
+    });
 
 
     //    II.2 Box of Areas with region buttons
@@ -120,14 +124,14 @@ void CBratFilterControls::CreateWidgets()
     icon_north->setPixmap( QPixmap(":/images/OSGeo/north-arrow.png") );
 
     QBoxLayout *coord_values = LayoutWidgets( Qt::Vertical, {
-                                             //LayoutWidgets( Qt::Horizontal, { nullptr } ),
+                                             LayoutWidgets( Qt::Horizontal, { nullptr } ),
                                              LayoutWidgets( Qt::Horizontal, { nullptr, new QLabel( "Max Lat (deg)" ), nullptr } ),
                                              LayoutWidgets( Qt::Horizontal, { nullptr, mMaxLatEdit, nullptr } ),
                                              LayoutWidgets( Qt::Horizontal, { new QLabel( "Min Lon (deg)" ), nullptr, new QLabel( "Max Lon (deg)" ) } ),
                                              LayoutWidgets( Qt::Horizontal, { mMinLonEdit, icon_north, mMaxLonEdit } ),
                                              LayoutWidgets( Qt::Horizontal, { nullptr, new QLabel( "Min Lat (deg)" ), nullptr } ),
                                              LayoutWidgets( Qt::Horizontal, { nullptr, mMinLatEdit, nullptr } ),
-                                             //LayoutWidgets( Qt::Horizontal, { nullptr } ),
+                                             LayoutWidgets( Qt::Horizontal, { nullptr } ),
                                                } );
 
 	QToolBar *toolbar = new QToolBar;
@@ -187,8 +191,8 @@ void CBratFilterControls::CreateWidgets()
 
     QBoxLayout *dates_box = LayoutWidgets( Qt::Vertical, 
 	{
-		LayoutWidgets( Qt::Horizontal, { new QLabel( "Start Date" ), mStartTimeEdit } ),
-		LayoutWidgets( Qt::Horizontal, { new QLabel( "Stop Date" ),  mStopTimeEdit } )
+		LayoutWidgets( Qt::Horizontal, { new QLabel( "Start" ), mStartTimeEdit } ),
+		LayoutWidgets( Qt::Horizontal, { new QLabel( "Stop" ),  mStopTimeEdit } )
 	} );
 
     QBoxLayout *cycles_box = LayoutWidgets( Qt::Vertical, 
@@ -561,7 +565,7 @@ void CBratFilterControls::HandleCurrentLayerSelectionChanged( QRectF box )	// = 
 
 void CBratFilterControls::HandleNewFilter()
 {
-    auto result = ValidatedInputString( "Filter Name", mBratFilters.MakeNewName(), "New Filter..." );
+    auto result = SimpleInputStringValidated( "Filter Name", mBratFilters.MakeNewName(), "New Filter..." );
     if ( !result.first )
         return;
 
@@ -588,7 +592,7 @@ void CBratFilterControls::HandleRenameFilter()
 		return;
 	}
 
-    auto result = ValidatedInputString( "Filter Name", mFilter->Name(), "Rename Filter..." );
+    auto result = SimpleInputStringValidated( "Filter Name", mFilter->Name(), "Rename Filter..." );
     if ( !result.first )
         return;
 
@@ -776,7 +780,7 @@ void CBratFilterControls::HandleRegionSettings()
 
 void CBratFilterControls::HandleNewArea()
 {
-    auto result = ValidatedInputString( "Area Name", mBratAreas.MakeNewName(), "New Area..." );
+    auto result = SimpleInputStringValidated( "Area Name", mBratAreas.MakeNewName(), "New Area..." );
     if ( !result.first )
         return;
 
@@ -829,7 +833,7 @@ void CBratFilterControls::HandleAddKML()
             return;
 
         // Ask user to provide an area name
-        auto result = ValidatedInputString( "Area Name", mBratAreas.MakeNewName(), "New Area from KML..." );
+        auto result = SimpleInputStringValidated( "Area Name", mBratAreas.MakeNewName(), "New Area from KML..." );
         if ( !result.first )
             return;
 
@@ -890,7 +894,7 @@ void CBratFilterControls::HandleRenameArea()
         }
 
     // Rename area
-    auto result = ValidatedInputString( "Area Name", area_name, "Rename Area..." );
+    auto result = SimpleInputStringValidated( "Area Name", area_name, "Rename Area..." );
     if ( !result.first )
         return;
 

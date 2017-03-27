@@ -736,8 +736,6 @@ void CGlobeWidget::HandleMapTipTriggerd( CMapTip *maptip, QgsMapLayer *layer, Qg
 {
 	if ( underMouse() )
 	{
-		//osgEarth::Util::EarthManipulator *manip = dynamic_cast<osgEarth::Util::EarthManipulator*>( mOsgViewer->getCameraManipulator() );
-		//qDebug() << "distance == " << manip->getDistance();	manip->home();
 		maptip->ShowMapTip( layer, map_position, mapFromGlobal( mMouseCoordsTool->LastMousePoint() ), mCanvas, this );
 	}
 }

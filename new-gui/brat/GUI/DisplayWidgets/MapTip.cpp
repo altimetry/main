@@ -31,7 +31,7 @@ void CMapTip::ShowMapTip( QgsMapLayer *layer, QgsPoint &map_position, const QPoi
 
 	if ( mMapTipVisible )
 	{
-		QToolTip::showText( map_canvas->mapToGlobal( pixel_position ), tip_text, dest );
+		QToolTip::showText( dest->mapToGlobal( pixel_position ), tip_text, dest );
 
 		// store the point so we can use it to clear the map tip later
 		mLastPosition = pixel_position;
@@ -39,13 +39,14 @@ void CMapTip::ShowMapTip( QgsMapLayer *layer, QgsPoint &map_position, const QPoi
 }
 
 
-void CMapTip::Clear( CMapWidget *map_canvas )
+void CMapTip::Clear()
 {
 	if ( !mMapTipVisible )
 		return;
 
 	// set the map tip to blank
-	QToolTip::showText( map_canvas->mapToGlobal( mLastPosition ), "", map_canvas );
+	QToolTip::hideText();
+    
 	// reset the visible flag
 	mMapTipVisible = false;
 }

@@ -64,7 +64,7 @@ void CProcessesTable::CreateWidgets()
     mProcessesList->setEditTriggers(QAbstractItemView::NoEditTriggers);
 	mProcessesList->setShowGrid( false );
 
-	mProcessesList->setMinimumWidth( ComputeTableWidth( mProcessesList ) );
+	//mProcessesList->setMinimumWidth( ComputeTableWidth( mProcessesList ) );   TODO: too wide for small screens: 1280 x 800
 
 
 	mKillButton = new QPushButton( "Kill" );

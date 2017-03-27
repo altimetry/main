@@ -160,21 +160,23 @@ void COperationControls::CreateQuickOperationsPage()
 	mQuickDatasetsCombo = new QComboBox;
 	mQuickDatasetsCombo->setToolTip( "Selected operation dataset" );
 	mQuickDatasetsCombo->setMinimumWidth( min_readable_combo_width );
+	mQuickDatasetsCombo->setMinimumHeight(icon_size);
 
 	mOperationFilterButton_Quick = CActionInfo::CreatePopupButton( eActionGroup_Filters_Quick, QList<QAction*>() );
 	mOperationFilterButton_Quick->setCheckable( true );
 	mOperationFilterButton_Quick->setToolButtonStyle( Qt::ToolButtonTextBesideIcon );
 
+	auto *dataset_label = new QLabel("Dataset");
+	dataset_label->setAlignment(Qt::AlignCenter);
+	auto *filter_label = new QLabel("Filter");
+	filter_label->setAlignment(Qt::AlignCenter);
 
-	auto *data_group = CreateGroupBox( ELayoutType::Horizontal, 
+	auto *data_group = CreateGroupBox(ELayoutType::Grid,
 	{
-		nullptr,
-		LayoutWidgets( Qt::Horizontal, { new QLabel( "Dataset" ), mQuickDatasetsCombo }, nullptr, s, m, m, m, m ),
-		nullptr,
-		LayoutWidgets( Qt::Horizontal, { new QLabel( "Filter" ), mOperationFilterButton_Quick }, nullptr, s, m, m, m, m ),
-		nullptr,
-	}, 
-	"", nullptr, s, m, m, m, m );
+		new QLabel, dataset_label, new QLabel, filter_label, new QLabel, nullptr,
+		new QLabel, mQuickDatasetsCombo, new QLabel, mOperationFilterButton_Quick, new QLabel
+	},
+	"", nullptr, s, m, m, m, m);
 	data_group->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Maximum );
 
 
@@ -288,28 +290,33 @@ void COperationControls::CreateAdvancedOperationsPage()
 	mOperationsCombo = new QComboBox;
 	mOperationsCombo->setMinimumWidth( min_readable_combo_width );
 	mOperationsCombo->setToolTip( "Selected operation" );
-	auto *operation_label = new QLabel("Operation");
-	operation_label->setStyleSheet( "font-weight: bold; color: black" );
-	mOperationFilterButton_Advanced = CActionInfo::CreatePopupButton( eActionGroup_Filters_Advanced, QList<QAction*>() );
-	mOperationFilterButton_Advanced->setCheckable( true );
-	mOperationFilterButton_Advanced->setToolButtonStyle( Qt::ToolButtonTextBesideIcon );
-
-
-	//dataset list
 
 	mAdvancedDatasetsCombo = new QComboBox;
 	mAdvancedDatasetsCombo->setToolTip( "Selected operation dataset" );
+	mAdvancedDatasetsCombo->setMinimumWidth(min_readable_combo_width);
 
-	//auto *ops_group = CreateGroupBox( ELayoutType::Horizontal, 
-	auto *ops_group = LayoutWidgets( Qt::Horizontal, 
-	{ 
-		LayoutWidgets( Qt::Horizontal, { operation_label, mOperationsCombo }, nullptr, s, m, m, m, m ), 
-		nullptr,
-		LayoutWidgets( Qt::Horizontal, { new QLabel("Dataset"), mAdvancedDatasetsCombo }, nullptr, s, m, m, m, m ),
-		nullptr,
-		LayoutWidgets( Qt::Horizontal, { new QLabel("Filter"), mOperationFilterButton_Advanced }, nullptr, s, m, m, m, m )
-	}, 
-	nullptr, s, m, m, m, m );
+	mAdvancedDatasetsCombo->setMinimumHeight(icon_size);
+	mOperationsCombo->setMinimumHeight(icon_size);
+
+	mOperationFilterButton_Advanced = CActionInfo::CreatePopupButton(eActionGroup_Filters_Advanced, QList<QAction*>());
+	mOperationFilterButton_Advanced->setCheckable(true);
+	mOperationFilterButton_Advanced->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+
+	auto *operation_label = new QLabel("Operation");
+	operation_label->setStyleSheet("font-weight: bold; color: black");
+	operation_label->setAlignment(Qt::AlignCenter);
+	auto *dataset_label = new QLabel("Dataset");
+	dataset_label->setAlignment(Qt::AlignCenter);
+	auto *filter_label = new QLabel("Filter");
+	filter_label->setAlignment(Qt::AlignCenter);
+
+	auto *ops_group = CreateGroupBox(ELayoutType::Grid,
+	{
+		operation_label, dataset_label, filter_label, nullptr,
+		mOperationsCombo, mAdvancedDatasetsCombo, mOperationFilterButton_Advanced
+	},
+	"", nullptr, s, m, m, m, m);
+	ops_group->setSizePolicy( QSizePolicy::Preferred, QSizePolicy::Maximum );
 
 
 	// III. Expression Group
@@ -432,8 +439,10 @@ void COperationControls::CreateAdvancedOperationsPage()
 
     auto *CutOff_Layout = LayoutWidgets( Qt::Horizontal, { nullptr, mXLonCutOff, nullptr, cut_label, nullptr, mYLatCutOff, nullptr }, nullptr, s, m, m, m, m );
 
+    QScrollArea *sarea = new QScrollArea;
+            
     mSamplingGroup = CreateCollapsibleGroupBox( ELayoutType::Vertical, { sampling_gridl, CutOff_Layout },
-        "Sampling", mAdvancedOperationsPage, s, 4, 4, 4, 2 );
+        "Sampling", sarea, s, 4, 4, 4, 4 );
 	mSamplingGroup->setCollapsed( true );
 
 	mExpressionGroup = CreateGroupBox( ELayoutType::Vertical, 
@@ -451,13 +460,19 @@ void COperationControls::CreateAdvancedOperationsPage()
 		nullptr, s + m, m, m, m, m ),
 		mSamplingGroup,
 	}
-	, "Expression", mAdvancedOperationsPage, 0, m, m, m, m );
+	, "Expression", sarea, 0, m, m, m, m );
+    mExpressionGroup->setStyleSheet("QGroupBox { font-weight: bold; } ");
+    mExpressionGroup->setAlignment( Qt::AlignCenter );
 
+    sarea->setWidget( mExpressionGroup );
+    sarea->setWidgetResizable( true );
+    sarea->setAlignment( Qt::AlignCenter );
+    
     //....Split in Group
 
 	mOperationExpressionsGroup = CreateGroupBox( 
 		ELayoutType::Vertical, { 
-			CreateSplitter( nullptr, Qt::Vertical, { fields_group, data_expressions_group, mExpressionGroup } )
+			CreateSplitter( nullptr, Qt::Vertical, { fields_group, data_expressions_group, sarea } )
 		}, 
 		"", mAdvancedOperationsPage, s, 4, 4, 4, 4 );
 
@@ -465,11 +480,10 @@ void COperationControls::CreateAdvancedOperationsPage()
     LayoutWidgets( Qt::Vertical,
 	{ 
 		top_buttons_row, 
-		CreateGroupBox( ELayoutType::Horizontal, { ops_group }, "" ),
-		mOperationExpressionsGroup,
-		//mSamplingGroup,
-		nullptr
-	}, 
+		//CreateGroupBox( ELayoutType::Horizontal, { ops_group }, "" ),
+		ops_group,
+		mOperationExpressionsGroup
+    }, 
 	mAdvancedOperationsPage, 0, m, m, m, m );
 }
 
@@ -612,8 +626,7 @@ COperationControls::COperationControls( CBratApplication &app, CDesktopManagerBa
 	AddTopLayout( ELayoutType::Vertical, {
 		mCommonGroup,
 		WidgetLine( nullptr, Qt::Horizontal ),
-		mStackWidget,
-		nullptr
+		mStackWidget
 	},
 	s, m, m, m, m
 	);
@@ -2825,7 +2838,7 @@ void COperationControls::HandleNewOperation()
 
     assert__( mWDataset->GetDataset( dataset_name ) );
 
-	auto result = ValidatedInputString( "Operation Name", mWOperation->GetOperationNewName(), "New Operation..." );
+	auto result = SimpleInputStringValidated( "Operation Name", mWOperation->GetOperationNewName(), "New Operation..." );
 	if ( !result.first )
 		return;
 
@@ -3035,7 +3048,7 @@ void COperationControls::HandleRenameOperation()
 {
     assert__( mCurrentOperation );
 
-    auto result = ValidatedInputString( "Operation Name", mCurrentOperation->GetName(), "Rename Operation" );
+    auto result = SimpleInputStringValidated( "Operation Name", mCurrentOperation->GetName(), "Rename Operation" );
     if ( result.first )
     {
         if ( !mWOperation->RenameOperation( mCurrentOperation, result.second.c_str() ) )

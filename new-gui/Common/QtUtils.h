@@ -425,51 +425,83 @@ inline bool SimpleConfirmation( const char *msg )
 ///////////////////////////////////////////////////////////////////
 
 
-inline std::pair< bool, QString > SimpleInputString( const QString &input_name, const QString &init_value, const QString &dialog_title = "" )
+// To use with const char* arguments, call with 
+//
+//	SimpleInputStringEx< std::string or QString > or
+//
+//	SimpleInputString with one of the arguments converted to any of std::string or QString
+//
+template< typename STRING = std::string >
+inline std::pair< bool, STRING > SimpleInputStringEx( const STRING &input_name, const STRING &init_value, const STRING &dialog_title = "" )
 {
-	std::pair< bool, QString > result( { false, init_value } );
+	std::pair< bool, QString > result( { false, t2q( init_value ) } );
 
-    QString text = QInputDialog::getText( ApplicationWindow(),
-		dialog_title, 
-		input_name, 
+	QString text = QInputDialog::getText( ApplicationWindow(),
+		t2q( dialog_title ),
+		t2q( input_name ),
 		QLineEdit::Normal, 
 		result.second,
-        &result.first );
+		&result.first );
 
-    if ( result.first )
-        result.second = text;
+	if ( result.first )
+		result.second = text;
 
-	return result;
+	return{ result.first, x2x<STRING>( result.second ) };
 }
+
+
+inline std::pair< bool, QString > SimpleInputString( const QString &input_name, const QString &init_value, const QString &dialog_title = "" )
+{
+	return SimpleInputStringEx< QString >( input_name, init_value, dialog_title );
+}
+
 
 inline std::pair< bool, std::string > SimpleInputString( const std::string &input_name, const std::string &init_value, const std::string &dialog_title = "" )
 {
-	std::pair< bool, QString > qresult = SimpleInputString( t2q( input_name ), t2q( init_value ), t2q( dialog_title ) );
-
-	return std::pair< bool, std::string >( { qresult.first, q2a( qresult.second ) } );
+	return SimpleInputStringEx< std::string >( input_name, init_value, dialog_title );
 }
 
+
+
+inline const QRegExp& DefaultNameValidator()
+{
+	static const QRegExp re( "[_a-zA-Z0-9]+" );
+	return re;
+}
 
 // Validate Input String (to be used on rename objects such as filters, operations...)
+// When using default "re" argument, checks if text has only alphanumeric letters
+// Use as SimpleInputStringEx with const char* arguments
 //
-inline std::pair< bool, std::string > ValidatedInputString( const std::string &input_name, const std::string &init_value, const std::string &dialog_title = "" )
+template< typename STRING >
+inline std::pair< bool, STRING > SimpleInputStringValidatedEx( const STRING &input_name, const STRING &init_value, const STRING &dialog_title, 
+	QRegExp re = DefaultNameValidator() )
 {
-    std::pair< bool, QString > qresult = SimpleInputString( t2q( input_name ), t2q( init_value ), t2q( dialog_title ) );
+	std::pair< bool, QString > qresult = SimpleInputString( t2q( input_name ), t2q( init_value ), t2q( dialog_title ) );
 
-    /////////////////////////////////////////////////
-    // Check if text has only alphanumeric letters //
-    /////////////////////////////////////////////////
-    static QRegExp re("[_a-zA-Z0-9]+"); // alphanumeric letters
-    if ( !re.exactMatch( qresult.second ) && qresult.first ) // Has an Invalid Name
-    {
-        SimpleWarnBox( QString( "Unable to rename '%1' by '%2'.\nPlease enter only alphanumeric letters, 'A-Z' or '_a-z' or '0-9'.").arg(
-                                 t2q(init_value), qresult.second ) );
-        qresult.first = false;
-        qresult.second = t2q(init_value);
-    }
+	if ( !re.exactMatch( qresult.second ) && qresult.first ) // Has an Invalid Name
+	{
+		SimpleWarnBox( "Please enter only alphanumeric letters, 'A-Z' or '_a-z' or '0-9'." );
+		qresult.first = false;
+		qresult.second = t2q( init_value );
+	}
 
-    return std::pair< bool, std::string >( { qresult.first, q2a( qresult.second ) } );
+	return { qresult.first, x2x<STRING>( qresult.second ) };
 }
+
+inline std::pair< bool, std::string > SimpleInputStringValidated( const std::string &input_name, const std::string &init_value, const std::string &dialog_title, 
+	QRegExp re = DefaultNameValidator() )
+{
+	return SimpleInputStringValidatedEx< std::string >( input_name, init_value, dialog_title );
+}
+
+inline std::pair< bool, QString > SimpleInputStringValidated( const QString &input_name, const QString &init_value, const QString &dialog_title, 
+	QRegExp re = DefaultNameValidator() )
+{
+	return SimpleInputStringValidatedEx< QString >( input_name, init_value, dialog_title );
+}
+
+
 
 
 
@@ -597,7 +629,8 @@ inline QGridLayout* CreateGridLayout( QWidget *parent, int spacing = 0, int left
 #if !defined(PRE_CPP11)
 
 
-inline QBoxLayout* LayoutWidgets( Qt::Orientation o, const std::vector< QObject* > &v, 
+template< class QOBJECT = QObject >
+inline QBoxLayout* LayoutWidgets( Qt::Orientation o, const std::vector< QOBJECT* > &v,
 	QWidget *parent, int spacing, int left, int top, int right, int bottom )			
 {
 	QBoxLayout *main_l = CreateLayout( parent, o, spacing, left, top, right, bottom );
@@ -620,7 +653,8 @@ inline QBoxLayout* LayoutWidgets( Qt::Orientation o, const std::vector< QObject*
 }
 
 
-inline QGridLayout* LayoutWidgets( const std::vector< QObject* > &v, 
+template< class QOBJECT = QObject >
+inline QGridLayout* LayoutWidgets( const std::vector< QOBJECT* > &v,
 	QWidget *parent, int spacing, int left, int top, int right, int bottom,
 	int row_span = 1, int col_span = 1 )
 {
@@ -1431,31 +1465,32 @@ const int min_main_window_height = 728;
 const int min_main_working_dock_width = min_main_window_width / 2;
 
 const auto min_hchild_ratio = 2. / 3.;
-const auto aspect_ratio = ( 1. + .3 ) / 2.;	//latitude range == half longitude range
+const auto main_aspect_ratio = 1. / 2.;             //latitude range == half longitude range
+const auto editor_aspect_ratio = ( 1. + .3 ) / 2.;	//.3: consider control tabs relative height
 
 const int min_globe_widget_width =  min_main_window_width * min_hchild_ratio;
-const int min_globe_widget_height = min_globe_widget_width * aspect_ratio;
+const int min_globe_widget_height = min_globe_widget_width * main_aspect_ratio;
 
 const int min_plot_widget_width = min_globe_widget_width;
 const int min_plot_widget_height = min_globe_widget_height;
 
 
-inline int GlobeWidgetWidth( double hchild_ratio )
+inline int GlobeEditorWidth( double hchild_ratio )
 {
 	return ApplicationWindow()->width() * hchild_ratio;
 }
-inline int GlobeWidgetHeight( double hchild_ratio )
+inline int GlobeEditorHeight( double hchild_ratio )
 {
-	return GlobeWidgetWidth( hchild_ratio ) * aspect_ratio;
+	return GlobeEditorWidth( hchild_ratio ) * editor_aspect_ratio;
 }
 
 inline int PlotWidgetWidth( double hchild_ratio )
 {
-	return GlobeWidgetWidth( hchild_ratio );
+	return GlobeEditorWidth( hchild_ratio );
 }
 inline int PlotWidgetHeight( double hchild_ratio )
 {
-	return GlobeWidgetHeight( hchild_ratio );
+	return GlobeEditorHeight( hchild_ratio );
 }
 
 

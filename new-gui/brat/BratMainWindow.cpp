@@ -386,7 +386,7 @@ void CBratMainWindow::ProcessMenu()
         menu_View->addAction( dock->toggleViewAction() );
     }
 
-#if defined (_MSC_VER) && (_MSC_VER >= 1900 ) && defined (USE_DATA_VISUALIZATION)
+#if defined (USE_DATA_VISUALIZATION)
 	AddFutureActions( this, menu_Help, mSettings.BratPaths().mExecutableDir, mModel );
 #endif
 
@@ -851,8 +851,7 @@ void CBratMainWindow::LoadCmdLineFiles()
 	}
 	else
 	{
-		QStringList args = QCoreApplication::arguments();
-		args.removeFirst();
+		QStringList args = mApp.CleanArgumentsList();
 		QString wkspc_dir;
 		if ( !args.empty() )
 			wkspc_dir = args[ 0 ];
@@ -1024,7 +1023,7 @@ void CBratMainWindow::StopDisplayMode()
 
 bool CBratMainWindow::StartDisplayMode()
 {
-    QStringList args = QCoreApplication::arguments();
+    QStringList args = QCoreApplication::arguments();   //TODO Qt and old brat args begin with "--"
 	DoNoWorkspace();
 	setVisible( false );
 	CDisplayFilesProcessor p( false );
