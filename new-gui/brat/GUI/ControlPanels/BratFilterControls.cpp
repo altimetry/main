@@ -945,11 +945,11 @@ void CBratFilterControls::HandleAreaChecked(QListWidgetItem *area_item)
 {
     if ( area_item->checkState() == Qt::Checked )
     {
-        mFilter->AddArea( area_item->text().toStdString()  );
+        mFilter->AddArea( q2a( area_item->text() ) );
     }
     else
     {
-        mFilter->RemoveArea( area_item->text().toStdString() );
+        mFilter->RemoveArea( q2a( area_item->text() ) );
     }
 
     emit FilterCompositionChanged( mFilter->Name() );

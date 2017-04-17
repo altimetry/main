@@ -89,6 +89,8 @@ void CSchedulerMainWindow::SetTablesProperties( Args... args )
 		t->setSelectionMode( QAbstractItemView::SingleSelection );	
 
 		t->setMinimumWidth( ComputeTableWidth( t ) );
+
+		t->horizontalHeader()->setStretchLastSection( true );
 	}
 };
 
@@ -96,7 +98,14 @@ void CSchedulerMainWindow::SetTablesProperties( Args... args )
 //static 
 QString CSchedulerMainWindow::MakeWindowTitle( const QString &title )// = QString() //returns the application name if title is empty
 {
-	static const QString &app_title = qApp->applicationName() + build_configuration.c_str();
+	static const QString &app_title = qApp->applicationName()
+
+#if defined (DEBUG) || defined(_DEBUG)
+
+	+ build_configuration.c_str();
+
+#endif
+	;
 
 	QString t = app_title;
 
@@ -307,13 +316,21 @@ void CSchedulerMainWindow::HandlePeerMessage( const QString &msg )
 
 void CSchedulerMainWindow::ConnectTimers()
 {
-	connect( &mSchedulerTimer, SIGNAL( timeout() ), this, SLOT( SchedulerTimerTimeout() ) );
-	connect( &mCheckConfigFileTimer, SIGNAL( timeout() ), this, SLOT( CheckConfigFileTimerTimeout() ) );
+	//if ( !mTimersConnected )
+	//{
+		connect( &mSchedulerTimer, SIGNAL( timeout() ), this, SLOT( SchedulerTimerTimeout() ), Qt::UniqueConnection );
+		connect( &mCheckConfigFileTimer, SIGNAL( timeout() ), this, SLOT( CheckConfigFileTimerTimeout() ), Qt::UniqueConnection );
+		mTimersConnected = true;
+	//}
 }
 void CSchedulerMainWindow::DisconnectTimers()
 {
-	disconnect( &mSchedulerTimer, SIGNAL( timeout() ), this, SLOT( SchedulerTimerTimeout() ) );
-	disconnect( &mCheckConfigFileTimer, SIGNAL( timeout() ), this, SLOT( CheckConfigFileTimerTimeout() ) );
+	//if ( mTimersConnected )
+	//{
+		disconnect( &mSchedulerTimer, SIGNAL( timeout() ), this, SLOT( SchedulerTimerTimeout() ) );
+		disconnect( &mCheckConfigFileTimer, SIGNAL( timeout() ), this, SLOT( CheckConfigFileTimerTimeout() ) );
+		mTimersConnected = false;
+	//}
 }
 
 
@@ -432,6 +449,8 @@ bool CSchedulerMainWindow::ExecuteAsync( CBratTask *task, int isubtask )	//, int
 		child_task->SetLogFile( task->GetLogFile() );					//use parent log file
 	}
 
+	task->SetAt( QDateTime::currentDateTime() );
+
     const bool sync = false;
     const bool function_sync = true;	//irrelevant in what concerns execution, relevant to display message before (pseudo)execution call
     const bool allow_multiple = false;
@@ -496,7 +515,7 @@ void CSchedulerMainWindow::AsyncTaskFinished( int exit_code, QProcess::ExitStatu
 
 	try
 	{
-		DisconnectTimers();		// mCheckConfigFileTimer.stop();
+		DisconnectTimers();
 
 		mProcessesTable->setEnabled( false );
 		mTab_EndedTasks->setEnabled( false );
@@ -575,8 +594,8 @@ void CSchedulerMainWindow::SchedulerTimerTimeout()
 
 			//CBratSchedulerApp::OnBratTaskProcess
 
-			DisconnectTimers();		// mCheckConfigFileTimer.stop();
 
+			DisconnectTimers();						// mCheckConfigFileTimer.stop();
 			mTab_PendingTasks->setEnabled( false );
 			mProcessesTable->setEnabled( false );
 			//tab_EndedTasks;

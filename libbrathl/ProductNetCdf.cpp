@@ -332,7 +332,7 @@ namespace brathl
 		return field;
 	}
 	//----------------------------------------
-	bool CProductNetCdf::GetLatLonMinMax( CLatLonRect& latlonRectMinMax )
+	bool CProductNetCdf::GetLatLonMinMax( CLatLonRect& latlonRectMinMax, CProgressInterface *pi )		//pi = nullptr 
 	{
 		latlonRectMinMax.SetDefaultValue();
 
@@ -347,14 +347,26 @@ namespace brathl
 			return false;
 		}
 
-		CProductList::iterator itFile;
-
 		m_indexProcessedFile = 0;
+		bool canceled = false;
+		if ( pi )
+			pi->SetRange( 0, m_fileList.size() );
+
 		// Searches for each files
-		for ( itFile = m_fileList.begin(); itFile != m_fileList.end(); itFile++ )
+		for ( CProductList::iterator itFile = m_fileList.begin(); itFile != m_fileList.end(); itFile++ )
 		{
 			m_indexProcessedFile++;
 			//CTrace::Tracer(1,"Process file %d of %d", (long)iFile, (long)m_fileList.size());
+
+			if ( pi )
+			{
+				if ( pi->Cancelled() )
+				{
+					canceled = true;
+					break;
+				}
+				pi->SetCurrentValue( m_indexProcessedFile );
+			}
 
 			this->Open( *itFile );
 
@@ -408,11 +420,12 @@ namespace brathl
 
 		m_indexProcessedFile = -1;
 
-		return true;
-
+		return !canceled;
 	}
-	//----------------------------------------
-	bool CProductNetCdf::GetDateMinMax( CDatePeriod& datePeriodMinMax )
+
+
+
+	bool CProductNetCdf::GetDateMinMax( CDatePeriod& datePeriodMinMax, CProgressInterface *pi )		//pi = nullptr 
 	{
 		datePeriodMinMax.SetDefaultValue();
 
@@ -430,11 +443,26 @@ namespace brathl
 		CProductList::iterator itFile;
 
 		m_indexProcessedFile = 0;
+		bool canceled = false;
+		if ( pi )
+			pi->SetRange( 0, m_fileList.size() );
+
 		// Searches for each files
 		for ( itFile = m_fileList.begin(); itFile != m_fileList.end(); itFile++ )
 		{
 			m_indexProcessedFile++;
 			//CTrace::Tracer(1,"Process file %d of %d", (long)m_indexProcessedFile, (long)m_fileList.size());
+
+			if ( pi )
+			{
+				if ( pi->Cancelled() )
+				{
+					canceled = true;
+					break;
+				}
+				pi->SetCurrentValue( m_indexProcessedFile );
+			}
+
 
 			this->Open( *itFile );
 
@@ -474,10 +502,13 @@ namespace brathl
 		}
 
 		m_indexProcessedFile = -1;
-		return true;
 
+
+		return !canceled;
 	}
-	//----------------------------------------
+
+
+
 	bool CProductNetCdf::ApplyCriteria( CStringList& filteredFileList, CProgressInterface *pi, const std::string &log_file )	//log_file = ""
 	{
 		const bool with_log = !log_file.empty();
@@ -743,14 +774,15 @@ namespace brathl
 		{
 			void operator()( CFieldNetCdf *field ) const
 			{
-				double left, right, value180, prevValue;
-				bool leftFound, rightFound;
+				bool 
+					leftFound = false,		
+					rightFound = false;
+				double 
+					left = defaultValue<double>(), 
+					right = defaultValue<double>(), 
+					prevValue = 0;
 
-				setDefaultValue( left );      setDefaultValue( right );
-				leftFound  = false;         rightFound = false;
-				prevValue = 0;
-
-				auto const &values = field->GetValues();
+				auto &values = field->GetValues();
 				for ( auto it = values.begin(); it != values.end(); ++it )
 				{
 					auto value = *it;
@@ -758,27 +790,44 @@ namespace brathl
 					if ( isDefaultValue( value ) )
 						continue;
 
-					value180 = CLatLonPoint::Range180( value );
+					double value180 = CLatLonPoint::Range180( value );
 
-					// Check if values in array cross 180 meridian //
+					// Check if values in array cross 180 meridian
+
 					if ( value180 - prevValue < -180 )
-					{                                      // -180          0          180
-						leftFound = true;                  //   |___________|___________|
-						setDefaultValue( right );            //   ----->|         |------->
-					}                                      //       rigth      left       //cross from 180 to -180
-					else if ( value180 - prevValue > 180 )
-					{                                      // -180          0          180
-						rightFound = true;                 //   |___________|___________|
-						setDefaultValue( left );             //   <-----|         |<-------
-					}                                      //       rigth      left       //cross from -180 to 180
+					{										// -180          0          180
+						leftFound = true;					//   |___________|___________|
+						setDefaultValue( right );			//   ----->|         |------->
+					}										//       right      left       //cross from 180 to -180
+					else 
+					if ( value180 - prevValue > 180 )
+					{										// -180          0          180
+						rightFound = true;					//   |___________|___________|
+						setDefaultValue( left );			//   <-----|         |<-------
+					}										//       right      left       //cross from -180 to 180
 
-					// Find Left and Right points in [-180, 180] range //
+					// Find Left and Right points in [-180, 180] range
+
 					if ( isDefaultValue( left ) ) { left  = value180; }
 					if ( isDefaultValue( right ) ) { right = value180; }
 					if ( !leftFound && left > value180 ) { left  = value180; }
 					if ( !rightFound && right < value180 ) { right = value180; }
+                    
+					// Break if overlapping (RCCC to confirm)
 
+					if ( 
+						(leftFound && prevValue <= left && value180 >= left)
+						||
+						(rightFound && prevValue >= right && value180 <= right) 
+						)
+					{
+						left = -180;
+						right = 180;
+						break; 
+					}
+                    
 					// Save previous value
+
 					prevValue = value180;
 				}
 

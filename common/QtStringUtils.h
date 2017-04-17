@@ -137,6 +137,20 @@ QString n2q( T n )
 }
 
 
+//for extended precision
+
+template< typename T >
+inline QString n2qx( T n, int = -1, typename std::enable_if< std::is_integral<T>::value >::type* = 0 )
+{
+    return n2q( n );
+}
+
+
+template< typename T >
+inline QString n2qx( T n, int precision = -1, typename std::enable_if< std::is_floating_point<T>::value >::type* = 0 )
+{
+    return QString::number( n, 'g', precision > 0 ? precision : std::numeric_limits<T>::max_digits10 );
+}
 
 
 

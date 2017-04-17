@@ -68,6 +68,7 @@ static const std::string ENTRY_PLOTS_FONT_NAME =					"plots_font_name";
 static const std::string ENTRY_PLOTS_AXIS_FONT_SIZE = 				"plots_axis_font_size";
 static const std::string ENTRY_PLOTS_TITLE_FONT_SIZE =				"plots_title_font_size";
 
+static const std::string ENTRY_OSGEARTH_USE_PBUFFER_TEST_FOR_VMS =	"osgearth_use_pbuffer_test_for_vms";
 
 
 
@@ -280,7 +281,8 @@ bool CBratSettings::SaveConfig()
 		k_v( ENTRY_H_CHILD_RATIO_DNM,					mHchildRatioDnm ),
 		k_v( ENTRY_PLOTS_FONT_NAME,						mPlotsFontName ),
 		k_v( ENTRY_PLOTS_AXIS_FONT_SIZE,				mPlotsAxisFontSize ),
-		k_v( ENTRY_PLOTS_TITLE_FONT_SIZE,				mPlotsTitleFontSize )
+		k_v( ENTRY_PLOTS_TITLE_FONT_SIZE,				mPlotsTitleFontSize ),
+		k_v( ENTRY_OSGEARTH_USE_PBUFFER_TEST_FOR_VMS,   mOsgEarthUsePbufferTestForVms )
 	)
 	&&
 	WriteValues( GROUP_WKS, 
@@ -328,7 +330,8 @@ bool CBratSettings::LoadConfig()
 		k_v( ENTRY_H_CHILD_RATIO_DNM,					&mHchildRatioDnm, smHchildRatioDnm ),
 		k_v( ENTRY_PLOTS_FONT_NAME,						&mPlotsFontName, smPlotsFontName ),
 		k_v( ENTRY_PLOTS_AXIS_FONT_SIZE,				&mPlotsAxisFontSize, smPlotsAxisFontSize ),
-		k_v( ENTRY_PLOTS_TITLE_FONT_SIZE,				&mPlotsTitleFontSize, smPlotsTitleFontSize )
+		k_v( ENTRY_PLOTS_TITLE_FONT_SIZE,				&mPlotsTitleFontSize, smPlotsTitleFontSize ),
+        k_v( ENTRY_OSGEARTH_USE_PBUFFER_TEST_FOR_VMS,   &mOsgEarthUsePbufferTestForVms )
 	)
 	&&
 	ReadValues( GROUP_WKS, 

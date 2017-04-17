@@ -619,14 +619,14 @@ public:
 	////////////////////////////////
 
 
-	virtual bool GetDateMinMax( CDatePeriod& datePeriodMinMax );
+	virtual bool GetDateMinMax( CDatePeriod& datePeriodMinMax, CProgressInterface *pi = nullptr );
 	virtual bool GetDateMinMax( CDate& dateMin, CDate& dateMax );
 
-	virtual bool GetLatLonMinMax( double& latMin, double& lonMin, double& latMax, double& lonMax );
-	virtual bool GetLatLonMinMax( CLatLonRect& latlonRectMinMax );
+	virtual bool GetLatLonMinMax( double& latMin, double& lonMin, double& latMax, double& lonMax, CProgressInterface *pi = nullptr );
+	virtual bool GetLatLonMinMax( CLatLonRect& latlonRectMinMax, CProgressInterface *pi = nullptr );
 
 	virtual bool GetValueMinMax( CExpression& expr, const std::string& recordName,
-		double& valueMin, double& valueMax, const CUnit& unit );
+		double& valueMin, double& valueMax, const CUnit& unit, CProgressInterface *pi = nullptr );
 
 
 	////////////////////////////////

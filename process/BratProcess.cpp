@@ -2719,191 +2719,191 @@ void CBratProcess::SubstituteAxisDim(const CStringArray& fieldDims, CStringArray
 //----------------------------------------
 void CBratProcess::AddVarsFromNetCdf()
 {
-  //Applies only to Netcdf products 
-  if (! CBratProcess::IsProductNetCdf() )
-  {
-    return;
-  }
-  
-  CProductNetCdf* productNetCdf = GetProductNetCdf(m_product);
+	//Applies only to Netcdf products 
+	if ( ! CBratProcess::IsProductNetCdf() )
+	{
+		return;
+	}
 
-  m_fieldDefinitionToReplace.RemoveAll();
-  
-  size_t nbExpr = m_fields.size();
-  
-  // Add each expression (as NetCdf variable) to the output Netcdf fle
-  for (uint32_t i = 0 ; i < nbExpr ; i++)
-  {
-    CStringArray fieldDims;
-    CStringArray fieldDimsWithoutAlgo;
-    CStringArray fieldDimsOut;
+	CProductNetCdf* productNetCdf = GetProductNetCdf( m_product );
 
-    // Get Netcdf dimension of the expression (of all fields contained in the expression)
-    // NB :dim. names appear only once in the result (fieldDims)
-    // NB: if no algo in the expression : fieldDims and fieldDimsWithoutAlgo are equal
-    productNetCdf->GetNetCdfDimensions(m_fields.at(i), fieldDims, m_recordName);
-    productNetCdf->GetNetCdfDimensionsWithoutAlgo(m_fields.at(i), fieldDimsWithoutAlgo, m_recordName);
-    
+	m_fieldDefinitionToReplace.RemoveAll();
 
-    // Replace dimension which have the same names of the X / Y fields by the X / Y expression name 
-    //SubstituteAxisDim(fieldDims, fieldDimsOut);
+	size_t nbExpr = m_fields.size();
 
-    // If the dimensions of the expression is empty, it's considered as a constant expression (an expression 
-    // which is made up of one  or several constants):
-    // So, the ouput dimensions of the expression will be the axis dimensions (X or X/Y)
-    if (fieldDims.size() <= 0)
-    {
-      //fieldDimsOut.Insert(m_netCdfAxisDims);
-      if (!m_xName.empty())
-      {
-        fieldDimsOut.Insert(m_xName);
-      }
+	// Add each expression (as NetCdf variable) to the output Netcdf fle
+	for ( uint32_t i = 0; i < nbExpr; i++ )
+	{
+		CStringArray fieldDims;
+		CStringArray fieldDimsWithoutAlgo;
+		CStringArray fieldDimsOut;
 
-      if (!m_yName.empty())
-      {
-        fieldDimsOut.Insert(m_yName);
-      }
-      
-      CStringArray::const_iterator itField;
-      const CStringArray& fields = *(m_fields.at(i).GetFieldNames());
-
-      for (itField = fields.begin() ; itField != fields.end() ; itField++)
-      {
-        CFieldNetCdf* field = dynamic_cast<CFieldNetCdf*>(m_product->FindFieldByName(*itField, m_recordName, false));
-        if (field == nullptr)
-        {
-          continue;
-        }
-
-        m_fieldDefinitionToReplace.Insert(field->GetName());
-      }
-
-    }
-    // If the dimensions of the expression withur algorithm call is empty
-    // The ouput dimensions of the expression will be the axis dimensions (X or X/Y)
-    else 
-    {
-      if (fieldDimsWithoutAlgo.size() <= 0) // else fieldDims.size() >= 0
-      {
-        fieldDimsOut.RemoveAll();
-
-        if (!m_xName.empty())
-        {
-          fieldDimsOut.Insert(m_xName);
-        }
-
-        if (!m_yName.empty())
-        {
-          fieldDimsOut.Insert(m_yName);
-        }
-
-      }
-      else
-      {
-        // Replace dimension which have the same names of the X / Y fields by the X / Y expression name 
-        SubstituteAxisDim(fieldDimsWithoutAlgo, fieldDimsOut);
-      }
-    }
-
-    // if var already exists, continue
-    if (m_internalFiles->GetNetCDFVarDef(m_names[i]) != nullptr)
-    {
-      //-----------
-      continue;
-      //-----------
-
-    }
-    //Create the variable and add it to the output NetCdf file
-    CNetCDFVarDef varDef(m_names[i], m_units[i]);
-    varDef.AddAttribute(new CNetCDFAttrString(LONG_NAME_ATTR, m_titles[i]));
-    varDef.AddAttribute(new CNetCDFAttrString(COMMENT_ATTR, m_comments[i]));
-
-    // The created var is returned (or the already existing var, i.e the dim variable).
-    CNetCDFVarDef* addedVarDef = m_internalFiles->AddNetCDFVarDef(varDef);
-
-    /*
-    CNetCDFCoordinateAxis* coordAxis = dynamic_cast<CNetCDFCoordinateAxis*>(coordAxis);
-
-    // If var is a dimension : (don't add to its own dimension, it have already done)
-    if (coordAxis != nullptr)
-    {
-      //-----------
-      continue
-      //-----------
-    }
-  */
-    // Add dimension to the variable 
-    
-    CStringArray::const_iterator itFieldDimsOut;
-    
-    for (itFieldDimsOut = fieldDimsOut.begin() ; itFieldDimsOut != fieldDimsOut.end() ; itFieldDimsOut++)
-    {
-      CNetCDFDimension* addedDim = m_internalFiles->GetNetCDFDim(*itFieldDimsOut);
-      // If dim is not found, it's an axis field ==> create the dim, set its length to 1 and create its variable.
-      // because its length is actually not known (it will be known when all the input file will be processed)
-      if (addedDim == nullptr)
-      {
-        CNetCDFDimension dim(*itFieldDimsOut, 1);
-
-        addedDim = m_internalFiles->AddNetCDFDim(dim);
-
-        CNetCDFVarDef* addedVarDimIndex = m_internalFiles->GetNetCDFVarDef(addedDim->GetName());
-        if (addedVarDimIndex == nullptr)
-        {
-          CNetCDFCoordinateAxis varDimIndex(addedDim->GetName());
-
-          addedVarDimIndex = m_internalFiles->AddNetCDFVarDef(varDimIndex);
-      
-          addedDim->AddCoordinateVariable(addedVarDimIndex->GetName());
-          
-          addedVarDimIndex->AddNetCDFDim(*addedDim);
-
-          // The dimension have to be added to the fields which have to be read  (as an expression object) 
-
-          bool addAsExpression = (m_names.FindIndex(addedVarDimIndex->GetName()) < 0)
-                              && ( ! IsOutputAxis(addedVarDimIndex->GetName()) );
-
-          if (addAsExpression)
-          {
-
-            CExpression expr(addedVarDimIndex->GetName());
-
-            m_fields.push_back(expr);
-
-            m_units.push_back(*(addedVarDimIndex->GetUnit()));
-
-            m_names.push_back(addedVarDimIndex->GetName());
-
-            m_titles.push_back("");
-
-            m_comments.push_back("");
-
-            m_types.push_back(Data);
-
-            m_dataMode.push_back(CBratProcess::pctFIRST);
-			mDataInterpolationTimeFieldName.push_back( "" );
-			mDataInterpolationDateTime.push_back( CDate() );
-			mDataInterpolationDistanceWeighting.push_back( defaultValue<double>() );
-			mDataInterpolationTimeWeighting.push_back( defaultValue<double>() );
-
-            //----------------------------------
-            m_listFieldsToRead.InsertUnique(addedVarDimIndex->GetName());
-            //----------------------------------
-
-            OnAddDimensionsFromNetCdf();
-          }
-
-        }
-
-      }
-        
-      addedDim->AddCoordinateVariable(addedVarDef->GetName());
-
-      addedVarDef->AddNetCDFDim(*addedDim);
-    }
+		// Get Netcdf dimension of the expression (of all fields contained in the expression)
+		// NB :dim. names appear only once in the result (fieldDims)
+		// NB: if no algo in the expression : fieldDims and fieldDimsWithoutAlgo are equal
+		productNetCdf->GetNetCdfDimensions( m_fields.at( i ), fieldDims, m_recordName );
+		productNetCdf->GetNetCdfDimensionsWithoutAlgo( m_fields.at( i ), fieldDimsWithoutAlgo, m_recordName );
 
 
-  }
+		// Replace dimension which have the same names of the X / Y fields by the X / Y expression name 
+		//SubstituteAxisDim(fieldDims, fieldDimsOut);
+
+		// If the dimensions of the expression is empty, it's considered as a constant expression (an expression 
+		// which is made up of one  or several constants):
+		// So, the ouput dimensions of the expression will be the axis dimensions (X or X/Y)
+		if ( fieldDims.size() <= 0 )
+		{
+			//fieldDimsOut.Insert(m_netCdfAxisDims);
+			if ( !m_xName.empty() )
+			{
+				fieldDimsOut.Insert( m_xName );
+			}
+
+			if ( !m_yName.empty() )
+			{
+				fieldDimsOut.Insert( m_yName );
+			}
+
+			CStringArray::const_iterator itField;
+			const CStringArray& fields = *( m_fields.at( i ).GetFieldNames() );
+
+			for ( itField = fields.begin(); itField != fields.end(); itField++ )
+			{
+				CFieldNetCdf* field = dynamic_cast<CFieldNetCdf*>( m_product->FindFieldByName( *itField, m_recordName, false ) );
+				if ( field == nullptr )
+				{
+					continue;
+				}
+
+				m_fieldDefinitionToReplace.Insert( field->GetName() );
+			}
+
+		}
+		// If the dimensions of the expression withur algorithm call is empty
+		// The ouput dimensions of the expression will be the axis dimensions (X or X/Y)
+		else
+		{
+			if ( fieldDimsWithoutAlgo.size() <= 0 ) // else fieldDims.size() >= 0
+			{
+				fieldDimsOut.RemoveAll();
+
+				if ( !m_xName.empty() )
+				{
+					fieldDimsOut.Insert( m_xName );
+				}
+
+				if ( !m_yName.empty() )
+				{
+					fieldDimsOut.Insert( m_yName );
+				}
+
+			}
+			else
+			{
+				// Replace dimension which have the same names of the X / Y fields by the X / Y expression name 
+				SubstituteAxisDim( fieldDimsWithoutAlgo, fieldDimsOut );
+			}
+		}
+
+		// if var already exists, continue
+		if ( m_internalFiles->GetNetCDFVarDef( m_names[ i ] ) != nullptr )
+		{
+			//-----------
+			continue;
+			//-----------
+
+		}
+		//Create the variable and add it to the output NetCdf file
+		CNetCDFVarDef varDef( m_names[ i ], m_units[ i ] );
+		varDef.AddAttribute( new CNetCDFAttrString( LONG_NAME_ATTR, m_titles[ i ] ) );
+		varDef.AddAttribute( new CNetCDFAttrString( COMMENT_ATTR, m_comments[ i ] ) );
+
+		// The created var is returned (or the already existing var, i.e the dim variable).
+		CNetCDFVarDef* addedVarDef = m_internalFiles->AddNetCDFVarDef( varDef );
+
+		/*
+		CNetCDFCoordinateAxis* coordAxis = dynamic_cast<CNetCDFCoordinateAxis*>(coordAxis);
+
+		// If var is a dimension : (don't add to its own dimension, it have already done)
+		if (coordAxis != nullptr)
+		{
+		  //-----------
+		  continue
+		  //-----------
+		}
+	  */
+	  // Add dimension to the variable 
+
+		CStringArray::const_iterator itFieldDimsOut;
+
+		for ( itFieldDimsOut = fieldDimsOut.begin(); itFieldDimsOut != fieldDimsOut.end(); itFieldDimsOut++ )
+		{
+			CNetCDFDimension* addedDim = m_internalFiles->GetNetCDFDim( *itFieldDimsOut );
+			// If dim is not found, it's an axis field ==> create the dim, set its length to 1 and create its variable.
+			// because its length is actually not known (it will be known when all the input file will be processed)
+			if ( addedDim == nullptr )
+			{
+				CNetCDFDimension dim( *itFieldDimsOut, 1 );
+
+				addedDim = m_internalFiles->AddNetCDFDim( dim );
+
+				CNetCDFVarDef* addedVarDimIndex = m_internalFiles->GetNetCDFVarDef( addedDim->GetName() );
+				if ( addedVarDimIndex == nullptr )
+				{
+					CNetCDFCoordinateAxis varDimIndex( addedDim->GetName() );
+
+					addedVarDimIndex = m_internalFiles->AddNetCDFVarDef( varDimIndex );
+
+					addedDim->AddCoordinateVariable( addedVarDimIndex->GetName() );
+
+					addedVarDimIndex->AddNetCDFDim( *addedDim );
+
+					// The dimension have to be added to the fields which have to be read  (as an expression object) 
+
+					bool addAsExpression = ( m_names.FindIndex( addedVarDimIndex->GetName() ) < 0 )
+						&& ( ! IsOutputAxis( addedVarDimIndex->GetName() ) );
+
+					if ( addAsExpression )
+					{
+
+						CExpression expr( addedVarDimIndex->GetName() );
+
+						m_fields.push_back( expr );
+
+						m_units.push_back( *( addedVarDimIndex->GetUnit() ) );
+
+						m_names.push_back( addedVarDimIndex->GetName() );
+
+						m_titles.push_back( "" );
+
+						m_comments.push_back( "" );
+
+						m_types.push_back( Data );
+
+						m_dataMode.push_back( CBratProcess::pctFIRST );
+						mDataInterpolationTimeFieldName.push_back( "" );
+						mDataInterpolationDateTime.push_back( CDate() );
+						mDataInterpolationDistanceWeighting.push_back( defaultValue<double>() );
+						mDataInterpolationTimeWeighting.push_back( defaultValue<double>() );
+
+						//----------------------------------
+						m_listFieldsToRead.InsertUnique( addedVarDimIndex->GetName() );
+						//----------------------------------
+
+						OnAddDimensionsFromNetCdf();
+					}
+
+				}
+
+			}
+
+			addedDim->AddCoordinateVariable( addedVarDef->GetName() );
+
+			addedVarDef->AddNetCDFDim( *addedDim );
+		}
+
+
+	}
 
 
 }

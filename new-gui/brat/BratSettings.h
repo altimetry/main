@@ -99,6 +99,8 @@ protected:
 	int mPlotsAxisFontSize = smPlotsAxisFontSize;
 	int mPlotsTitleFontSize = smPlotsTitleFontSize;
 
+    bool mOsgEarthUsePbufferTestForVms = false;
+    
 
     //////////////////////////////////////
     //	construction / destruction
@@ -179,6 +181,11 @@ public:
 	int PlotsTitleFontSize() const { return mPlotsTitleFontSize; }
 
 
+    //...OpenGL internal stuff for VMs, namely in macs with Intel graphics
+    
+    bool OsgEarthUsePbufferTestForVms() const { return mOsgEarthUsePbufferTestForVms; }
+    
+    
 public:
 
     //////////////////////////////////////

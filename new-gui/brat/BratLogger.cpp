@@ -125,9 +125,9 @@ void CBratLogger::QtMessageOutput( QtMsgType type, qt_raw_logtext_t msg, const Q
 		case QtWarningMsg:
         
 #if defined(Q_OS_MAC)
-            if ( !msg.startsWith( "QWidgetWindow" ) )
+			if ( !msg.startsWith( "QWidgetWindow" ) && !msg.startsWith( "QNSView" ) )   //Qt5 bugs; expecting next version
 #endif
-			QgsMessageLog::logMessage( msg, "Warning" );		//redirects recursively here (as QtDebugMsg) and to GUI
+				QgsMessageLog::logMessage( msg, "Warning" );		//redirects recursively here (as QtDebugMsg) and to GUI
 			break;
 
 		case QtCriticalMsg:	//=	QtSystemMsg

@@ -113,6 +113,9 @@ void CWorkspaceDialog::CreateGUI()
 	auto hl_name = LayoutWidgets( Qt::Horizontal, { mNameText, name_line }, nullptr, 6, 0, 0, 0, 0 );
 	LayoutWidgets( Qt::Vertical, { new QLabel( "Name" ), hl_name }, name_wrapper, 0, 0, 0, 0, 0 );
     name_wrapper->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Fixed );
+	auto *name_validator = new QRegExpValidator( QRegExp( "[_a-zA-Z0-9]+" ), this );
+	mNameText->setMaxLength( max_names_length );
+	mNameText->setValidator( name_validator );
 
 
 	//	... Path

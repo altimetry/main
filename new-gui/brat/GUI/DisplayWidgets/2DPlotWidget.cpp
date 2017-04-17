@@ -459,7 +459,7 @@ public:
                 return QString( d.AsString().c_str() );
 		}
 
-		return QString::number( value, 'g', mMantissaDigits );
+        return n2qx( value, mMantissaDigits );
 	}
 };
 
@@ -596,12 +596,6 @@ bool C2DPlotWidget::Save2unsupported( C2DPlotWidget *p, const QString &path, con
 //static 
 bool C2DPlotWidget::Save2ps( C2DPlotWidget *p, const QString &path )
 {
-#if QT_VERSION >= 0x050000
-
-    Q_UNUSED( p );      Q_UNUSED( path );
-
-	return false;
-#else
 	QPrinter printer;
 	//QPrinter printer(QPrinter::HighResolution);
 
@@ -612,7 +606,9 @@ bool C2DPlotWidget::Save2ps( C2DPlotWidget *p, const QString &path )
 //#if QT_VERSION < 0x040000
 	//printer.setOutputToFile(true);
 	printer.setOutputFileName( qpath );
-	printer.setOutputFormat( QPrinter::PostScriptFormat );
+#if QT_VERSION < 0x050000
+    printer.setOutputFormat( QPrinter::PostScriptFormat );
+#endif
 	printer.setColorMode( QPrinter::Color );
 //#else
 //	printer.setOutputFileName("/tmp/bode.pdf");
@@ -628,29 +624,19 @@ bool C2DPlotWidget::Save2ps( C2DPlotWidget *p, const QString &path )
 	printer.setCreator( "Brat v4.0.0" );
 	printer.setOrientation( QPrinter::Landscape );
 
-//#if QT_VERSION >= 0x040000
-//	QPrintDialog dialog( &printer );
-//	if ( dialog.exec() )
-//	{
-//#else
-	//if (printer.setup())
-	{
-//#endif
-		QwtPlotPrintFilter filter;
-		if ( printer.colorMode() == QPrinter::GrayScale )
-		{
-			int options = QwtPlotPrintFilter::PrintAll;
-			options &= ~QwtPlotPrintFilter::PrintBackground;
-			options |= QwtPlotPrintFilter::PrintFrameWithScales;
-			filter.setOptions( options );
-		}
-		p->print( printer, filter );
-	}
+    QwtPlotPrintFilter filter;
+    if ( printer.colorMode() == QPrinter::GrayScale )
+    {
+        int options = QwtPlotPrintFilter::PrintAll;
+        options &= ~QwtPlotPrintFilter::PrintBackground;
+        options |= QwtPlotPrintFilter::PrintFrameWithScales;
+        filter.setOptions( options );
+    }
+    p->print( printer, filter );
 
 	return true;
 
 	//return Save2unsupported( p, path, "ps" );
-#endif
 }
 //static 
 bool C2DPlotWidget::Save2gif( C2DPlotWidget *p, const QString &path )

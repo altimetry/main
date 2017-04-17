@@ -553,250 +553,274 @@ void CProduct::RemoveCriteria()
 
 
 
-//----------------------------------------
-bool CProduct::GetValueMinMax(CExpression& expr, const std::string& recordName, double& valueMin, double& valueMax, const CUnit& unit)
+bool CProduct::GetValueMinMax( CExpression& expr, const std::string& recordName, double& valueMin, double& valueMax,
+	const CUnit& unit, CProgressInterface *pi )		//pi = nullptr 
 {
-  setDefaultValue(valueMin);
-  setDefaultValue(valueMax);
+	setDefaultValue( valueMin );
+	setDefaultValue( valueMax );
 
-  CStringList listFieldsToRead;
-  listFieldsToRead.InsertUnique(expr.GetFieldNames());
+	CStringList listFieldsToRead;
+	listFieldsToRead.InsertUnique( expr.GetFieldNames() );
 
-  if (listFieldsToRead.empty())
-  {
-    return true;
-  }
+	if ( listFieldsToRead.empty() )
+	{
+		return true;
+	}
 
-  m_indexProcessedFile = 0;
-  CProductList::iterator itFile;
-  
-  double offset = 0;
+	m_indexProcessedFile = 0;
+	bool canceled = false;
+	if ( pi )
+		pi->SetRange( 0, m_fileList.size() );
 
-  // Searches for each files
-  for ( itFile = m_fileList.begin(); itFile != m_fileList.end(); itFile++ )
-  {
-    m_indexProcessedFile++;
+	double offset = 0;
 
-    //this->Open(*itFile, recordName, listFieldsToRead);
-    this->Open(*itFile, recordName, listFieldsToRead);
+	// Searches for each files
+	for ( CProductList::iterator itFile = m_fileList.begin(); itFile != m_fileList.end(); itFile++ )
+	{
+		m_indexProcessedFile++;
+		if ( pi )
+		{
+			if ( pi->Cancelled() )
+			{
+				canceled = true;
+				break;
+			}
+			pi->SetCurrentValue( m_indexProcessedFile );
+		}
 
-    // Get the number of record for the default record name (set in Open method of CProduct above)
-    int32_t nRecords = this->GetNumberOfRecords();
+		//this->Open(*itFile, recordName, listFieldsToRead);
+		this->Open( *itFile, recordName, listFieldsToRead );
 
-    //CTrace::Tracer(1,"Reading record data from %s ... and writing output data...", (*itFile).c_str());
+		// Get the number of record for the default record name (set in Open method of CProduct above)
+		int32_t nRecords = this->GetNumberOfRecords();
 
-    for (int32_t iRecord = 0 ; iRecord < nRecords ; iRecord++)
-    {
-      //Read fields for the record name  (listof field and record name are set in Open method of CProduct above)
-      this->ReadBratRecord(iRecord);
+		//CTrace::Tracer(1,"Reading record data from %s ... and writing output data...", (*itFile).c_str());
 
-      CObArray::iterator itDataSet;
-      uint32_t nbValues;
+		for ( int32_t iRecord = 0; iRecord < nRecords; iRecord++ )
+		{
+			//Read fields for the record name  (listof field and record name are set in Open method of CProduct above)
+			this->ReadBratRecord( iRecord );
 
-      CRecordSet* recordSet = NULL;
-      for (itDataSet = m_dataSet.begin(); itDataSet != m_dataSet.end() ; itDataSet++)
-      {
-        recordSet = m_dataSet.GetRecordSet(itDataSet);
+			CObArray::iterator itDataSet;
+			uint32_t nbValues;
 
-        CExpressionValue exprValue;
-        recordSet->ExecuteExpression(expr, recordName, exprValue);
+			CRecordSet* recordSet = NULL;
+			for ( itDataSet = m_dataSet.begin(); itDataSet != m_dataSet.end(); itDataSet++ )
+			{
+				recordSet = m_dataSet.GetRecordSet( itDataSet );
 
-        nbValues	= exprValue.GetNbValues();
-        if (nbValues == 0)
-        {
-          continue; // No Data
-        }
+				CExpressionValue exprValue;
+				recordSet->ExecuteExpression( expr, recordName, exprValue );
 
-        CUnit	wantedUnit = unit;
-        wantedUnit.SetConversionFromBaseUnit();
+				nbValues	= exprValue.GetNbValues();
+				if ( nbValues == 0 )
+				{
+					continue; // No Data
+				}
 
-        wantedUnit.ConvertVector(exprValue.GetValues(), exprValue.GetNbValues());
+				CUnit	wantedUnit = unit;
+				wantedUnit.SetConversionFromBaseUnit();
 
-        CField::AdjustValidMinMax(exprValue.GetValues(), exprValue.GetNbValues(), valueMin, valueMax);
+				wantedUnit.ConvertVector( exprValue.GetValues(), exprValue.GetNbValues() );
+
+				CField::AdjustValidMinMax( exprValue.GetValues(), exprValue.GetNbValues(), valueMin, valueMax );
 
 
-        if (IsNetCdf())
-        {
-          // Set the right brat index data offset
-          // Because all values have been read at once
-          // and the right offdet is 'nbValues'
-          offset += nbValues;
-          this->SetOffset(offset);
-        }
+				if ( IsNetCdf() )
+				{
+					// Set the right brat index data offset
+					// Because all values have been read at once
+					// and the right offdet is 'nbValues'
+					offset += nbValues;
+					this->SetOffset( offset );
+				}
 
-      }
+			}
 
-    }
+		}
 
-    this->Close();
-  }
+		this->Close();
+	}
 
-  m_indexProcessedFile = -1;
+	m_indexProcessedFile = -1;
 
-  return true;
-
+	return !canceled;
 }
-//----------------------------------------
-bool CProduct::GetLatLonMinMax(double& latMin, double& lonMin, double& latMax, double& lonMax)
+
+
+
+bool CProduct::GetLatLonMinMax( double& latMin, double& lonMin, double& latMax, double& lonMax, CProgressInterface *pi )	//pi = nullptr
 {
-  CLatLonRect latlonRectMinMax;
+	CLatLonRect latlonRectMinMax;
 
-  bool result =  GetLatLonMinMax(latlonRectMinMax);
+	bool result =  GetLatLonMinMax( latlonRectMinMax, pi );
 
-  latMin = latlonRectMinMax.GetLatMin();
-  lonMin = latlonRectMinMax.GetLonMin();
-  latMax = latlonRectMinMax.GetLatMax();
-  lonMax = latlonRectMinMax.GetLonMax();
+	latMin = latlonRectMinMax.GetLatMin();
+	lonMin = latlonRectMinMax.GetLonMin();
+	latMax = latlonRectMinMax.GetLatMax();
+	lonMax = latlonRectMinMax.GetLonMax();
 
-  return result;
-
+	return result;
 }
-//----------------------------------------
-bool CProduct::GetLatLonMinMax(CLatLonRect& latlonRectMinMax)
+
+
+
+bool CProduct::GetLatLonMinMax( CLatLonRect& latlonRectMinMax, CProgressInterface *pi )	//pi = nullptr 
 {
-  latlonRectMinMax.SetDefaultValue();
+	latlonRectMinMax.SetDefaultValue();
 
-  int32_t iRecord = 0;
+	int32_t iRecord = 0;
 
-  CRecordDataMap listRecord;
+	CRecordDataMap listRecord;
 
-  if (!HasLatLonCriteriaInfo())
-  {
-    return false;
-  }
+	if ( !HasLatLonCriteriaInfo() )
+	{
+		return false;
+	}
 
-  // Sets a list of fields to be read (fields of all criteria)
-  // To optimize reading data, fields are organized by data record
-  CCriteriaLatLonInfo* criteriaInfo = this->GetLatLonCriteriaInfo();
-  if (criteriaInfo == NULL)
-  {
-    return false;
-  }
+	// Sets a list of fields to be read (fields of all criteria)
+	// To optimize reading data, fields are organized by data record
+	CCriteriaLatLonInfo* criteriaInfo = this->GetLatLonCriteriaInfo();
+	if ( criteriaInfo == NULL )
+	{
+		return false;
+	}
 
-  criteriaInfo->GetFields(listRecord);
+	criteriaInfo->GetFields( listRecord );
 
-  CProductList::iterator itFile;
+	m_indexProcessedFile = 0;
+	bool canceled = false;
+	if ( pi )
+		pi->SetRange( 0, m_fileList.size() );
 
-  m_indexProcessedFile = 0;
-  // Searches for each files
-  for ( itFile = m_fileList.begin(); itFile != m_fileList.end(); itFile++ )
-  {
-    m_indexProcessedFile++;
-    //CTrace::Tracer(1,"Process file %d of %d", (long)m_indexProcessedFile, (long)m_fileList.size());
+	// Searches for each files
+	for ( CProductList::iterator itFile = m_fileList.begin(); itFile != m_fileList.end(); itFile++ )
+	{
+		m_indexProcessedFile++;
+		//CTrace::Tracer(1,"Process file %d of %d", (long)m_indexProcessedFile, (long)m_fileList.size());
 
-    this->Open(*itFile);
+		if ( pi )
+		{
+			if ( pi->Cancelled() )
+			{
+				canceled = true;
+				break;
+			}
+			pi->SetCurrentValue( m_indexProcessedFile );
+		}
 
-    // For each record, read data fields
-    CObMap::iterator itMapListRecord;
-    for ( itMapListRecord = listRecord.begin(); itMapListRecord != listRecord.end(); itMapListRecord++ )
-    {
-      m_dataSetNameToRead = itMapListRecord->first;
+		this->Open( *itFile );
 
-      CObMap* fieldsInfo = listRecord.GetFields(itMapListRecord->first);
+		// For each record, read data fields
+		CObMap::iterator itMapListRecord;
+		for ( itMapListRecord = listRecord.begin(); itMapListRecord != listRecord.end(); itMapListRecord++ )
+		{
+			m_dataSetNameToRead = itMapListRecord->first;
 
-      CStringList listFieldToRead;
+			CObMap* fieldsInfo = listRecord.GetFields( itMapListRecord->first );
 
-      fieldsInfo->GetKeys(listFieldToRead);
+			CStringList listFieldToRead;
 
-      InitInternalFieldName(listFieldToRead, false);
+			fieldsInfo->GetKeys( listFieldToRead );
 
-      Rewind();
+			InitInternalFieldName( listFieldToRead, false );
 
-      ReadBratRecord(iRecord);
+			Rewind();
 
-      //m_dataSet.Dump();
-//      DumpDictionary("dumpDict.txt");
+			ReadBratRecord( iRecord );
+
+			//m_dataSet.Dump();
+	  //      DumpDictionary("dumpDict.txt");
 
 
-      // If no data, it's an error
-      CRecordSet* recordSet = m_dataSet.GetRecordSet(iRecord);
-      if (recordSet == NULL)
-      {
+			// If no data, it's an error
+			CRecordSet* recordSet = m_dataSet.GetRecordSet( iRecord );
+			if ( recordSet == NULL )
+			{
 
-        std::string msg = CTools::Format("ERROR - CProduct::GetLatLonMinMax() - There is no data for record '%s' and fields '%s'. ",
-                                    m_dataSetNameToRead.c_str(),
-                                    listFieldToRead.ToString().c_str());
-        CProductException e(msg, m_currFileName, GetProductClass(), GetProductType(), BRATHL_INCONSISTENCY_ERROR);
-        CTrace::Tracer("%s", e.what());
-        throw (e);
-      }
+				std::string msg = CTools::Format( "ERROR - CProduct::GetLatLonMinMax() - There is no data for record '%s' and fields '%s'. ",
+					m_dataSetNameToRead.c_str(),
+					listFieldToRead.ToString().c_str() );
+				CProductException e( msg, m_currFileName, GetProductClass(), GetProductType(), BRATHL_INCONSISTENCY_ERROR );
+				CTrace::Tracer( "%s", e.what() );
+				throw ( e );
+			}
 
-      // Criteria data record does not correspond to read record   --> next criteria
-      if (criteriaInfo->GetDataRecord().compare(m_dataSetNameToRead) != 0)
-      {
-        continue;
-      }
+			// Criteria data record does not correspond to read record   --> next criteria
+			if ( criteriaInfo->GetDataRecord().compare( m_dataSetNameToRead ) != 0 )
+			{
+				continue;
+			}
 
-      CStringList criteriaFieldNames;
-      criteriaInfo->GetFieldNames(criteriaFieldNames);
+			CStringList criteriaFieldNames;
+			criteriaInfo->GetFieldNames( criteriaFieldNames );
 
-      bool fieldsExists = true;
+			bool fieldsExists = true;
 
-      // Tests if criteria fields correspond to read fields
-      CStringList::iterator itCritFieldNames;
-      for ( itCritFieldNames = criteriaFieldNames.begin(); itCritFieldNames != criteriaFieldNames.end(); itCritFieldNames++ )
-      {
-        CFieldSet *fieldSet = m_dataSet.GetFieldSet( m_fieldNameEquivalence.Exists(*itCritFieldNames) );
-        if (fieldSet == NULL)
-        {
-          fieldsExists = false;
-          break;
-        }
-      }
+			// Tests if criteria fields correspond to read fields
+			CStringList::iterator itCritFieldNames;
+			for ( itCritFieldNames = criteriaFieldNames.begin(); itCritFieldNames != criteriaFieldNames.end(); itCritFieldNames++ )
+			{
+				CFieldSet *fieldSet = m_dataSet.GetFieldSet( m_fieldNameEquivalence.Exists( *itCritFieldNames ) );
+				if ( fieldSet == NULL )
+				{
+					fieldsExists = false;
+					break;
+				}
+			}
 
-      // At least one fields does not correspond to --> next criteria
-      if (!fieldsExists)
-      {
-        continue;
-      }
+			// At least one fields does not correspond to --> next criteria
+			if ( !fieldsExists )
+			{
+				continue;
+			}
 
-      // Gets start latitude
-      double lat;
-      setDefaultValue(lat);
+			// Gets start latitude
+			double lat;
+			setDefaultValue( lat );
 
-      if (isDefaultValue(m_forceLatMinCriteriaValue))
-      {
-        lat = m_dataSet.GetFieldSetAsDblValue(m_fieldNameEquivalence.Exists(criteriaInfo->GetStartLatFieldName()));
-      }
-      else
-      {
-        lat = m_forceLatMinCriteriaValue;
-      }
+			if ( isDefaultValue( m_forceLatMinCriteriaValue ) )
+			{
+				lat = m_dataSet.GetFieldSetAsDblValue( m_fieldNameEquivalence.Exists( criteriaInfo->GetStartLatFieldName() ) );
+			}
+			else
+			{
+				lat = m_forceLatMinCriteriaValue;
+			}
 
-      // Gets start longitude
-      double lon = m_dataSet.GetFieldSetAsDblValue(m_fieldNameEquivalence.Exists(criteriaInfo->GetStartLonFieldName()));
-      CLatLonPoint left(lat, lon);
+			// Gets start longitude
+			double lon = m_dataSet.GetFieldSetAsDblValue( m_fieldNameEquivalence.Exists( criteriaInfo->GetStartLonFieldName() ) );
+			CLatLonPoint left( lat, lon );
 
-      // Gets end latitude
-      setDefaultValue(lat);
+			// Gets end latitude
+			setDefaultValue( lat );
 
-      if (isDefaultValue(m_forceLatMinCriteriaValue))
-      {
-        lat = m_dataSet.GetFieldSetAsDblValue(m_fieldNameEquivalence.Exists(criteriaInfo->GetEndLatFieldName()));
-      }
-      else
-      {
-        lat = m_forceLatMaxCriteriaValue;
-      }
+			if ( isDefaultValue( m_forceLatMinCriteriaValue ) )
+			{
+				lat = m_dataSet.GetFieldSetAsDblValue( m_fieldNameEquivalence.Exists( criteriaInfo->GetEndLatFieldName() ) );
+			}
+			else
+			{
+				lat = m_forceLatMaxCriteriaValue;
+			}
 
-      // Gets end longitude
-      lon = m_dataSet.GetFieldSetAsDblValue(m_fieldNameEquivalence.Exists(criteriaInfo->GetEndLonFieldName()));
-      CLatLonPoint right(lat, lon);
+			// Gets end longitude
+			lon = m_dataSet.GetFieldSetAsDblValue( m_fieldNameEquivalence.Exists( criteriaInfo->GetEndLonFieldName() ) );
+			CLatLonPoint right( lat, lon );
 
-      CLatLonRect latLonRect(left, right);
+			CLatLonRect latLonRect( left, right );
 
-      latlonRectMinMax.Extend(latLonRect);
+			latlonRectMinMax.Extend( latLonRect );
 
-      std::string str = latlonRectMinMax.AsString();
-    }
+			std::string str = latlonRectMinMax.AsString();
+		}
 
-    this->Close();
-  }
+		this->Close();
+	}
 
-  m_indexProcessedFile = -1;
+	m_indexProcessedFile = -1;
 
-  return true;
-
+	return !canceled;
 }
 
 //----------------------------------------
@@ -811,134 +835,150 @@ bool CProduct::GetDateMinMax(CDate& dateMin, CDate& dateMax)
 
   return result;
 }
-//----------------------------------------
-bool CProduct::GetDateMinMax(CDatePeriod& datePeriodMinMax)
+
+
+
+bool CProduct::GetDateMinMax( CDatePeriod& datePeriodMinMax, CProgressInterface *pi )	//pi = nullptr 
 {
-  datePeriodMinMax.SetDefaultValue();
+	datePeriodMinMax.SetDefaultValue();
 
-  int32_t iRecord = 0;
+	int32_t iRecord = 0;
 
-  CRecordDataMap listRecord;
+	CRecordDataMap listRecord;
 
-  if (!HasDatetimeCriteriaInfo())
-  {
-    return false;
-  }
+	if ( !HasDatetimeCriteriaInfo() )
+	{
+		return false;
+	}
 
-  // Sets a list of fields to be read (fields of all criteria)
-  // To optimize reading data, fields are organized by data record
-  CCriteriaDatetimeInfo * criteriaInfo = this->GetDatetimeCriteriaInfo();
-  if (criteriaInfo == NULL)
-  {
-    return false;
-  }
+	// Sets a list of fields to be read (fields of all criteria)
+	// To optimize reading data, fields are organized by data record
+	CCriteriaDatetimeInfo * criteriaInfo = this->GetDatetimeCriteriaInfo();
+	if ( criteriaInfo == NULL )
+	{
+		return false;
+	}
 
-  criteriaInfo->GetFields(listRecord);
+	criteriaInfo->GetFields( listRecord );
 
-  CProductList::iterator itFile;
+	m_indexProcessedFile = 0;
 
-  m_indexProcessedFile = 0;
-  // Searches for each files
-  for ( itFile = m_fileList.begin(); itFile != m_fileList.end(); itFile++ )
-  {
-    m_indexProcessedFile++;
-    //CTrace::Tracer(1,"Process file %d of %d", (long)m_indexProcessedFile, (long)m_fileList.size());
+	bool canceled = false;
+	if ( pi )
+		pi->SetRange( 0, m_fileList.size() );
 
-    this->Open(*itFile);
+	// Searches for each files
+	for ( CProductList::iterator itFile = m_fileList.begin(); itFile != m_fileList.end(); itFile++ )
+	{
+		m_indexProcessedFile++;
+		//CTrace::Tracer(1,"Process file %d of %d", (long)m_indexProcessedFile, (long)m_fileList.size());
 
-    // For each record, read data fields
-    CObMap::iterator itMapListRecord;
-    for ( itMapListRecord = listRecord.begin(); itMapListRecord != listRecord.end(); itMapListRecord++ )
-    {
-      m_dataSetNameToRead = itMapListRecord->first;
+		if ( pi )
+		{
+			if ( pi->Cancelled() )
+			{
+				canceled = true;
+				break;
+			}
+			pi->SetCurrentValue( m_indexProcessedFile );
+		}
 
-      CObMap* fieldsInfo = listRecord.GetFields(itMapListRecord->first);
+		this->Open( *itFile );
 
-      CStringList listFieldToRead;
+		// For each record, read data fields
+		CObMap::iterator itMapListRecord;
+		for ( itMapListRecord = listRecord.begin(); itMapListRecord != listRecord.end(); itMapListRecord++ )
+		{
+			m_dataSetNameToRead = itMapListRecord->first;
 
-      fieldsInfo->GetKeys(listFieldToRead);
+			CObMap* fieldsInfo = listRecord.GetFields( itMapListRecord->first );
 
-      InitInternalFieldName(listFieldToRead, false);
+			CStringList listFieldToRead;
 
-      Rewind();
+			fieldsInfo->GetKeys( listFieldToRead );
 
-      ReadBratRecord(iRecord);
+			InitInternalFieldName( listFieldToRead, false );
 
-      //m_dataSet.Dump();
-//      DumpDictionary("dumpDict.txt");
+			Rewind();
 
+			ReadBratRecord( iRecord );
 
-      // If no data, it's an error
-      CRecordSet* recordSet = m_dataSet.GetRecordSet(iRecord);
-      if (recordSet == NULL)
-      {
-
-        std::string msg = CTools::Format("ERROR - CProduct::GetDateMinMax() - There is no data for record '%s' and fields '%s'. ",
-                                    m_dataSetNameToRead.c_str(),
-                                    listFieldToRead.ToString().c_str());
-        CProductException e(msg, m_currFileName, GetProductClass(), GetProductType(), BRATHL_INCONSISTENCY_ERROR);
-        CTrace::Tracer("%s", e.what());
-        throw (e);
-      }
-
-      // Criteria data record does not correspond to read record   --> next criteria
-      if (criteriaInfo->GetDataRecord().compare(m_dataSetNameToRead) != 0)
-      {
-        continue;
-      }
-
-      CStringList criteriaFieldNames;
-      criteriaInfo->GetFieldNames(criteriaFieldNames);
-
-      bool fieldsExists = true;
-
-      // Tests if criteria fields correspond to read fields
-      CStringList::iterator itCritFieldNames;
-      for ( itCritFieldNames = criteriaFieldNames.begin(); itCritFieldNames != criteriaFieldNames.end(); itCritFieldNames++ )
-      {
-        CFieldSet *fieldSet = m_dataSet.GetFieldSet( m_fieldNameEquivalence.Exists(*itCritFieldNames) );
-        if (fieldSet == NULL)
-        {
-          fieldsExists = false;
-          break;
-        }
-      }
-
-      // At least one fields does not correspond to --> next criteria
-      if (!fieldsExists)
-      {
-        continue;
-      }
+			//m_dataSet.Dump();
+	  //      DumpDictionary("dumpDict.txt");
 
 
+			// If no data, it's an error
+			CRecordSet* recordSet = m_dataSet.GetRecordSet( iRecord );
+			if ( recordSet == NULL )
+			{
 
-      // Gets start datetime
-      //CDate startDate(m_dataSet.GetFieldSetAsDblValue(m_fieldNameEquivalence.Exists(criteriaInfo->GetStartDateFieldName())),
-      //                criteriaInfo->GetRefDate() );
+				std::string msg = CTools::Format( "ERROR - CProduct::GetDateMinMax() - There is no data for record '%s' and fields '%s'. ",
+					m_dataSetNameToRead.c_str(),
+					listFieldToRead.ToString().c_str() );
+				CProductException e( msg, m_currFileName, GetProductClass(), GetProductType(), BRATHL_INCONSISTENCY_ERROR );
+				CTrace::Tracer( "%s", e.what() );
+				throw ( e );
+			}
 
-      CDate startDate(m_dataSet.GetFieldSetAsDblValue(m_fieldNameEquivalence.Exists(criteriaInfo->GetStartDateFieldName())));
+			// Criteria data record does not correspond to read record   --> next criteria
+			if ( criteriaInfo->GetDataRecord().compare( m_dataSetNameToRead ) != 0 )
+			{
+				continue;
+			}
 
-      // Gets end datetime
-      //CDate endDate(m_dataSet.GetFieldSetAsDblValue(m_fieldNameEquivalence.Exists(criteriaInfo->GetEndDateFieldName())),
-      //              criteriaInfo->GetRefDate() );
+			CStringList criteriaFieldNames;
+			criteriaInfo->GetFieldNames( criteriaFieldNames );
 
-      CDate endDate(m_dataSet.GetFieldSetAsDblValue(m_fieldNameEquivalence.Exists(criteriaInfo->GetEndDateFieldName())));
+			bool fieldsExists = true;
+
+			// Tests if criteria fields correspond to read fields
+			CStringList::iterator itCritFieldNames;
+			for ( itCritFieldNames = criteriaFieldNames.begin(); itCritFieldNames != criteriaFieldNames.end(); itCritFieldNames++ )
+			{
+				CFieldSet *fieldSet = m_dataSet.GetFieldSet( m_fieldNameEquivalence.Exists( *itCritFieldNames ) );
+				if ( fieldSet == NULL )
+				{
+					fieldsExists = false;
+					break;
+				}
+			}
+
+			// At least one fields does not correspond to --> next criteria
+			if ( !fieldsExists )
+			{
+				continue;
+			}
 
 
-      datePeriodMinMax.Union(startDate, endDate);
 
-      std::string str = datePeriodMinMax.AsString();
-    }
+			// Gets start datetime
+			//CDate startDate(m_dataSet.GetFieldSetAsDblValue(m_fieldNameEquivalence.Exists(criteriaInfo->GetStartDateFieldName())),
+			//                criteriaInfo->GetRefDate() );
 
-    this->Close();
-  }
+			CDate startDate( m_dataSet.GetFieldSetAsDblValue( m_fieldNameEquivalence.Exists( criteriaInfo->GetStartDateFieldName() ) ) );
 
-  m_indexProcessedFile = -1;
+			// Gets end datetime
+			//CDate endDate(m_dataSet.GetFieldSetAsDblValue(m_fieldNameEquivalence.Exists(criteriaInfo->GetEndDateFieldName())),
+			//              criteriaInfo->GetRefDate() );
 
-  return true;
+			CDate endDate( m_dataSet.GetFieldSetAsDblValue( m_fieldNameEquivalence.Exists( criteriaInfo->GetEndDateFieldName() ) ) );
 
+
+			datePeriodMinMax.Union( startDate, endDate );
+
+			std::string str = datePeriodMinMax.AsString();
+		}
+
+		this->Close();
+	}
+
+	m_indexProcessedFile = -1;
+
+	return !canceled;
 }
-//----------------------------------------
+
+
+
 void CProduct::AddCriteria(CProduct* product)
 {
   RemoveCriteria();

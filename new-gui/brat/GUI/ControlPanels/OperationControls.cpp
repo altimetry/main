@@ -295,8 +295,8 @@ void COperationControls::CreateAdvancedOperationsPage()
 	mAdvancedDatasetsCombo->setToolTip( "Selected operation dataset" );
 	mAdvancedDatasetsCombo->setMinimumWidth(min_readable_combo_width);
 
-	mAdvancedDatasetsCombo->setMinimumHeight(icon_size);
-	mOperationsCombo->setMinimumHeight(icon_size);
+	mAdvancedDatasetsCombo->setMinimumHeight( tool_icon_size + 4 );	// tool_icon_size + 4 : trying to match hight of tool button with icon
+	mOperationsCombo->setMinimumHeight( tool_icon_size + 4 );
 
 	mOperationFilterButton_Advanced = CActionInfo::CreatePopupButton(eActionGroup_Filters_Advanced, QList<QAction*>());
 	mOperationFilterButton_Advanced->setCheckable(true);
@@ -439,10 +439,8 @@ void COperationControls::CreateAdvancedOperationsPage()
 
     auto *CutOff_Layout = LayoutWidgets( Qt::Horizontal, { nullptr, mXLonCutOff, nullptr, cut_label, nullptr, mYLatCutOff, nullptr }, nullptr, s, m, m, m, m );
 
-    QScrollArea *sarea = new QScrollArea;
-            
-    mSamplingGroup = CreateCollapsibleGroupBox( ELayoutType::Vertical, { sampling_gridl, CutOff_Layout },
-        "Sampling", sarea, s, 4, 4, 4, 4 );
+    QScrollArea *sarea = new QScrollArea;            
+    mSamplingGroup = CreateCollapsibleGroupBox( ELayoutType::Vertical, { sampling_gridl, CutOff_Layout }, "Sampling", sarea, s, 4, 4, 4, 4 );
 	mSamplingGroup->setCollapsed( true );
 
 	mExpressionGroup = CreateGroupBox( ELayoutType::Vertical, 
@@ -653,7 +651,10 @@ void COperationControls::UpdatePanelSelectionChange()
 		current_dataset = AdvancedMode() ? mCurrentOriginalDataset : QuickDatasetSelected();
 		const COperation *operation = AdvancedMode() ? mCurrentOperation : QuickOperation();
 		if ( operation && operation->Filter() )
-			operation->Filter()->BoundingArea( lon1, lat1, lon2, lat2 );
+		{
+			if ( !operation->Filter()->BoundingArea( lon1, lat1, lon2, lat2 ) )
+				lon1 = lat1 = lon2 = lat2 = 0.;								   //clear
+		}
 
 		DrawDatasetTracks( current_dataset, false );	//Draw or clear tracks only if selected; false: do not force redraw if dataset is the same
 	}
@@ -1024,7 +1025,7 @@ void COperationControls::HandleFilterCompositionChanged( std::string filter_name
 		COperation *operation = dynamic_cast<COperation*>( operation_entry.second );
 		if ( operation->FilterName() == filter_name )
 		{
-			applied = true;
+			applied = applied || mCurrentOperation == operation;	//so far, no changes in filter composition impact the quick operation tab
 			operation->ReapplyFilter();
 		}
 	}
@@ -1542,7 +1543,7 @@ bool COperationControls::AssignQuickFilter( const std::string &name )
 
 bool COperationControls::RemoveFilter( COperation *operation, const std::string &name )
 {
-	assert__( operation );		Q_UNUSED( name );		//release builds
+	assert__( operation );		Q_UNUSED( name );	//Q_UNUSED: release builds
 
 	const std::string &op_filter_name = operation->FilterName();	assert__( name == op_filter_name && !op_filter_name.empty() );	
 
@@ -1563,13 +1564,24 @@ bool COperationControls::RemoveAdvancedFilter( const std::string &name )
 	if ( RemoveFilter( mCurrentOperation, name ) )
 	{
 		UpdateSelectedDatasetAdvancedSelection();
+
+		if ( SelectedPanel() )
+			UpdatePanelSelectionChange();
+
 		return true;
 	}
 	return false;
 }
 bool COperationControls::RemoveQuickFilter( const std::string &name )
 {
-    return RemoveFilter( mQuickOperation, name );
+	if ( RemoveFilter( mQuickOperation, name ) )
+	{
+		if ( SelectedPanel() )
+			UpdatePanelSelectionChange();
+
+		return true;
+	}
+	return false;
 }
 
 
@@ -2022,7 +2034,7 @@ CProduct* COperationControls::ConstructTemporaryFilteredProduct( std::string &er
 	bool is_Ok = true;
 	const CDataset *filtered_dataset = nullptr;
 
-	auto filtering_confirmation = ConfirmFiltering( mCurrentOperation );
+	auto filtering_confirmation = ConfirmLongDatasetExecution( mCurrentOperation );
 	if ( !filtering_confirmation.first )
 		is_Ok = false;
 	else
@@ -2045,6 +2057,8 @@ CProduct* COperationControls::ConstructTemporaryFilteredProduct( std::string &er
 				filtering_confirmation.second->Abort();
 
 			ResetFilterSelection();
+			if ( SelectedPanel() )				//filter could have been removed
+				UpdatePanelSelectionChange();
 		}
 	}
 
@@ -2108,7 +2122,18 @@ void COperationControls::GetDataMinMax( CFormula* formula )
 		return;
 	}
 
+	CProgressInterface *progress = nullptr;
+	//TODO
+	//auto filtering_confirmation = ConfirmLongDatasetExecution( mCurrentOperation, false, "Min/max computation" );
+	//if ( !filtering_confirmation.first )
+	//	return;
+	//	
+	//progress = filtering_confirmation.second;
+
 	WaitCursor wait;
+	if ( progress )
+		wait.Restore();
+
 	bool is_Ok = true;
 
 	///////////////////////////////
@@ -2120,7 +2145,7 @@ void COperationControls::GetDataMinMax( CFormula* formula )
 		if ( formula->IsTimeDataType() )  // Date time type
 		{
 			CDatePeriod datePeriod;
-			resultGetCoverage = product_tmp->GetDateMinMax( datePeriod );
+			resultGetCoverage = product_tmp->GetDateMinMax( datePeriod, progress );
 
 			if ( formula->IsXType() )  // X formula
 			{
@@ -2136,7 +2161,7 @@ void COperationControls::GetDataMinMax( CFormula* formula )
 		else if ( formula->IsLatLonDataType() )  // Latitude/Longitude type
 		{
 			double latMin, latMax, lonMin, lonMax;
-			resultGetCoverage = product_tmp->GetLatLonMinMax( latMin, lonMin, latMax, lonMax );
+			resultGetCoverage = product_tmp->GetLatLonMinMax( latMin, lonMin, latMax, lonMax, progress );
 
 			latMin = formula->ConvertToFormulaUnit( latMin );
 			latMax = formula->ConvertToFormulaUnit( latMax );
@@ -2160,7 +2185,8 @@ void COperationControls::GetDataMinMax( CFormula* formula )
 						mCurrentOperation->GetRecord(),
 						valueMin,
 						valueMax,
-						*( formula->GetUnit() ) );
+						*( formula->GetUnit() ),
+						progress );
 				}
 				else
 				{
@@ -2192,7 +2218,8 @@ void COperationControls::GetDataMinMax( CFormula* formula )
 					mCurrentOperation->GetRecord(),
 					valueMin,
 					valueMax,
-					unit );
+					unit,
+					progress );
 
 				CDatePeriod datePeriod( valueMin, valueMax );
 
@@ -2213,7 +2240,8 @@ void COperationControls::GetDataMinMax( CFormula* formula )
 					mCurrentOperation->GetRecord(),
 					valueMin,
 					valueMax,
-					*( formula->GetUnit() ) );
+					*( formula->GetUnit() ),
+					progress );
 
 				if ( formula->IsXType() )
 				{
@@ -3417,7 +3445,9 @@ void COperationControls::SchedulerProcessError( QProcess::ProcessError error )
 }
 void COperationControls::LaunchScheduler()
 {
-	COsProcess *process = new COsProcess( false, "", this, "\"" + mModel.BratPaths().mExecBratSchedulerName + "\"" );
+	// Do not provide a parent to process, so that it continues running when brat closes
+	//
+	COsProcess *process = new COsProcess( false, "", nullptr, "\"" + mModel.BratPaths().mExecBratSchedulerName + "\"" );
     connect( process, SIGNAL( error( QProcess::ProcessError ) ), this, SLOT( SchedulerProcessError( QProcess::ProcessError ) ) );
 	process->Execute();
 }
@@ -3599,21 +3629,28 @@ void COperationControls::HandleProcessFinished( int exit_code, QProcess::ExitSta
 }
 
 
-std::pair< bool, CProgressInterface* > COperationControls::ConfirmFiltering( const COperation *operation )
+std::pair< bool, CProgressInterface* > COperationControls::ConfirmLongDatasetExecution( const COperation *operation, bool filtering, 
+	const std::string &computation_name )		//filtering = true, computation_name = "Applying filter..." 
 {
 	CProgressInterface *progress = nullptr;
-	if ( operation->Filter() && !operation->HasFilteredDataset() )
+	if ( !filtering || ( operation->Filter() && !operation->HasFilteredDataset() ) )
 	{ 
+		std::string operation_msg;
+		if ( filtering )
+			operation_msg = "The filter '" + operation->Filter()->Name() + "' is about to be applied.\n";
+		else
+			operation_msg = computation_name + " is about to be executed.\n";
+
 		if ( operation->OriginalDataset()->Size() > mModel.Settings().MinimumFilesToWarnUser() && !SimpleQuestion(
 			"Dataset of operation '"
 			+ operation->GetName()
-			+ "' has " + n2s<std::string>( operation->OriginalDataset()->Size() ) + " files and the filter '"
-			+ operation->Filter()->Name()
-			+ "' is about to be applied to it. This operation can take a long time to execute.\n\nDo you want to proceed?" ) 
+			+ "' has " + n2s<std::string>( operation->OriginalDataset()->Size() ) + " files.\n"
+			+ operation_msg
+			+ "This computation can take a long time to execute.\n\nDo you want to proceed?" ) 
 			)
 			return{ false, nullptr };
 
-		CProgressDialog *progress_dlg = new CProgressDialog( "Applying filter...", "Cancel", 0, 100, parentWidget() );
+		CProgressDialog *progress_dlg = new CProgressDialog( computation_name.c_str(), "Cancel", 0, 100, parentWidget() );
 		progress_dlg->setAttribute( Qt::WA_DeleteOnClose );
 		progress = progress_dlg;
 		progress_dlg->show();
@@ -3681,7 +3718,7 @@ bool COperationControls::Execute( EExecutionType type, COperation *operation, bo
 	CProgressInterface *progress = nullptr;
 	if ( type == EExecutionType::eOperation || type == EExecutionType::eStatistics )
 	{
-		auto filtering_confirmation = ConfirmFiltering( operation );
+		auto filtering_confirmation = ConfirmLongDatasetExecution( operation );
 		if ( !filtering_confirmation.first )
 			return false;
 		progress = filtering_confirmation.second;
@@ -3700,6 +3737,9 @@ bool COperationControls::Execute( EExecutionType type, COperation *operation, bo
 			progress->Abort();
 
 		ResetFilterSelection();
+		if ( SelectedPanel() )				//filter could have been removed
+			UpdatePanelSelectionChange();
+
 		if ( !error_msg.empty() )
 			SimpleWarnBox( error_msg );
 		return false;
@@ -3771,7 +3811,7 @@ CBratTask* COperationControls::Schedule( EExecutionType type, const QDateTime &a
 	CProgressInterface *progress = nullptr;
 	if ( type == EExecutionType::eOperation )
 	{
-		auto filtering_confirmation = ConfirmFiltering( mCurrentOperation );
+		auto filtering_confirmation = ConfirmLongDatasetExecution( mCurrentOperation );
 		if ( !filtering_confirmation.first )
 			return nullptr;
 		progress = filtering_confirmation.second;
@@ -3791,6 +3831,9 @@ CBratTask* COperationControls::Schedule( EExecutionType type, const QDateTime &a
 
 		wait.Restore();
 		ResetFilterSelection();
+		if ( SelectedPanel() )				//filter could have been removed
+			UpdatePanelSelectionChange();
+
 		if ( !error_msg.empty() )
 			SimpleWarnBox( error_msg );
         return nullptr;

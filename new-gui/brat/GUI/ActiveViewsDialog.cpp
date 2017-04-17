@@ -54,7 +54,7 @@ void CActiveViewsDialog::CreateWidgets()
 	//	... Buttons
 
 	mCloseDialogButton = new QPushButton( "Done", this );
-	mCloseWindowButton = new QPushButton( "Close", this );
+	mCloseWindowButton = new QPushButton( "Dismiss", this );
 	mSelectWindowButton = new QPushButton( "Select", this );
 
 	auto *buttons = LayoutWidgets( Qt::Horizontal, { mSelectWindowButton, mCloseWindowButton, nullptr, mCloseDialogButton }, nullptr, 2, 2, 2, 2, 2 );

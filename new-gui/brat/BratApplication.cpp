@@ -318,6 +318,7 @@ CBratApplication::CBratApplication( int &argc, char **argv, bool GUIenabled, QSt
 
 	ShowSplash( "Loading application settings..." );
 
+    
 	// Load configuration - I
 	//
     if ( !mSettings.LoadConfig() )
@@ -338,8 +339,12 @@ CBratApplication::CBratApplication( int &argc, char **argv, bool GUIenabled, QSt
 
 
 	// Check OpenGL
+    //  ...setting osgEarth env. variable for VMs in mac
 	//
 	ShowSplash( "Checking OpenGL..." );
+    if ( mSettings.OsgEarthUsePbufferTestForVms() )
+        qputenv( "OSGEARTH_USE_PBUFFER_TEST", "1" );
+        
 	if ( mSettings.mCheckOpenGL )
 	{
         CheckOpenGL( true );							//throws on failure

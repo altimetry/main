@@ -79,6 +79,13 @@ CSublayersDialog::CSublayersDialog( QWidget* parent, QStringList list, QString d
 	for ( int i = 0; i < mLayersTable->columnCount(); i++ )
 		mLayersTable->resizeColumnToContents( i );
 
+	int width = 0;
+	for ( int i = 0; i < mLayersTable->columnCount(); ++i )
+		width += 2 + mLayersTable->columnWidth( i );
+	width += qApp->style()->pixelMetric( QStyle::PM_ScrollBarExtent );
+
+	mLayersTable->setMinimumWidth( width );
+
 	adjustSize();
 }
 
@@ -89,13 +96,13 @@ CSublayersDialog::~CSublayersDialog()
 
 QString CSublayersDialog::selectionName()
 {
-	int i = mLayersTable->currentIndex().row();
-	if ( i < 0 )
+	auto selected_items = mLayersTable->selectedItems();		assert__( selected_items.size() <= 1 );
+	if ( selected_items.empty() )
 		return "";
 
 	// If there are more sub layers of the same name (virtual for geometry types), add geometry type
 
-	QString name = mLayersTable->selectedItems().at( i )->text( 1 );
+	QString name = selected_items.at( 0 )->text( 1 );
 	int count = 0;
 	for ( int j = 0; j < mLayersTable->topLevelItemCount(); j++ )
 	{
@@ -107,7 +114,7 @@ QString CSublayersDialog::selectionName()
 
 	if ( count > 1 )
 	{
-		name += ":" + mLayersTable->selectedItems().at( i )->text( 3 );
+		name += ":" + selected_items.at( 0 )->text( 3 );
 	}
 	else
 	{

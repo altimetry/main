@@ -43,6 +43,10 @@ void CDataset::SetFieldSpecificUnit( const std::string& key, const std::string& 
 
 // If filtering fails, all files of the original dataset are inserted
 //
+// The 1st boolean return is the usual result
+// The 2nd boolean return is true only if user canceled
+// Whenever 2nd is true, 1st must be false
+//
 std::pair< bool, bool > CDataset::ApplyFilter( const CBratFilter *filter, const CDataset *original_dataset, std::string &error_msg, CProgressInterface *progress )
 {
 	assert__( GetProductList()->mCodaProductClass == original_dataset->GetProductList()->mCodaProductClass );

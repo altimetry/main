@@ -277,7 +277,7 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR}/hdf5)
 #
 set(SAVE_CMAKE_SOURCE_DIR ${CMAKE_SOURCE_DIR} CACHE INTERNAL "")
 set(SAVE_CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} CACHE INTERNAL "")
-set(CMAKE_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/netcdf-c CACHE INTERNAL "")
+# set(CMAKE_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/netcdf-c CACHE INTERNAL "")
 
 # Ugly trick to get szip linked (used by netcdf4)...
 # Using NC_EXTRA_DEPS variable requires that the dependency exists already, 
@@ -311,7 +311,7 @@ add_subdirectory(${PACKAGE_TARGET})
 
 # post-processing netcdf CMakeLists
 
-set(CMAKE_SOURCE_DIR ${SAVE_CMAKE_SOURCE_DIR} CACHE INTERNAL "")
+# set(CMAKE_SOURCE_DIR ${SAVE_CMAKE_SOURCE_DIR} CACHE INTERNAL "")
 set(CMAKE_MODULE_PATH ${SAVE_CMAKE_MODULE_PATH} CACHE INTERNAL "")
 
 set(NETCDF_INCLUDE_DIRS

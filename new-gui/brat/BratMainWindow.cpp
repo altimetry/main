@@ -87,9 +87,16 @@ CBratMainWindow *CBratMainWindow::smInstance = nullptr;
 //    TextEditor")." Qt doc.
 //
 //static
-QString CBratMainWindow::makeWindowTitle( const QString &title )// = QString() //returns the application name if title is empty
+QString CBratMainWindow::MakeWindowTitle( const QString &title )// = QString() //returns the application name if title is empty
 {
-    static const QString &app_title = qApp->applicationName() + build_configuration.c_str();
+	static const QString &app_title = qApp->applicationName()
+
+#if defined (DEBUG) || defined(_DEBUG)
+
+		+ build_configuration.c_str();
+
+#endif
+	;
 
     QString t = app_title;
 
@@ -685,7 +692,7 @@ CBratMainWindow::CBratMainWindow( CBratApplication &app )
 
     setupUi( this );
     setWindowIcon( QIcon("://images/BratIcon.png") );
-    setWindowTitle( makeWindowTitle( windowTitle() ) );     //set title sensitive to doc (un)modifications
+    setWindowTitle( MakeWindowTitle( windowTitle() ) );     //set title sensitive to doc (un)modifications
     mMainToolBar->setIconSize({icon_size,icon_size});
     mMainToolsToolBar->setIconSize({icon_size,icon_size});
 
@@ -1230,7 +1237,7 @@ bool CBratMainWindow::DoNoWorkspace()
 {
 	mModel.Reset();
 	mDesktopManager->CloseAllSubWindows();
-	setWindowTitle( makeWindowTitle( QString() ) );
+	setWindowTitle( MakeWindowTitle( QString() ) );
     EmitWorkspaceChanged();
 	return true;
 }
@@ -1258,7 +1265,7 @@ void CBratMainWindow::SetCurrentWorkspace( const CWorkspace *wks )
 		mRecentFilesProcessor->SetCurrentFile( cur_file );
 	}
 
-	setWindowTitle( makeWindowTitle( shownName ) );
+	setWindowTitle( MakeWindowTitle( shownName ) );
 
     setWindowModified( false );
 }
@@ -1404,7 +1411,7 @@ void CBratMainWindow::on_action_Rename_Workspace_triggered()
 
 		wks->SetName( dlg.mName );
 		QString shownName = t2q( wks->GetName() );
-		setWindowTitle( makeWindowTitle( shownName ) );
+		setWindowTitle( MakeWindowTitle( shownName ) );
 	}
 }
 

@@ -110,7 +110,7 @@ private:
 
 	//returns the application name if title is empty
 	//
-	static QString makeWindowTitle( const QString &title = QString() );
+	static QString MakeWindowTitle( const QString &title = QString() );
 
 
 	// instance data

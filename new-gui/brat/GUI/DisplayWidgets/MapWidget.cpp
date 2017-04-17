@@ -553,11 +553,10 @@ bool CMapWidget::Save2Image( const QString &path, const QString &format, const Q
 	SetFileExtension( qpath, extension );
 	if ( f == "ps" )
 	{
-#if QT_VERSION >= 0x050000
-		return false;
-#else
 		QPrinter printer( QPrinter::HighResolution );
-		printer.setOutputFormat( QPrinter::PostScriptFormat );
+#if QT_VERSION < 0x050000
+        printer.setOutputFormat( QPrinter::PostScriptFormat );
+#endif
 		printer.setOutputFileName( qpath );
 		//qreal xmargin = contentRect.width()*0.01;
 		//qreal ymargin = contentRect.height()*0.01;
@@ -568,7 +567,6 @@ bool CMapWidget::Save2Image( const QString &path, const QString &format, const Q
 		render( &painter/*, QPointF( 0, 0 ), contentRect */ );
 		painter.end();
 		return true;
-#endif
 	}
 
 

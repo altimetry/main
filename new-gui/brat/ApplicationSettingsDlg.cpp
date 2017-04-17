@@ -288,10 +288,10 @@ void CApplicationSettingsDlg::CreateWidgets()
 	// Dialog buttons
 
     mButtonBox = new QDialogButtonBox( this );
-    mButtonBox->setObjectName(QString::fromUtf8("mButtonBox"));
-    mButtonBox->setMinimumSize(QSize(495, 25));
-    mButtonBox->setStandardButtons(QDialogButtonBox::Cancel|QDialogButtonBox::Ok);
-
+	mButtonBox->setObjectName( QString::fromUtf8( "mButtonBox" ) );
+	mButtonBox->setOrientation( Qt::Horizontal );
+    mButtonBox->setStandardButtons( QDialogButtonBox::Cancel| QDialogButtonBox::Ok );
+    //mButtonBox->button( QDialogButtonBox::Ok )->setDefault( true );
 
 	// Main layout
 

@@ -64,6 +64,8 @@ void CProcessesTable::CreateWidgets()
     mProcessesList->setEditTriggers(QAbstractItemView::NoEditTriggers);
 	mProcessesList->setShowGrid( false );
 
+	mProcessesList->horizontalHeader()->setStretchLastSection( true );
+
 	//mProcessesList->setMinimumWidth( ComputeTableWidth( mProcessesList ) );   TODO: too wide for small screens: 1280 x 800
 
 

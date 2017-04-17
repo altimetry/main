@@ -342,10 +342,6 @@ bool CPlotEditor::ResetViews( bool reset_2d, bool reset_3d, bool enable_2d, bool
 		mPlot3DView->setMinimumSize( min_width, min_plot_widget_height );
 		AddView( mPlot3DView, true );
 		connect( mPlot3DView, SIGNAL( ScaleChanged( double, double, double ) ), this, SLOT( Handle3DScaleChanged( double, double, double ) ) );
-
-#if defined(Q_OS_MAC)
-        QTimer::singleShot( 1000, mViewsSubMainWindow, &QMainWindow::adjustSize );
-#endif
     }
     
 	return true;

@@ -362,7 +362,7 @@ protected:
 					return QString( d.AsString().c_str() );
 			}
 
-			return QString::number( majors_p[ idx ], 'g', mDigits );
+            return n2qx( majors_p[ idx ], mDigits );
 		}
 
 		return QString( "" );
@@ -441,7 +441,7 @@ protected:
 		if ( idx < majors_p.size() )
 		{
 			double scale_log = pow( 10., majors_p[ idx ] );
-			return QString::number( scale_log, 'g', mDigits );
+            return n2qx( scale_log, mDigits );
 		}
 
 		return QString( "" );

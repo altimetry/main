@@ -394,7 +394,7 @@ bool CWorkspaceSettings::LoadConfigDataset( CWorkspaceDataset &data, std::string
 			std::vector< std::string > v;
 			if ( !dataset->CheckFilesExist( v ) )
 			{
-				std::string msg = "Dataset '" + data.m_name + "' references files that do not exist";
+				std::string msg = "Dataset '" + dataset->m_name + "' references files that do not exist";
 				msg += ( v.size() > 50 ? "." : ( ":\n" + Vector2String( v, "\n" ) ) );
 				error_msg += ( msg + "\n\nPlease check the configuration file " + this->FilePath() );
 				return false;

@@ -100,12 +100,13 @@ void CAbstractDisplayEditor::CreateMainToolbar()
 	assert__( mViewsSubMainWindow );
 
 	mTopToolbar = new QToolBar( "Operation ToolBar", mViewsSubMainWindow );
-	//mTopToolbar->setIconSize( { tool_icon_size, tool_icon_size } );
 	mTopToolbar->setAllowedAreas( Qt::TopToolBarArea | Qt::BottomToolBarArea );
-//#if defined(Q_OS_MAC)
+#if defined(Q_OS_MAC)
 //	mTopToolbar->setMovable( false );
-//#endif
-	mTopToolbar->layout()->setSpacing( 2 );
+//    mTopToolbar->setContentsMargins( 10, 10, 0, 0 );
+//    mTopToolbar->layout()->setContentsMargins( 10, 10, 10, 10 );
+#endif
+	mTopToolbar->layout()->setSpacing( 4 );
     mTopToolbar->layout()->setMargin( 10 );
 
 	auto loperations = new QLabel( "Operation" );
@@ -135,7 +136,7 @@ void CAbstractDisplayEditor::CreateMainToolbar()
 
 	mViewsSubMainWindow->addToolBar( Qt::TopToolBarArea, AddWidgets( mTopToolbar,
 	{
-		loperations, mOperationsCombo, nullptr, ldataset, mDatasetName, nullptr, lfilters, mFilterLineEdit, nullptr, mSaveOneClickButton
+		loperations, mOperationsCombo, nullptr, ldataset, mDatasetName, nullptr, lfilters, mFilterLineEdit  //, nullptr, mSaveOneClickButton
 	}
 	) );
 }
@@ -214,7 +215,8 @@ void CAbstractDisplayEditor::CreateWidgets()
 {
 	setAttribute( Qt::WA_DeleteOnClose );
 
-	mViewsSubMainWindow = new QMainWindow;
+	mViewsSubMainWindow = new QMainWindow( this );
+    mViewsSubMainWindow->setWindowFlags( ( windowFlags() & ~Qt::Window ) | Qt::SubWindow | Qt::FramelessWindowHint );
 	if ( !mDisplayOnlyMode )
 	{
 		CreateMainToolbar();
@@ -230,7 +232,11 @@ void CAbstractDisplayEditor::CreateWidgets()
 
 	mTabGeneral = new GENERAL_TAB( this );
 	AddTab( mTabGeneral, "General" );
-
+        
+#if defined(Q_OS_MAC)
+    QTimer::singleShot( 0, mViewsSubMainWindow, &QMainWindow::adjustSize );
+#endif
+ 
 
 	Wire();
 }
@@ -346,8 +352,8 @@ CAbstractDisplayEditor::~CAbstractDisplayEditor()
 
 QSize CAbstractDisplayEditor::sizeHint() const
 {
-	return QSize( 72 * fontMetrics().width( 'x' ),
-		25 * fontMetrics().lineSpacing() );
+//	return QSize( 72 * fontMetrics().width( 'x' ), 25 * fontMetrics().lineSpacing() );
+    return base_t::sizeHint();
 }
 
 
@@ -747,17 +753,24 @@ void CAbstractDisplayEditor::HandleRecenter()
 
 void CAbstractDisplayEditor::HandleExport2Image()
 {
-	static std::string path2d = UserDataDirectory() + "/" + mDisplay->GetName() + "_2D";		//extension is added by dialog
-	static std::string path3d = UserDataDirectory() + "/" + mDisplay->GetName() + "_3D";		//idem
+    static std::string dir2d = UserDataDirectory();
+    static std::string dir3d = UserDataDirectory();
+
+    std::string path2d = dir2d + "/" + mDisplay->GetName() + "_2D";		//extension is added by dialog
+    std::string path3d = dir3d + "/" + mDisplay->GetName() + "_3D";		//idem
 
 	assert__( mDisplay );
 
     CExportImageDialog dlg( m2DAction->isChecked(), m3DAction->isChecked(), path2d, path3d, this );
     if ( dlg.exec() == QDialog::Accepted )
     {
-		path2d = dlg.OutputFileName2D();
-		path3d = dlg.OutputFileName3D();
-		Export2Image( dlg.Save2D(), dlg.Save3D(), path2d, path3d, dlg.OutputFileType() );
+        path2d = dlg.OutputFileName2D();
+        path3d = dlg.OutputFileName3D();
+
+        dir2d = GetDirectoryFromPath( path2d );
+        dir3d = GetDirectoryFromPath( path3d );
+
+        Export2Image( dlg.Save2D(), dlg.Save3D(), path2d, path3d, dlg.OutputFileType() );
     }
 }
 

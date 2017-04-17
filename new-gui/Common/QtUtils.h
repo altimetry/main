@@ -1502,6 +1502,7 @@ const int min_readable_combo_width = 90;
 
 
 
+const int max_names_length = 128;
 
 
 

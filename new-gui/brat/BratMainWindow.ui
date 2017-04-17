@@ -25,7 +25,7 @@
      <x>0</x>
      <y>0</y>
      <width>982</width>
-     <height>16</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_File">
@@ -57,7 +57,6 @@
     </property>
     <addaction name="action_User_s_Manual"/>
     <addaction name="action_Youtube_Video_Tutorials"/>
-    <addaction name="separator"/>
     <addaction name="action_About"/>
     <addaction name="separator"/>
     <addaction name="action_Test"/>
@@ -469,8 +468,8 @@ The workspace directory will not change</string>
  <layoutdefault spacing="6" margin="11"/>
  <resources>
   <include location="../Common/Resources/brat.qrc"/>
-  <include location="../Common/Resources/brat.qrc"/>
   <include location="Resources/images/qgis-themes-2.qrc"/>
+  <include location="../Common/Resources/brat.qrc"/>
  </resources>
  <connections>
   <connection>

@@ -146,10 +146,17 @@ void CEditExportAsciiDialog::FillTable( const std::string &ascii, CProgressInter
 		for ( size_t i = 0; i < size; ++i )
 		{
 			auto *item = new QTableWidgetItem;
-			if ( parse_number( vline[i], n ) )
-				item->setData( Qt::DisplayRole, n );
+			if ( parse_number( vline[ i ], n ) )
+			{
+				if ( i == 0 )
+					item->setData( Qt::DisplayRole, (qulonglong)n );    //QVariant does not have size_t
+				else
+					item->setData( Qt::DisplayRole, n );
+			}
 			else
-				item->setData( Qt::DisplayRole, vline[i].c_str() );
+			{
+				item->setData( Qt::DisplayRole, vline[ i ].c_str() );
+			}
 			mAsciiTableWidget->setItem( index, i, item );
 		}
 

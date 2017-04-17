@@ -572,15 +572,19 @@ bool CGlobeWidget::Save2Image( const QString &path, const QString &format, const
 	QImage img = mGlobeViewerWidget->grabFrameBuffer( with_alpha );
 	if ( f == "ps" )
 	{
-#if QT_VERSION >= 0x050000
-		return false;
+#if QT_VERSION < 0x050000
+        QPrinter printer;
+        printer.setOutputFormat( QPrinter::PostScriptFormat );
+        printer.setPaperSize( QSizeF( 80, 80 ), QPrinter::Millimeter );
+        printer.setCreator( "Brat v4.0.0" );
+        printer.setOrientation( QPrinter::Landscape );
+
 #else
-		//QPrinter printer( QPrinter::HighResolution );
-		QPrinter printer;
-		printer.setOutputFileName( qpath );
-		printer.setOutputFormat( QPrinter::PostScriptFormat );
-		printer.setColorMode( QPrinter::Color );
-		printer.setPaperSize( QSizeF( 80, 80 ), QPrinter::Millimeter );
+        QPrinter printer( QPrinter::ScreenResolution );
+        printer.setOutputFormat( QPrinter::PdfFormat );
+#endif
+        printer.setOutputFileName( qpath );
+        printer.setColorMode( QPrinter::Color );
 
 		QString docName = windowTitle();
 		if ( !docName.isEmpty() )
@@ -589,14 +593,10 @@ bool CGlobeWidget::Save2Image( const QString &path, const QString &format, const
 			printer.setDocName( docName );
 		}
 
-		printer.setCreator( "Brat v4.0.0" );
-		printer.setOrientation( QPrinter::Landscape );
-
 		QPainter painter( &printer );
 		painter.drawPixmap( 0, 0, -1, -1, QPixmap::fromImage( img ) );	//pixmap.save( qpath, "SVG" );		//fails
 
 		return true;
-#endif
 	}
 
 	return img.save( qpath, q2a( format ).c_str(), 100 );	//int quality = -1

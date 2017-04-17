@@ -261,7 +261,6 @@ public:
 
 
 
-//map str->Area;
 class CBratAreas : public CFileSettings
 {
 	//types

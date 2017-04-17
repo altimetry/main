@@ -145,7 +145,8 @@ class CSchedulerMainWindow : public QMainWindow, private Ui::CSchedulerMainWindo
 	QTimer mCheckConfigFileTimer;
 	QDateTime mLastCheck;
 
-    QMutex mTasksMutex;
+	bool mTimersConnected = false;
+	QMutex mTasksMutex;
 
 
 	// construction / destruction

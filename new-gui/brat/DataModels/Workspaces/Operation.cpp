@@ -128,7 +128,9 @@ public:
 	{
 		assert__( mOp.mOriginalDataset );
 
-		const CDataset* dataset = mOp.mOriginalDataset;	//we were using mFilteredDataset, but it doesn't seem to make sense requiring filter application for units retrieval
+		//we were using mFilteredDataset, but it doesn't seem to make sense requiring filter application for units retrieval
+		//
+		const CDataset* dataset = mOp.mOriginalDataset;
 		if ( dataset == nullptr )
 			return false;
 
@@ -254,11 +256,9 @@ public:
 		Comment( "----- SELECT -----" );
 		WriteLn();
 
-        ///// RCCC TODO /////////////////////////////////////////////////
-        std::string CritExpression; // Selection criteria expression
-
-        // Add user expression
-        CritExpression += mOp.GetSelect()->GetDescription( true );
+		// Selection criteria expression - Add user expression
+		//
+		std::string CritExpression = mOp.GetSelect()->GetDescription( true );
 
         // Add filter expression
         if ( mOp.Filter() )
@@ -266,11 +266,10 @@ public:
             CritExpression.empty() ? CritExpression += "" : CritExpression += " && ";
             CritExpression += mOp.Filter()->GetSelectionCriteriaExpression( pi.LabelForCyclePass() );
         }
-        /////////////////////////////////////////////////////////////////
 
-        if ( !CritExpression.empty() ) /// RCCC TODO: // ( !mOp.GetSelect()->GetDescription( true ).empty() )
+        if ( !CritExpression.empty() )
 		{
-            WriteLn( std::string( kwSELECT.c_str() ) + "=" + CritExpression ); /// RCCC TODO: // + mOp.GetSelect()->GetDescription( true )
+            WriteLn( std::string( kwSELECT.c_str() ) + "=" + CritExpression );
 		}
 		return true;
 	}
@@ -1070,15 +1069,23 @@ bool COperation::CreateFilteredDataset( std::string &error_msg, CProgressInterfa
 
 	mFilteredDataset = NewFilteredDataset();
 
+	// If filtering fails, all files of the original dataset are inserted in mFilteredDataset
+	//
 	auto result = mFilteredDataset->ApplyFilter( mFilter, mOriginalDataset, error_msg, progress );
 
-	if ( result.second )	//if user canceled filter application, doesn't make sense to retain a filtered dataset, the callers must abort anything that rely on it
+	if ( result.second )
 	{
+		//	The 2nd boolean returns true only if user canceled (in which case the 1st boolean is also false)
+		//	If user canceled filter application, doesn't make sense to retain a filtered dataset, the callers must abort anything that rely on it
+		//
 		RemoveFilteredDataset();
 	}
 	else
-	if ( !result.first )	//if the filter is removed, let the filtered dataset be an original dataset copy, if the callers want they can proceed with it
+	if ( !result.first )
 	{
+		// The 1st boolean return is the usual result; failure in filter application
+		//	If the filter is removed, let the filtered dataset be an original dataset copy, if the callers want they can proceed with it
+		//
 		error_msg = "Filter '" + mFilter->Name() + "' could not be applied and was removed from operation '" + GetName() + "'.\nReason: " + error_msg;
 		mFilter = nullptr;
 	}

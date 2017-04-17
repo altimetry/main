@@ -393,12 +393,14 @@ public:
 
 		return q2t<std::string>( s );
 	}
-	//void SetAt( const QDateTime& value ) { m_at = value; }
+
+	void SetAt( const QDateTime& value ) { m_at = value; }
+
 	void SetAt( const std::string &value )
 	{ 
 		QDateTime dt = QDateTime::fromString( t2q( value ), qformatISODateTime() );
 		assert__( dt.isValid() );															 	//!!! TODO !!!: error handling
-		m_at = dt; 
+		SetAt( dt ); 
 	}
 	bool laterThanNow() const { return GetAt() > QDateTime::currentDateTime(); }
 

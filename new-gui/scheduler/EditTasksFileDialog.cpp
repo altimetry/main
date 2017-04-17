@@ -92,6 +92,8 @@ CEditTasksFileDialog::CEditTasksFileDialog( const std::string &task_name, const 
 	std::string title = mTaskName.empty() ? "Scheduler Tasks File: " : mTaskName + " Log: ";
 
 	setWindowTitle( t2q( title + mPath ) );
+
+	setWindowFlags( windowFlags() & ~Qt::WindowContextHelpButtonHint );
 }
 
 

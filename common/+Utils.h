@@ -659,6 +659,77 @@ STRING hn2s( T n )
 
 
 
+////////////////////////////////////
+// n2s with precision (experimental)
+////////////////////////////////////
+
+// with hexadecimal option
+
+// !std::is_floating_point instead of std::is_integral to allow pointers
+//
+template< class STRING, typename T >
+inline STRING hn2sx( T n, bool hex, typename std::enable_if< !std::is_floating_point<T>::value >::type* = 0 )
+{
+	typename string_traits< STRING >::str_stream_type st;
+	if ( hex )
+		st << std::hex;
+	st << n;
+	if ( !st )
+		throw std::invalid_argument( "Invalid number." );
+	return st.str();                                        //<< yields ostream type (not stringstream)
+}
+
+template< class STRING, typename T >
+inline STRING hn2sx( T n, bool hex, typename std::enable_if< std::is_floating_point<T>::value >::type* = 0 )
+{
+	typename string_traits< STRING >::str_stream_type st;
+	if ( hex )
+		st << std::hex;
+	st << std::setprecision( std::numeric_limits<T>::max_digits10 ) << n;
+	if ( !st )
+		throw std::invalid_argument( "Invalid number." );
+	return st.str();                                        //<< yields ostream type (not stringstream)
+}
+
+
+// with specified precision
+
+template< class STRING, typename T >
+inline STRING n2sx( T n, std::streamsize precision )
+{
+	typename string_traits< STRING >::str_stream_type st;
+	st << std::setprecision(precision) << n;
+	if ( !st )
+		throw std::invalid_argument( "Invalid number." );
+	return st.str();                                        //<< yields ostream type (not stringstream)
+}
+
+
+// default
+
+template< class STRING, typename T >
+inline STRING n2sx( T n )
+{
+	return hn2s< STRING >( n, false );
+}
+
+template< typename T >
+inline std::string n2sx( T n )
+{
+	return hn2s< std::string >( n, false );
+}
+
+
+
+// hexadecimal
+
+template< class STRING, typename T >
+inline STRING h2sx( T n )
+{
+	return hn2s< STRING >( n, true );
+}
+
+
 //////////////////////////////////////////////////////////////////
 //				Convert strings to numbers
 //////////////////////////////////////////////////////////////////

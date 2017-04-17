@@ -571,7 +571,8 @@ void CTasksProcessor::GetMapPendingBratTaskToProcess( std::vector<uid_t> *tasks2
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // brat interface - begin /////////////////////////////////////////////////////////////////////////////////////
 
-CBratTask* CTasksProcessor::CreateTaskAsPending( bool function, CBratTask *parent, const std::string& cmd_or_function, CVectorBratAlgorithmParam& params, const QDateTime& at, const std::string& name, const std::string& log_dir )
+CBratTask* CTasksProcessor::CreateTaskAsPending( bool function, CBratTask *parent, const std::string& cmd_or_function, CVectorBratAlgorithmParam& params, 
+	const QDateTime& at, const std::string& name, const std::string& log_dir )
 {
 	auto id = GenerateId();
 

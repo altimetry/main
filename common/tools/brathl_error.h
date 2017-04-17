@@ -117,7 +117,7 @@ extern "C" {
 /// error for non implement code
 #define BRATHL_UNIMPLEMENT_ERROR                    -12
 /// error for non implement code
-#define BRATH_V4_ERROR								-13
+#define BRAT_V4_ERROR								-13
 
 
 /** \defgroup Date_error_codes Date error codes 

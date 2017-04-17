@@ -75,7 +75,7 @@ public:
 	  \param message [in] : error message
 	  \param errcode [in] : error code
 	  */
-	CException( const std::string& message, int errcode = BRATH_V4_ERROR );	// (*)
+	CException( const std::string& message, int errcode = BRAT_V4_ERROR );	// (*)
 
 	CException( const CException &o )
 	{
@@ -87,8 +87,8 @@ public:
 		}
 	}
 	//
-	// (*) Not being a default parameter in v3, and BRATH_V4_ERROR being a new value
-	//	errcode is assumed to always be != of BRATH_V4_ERROR for v3 raised exceptions
+	// (*) Not being a default parameter in v3, and BRAT_V4_ERROR being a new value
+	//	errcode is assumed to always be != of BRAT_V4_ERROR for v3 raised exceptions
 
 	//@}
 

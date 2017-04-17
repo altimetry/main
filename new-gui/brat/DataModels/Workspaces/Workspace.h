@@ -108,7 +108,8 @@ protected:
 	CWorkspace( const std::string& name, const std::string& path )
 	{
 		SetName( name );
-		SetPath( MakeNewWorkspacePath( name, path ), true );
+		if ( !SetPath( MakeNewWorkspacePath( name, path ), true ) )
+			throw CFileException( "An error occurred trying to create " + path, BRAT_V4_ERROR );
 	}
 
 public:

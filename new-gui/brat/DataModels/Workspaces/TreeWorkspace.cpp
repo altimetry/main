@@ -49,8 +49,22 @@ CWorkspace* CTreeWorkspace::Reset( const std::string &internal_data_path, const 
 		return nullptr;
 	}
 
-	CWorkspace *root= root_name.empty() ? new CWorkspace( base_path ) : new CWorkspace( root_name, base_path );
-    root->InitConfig();
+	CWorkspace *root= nullptr;
+	try {
+		root= root_name.empty() ? new CWorkspace( base_path ) : new CWorkspace( root_name, base_path );
+	}
+	catch ( const CFileException &e )
+	{
+		error_msg += ( "\n" + e.Message() );
+		return nullptr;
+	}
+	catch ( ... )
+	{
+		error_msg += ( "Unknown error trying to use workspace at " + base_path );
+		return nullptr;
+	}
+
+	root->InitConfig();
 
 	// Set tree root
 	SetRoot( root, true );

@@ -65,8 +65,8 @@ public:
 
   virtual void InitDateRef() override;
 
-  virtual bool GetDateMinMax(CDatePeriod& datePeriodMinMax) override;
-  virtual bool GetLatLonMinMax(CLatLonRect& latlonRectMinMax) override;
+  virtual bool GetDateMinMax(CDatePeriod& datePeriodMinMax, CProgressInterface *pi = nullptr ) override;
+  virtual bool GetLatLonMinMax(CLatLonRect& latlonRectMinMax, CProgressInterface *pi = nullptr ) override;
 
   virtual bool HasCriteriaInfo()  override { return true; }
 

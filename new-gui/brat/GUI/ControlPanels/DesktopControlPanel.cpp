@@ -98,15 +98,28 @@ void CDesktopControlsPanel::WorkspaceChanged()	//= 0;
 
 void CDesktopControlsPanel::SelectAreaInMap( double lonm, double lonM, double latm, double latM )
 {
-	if ( mMap->isVisible() )						//avoid QGIS warnings
+	// Avoid QGIS warnings
+	//
+	// When mMap is	still hidden because the application is starting,
+	//	consider it as being shown, otherwise when/if mMap is displayed 
+	//	the area will be missing; conveniently, in this case any warnings 
+	//	are not displayed
+	//
+	if ( mMap->isVisible() || mApp.SplashAvailable() )
+	{
 		mMap->SelectArea( lonm, lonM, latm, latM );
+	}
 }
 
 
 void CDesktopControlsPanel::RemoveAreaSelectionFromMap()
 {
-	if ( mMap->isVisible() )						//avoid QGIS warnings
+	// Same comment as in SelectAreaInMap
+	//
+	if ( mMap->isVisible() || mApp.SplashAvailable() )
+	{
 		mMap->RemoveAreaSelection();
+	}
 }
 
 

@@ -320,7 +320,8 @@ protected:
 	bool CheckOperation( COperation *operation, std::string& msg, const CStringMap* aliases );	//CtrlOperation
 	void LaunchDisplay( const std::string &display_name );
 	bool ExecuteCurrentOperation( post_execution_handler_t post_execution_handler = &COperationControls::OperationSyncExecutionFinishedWithDisplay );
-	std::pair< bool, CProgressInterface* > ConfirmFiltering( const COperation *operation );
+	std::pair< bool, CProgressInterface* > ConfirmLongDatasetExecution( const COperation *operation, bool filtering = true, 
+		const std::string &computation_name = "Applying filter..." );
 	bool Execute( EExecutionType type, COperation *operation, bool sync, post_execution_handler_t post_execution_handler );
 	CBratTask* Schedule( EExecutionType type, const QDateTime &at, CBratTask *parent = nullptr );
 
