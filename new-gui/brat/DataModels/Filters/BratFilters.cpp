@@ -660,7 +660,8 @@ bool CBratFilters::Translate2SelectionCriteria( const std::string &label_for_cyc
 // The 2nd boolean return is true only if user canceled
 // Whenever 2nd is true, 1st must be false
 //
-std::pair< bool, bool > CBratFilters::Apply( const std::string &name, const CStringList& files_in, CStringList& files_out, std::string& error_msg, CProgressInterface *progress ) const
+std::pair< bool, bool > CBratFilters::Apply( const std::string &name, const CStringList& files_in, CStringList& files_out, std::string& error_msg, CProgressInterface *progress, 
+	bool allow_unsupported ) const		//allow_unsupported = false  
 {
 #if defined(BRAT_V3)
 	return true;
@@ -722,23 +723,26 @@ std::pair< bool, bool > CBratFilters::Apply( const std::string &name, const CStr
 
 		// 3. Check if product has Lon, Lat and Time fields (required to filter data by location and time)
 
+		bool lon_alias_used, lat_alias_used, time_alias_used;	// information not used in this function
 		std::string field_error_msg;
+		std::pair<CAliasInfo, CAliasInfo> lon_lat_fields = FindLonLatFields( product, allow_unsupported, lon_alias_used, lat_alias_used, field_error_msg );
+		CAliasInfo time_field = FindTimeField( product, allow_unsupported, time_alias_used, field_error_msg );
 
-		CField *lon = product->FindFieldByName( lon_alias, false, &field_error_msg );
+		CField *lon = lon_lat_fields.first.Field();		// product->FindFieldByName( lon_alias, false, &field_error_msg );
 		if ( !lon )
 		{
 			error_msg.append( "No longitude data found in product." );
 			return{ false, user_canceled };
 		}
 
-		CField *lat = product->FindFieldByName( lat_alias, false, &field_error_msg );
+		CField *lat = lon_lat_fields.second.Field();	// product->FindFieldByName( lat_alias, false, &field_error_msg );
 		if ( !lat )
 		{
 			error_msg.append( "No latitude data found in product." );
 			return{ false, user_canceled };
 		}
 
-		CField *time = product->FindFieldByName( time_alias, false, &field_error_msg );
+		CField *time = time_field.Field();				// product->FindFieldByName( time_alias, false, &field_error_msg );
 		if ( !time )
 		{
 			error_msg.append( "No time data found in product." );

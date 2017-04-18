@@ -462,7 +462,7 @@ public:
 
     bool DeleteFilter( const std::string &name );
 
-    std::pair< bool, bool > Apply( const std::string &name, const CStringList& files_in, CStringList& files_out, std::string& error_msg, CProgressInterface *progress ) const;
+    std::pair< bool, bool > Apply( const std::string &name, const CStringList& files_in, CStringList& files_out, std::string& error_msg, CProgressInterface *progress, bool allow_unsupported = false ) const;
 
 protected:
 	
