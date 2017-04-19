@@ -16,20 +16,17 @@ distribution or installation.
 The short version is as follows:
 
 + For Windows: double-click the installer file appropriate
-for your platform (brat-4.0.0-Win32-installer.exe for 32-bit
-operating systems, brat-4.0.0-x64-installer.exe for 64-bit
+for your platform (brat-4.1.0-Win32-installer.exe for 32-bit
+operating systems, brat-4.1.0-x64-installer.exe for 64-bit
 operating systems), and follow the instructions.
 
 
 + For Linux: double-click in your desktop manager (or execute
 from the command-line) the installer file appropriate for your
 platform. For 32 bit operating system execute the file 
-brat-4.0.0-i386-installer.run. For 64-bit operating system execute
-the script brat-4.0.0-x86_64-installer.sh (it checks if your system
-is prepared for running the installer and automatically runs the file
-brat-4.0.0-x86_64-installer.run). In both cases, follow the instructions.
-(If necessary, use 'chmod +x <installer-filename>' to ensure the 
-installer is executable.)
+brat-4.1.0-i386-installer.run. If necessary, use the command
+'chmod +x <installer-filename>' 
+to ensure the installer is executable.)
 
 Taking debian 7 as the BRAT version of reference for the Linux platform, 
 the following additional dependencies are required for BRAT to run:
@@ -47,8 +44,8 @@ usually installed by default.
 
 
 + For Mac OS X: double-click the image file appropriate for the
-type of application you want to install: brat-4.0.0-macosx-i386.dmg
-for 32 bit BRAT applications, or brat-4.0.0-macosx-x86_64.dmg for 
+type of application you want to install: brat-4.1.0-macosx-i386.dmg
+for 32 bit BRAT applications, or brat-4.1.0-macosx-x86_64.dmg for 
 64 bit BRAT applications (Intel only). Then, drag the 'brat' and 
 'scheduler' applications to the 'Applications' folder on your machine. 
 For a full installation, documentation included, copy the mounted 
@@ -96,10 +93,10 @@ Most Unix platforms come with their own C++ compiler (or one can
 be downloaded using the native package manager) so this should
 not be a problem. For Linux, BRAT was developed with GNU g++
 (version 4.7.x or higher), for Windows with Visual Studio
-C++ 2013, for Mac OS X with GNU g++ 4.2 (BRAT 3.2.0, 32 bit) and
-clang 6.x (BRAT 4.0.0, 32 bit and 64 bit). In Mac OS X you should
+C++ 2015, for Mac OS X with GNU g++ 4.2 (BRAT 3.2.0, 32 bit) and
+clang 6.x (BRAT 4.1.0, 32 bit and 64 bit). In Mac OS X you should
 make sure you have installed the Developer Tools. Both 32 bit and
-64 bit builds use SDK 10.7 and libc++.
+64 bit builds use SDK 10.8 and libc++.
 
   + CMake v3.1.0
 
@@ -117,12 +114,12 @@ With a compiler and CMake and Perl in place, you should be able
 to build the CODA and BRATHL libraries and the Console
 Applications.
 
-  + Qt v4.8.6
+  + Qt v5.7.0
 
   Qt is an applications development framework, including GUI and tools.
-  Link: https://download.qt.io/archive/qt/4.8/4.8.6/
+  Link: https://www.qt.io/download/
 
-  + QGIS v2.8.3
+  + QGIS v2.16.1
 
   QGIS is a Geographic Information System application and library.
   Link: https://www.qgis.org/en/site/forusers/download.html
@@ -200,11 +197,11 @@ all sub-dependencies are covered.
 
   On the other hand, different operating system versions often require 
 adjustments of compilation settings, even within the same platform family.
-BRAT v4.0.0 elected some versions as target for each supported platform 
+BRAT v4.1.0 elected some versions as target for each supported platform 
 and architecture, versions where the software is known to build and run
 according to the requirements and the documented procedures, and that 
 can be taken as reference for adjusting the build settings to different 
-environments. BRAT v4.0.0 reference operating system versions are the 
+environments. BRAT v4.1.0 reference operating system versions are the 
 following:
 
 - Linux platform: debian 7, 32 and 64 bit versions;
@@ -372,7 +369,7 @@ a Linux-based platform:
     The following additional options were inherited from 
     BRAT 3.1.0 and, with the exception of MATLAB support for 64 
     bit, so far they are supported only to the extent where they 
-    are compatible without changes with BRAT 4.0.0.
+    are compatible without changes with BRAT 4.1.0.
     
     -DBRATHL_BUILD_FORTRAN=OFF
 
@@ -483,7 +480,7 @@ and library directories of the pre-installed BRAT dependencies
 listed above, as suggested by their names. 
 	 
 Create a build directory and cd into it from a Visual Studio
-2013 console, like you have done when building VTK for Windows. 
+2015 console, like you have done when building VTK for Windows. 
 Then invoke CMake as in the following example, making the 
 appropriate replacements as explained in the rest of the section:
 
@@ -627,7 +624,7 @@ libsqlite3.0.dylib
 libtiff.5.dylib
 libxml2.2.dylib
 
-The minimum Mac OS X version where BRAT can be built is 10.7, but 
+The minimum Mac OS X version where BRAT can be built is 10.8, but 
 note that these binaries, as distributed with the BRAT installers, 
 were built as a convenience for installation in the BRAT's target 
 system Yosemite. Some of the respective libraries may require 
@@ -639,7 +636,7 @@ following differences:
 
 	1. Replace "$arch_flags" in the Linux example by 
      
-     "-mmacosx-version-min=10.7 -fvisibility=hidden -Wno-deprecated -isysroot /SDKs/MacOSX$MACOSX_SDK.sdk std=$STANDARD -stdlib=libc++"
+     "-mmacosx-version-min=10.8 -fvisibility=hidden -Wno-deprecated -isysroot /SDKs/MacOSX$MACOSX_SDK.sdk std=$STANDARD -stdlib=libc++"
 
 	adding, for 32 bit builds, "-arch i386" and for 64 bit builds "-arch x86_64"
 
@@ -648,10 +645,10 @@ following differences:
 
 		-DCMAKE_OSX_SYSROOT=/SDKs/MacOSX10.7.sdk
 		-DCMAKE_MACOSX_RPATH:BOOL=ON
-		-DCMAKE_OSX_DEPLOYMENT_TARGET=10.7
+		-DCMAKE_OSX_DEPLOYMENT_TARGET=10.8
 
 		replacing /SDKs/MacOSX10.7.sdk by the location of your
-		Mac OS X 10.7 SDK if installed elsewhere.
+		Mac OS X 10.8 SDK if installed elsewhere.
 
 	3. Remove the option for the BitRock InstallBuilder. The Mac OS X 
 		build with CMake creates specific platform installer files with 
@@ -762,11 +759,11 @@ If you want to compile within the Visual Studio IDE you have to
 set the appropriate options (look at VS user manual).
 Specifically, you must invoke CMake with:
 
-  -G "Visual Studio 12 2013" (32 bit builds)
+  -G "Visual Studio 14 2015" (32 bit builds)
 
   or 
   
-  -G "Visual Studio 12 2013 Win64" (64 bit builds)
+  -G "Visual Studio 14 2015 Win64" (64 bit builds)
 
 which will generate a BRAT.sln project file you can open in the
 IDE.

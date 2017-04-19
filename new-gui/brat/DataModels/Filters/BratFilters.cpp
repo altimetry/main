@@ -522,9 +522,7 @@ CAliasInfo CBratFilters::FindField( CProduct *product, const std::string &name, 
 	{
 		alias_info.Field() = product->FindFieldByName( alias_info.Value(), false, &field_error_msg );		//true: throw on failure
 
-																											//guessing ?
-
-		if ( /*try_unsupported && */!alias_info.Field() && !record.empty() )
+		if ( !alias_info.Field() && !record.empty() )
 			alias_info.Field() = product->FindFieldByName( alias_info.Value(), record, false );	//true: throw on failure
 		if ( !alias_info.Field() )
 			alias_info.Field() = product->FindFieldByInternalName( alias_info.Value(), false );	//idem

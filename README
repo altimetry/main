@@ -30,6 +30,28 @@ authoritative.
 Version History
 == == == == == == ==
 
+4.1.0 - April 2017
+--------------------
+Features added in this version:
+
+- RADS datasets support
+- Automatic synchronization with RADS server
+- ASCII export gridded view support
+- Tutorial videos included in Help
+- Support for temporal interpolation when generating grids
+- Coastal and Inland Waters Altimetry formulas
+- New support for products:
+	- Sentinel 3 L1A Products data
+	- Sentinel 3 L1BS Products data
+	- Envisat Reprocessed data
+	- Geosat GDR data
+	- ESA River and Lake Hydrology data
+	- ESA River and Lake Altimetry data
+	- ERS Reaper Products
+	- Jason-1 netcdf products
+	
+Corrections of all reported bugs in version 4.0.0
+
 
 4.0.0 - October 2016
 --------------------
@@ -59,7 +81,7 @@ Changes for this version:
 Known problems with the V4.0.0-beta release:
 - Contours:
 	Contours are only available for spectrograms (by selecting "Contour" options inside "Data Options" tab of
-	the generated View)· In the full release it will also be available for the Maps and Globe views type.
+	the generated View). In the full release it will also be available for the Maps and Globe views type.
 - Vector Plots:
 	Vector plots are currently not supported and will be implemented for the full release.
 - Log Scale:
