@@ -76,6 +76,7 @@
 
 
 #include "common/QtUtilsIO.h"	// QtUtilsIO.h => QtStringUtils.h => +Utils.h
+#include "common/Version.h"
 
 
 //Table of Contents
@@ -217,7 +218,7 @@ public:
 
 
 ///////////////////////////////////////////////////////////////////
-//                  Simple Message Boxes
+//					Application and Window
 ///////////////////////////////////////////////////////////////////
 
 inline QWidget* SetApplicationWindow( QWidget *w = nullptr )
@@ -237,6 +238,45 @@ inline QWidget* ApplicationWindow()
 }
 
 
+///-------------------------------------------------------------------------------------------------
+/// \fn	inline QString MakeMainWindowTitle( const QString &title = QString() )
+///
+/// \brief	Makes main window title.
+/// \brief	"The window title must contain a "[*]" placeholder, which indicates where the '*'
+/// 		should appear. Normally, it should appear right after the file name (e.g.,
+/// 		"document1.txt[*] - Text TextEditor")." Qt doc.
+///
+/// \date	29-04-2017
+///
+/// \param	title	(Optional) The title.
+///
+/// \return	A QString.
+///-------------------------------------------------------------------------------------------------
+
+inline QString MakeMainWindowTitle( const QString &title = QString() )	//returns the application name if title is empty
+{
+	static const QString &app_title = qApp->applicationName()
+
+#if defined (DEBUG) || defined(_DEBUG)
+
+		+build_configuration.c_str();
+
+#endif
+	;
+
+	QString t = app_title;
+
+	if ( !title.isEmpty() )
+		t += " - " + title;
+
+	return t + "[*]";
+}
+
+
+
+///////////////////////////////////////////////////////////////////
+//                  Simple Message Boxes
+///////////////////////////////////////////////////////////////////
 
 inline void SimpleAboutBoxWithBuildDate( const std::string &version, const std::string &proc_arch, const std::string &copy_right, std::string app_name = std::string() )
 {
@@ -547,6 +587,7 @@ inline std::pair< bool, VALUE > SimpleInputNumber( const QString &input_name, co
 
 	return result;
 }
+
 
 
 ///////////////////////////////////////////////////////////////////////////
@@ -1186,7 +1227,7 @@ inline void SetMaximumVisibleItems( LIST_TYPE *list, unsigned nitems )
 template <
     typename LIST_TYPE, typename CONTAINER, typename ENUM_VALUE, typename FUNC = decltype( qidentity )
 >
-inline LIST_TYPE* FillAnyList( LIST_TYPE *c, const CONTAINER &items, std::initializer_list< ENUM_VALUE > selection, bool enable, const FUNC &f = qidentity )
+inline LIST_TYPE* FillAnyList( LIST_TYPE *c, const CONTAINER &items, const std::vector< ENUM_VALUE > &selection, bool enable, const FUNC &f = qidentity )
 {
 	for ( auto const &item : items ) 
 	{
@@ -1443,7 +1484,7 @@ inline bool readUnicodeFileFromResource( const QString &rpath, std::wstring &des
 
 
 //////////////////////////////////////////////////////////////////
-//					Dimensions - BRAT Specific
+//				Dimensions - Application Specific
 //////////////////////////////////////////////////////////////////
 
 
@@ -1565,7 +1606,7 @@ inline QString UserName()
 
 
 
-class QBratThread : public QThread
+class QSimpleThread : public QThread
 {
 public:
 	static void sleep( unsigned long secs ) 
@@ -1600,6 +1641,8 @@ struct boolean_locker_t
         mFlag = false;
     }
 };
+
+
 
 
 

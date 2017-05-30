@@ -1,3 +1,20 @@
+/*
+* This file is part of BRAT
+*
+* BRAT is free software; you can redistribute it and/or
+* modify it under the terms of the GNU General Public License
+* as published by the Free Software Foundation; either version 2
+* of the License, or (at your option) any later version.
+*
+* BRAT is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program; if not, write to the Free Software
+* Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+*/
 #ifndef GUI_LOG_SHELL_H
 #define GUI_LOG_SHELL_H
 
@@ -16,7 +33,7 @@ class QCheckBox;
 QT_END_NAMESPACE
 
 
-class CApplicationLoggerBase;
+#include "new-gui/Common/ApplicationLoggerInterface.h"
 
 
 
@@ -54,10 +71,10 @@ class CBasicLogShell : public QFrame
     QTimer      mTimer;
     size_t      mMsgCounter = 0;
 
-	const QHash< int, QColor >	mSeverityToColorTable;
-	const QHash< int, QString >	mSeverityToPromptTable;
+	ApplicationLoggerInterface &mLogger;
+	const QHash< int, QColor >	&mSeverityToColorTable;
+	const QHash< int, QString >	&mSeverityToPromptTable;
 
-	CApplicationLoggerBase &mLogger;
 
 	// construction / destruction
 
@@ -65,8 +82,7 @@ class CBasicLogShell : public QFrame
 
 public:
 
-	CBasicLogShell( CApplicationLoggerBase &logger, const std::vector<std::string> &level_names, 
-		const QHash< int, QColor > &severity2color_table, const QHash< int, QString > &severity2prompt_table, QWidget *parent = nullptr );
+	CBasicLogShell( ApplicationLoggerInterface &logger, QWidget *parent = nullptr );
 
 	virtual ~CBasicLogShell()
 	{}

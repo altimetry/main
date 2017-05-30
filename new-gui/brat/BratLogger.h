@@ -26,7 +26,7 @@
 #include <qgslogger.h>
 
 #include "common/+Utils.h"
-#include "new-gui/Common/ApplicationLogger.h"
+#include "new-gui/Common/ApplicationLoggerBase.h"
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -103,7 +103,9 @@
 //#define LOG_TRACE( msg )
 
 
-class CBratLogger : public CApplicationLoggerBase, public osg::NotifyHandler
+
+
+class CBratLogger : public CApplicationLoggerBase, public ApplicationLoggerInterface, public osg::NotifyHandler
 {
 #if defined (__APPLE__)
 #pragma clang diagnostic push
@@ -129,6 +131,10 @@ public:
 
 	// instance data 
 
+	std::vector< std::string >	mLevelNames;
+	QHash< int, QColor >		mSeverityToColorTable;
+	QHash< int, QString >		mSeverityToPromptTable;
+
 protected:
 
 	// construction / destruction
@@ -149,10 +155,35 @@ public:
 	void SetOsgNotifyLevel( osg::NotifySeverity ns );
 
 
-	virtual void SetNotifyLevel( int level ) override;
+	// ApplicationLoggerInterface implementation
+
+	virtual void SetEnabled( bool enable ) override
+	{
+		CBratLogger *h = dynamic_cast<CBratLogger*>( osg::getNotifyHandler() );
+		if ( h )
+		{
+			h->SetEnabled( enable );
+		}
+	}
 
 	virtual int NotifyLevel() const override { return OsgNotifyLevel(); }
 
+	virtual void SetNotifyLevel( int level ) override;
+
+	virtual void LogMessage( const QString &msg, QtMsgType level ) override
+	{
+		LogMsg( msg, level );
+	}
+
+	virtual const std::vector< std::string >& LevelNames() const override;
+
+	virtual const QHash< int, QColor >& SeverityToColorTable() const override;
+
+	virtual const QHash< int, QString >& SeverityToPromptTable() const override;
+
+
+
+	// other
 
 protected:
 
@@ -232,16 +263,34 @@ inline QgsMessageLog::MessageLevel level_cast< QgsMessageLog::MessageLevel >( Qt
 }
 
 
-//enum NotifySeverity 
-//{
-//    ALWAYS=0,
-//    FATAL=1,
-//    WARN=2,
-//    NOTICE=3,
-//    INFO=4,
-//    DEBUG_INFO=5,
-//    DEBUG_FP=6
-//};
+enum ENotifySeverity 
+{
+	eALWAYS,
+	eFATAL,
+	eWARN,
+	eNOTICE,
+	eINFO,
+	eDEBUG_INFO,
+	eDEBUG_FP,
+
+	ENotifySeverity_size
+};
+
+
+
+static_assert(
+
+	eALWAYS == osg::ALWAYS &&
+	eFATAL == osg::FATAL &&
+	eWARN == osg::WARN &&
+	eNOTICE == osg::NOTICE &&
+	eINFO == osg::INFO &&
+	eDEBUG_INFO == osg::DEBUG_INFO &&
+	eDEBUG_FP == osg::DEBUG_FP,
+
+	"Discrepancy between logger levels and OSG notify levels"
+	);
+
 
 //enum MessageLevel
 //{

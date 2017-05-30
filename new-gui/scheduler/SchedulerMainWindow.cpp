@@ -184,28 +184,7 @@ void CSchedulerMainWindow::CreateMenuBar()
 
 void CSchedulerMainWindow::CreateLogTable()
 {
-	static std::string names[] =
-	{
-		"INFO",
-		"WARN",
-		"FATAL"
-	};
-    static const DEFINE_ARRAY_SIZE( names ); Q_UNUSED(names_size);
-
-	mSeverityToColorTable.reserve( 3 );
-
-	mSeverityToColorTable.insert( QtDebugMsg,		QColor( 0, 255, 0, 127 ) );
-	mSeverityToColorTable.insert( QtWarningMsg,		QColor( 255, 255, 0, 127 ) );
-	mSeverityToColorTable.insert( QtCriticalMsg,	QColor( 255, 0, 0, 127 ) );
-		
-	mSeverityToPromptTable.reserve( 3 );
-
-	mSeverityToPromptTable.insert( QtDebugMsg,		"[INFO] " );
-	mSeverityToPromptTable.insert( QtWarningMsg,	"[WARN] " );
-	mSeverityToPromptTable.insert( QtCriticalMsg,	"[FATAL] ");
-
-	mLogFrame = new CBasicLogShell( CSchedulerLogger::Instance(), std::vector< std::string >( &names[0], &names[names_size] ), 
-		mSeverityToColorTable, mSeverityToPromptTable, this );
+	mLogFrame = new CBasicLogShell( CSchedulerLogger::Instance(), this );
 	mLogFrame->setObjectName( QString::fromUtf8( "mLogShell" ) );
 	mLogFrameIndex = mTabWidget->addTab( mLogFrame, "Log" );
 
@@ -474,7 +453,7 @@ bool CSchedulerMainWindow::ExecuteAsync( CBratTask *task, int isubtask )	//, int
         {
             while ( mSyncProcessExecuting )
             {
-                QBratThread::sleep( 1 );
+                QSimpleThread::sleep( 1 );
                 qApp->processEvents();
             }
         }

@@ -18,7 +18,7 @@
 #if !defined SCHEDULER_LOGGER_H
 #define SCHEDULER_LOGGER_H
 
-#include "new-gui/Common/ApplicationLogger.h"
+#include "new-gui/Common/ApplicationLoggerBase.h"
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -93,7 +93,7 @@
 
 
 
-class CSchedulerLogger : public CApplicationLoggerBase
+class CSchedulerLogger : public CApplicationLoggerBase, public ApplicationLoggerInterface
 {
 #if defined (__APPLE__)
 #pragma clang diagnostic push
@@ -118,6 +118,10 @@ public:
 
 	// instance data 
 
+	std::vector< std::string >	mLevelNames;
+	QHash< int, QColor >		mSeverityToColorTable;
+	QHash< int, QString >		mSeverityToPromptTable;
+
 protected:
 
 	// construction / destruction
@@ -127,6 +131,47 @@ protected:
 public:
 
 	virtual ~CSchedulerLogger();
+
+
+	// access
+
+	// ApplicationLoggerInterface implementation
+	//
+	virtual int NotifyLevel() const override
+	{
+		return base_t::NotifyLevel();
+	}
+
+	virtual void SetNotifyLevel( int level ) override
+	{
+		Q_UNUSED( level );
+	}
+
+	virtual void SetEnabled( bool enable ) override
+	{
+		base_t::SetEnabled( enable );
+	}
+
+	virtual void LogMessage( const QString &msg, QtMsgType level ) override
+	{
+		LogMsg( msg, level );
+	}
+
+
+	// NOTE: the global log_XXX functions use these levels:
+	//
+	//	QtMsgType::QtDebugMsg
+	//	QtMsgType::QtWarningMsg
+	//	QtMsgType::QtCriticalMsg;
+	//
+	// so we must implement the interface methods 
+	// (for level names and colors) at least for these levels.
+	
+	virtual const std::vector< std::string >& LevelNames() const override;
+
+	virtual const QHash< int, QColor >& SeverityToColorTable() const override;
+
+	virtual const QHash< int, QString >& SeverityToPromptTable() const override;
 };
 
 

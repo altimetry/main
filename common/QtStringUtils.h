@@ -5,8 +5,7 @@
 #error Wrong QtStringUtils.h included
 #endif
 
-
-#include "common/+Utils.h"
+#include "+Utils.h"
 
 #include <QtCore/QString>
 #include <QDebug>

@@ -18,7 +18,7 @@
 #include "stdafx.h"
 
 #include "common/+Utils.h"
-#include "ApplicationLogger.h"
+#include "ApplicationLoggerBase.h"
 
 // InternalOutputStream is the destination output stream of CApplicationLoggerBase; it abouts to 
 //	nothing in release builds. In debug builds, abouts to qDebug, or to file if QGIS_LOG_FILE 
@@ -332,4 +332,4 @@ void CApplicationLoggerBase::ProductionLogMsg( const QString &msg, QtMsgType lev
 //
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-#include "moc_ApplicationLogger.cpp"
+#include "moc_ApplicationLoggerBase.cpp"

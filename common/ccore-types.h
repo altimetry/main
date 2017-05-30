@@ -25,9 +25,9 @@ extern "C" {
 
 
 #if defined(_WIN64) || defined(__LP64__) || defined(__x86_64__) 
-#define BRAT_ARCHITECTURE_64
+#define ARCHITECTURE_64
 #else
-#define BRAT_ARCHITECTURE_32
+#define ARCHITECTURE_32
 #endif
 
 
@@ -101,17 +101,17 @@ extern "C" {
 ////////////////////////////////////////////////////////////////////////////
 
 
-#if defined(BRAT_ARCHITECTURE_64)
+#if defined(ARCHITECTURE_64)
 
 	typedef int64_t			int_t;
 	typedef uint64_t		uint_t;
 
-#elif defined(BRAT_ARCHITECTURE_32)
+#elif defined(ARCHITECTURE_32)
 
 	typedef int32_t			int_t;
 	typedef uint32_t		uint_t;
 #else
-#error one of { BRAT_ARCHITECTURE_32, BRAT_ARCHITECTURE_64 } must be defined
+#error one of { ARCHITECTURE_32, ARCHITECTURE_64 } must be defined
 #endif
 
 

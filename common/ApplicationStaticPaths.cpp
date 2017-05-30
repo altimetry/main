@@ -48,15 +48,15 @@
 
 const std::string PLATFORM_SUBDIR =
 
-#if defined(BRAT_ARCHITECTURE_64)
+#if defined(ARCHITECTURE_64)
     #if defined(_WIN32)
         "x64"
     #else
         "x86_64"
     #endif
 #else
-    #if !defined(BRAT_ARCHITECTURE_32)
-    #error One of BRAT_ARCHITECTURE_32 BRAT_ARCHITECTURE_64 must be defined
+    #if !defined(ARCHITECTURE_32)
+    #error One of ARCHITECTURE_32 ARCHITECTURE_64 must be defined
     #endif
     #if defined(_WIN32)
         "Win32"

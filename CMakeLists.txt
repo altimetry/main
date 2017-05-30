@@ -16,43 +16,28 @@ ENDMACRO(DBG_MSG_V)
 project(BRAT)
 
 
-# It is assumed that, if any of the following version values is defined
-# in the command line, the purpose is to override macros in BratVersion.h
-
-IF (NOT DEFINED BRAT_MAJOR_VERSION)
-	SET(BRAT_MAJOR_VERSION 4)
-ELSE ()
-	ADD_DEFINITIONS(-DBRAT_MAJOR_VERSION_INT=${BRAT_MAJOR_VERSION})
-ENDIF ()
-
-IF (NOT DEFINED BRAT_MINOR_VERSION)
-	SET(BRAT_MINOR_VERSION 1)
-ELSE ()
-	ADD_DEFINITIONS(-DBRAT_MINOR_VERSION_INT=${BRAT_MINOR_VERSION})
-ENDIF ()
-
-IF (NOT DEFINED BRAT_PATCH_VERSION)
-	SET(BRAT_PATCH_VERSION 0)
-ELSE ()
-	ADD_DEFINITIONS(-DBRAT_PATCH_VERSION_INT=${BRAT_PATCH_VERSION})
-ENDIF ()
-
-# Beta and RC version suffixes are always defined externally
-# and used by BratVersion.h
-
-IF (DEFINED BRAT_BETA_VERSION)
-	SET(BRAT_BETA_VERSION_SUFFIX -beta)
-	ADD_DEFINITIONS(-DBRAT_BETA_VERSION)
-ENDIF ()
-
-IF (DEFINED BRAT_RC_VERSION)
-	SET(BRAT_RC_VERSION_SUFFIX -rc${BRAT_RC_VERSION})
-	ADD_DEFINITIONS(-DBRAT_RC_VERSION=${BRAT_RC_VERSION})
-ENDIF ()
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY bin CACHE INTERNAL "Directory for all programs")
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY lib CACHE INTERNAL "Directory for all dynamic libraries")
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY lib CACHE INTERNAL "Directory for all static libraries")
+set(CMAKE_MODULE_PATH ${BRAT_SOURCE_DIR}/CMakeModules ${CMAKE_MODULE_PATH} CACHE INTERNAL "Directories where to find module definitions")
+set(CMAKE_BUILD_TYPE "" CACHE STRING "Build type option")
 
 
-set(BRAT_BASE_VERSION "${BRAT_MAJOR_VERSION}.${BRAT_MINOR_VERSION}.${BRAT_PATCH_VERSION}")
-set(BRAT_VERSION "${BRAT_BASE_VERSION}${BRAT_BETA_VERSION_SUFFIX}${BRAT_RC_VERSION_SUFFIX}")
+set(INSTALLERS_SUB_DIR packager)
+include( "VersionVariables" )
+
+# Expected variables in charge of VersionVariables.cmake
+# These variable values are always fetched from file or externally assigned
+#
+# MAJOR_VERSION - mandatory, 
+# MINOR_VERSION - idem
+# PATCH_VERSION - idem
+# BETA_VERSION_SUFFIX - only if beta
+# RC_VERSION_SUFFIX - only if release candidate
+
+set( BASE_VERSION "${MAJOR_VERSION}.${MINOR_VERSION}.${PATCH_VERSION}" )
+set( FULL_VERSION "${BASE_VERSION}${BETA_VERSION_SUFFIX}${RC_VERSION_SUFFIX}" )
+set( BRAT_VERSION "${FULL_VERSION}" )
 
 
 message(STATUS "System type: ${CMAKE_SYSTEM_NAME}")
@@ -63,11 +48,6 @@ message(STATUS "BRAT_SOURCE_DIR: ${BRAT_SOURCE_DIR}")
 # RETURN()
 
 
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY bin CACHE INTERNAL "Directory for all programs")
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY lib CACHE INTERNAL "Directory for all dynamic libraries")
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY lib CACHE INTERNAL "Directory for all static libraries")
-set(CMAKE_MODULE_PATH ${BRAT_SOURCE_DIR}/CMakeModules ${CMAKE_MODULE_PATH} CACHE INTERNAL "Directories where to find module definitions")
-set(CMAKE_BUILD_TYPE "" CACHE STRING "Build type option")
 
 # Make sure to override /usr/local as default installation
 # prefix, because BRAT needs to be installed in a subdirectory of
@@ -2251,7 +2231,7 @@ ENDIF (NOT WIN32)
 
 set(ADDITIONAL_LIBS ${PYTHON_IMPORT_LIBRARY})
 IF(UNIX AND NOT APPLE)
-	set(ADDITIONAL_LIBS ${ADDITIONAL_LIBS} util expat )
+	set(ADDITIONAL_LIBS ${ADDITIONAL_LIBS} util expat pthread )
 ENDIF(UNIX AND NOT APPLE)
 
 DEFINE_PROCESS(RunPythonAlgorithm)
@@ -2387,7 +2367,7 @@ if(BRAT_BUILD_GUI)
 			process/rads/RadsService.cpp
 			process/rads/stdafx.cpp
 			new-gui/Common/System/Service/qtservice.cpp
-			new-gui/Common/ApplicationLogger.cpp
+			new-gui/Common/ApplicationLoggerBase.cpp
 			process/rads/RadsServiceLogger.cpp
 			new-gui/Common/System/OsProcess.cpp
 			process/rads/simplecrypt.cpp
@@ -2407,7 +2387,7 @@ if(BRAT_BUILD_GUI)
 			process/rads/RadsService.h
 			process/rads/stdafx.h
 			process/rads/targetver.h
-			new-gui/Common/ApplicationLogger.h
+			new-gui/Common/ApplicationLoggerBase.h
 			process/rads/RadsServiceLogger.h
 			new-gui/Common/System/OsProcess.h
 			process/rads/simplecrypt.h
@@ -2521,7 +2501,7 @@ if(BRAT_BUILD_GUI)
 		new-gui/Common/DataModels/TaskProcessor.cpp
 		new-gui/Common/DataModels/BratTask.cpp
 		common/ApplicationStaticPaths.cpp
-		new-gui/Common/ApplicationLogger.cpp
+		new-gui/Common/ApplicationLoggerBase.cpp
 		new-gui/scheduler/SchedulerLogger.cpp
 		new-gui/Common/GUI/TextWidget.cpp
 		new-gui/Common/GUI/BasicLogShell.cpp
@@ -2552,7 +2532,7 @@ if(BRAT_BUILD_GUI)
 		new-gui/Common/DataModels/TaskProcessor.h
 		new-gui/Common/DataModels/BratTask.h
 		common/ApplicationStaticPaths.h
-		new-gui/Common/ApplicationLogger.h
+		new-gui/Common/ApplicationLoggerBase.h
 		new-gui/scheduler/SchedulerLogger.h
 		new-gui/Common/XmlSerializer.h
 		new-gui/Common/GUI/TextWidget.h
@@ -2700,9 +2680,9 @@ if(BRAT_BUILD_GUI)
 		new-gui/brat/GUI/WorkspaceElementsDialog.cpp
 		new-gui/brat/ApplicationSettingsDlg.cpp
 		new-gui/brat/ApplicationPaths.cpp
-		new-gui/Common/ApplicationLogger.cpp
+		new-gui/Common/ApplicationLoggerBase.cpp
 		new-gui/brat/BratLogger.cpp
-		new-gui/brat/GUI/LogShell.cpp
+		new-gui/Common/GUI/BasicLogShell.cpp
 		new-gui/brat/DataModels/PlotData/MapProjection.cpp
 		new-gui/brat/DataModels/PlotData/Plots.cpp
 		new-gui/brat/DataModels/PlotData/PlotColor.cpp
@@ -2824,9 +2804,9 @@ if(BRAT_BUILD_GUI)
 		new-gui/brat/GUI/WorkspaceElementsDialog.h
 		new-gui/brat/ApplicationSettingsDlg.h
 		new-gui/brat/ApplicationPaths.h
-		new-gui/Common/ApplicationLogger.h
+		new-gui/Common/ApplicationLoggerBase.h
 		new-gui/brat/BratLogger.h
-		new-gui/brat/GUI/LogShell.h
+		new-gui/Common/GUI/BasicLogShell.h
 		new-gui/brat/DataModels/PlotData/PlotColor.h
 		new-gui/brat/DataModels/PlotData/GeoPlotField.h
 		new-gui/brat/DataModels/DisplayFilesProcessor.h
@@ -3141,7 +3121,10 @@ if(BRAT_BUILD_GUI)
 				${OSGTERRAIN_LIBRARY}
 				${OSGFX_LIBRARY}
 				${OSGMANIPULATOR_LIBRARY}
+				GL
 				util
+				expat
+				pthread
 			)
 
 		    IF (IS_CENTOS_SYSTEM)

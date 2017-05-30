@@ -22,6 +22,9 @@
 
 #include "common/QtStringUtils.h"
 
+#include "ApplicationLoggerInterface.h"
+
+
 
 #if QT_VERSION >= 0x050000
 
@@ -292,6 +295,11 @@ public:
 	}
 
 	virtual void SetEnabled( bool enable );
+
+	virtual void LogMessage( const QString &msg, QtMsgType level )
+	{
+		LogMsg( msg, level );
+	}
 
 
 protected:

@@ -21,8 +21,8 @@
 #include "DataModels/Workspaces/TreeWorkspace.h"
 
 #include "ui_BratMainWindow.h"
+#include "new-gui/Common/GUI/BasicLogShell.h"
 #include "GUI/DesktopManager.h"
-#include "GUI/LogShell.h"
 #include "BratSettings.h"
 #include "DataModels/Model.h"
 #include "DataModels/Workspaces/Display.h"
@@ -134,7 +134,7 @@ private:
 	CTabbedDock *mMainWorkingDock = nullptr;
 
 	CTabbedDock *mOutputDock = nullptr;
-    CLogShell *mLogFrame = nullptr;
+    CBasicLogShell *mLogFrame = nullptr;
 	int mLogFrameIndex = -1;
 	CProcessesTable *mProcessesTable = nullptr;
 	int mProcessesTableIndex = -1;

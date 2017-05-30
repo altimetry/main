@@ -44,12 +44,49 @@ CSchedulerLogger::CSchedulerLogger()
 	: base_t()
 {
 	assert__( smInstance && smInstance == this );		//smInstance not necessarily == this
+
+	mLevelNames.resize( 3 );
+
+	mLevelNames[ QtDebugMsg ] = "INFO";
+	mLevelNames[ QtWarningMsg ] = "WARN";
+	mLevelNames[ QtCriticalMsg ] = "FATAL";
+
+	mSeverityToColorTable.reserve( 3 );
+
+	mSeverityToColorTable.insert( QtDebugMsg,		QColor( 0, 255, 0, 127 ) );
+	mSeverityToColorTable.insert( QtWarningMsg,		QColor( 255, 255, 0, 127 ) );
+	mSeverityToColorTable.insert( QtCriticalMsg,	QColor( 255, 0, 0, 127 ) );
+
+	mSeverityToPromptTable.reserve( 3 );
+
+	mSeverityToPromptTable.insert( QtDebugMsg,		"[INFO] " );
+	mSeverityToPromptTable.insert( QtWarningMsg,	"[WARN] " );
+	mSeverityToPromptTable.insert( QtCriticalMsg,	"[FATAL] ");
 }
 
 //virtual 
 CSchedulerLogger::~CSchedulerLogger()
 {}
 
+
+
+//virtual 
+const std::vector< std::string >& CSchedulerLogger::LevelNames() const
+{
+	return mLevelNames;
+}
+
+//virtual 
+const QHash< int, QColor >& CSchedulerLogger::SeverityToColorTable() const
+{
+	return mSeverityToColorTable;
+}
+
+//virtual 
+const QHash< int, QString >& CSchedulerLogger::SeverityToPromptTable() const
+{
+	return mSeverityToPromptTable;
+}
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////

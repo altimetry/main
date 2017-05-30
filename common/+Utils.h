@@ -68,7 +68,12 @@ typedef std::strstream stream_t;
 #endif
 
 
+////////////////////////////////
+//	PRE-PROCESSOR UTILITIES
+////////////////////////////////
+
 #undef UNUSED
+
 #if defined (Q_UNUSED)
     #define UNUSED Q_UNUSED
 #else
@@ -158,6 +163,10 @@ const std::string application_build_time( std::string(__DATE__) + " - " + __TIME
 #  define __func__ __FUNCTION__
 #endif
 
+
+////////////////
+//	UNICODE
+////////////////
 
 #if defined (UNICODE) || defined (_UNICODE)
 #	undef UNICODE
@@ -451,7 +460,7 @@ inline void	DestroyPointersAndContainer( std::map< K, T* > &c )			//check better
 	while ( !c.empty() ) delete c.begin()->second, c.erase( c.begin()->first );
 }
 template< typename CAST, typename T >
-inline void	destroyPointerCastsAndContainer( std::vector< T* > &c )
+inline void	DestroyPointerCastsAndContainer( std::vector< T* > &c )
 {
 	while ( !c.empty() ) delete dynamic_cast<CAST*>( c.back() ), c.pop_back();
 }
@@ -563,7 +572,7 @@ struct upper_char
 };
 
 template< class STRING >
-inline STRING& toUpper( STRING &s )
+inline STRING& ToUpper( STRING &s )
 {
     std::transform( s.begin(), s.end(), s.begin(), upper_char< typename STRING::value_type > () );
     return s;
@@ -579,7 +588,7 @@ struct lower_char
 };
 
 template< class STRING >
-inline STRING& toLower( STRING &s )
+inline STRING& ToLower( STRING &s )
 {
     std::transform( s.begin(), s.end(), s.begin(), lower_char< typename STRING::value_type >() );
     return s;
@@ -590,14 +599,14 @@ template< class STRING >
 inline STRING ToUpperCopy( const STRING &s )
 {
     STRING s2(s);
-    return toUpper(s2);
+    return ToUpper(s2);
 }
 
 template< class STRING >
 inline STRING ToLowerCopy( const STRING &s )
 {
     STRING s2(s);
-    return toLower(s2);
+    return ToLower(s2);
 }
 
 
@@ -959,48 +968,7 @@ protected:
 
 
 
-////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////
-//					REFORMULATED BRAT UTILITIES
-////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////
-
-#if defined (WIN32) || defined (_WIN32)
-#pragma warning ( disable : 4996 )		//_CRT_SECURE_NO_WARNINGS: "This function or variable may be unsafe"
-#endif
-
-
-inline std::string stdFormat( size_t size, const char *format, va_list args )
-{
-	std::string	result;
-	char *str = nullptr;
-	try
-	{
-		str = new char[ size ];
-		vsnprintf( str, size, format, args );	//_vsnprintf(str, size, format, args );		//vsprintf( str, format, args );
-		result	= str;
-	}
-	catch ( ... )
-	{
-		delete[] str;
-		throw;
-	}
-	delete[]str;
-	return result;
-}
-
-
-inline std::string stdFormat( const char *format, va_list args )
-{
-	return stdFormat( 4096, format, args );
-}
-
-
-#if defined (WIN32) || defined (_WIN32)
-#pragma warning ( default : 4996 )
-#endif
-
-
+#include "+UtilsLegacy.h"
 
 
 

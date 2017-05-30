@@ -76,7 +76,7 @@ protected:
 
 public:
 	CGeoPlotField( CWorldPlotProperties *field )
-		: base_t( { field } )
+		: base_t( field )
 		, values_base_t()
 		, m_projection( PROJ2D_3D )
 	{

@@ -135,8 +135,6 @@ class CSchedulerMainWindow : public QMainWindow, private Ui::CSchedulerMainWindo
 
     CBasicLogShell *mLogFrame = nullptr;
 	int mLogFrameIndex = -1;
-	QHash< int, QColor >	mSeverityToColorTable;
-	QHash< int, QString >	mSeverityToPromptTable;
 
     const CApplicationStaticPaths *mAppPaths;
 	std::string mSchedulerFilePath;

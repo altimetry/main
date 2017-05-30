@@ -15,10 +15,11 @@
 * along with this program; if not, write to the Free Software
 * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
-#if !defined SCHEDULER_LOGGER_H
-#define SCHEDULER_LOGGER_H
+#if !defined RADS_SERVICE_LOGGER_H
+#define RADS_SERVICE_LOGGER_H
 
-#include "new-gui/Common/ApplicationLogger.h"
+#include "new-gui/Common/ApplicationLoggerBase.h"
+
 
 
 class CRadsServiceLogger : public CApplicationLoggerBase
@@ -66,4 +67,4 @@ public:
 
 
 
-#endif	//SCHEDULER_LOGGER_H
+#endif	//RADS_SERVICE_LOGGER_H

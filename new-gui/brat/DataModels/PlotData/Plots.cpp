@@ -19,7 +19,7 @@
 
 #include "common/tools/Trace.h"
 #include "common/tools/Exception.h"
-#include "new-gui/Common/ApplicationLogger.h"
+#include "new-gui/Common/ApplicationLoggerBase.h"
 #include "libbrathl/InternalFiles.h"
 #include "libbrathl/InternalFilesYFX.h"
 #include "libbrathl/InternalFilesZFXY.h"

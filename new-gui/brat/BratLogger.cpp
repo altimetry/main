@@ -56,6 +56,40 @@ CBratLogger::CBratLogger()
 	connect( 
 		QgsMessageLog::instance(), SIGNAL( messageReceived( QString, QString, QgsMessageLog::MessageLevel ) ),
 		this, SLOT( GuiLogMessage( QString, QString, QgsMessageLog::MessageLevel ) ) );
+
+
+	// log level colors and labels
+
+	mLevelNames.resize( ENotifySeverity_size );
+
+	mLevelNames[eALWAYS] = "ALWAYS";
+	mLevelNames[eFATAL] = "FATAL";
+	mLevelNames[eWARN] = "WARN";
+	mLevelNames[eNOTICE] = "NOTICE";
+	mLevelNames[eINFO] = "INFO";
+	mLevelNames[eDEBUG_INFO] = "DEBUG_INFO";
+	mLevelNames[eDEBUG_FP] = "DEBUG_FP";
+
+	mSeverityToColorTable.reserve( 10 );
+
+	mSeverityToColorTable.insert( osg::ALWAYS,		QColor( 0,255,0, 127 ) );
+	mSeverityToColorTable.insert( osg::FATAL,		QColor( 255, 0, 0, 127 ) );
+	mSeverityToColorTable.insert( osg::WARN,		QColor( 255, 255, 0, 127 ) );
+	// debug levels not used by brat logger
+	mSeverityToColorTable.insert( osg::NOTICE,		QColor( 255, 255, 255, 127 ) );
+	mSeverityToColorTable.insert( osg::INFO,		QColor( 255, 255, 255, 127 ) );
+	mSeverityToColorTable.insert( osg::DEBUG_INFO,	QColor( 255, 255, 255, 127 ) );
+	mSeverityToColorTable.insert( osg::DEBUG_FP,	QColor( 255, 255, 255, 127 ) );
+
+	mSeverityToPromptTable.reserve( 10 );
+
+	mSeverityToPromptTable.insert( osg::ALWAYS,		"[INFO] " );
+	mSeverityToPromptTable.insert( osg::FATAL,		"[FATAL] " );
+	mSeverityToPromptTable.insert( osg::WARN,		"[WARN] " );
+	mSeverityToPromptTable.insert( osg::NOTICE,		"[OSG_NOTICE] " );
+	mSeverityToPromptTable.insert( osg::INFO,		"[OSG_INFO] " );
+	mSeverityToPromptTable.insert( osg::DEBUG_INFO,	"[OSG_DEBUG_INFO] " );
+	mSeverityToPromptTable.insert( osg::DEBUG_FP,	"[OSG_DEBUG_FP] " );
 }
 
 //virtual 
@@ -101,6 +135,26 @@ void CBratLogger::SetNotifyLevel( int level )
 { 
 	SetOsgNotifyLevel( level_cast< osg::NotifySeverity >( level ) );
 }
+
+//virtual 
+const std::vector< std::string >& CBratLogger::LevelNames() const
+{
+	return mLevelNames;
+}
+
+//virtual 
+const QHash< int, QColor >& CBratLogger::SeverityToColorTable() const
+{
+	return mSeverityToColorTable;
+}
+
+//virtual 
+const QHash< int, QString >& CBratLogger::SeverityToPromptTable() const
+{
+	return mSeverityToPromptTable;
+}
+
+
 
 
 

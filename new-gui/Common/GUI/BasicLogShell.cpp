@@ -1,3 +1,20 @@
+/*
+* This file is part of BRAT
+*
+* BRAT is free software; you can redistribute it and/or
+* modify it under the terms of the GNU General Public License
+* as published by the Free Software Foundation; either version 2
+* of the License, or (at your option) any later version.
+*
+* BRAT is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program; if not, write to the Free Software
+* Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+*/
 #include "stdafx.h"
 
 #include <cstdio>
@@ -6,26 +23,12 @@
 #include <QTextEdit>
 #include <QVBoxLayout>
 
-#include "../ApplicationLogger.h"
-
 #include "TextWidget.h"
 #include "BasicLogShell.h"
 
 
 //static
 size_t CBasicLogShell::smMaxMsgsPerSec = smDefaultMaxMsgsPerSec;
-
-
-//enum NotifySeverity 
-//{
-//    ALWAYS=0,
-//    FATAL=1,
-//    WARN=2,
-//    NOTICE=3,
-//    INFO=4,
-//    DEBUG_INFO=5,
-//    DEBUG_FP=6
-//};
 
 
 QGroupBox* CBasicLogShell::CreateDebugWidgets( const std::vector<std::string> &level_names )
@@ -68,14 +71,13 @@ QGroupBox* CBasicLogShell::CreateDebugWidgets( const std::vector<std::string> &l
 }
 
 
-CBasicLogShell::CBasicLogShell( CApplicationLoggerBase &logger, const std::vector<std::string> &level_names, 
-	const QHash< int, QColor > &severity2color_table, const QHash< int, QString > &severity2prompt_table, QWidget *parent ) 
+CBasicLogShell::CBasicLogShell( ApplicationLoggerInterface &logger, QWidget *parent ) 
 	: base_t( parent )
-	, mSeverityToColorTable( severity2color_table )
-	, mSeverityToPromptTable( severity2prompt_table )
 	, mLogger( logger )
+	, mSeverityToColorTable( mLogger.SeverityToColorTable() )
+	, mSeverityToPromptTable( mLogger.SeverityToPromptTable() )
 {
-    assert__( mSeverityToColorTable.size() == mSeverityToPromptTable.size() );          Q_UNUSED( level_names );    //for release builds
+    assert__( mSeverityToColorTable.size() == mSeverityToPromptTable.size() );
 
 	// log editor
 
@@ -101,7 +103,7 @@ CBasicLogShell::CBasicLogShell( CApplicationLoggerBase &logger, const std::vecto
 
 #if defined(DEBUG)
 
-	v.push_back( CreateDebugWidgets( level_names ) );
+	v.push_back( CreateDebugWidgets( mLogger.LevelNames() ) );
 #endif
 
 	v.push_back( mEditor );
@@ -130,7 +132,7 @@ void CBasicLogShell::UpdateMaxMsgsPerSecValue()
     if ( smMaxMsgsPerSec != n )
 	{
         smMaxMsgsPerSec = (size_t)n;
-        CApplicationLoggerBase::LogMsg( t2q( "Maximum number of log messages per second set to " + n2s<std::string>( smMaxMsgsPerSec ) ), QtDebugMsg );
+		mLogger.LogMessage( t2q( "Maximum number of log messages per second set to " + n2s<std::string>( smMaxMsgsPerSec ) ), QtDebugMsg );
     }
 }
 

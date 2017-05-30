@@ -16,9 +16,9 @@
 #endif
 #include <QCoreApplication>
 
-#include "common/ccore-types.h"
-#include "common/+UtilsIO.h"		// => +Utils.h
-#include "QtStringUtils.h"          // => QtUtils.h => QtUtilsIO.h => QtStringUtils.h => +Utils.h
+#include "ccore-types.h"
+#include "+UtilsIO.h"		// => +Utils.h
+#include "QtStringUtils.h"	// => QtUtils.h => QtUtilsIO.h => QtStringUtils.h => +Utils.h
 
 
 ///////////////////////////////////////////////////////////////////////////

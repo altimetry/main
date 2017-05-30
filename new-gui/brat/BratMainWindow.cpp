@@ -257,7 +257,7 @@ void CBratMainWindow::CreateOutputDock()
 
 	//Log Tab
 
-	mLogFrame = new CLogShell( this );
+	mLogFrame = new CBasicLogShell( CBratLogger::Instance(), this );
 	mLogFrame->setObjectName( QString::fromUtf8( "mLogShell" ) );
 	mLogFrameIndex = mOutputDock->TabIndex( mOutputDock->AddTab( mLogFrame, "Log" ) );
 
@@ -279,7 +279,8 @@ void CBratMainWindow::CreateOutputDock()
 	mLogFrame->Deactivate( false );
 
     LOG_INFO( "Qt version: " + std::string( QT_VERSION_STR ) );
-    LOG_INFO( "OSG version: " + std::string( osgGetVersion() ) + " - " + osgGetSOVersion() + " - " + osgGetLibraryName() );
+	LOG_INFO( "Python version: " + std::string( PY_VERSION ) );
+	LOG_INFO( "OSG version: " + std::string( osgGetVersion() ) + " - " + osgGetSOVersion() + " - " + osgGetLibraryName() );
 	LOG_INFO( "osgEarth version: " + std::string( osgEarthGetVersion() ) + " - " + osgEarthGetSOVersion() + " - " + osgEarthGetLibraryName() );
 	LOG_INFO( "QGIS version: " + std::string( q2a( QGis::QGIS_VERSION ) ) );	//q2a used for compatibility with QGIS 2.16.1
 	if ( getenv("OSG_FILE_PATH") )
@@ -637,8 +638,16 @@ void RemoteCounter::downloadFinished(QNetworkReply *reply)
 
 void RemoteCount()
 {
+	static const char *S3ALTB_ROOT = getenv( "S3ALTB_ROOT" );
+	static const std::string dev_tag_file =
+		S3ALTB_ROOT ?
+		std::string( S3ALTB_ROOT ) + "/project/dev/support/dev_tag.txt" :
+		"";
+
 	RemoteCounter *rc = new RemoteCounter;
-	rc->Count();
+
+	if ( !IsFile( dev_tag_file ) )
+    	rc->Count();
 }
 
 
@@ -707,8 +716,7 @@ CBratMainWindow::CBratMainWindow( CBratApplication &app )
 	}
     catch ( const CException &e )			// TODO rather stupid catching the exception here...
 	{
-		SimpleWarnBox( std::string( "An error occurred while loading Brat configuration (CBratGui::LoadConfig)\nNative std::exception: " )
-			+ e.what() );
+		SimpleWarnBox( std::string( "An error occurred while loading Brat configuration: " ) + e.what() );
 	}
 
 

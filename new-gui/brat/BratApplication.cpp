@@ -592,7 +592,7 @@ bool CBratApplication::StartRadsService()
 	bool result = mServiceController.start();
 	if ( result && mSocket )
 	{
-		QBratThread::sleep( 4 );    //give some time for isRunning to return an accurate value (that is, for the executable to start)
+		QSimpleThread::sleep( 4 );    //give some time for isRunning to return an accurate value (that is, for the executable to start)
 		ResetRadsSocketConnection();
 	}
 	return result;
@@ -605,7 +605,7 @@ bool CBratApplication::StopRadsService()
 	bool result = mServiceController.stop();
 	if ( result && mSocket )
 	{
-		QBratThread::sleep( 4 );    //same comment as for StartRadsService
+		QSimpleThread::sleep( 4 );    //same comment as for StartRadsService
 
 		//TODO: check this: at least in Windows, the broadcast made by the service cleanup (rsync client) 
 		//	does not arrive to clients... so, do it manually
@@ -801,7 +801,7 @@ void CBratApplication::ShowSplash( const std::string &msg, bool disable_events )
 	if ( !disable_events )
 		processEvents();
 
-	//QBratThread::sleep( 1 );
+	//QSimpleThread::sleep( 1 );
 }
 void CBratApplication::CreateSplash()
 {

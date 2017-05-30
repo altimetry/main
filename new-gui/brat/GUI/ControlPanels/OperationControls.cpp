@@ -3781,7 +3781,7 @@ bool COperationControls::Execute( EExecutionType type, COperation *operation, bo
 		{
 			while ( mSyncProcessExecuting )
 			{
-				QBratThread::sleep( 1 );
+				QSimpleThread::sleep( 1 );
 				qApp->processEvents();
 			}
 		}
