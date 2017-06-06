@@ -75,6 +75,7 @@
 
 #include "BratLogger.h"
 #include "BratSettings.h"
+#include "PSProcessing.h"
 #include "GUI/ActionsTable.h"
 #include "GUI/ProgressDialog.h"
 
@@ -550,13 +551,13 @@ bool CMapWidget::Save2Image( const QString &path, const QString &format, const Q
 
 	QString qpath = path;
 	QString f = format.toLower();
-	SetFileExtension( qpath, extension );
+	if ( !extension.isEmpty() )
+		SetFileExtension( qpath, extension );
 	if ( f == "ps" )
 	{
-		QPrinter printer( QPrinter::HighResolution );
 #if QT_VERSION < 0x050000
+		QPrinter printer( QPrinter::HighResolution );
         printer.setOutputFormat( QPrinter::PostScriptFormat );
-#endif
 		printer.setOutputFileName( qpath );
 		//qreal xmargin = contentRect.width()*0.01;
 		//qreal ymargin = contentRect.height()*0.01;
@@ -567,10 +568,24 @@ bool CMapWidget::Save2Image( const QString &path, const QString &format, const Q
 		render( &painter/*, QPointF( 0, 0 ), contentRect */ );
 		painter.end();
 		return true;
+#else
+		QTemporaryFile file;
+		if (file.open()) 
+		{
+			const QString &in_path = file.fileName();
+			file.close();
+			const std::string spath = q2a( path );
+			const std::string title = GetBaseFilenameFromPath( spath );
+			return 
+				Save2Image( in_path, "jpg", "" )
+				&&
+				Convert2PostScript( q2a( in_path ), spath, title );
+		}
+#endif
 	}
 
 
-	QPixmap pix = QPixmap::grabWidget( this );
+	QPixmap pix = grab();
 	if ( pix.isNull() )
 	{
 		return false;

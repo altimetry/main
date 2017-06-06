@@ -63,6 +63,7 @@ using namespace osgEarth::Util::Controls;
 
 #include "new-gui/Common/QtUtils.h"
 
+#include "PSProcessing.h"
 #include "MapWidget.h"
 #include "GlobeWidget.h"
 
@@ -568,7 +569,8 @@ bool CGlobeWidget::Save2Image( const QString &path, const QString &format, const
 
 	QString qpath = path;
 	QString f = format.toLower();
-	SetFileExtension( qpath, extension );
+	if (!extension.isEmpty())
+		SetFileExtension( qpath, extension );
 	QImage img = mGlobeViewerWidget->grabFrameBuffer( with_alpha );
 	if ( f == "ps" )
 	{
@@ -576,13 +578,9 @@ bool CGlobeWidget::Save2Image( const QString &path, const QString &format, const
         QPrinter printer;
         printer.setOutputFormat( QPrinter::PostScriptFormat );
         printer.setPaperSize( QSizeF( 80, 80 ), QPrinter::Millimeter );
-        printer.setCreator( "Brat v4.0.0" );
+        printer.setCreator( BRAT_VERSION_STRING );
         printer.setOrientation( QPrinter::Landscape );
 
-#else
-        QPrinter printer( QPrinter::ScreenResolution );
-        printer.setOutputFormat( QPrinter::PdfFormat );
-#endif
         printer.setOutputFileName( qpath );
         printer.setColorMode( QPrinter::Color );
 
@@ -597,6 +595,19 @@ bool CGlobeWidget::Save2Image( const QString &path, const QString &format, const
 		painter.drawPixmap( 0, 0, -1, -1, QPixmap::fromImage( img ) );	//pixmap.save( qpath, "SVG" );		//fails
 
 		return true;
+#else
+		QTemporaryFile file;
+		if (file.open()) 
+		{
+			const QString &in_path = file.fileName();
+			file.close();
+			return 
+				Save2Image( in_path, "jpg", "" )
+				&&
+				Convert2PostScript( q2a( in_path ), q2a( path ), q2a( windowTitle() ) );
+		}
+#endif
+
 	}
 
 	return img.save( qpath, q2a( format ).c_str(), 100 );	//int quality = -1

@@ -28,6 +28,7 @@
 #include <qwt_legend_item.h>
 
 #include "new-gui/Common/QtUtils.h"
+#include "PSProcessing.h"
 #include "DataModels/PlotData/PlotValues.h"
 
 #include "Histogram.h"
@@ -720,16 +721,33 @@ bool C2DPlotWidget::Save2Image( const QString &path, const QString &format, cons
 
 	QString f = format.toLower();
 	if ( f == "ps" )
+	{
+#if QT_VERSION < 0x050000
 		return Save2ps( this, path );
+#else
+		QTemporaryFile file;
+		if ( file.open() )
+		{
+			const QString &in_path = file.fileName();
+			file.close();
+			return
+				Save2Image( in_path, "jpg", "" )
+				&&
+				Convert2PostScript( q2a( in_path ), q2a( path ), q2a( title().text() ) );
+		}
+#endif
+	}
 
-	QPixmap pix = QPixmap::grabWidget( this );
+
+	QPixmap pix = grab();
 	if ( pix.isNull() )
 	{
 		return false;
 	}
 
 	QString qpath = path;
-	SetFileExtension( qpath, extension );
+	if (!extension.isEmpty())
+		SetFileExtension( qpath, extension );
 	return pix.save( qpath, q2a( format ).c_str() );
 }
 

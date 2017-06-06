@@ -159,11 +159,7 @@ public:
 
 	virtual void SetEnabled( bool enable ) override
 	{
-		CBratLogger *h = dynamic_cast<CBratLogger*>( osg::getNotifyHandler() );
-		if ( h )
-		{
-			h->SetEnabled( enable );
-		}
+		base_t::SetEnabled( enable );
 	}
 
 	virtual int NotifyLevel() const override { return OsgNotifyLevel(); }
@@ -280,13 +276,13 @@ enum ENotifySeverity
 
 static_assert(
 
-	eALWAYS == osg::ALWAYS &&
-	eFATAL == osg::FATAL &&
-	eWARN == osg::WARN &&
-	eNOTICE == osg::NOTICE &&
-	eINFO == osg::INFO &&
-	eDEBUG_INFO == osg::DEBUG_INFO &&
-	eDEBUG_FP == osg::DEBUG_FP,
+    eALWAYS == (int)osg::ALWAYS &&
+    eFATAL == (int)osg::FATAL &&
+    eWARN == (int)osg::WARN &&
+    eNOTICE == (int)osg::NOTICE &&
+    eINFO == (int)osg::INFO &&
+    eDEBUG_INFO == (int)osg::DEBUG_INFO &&
+    eDEBUG_FP == (int)osg::DEBUG_FP,
 
 	"Discrepancy between logger levels and OSG notify levels"
 	);

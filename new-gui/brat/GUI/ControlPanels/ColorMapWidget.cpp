@@ -104,7 +104,7 @@ void CColorMapLabel::SetLUT( const CBratLookupTable *lut )
 	int h = height();
 	QPixmap pm( w, h );
 	pm.fill();			//critical for cloud
-	if ( mLut )
+	if ( mLut && h > 0 && w > 0 )
 	{
 		QPainter p( &pm );
 		auto *const lut = mLut->GetLookupTable();

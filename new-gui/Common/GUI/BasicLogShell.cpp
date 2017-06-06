@@ -123,7 +123,9 @@ CBasicLogShell::CBasicLogShell( ApplicationLoggerInterface &logger, QWidget *par
 
 void CBasicLogShell::UpdateMaxMsgsPerSecValue()
 {
-    QString s = mMaxMsgs->text();
+	assert__( mMaxMsgs );
+
+	QString s = mMaxMsgs->text();
     bool ok = true;
     size_t n = s.toULong(&ok);
     if ( !ok )

@@ -226,8 +226,7 @@ protected:
 
 	void setupDatabase();		//experimental
 	void setupMapLayers();		//experimental
-	QgsSymbolV2* createSymbol( double width, const QColor &lineColor, const std::string &arrowColor, const std::string &status = "", 
-		const std::string &direction = "" );		//experimental
+	QgsSymbolV2* createSymbol( double width, const QColor &lineColor, const std::string &arrowColor, const std::string &status = "", const std::string &direction = "" );		//experimental
 	void drawLines();			//experimental
 	void addLabelsLayer();		//experimental
 	void addGrid();				//experimental

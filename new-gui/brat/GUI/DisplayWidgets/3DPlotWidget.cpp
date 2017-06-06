@@ -32,6 +32,7 @@ using namespace brathl;
 #include "DataModels/PlotData/PlotValues.h"
 #include "DataModels/PlotData/BratLookupTable.h"
 
+#include "PSProcessing.h"
 #include "GUI/ActionsTable.h"
 
 #include "3DPlotWidget.h"
@@ -1222,9 +1223,25 @@ bool C3DPlotWidget::Save2Image( const QString &path, const QString &format, cons
 	QString qpath = path;
 	QString f = format.toLower();
 	if ( f == "ps" )
+	{
+#if QT_VERSION < 0x050000
 		return Save2ps( p, path );
+#else
+		QTemporaryFile file;
+		if ( file.open() )
+		{
+			const QString &in_path = file.fileName();
+			file.close();
+			return
+				Save2Image( in_path, "jpg", "" )
+				&&
+				Convert2PostScript( q2a( in_path ), q2a( path ), q2a( windowTitle() ) );
+		}
+#endif
+	}
 
-	SetFileExtension( qpath, extension );
+	if (!extension.isEmpty() )
+		SetFileExtension( qpath, extension );
 	return p->savePixmap( qpath, f );
 }
 

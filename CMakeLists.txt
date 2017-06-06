@@ -2758,6 +2758,7 @@ if(BRAT_BUILD_GUI)
 		new-gui/brat/GUI/ControlPanels/DatasetsBrowserControlsBase.cpp
 		new-gui/brat/DataModels/Workspaces/ProductInfo.cpp
 		new-gui/brat/GUI/ControlPanels/Dialogs/RadsPhasesDialog.cpp
+		new-gui/brat/GUI/DisplayWidgets/PSProcessing.cpp
 	)
 
 		
@@ -2885,6 +2886,7 @@ if(BRAT_BUILD_GUI)
 		new-gui/brat/GUI/ControlPanels/DatasetsBrowserControlsBase.h
 		new-gui/brat/DataModels/Workspaces/ProductInfo.h
 		new-gui/brat/GUI/ControlPanels/Dialogs/RadsPhasesDialog.h
+		new-gui/brat/GUI/DisplayWidgets/PSProcessing.h
 	)
 
 

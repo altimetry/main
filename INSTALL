@@ -16,36 +16,37 @@ distribution or installation.
 The short version is as follows:
 
 + For Windows: double-click the installer file appropriate
-for your platform (brat-4.1.0-Win32-installer.exe for 32-bit
-operating systems, brat-4.1.0-x64-installer.exe for 64-bit
+for your platform (brat-4.2.0-Win32-installer.exe for 32-bit
+operating systems, brat-4.2.0-x64-installer.exe for 64-bit
 operating systems), and follow the instructions.
 
 
 + For Linux: double-click in your desktop manager (or execute
 from the command-line) the installer file appropriate for your
 platform. For 32 bit operating system execute the file 
-brat-4.1.0-i386-installer.run. If necessary, use the command
+brat-4.2.0-i386-installer.run. If necessary, use the command
 'chmod +x <installer-filename>' 
 to ensure the installer is executable.)
 
 Taking debian 7 as the BRAT version of reference for the Linux platform, 
 the following additional dependencies are required for BRAT to run:
 
+libcurl
+libgdal
+libspatialindex
+rsync
+libproj
 libgeos-c1
 libxerces-c3.1
-libproj0
-libgdal1
-libspatialindex1
-libegl1-mesa
-rsync
+libegl-mesa
 
 These dependencies are provided with the operating system but not
-usually installed by default.
+necessarily installed by default.
 
 
 + For Mac OS X: double-click the image file appropriate for the
-type of application you want to install: brat-4.1.0-macosx-i386.dmg
-for 32 bit BRAT applications, or brat-4.1.0-macosx-x86_64.dmg for 
+type of application you want to install: brat-4.2.0-macosx-i386.dmg
+for 32 bit BRAT applications, or brat-4.2.0-macosx-x86_64.dmg for 
 64 bit BRAT applications (Intel only). Then, drag the 'brat' and 
 'scheduler' applications to the 'Applications' folder on your machine. 
 For a full installation, documentation included, copy the mounted 
@@ -94,7 +95,7 @@ be downloaded using the native package manager) so this should
 not be a problem. For Linux, BRAT was developed with GNU g++
 (version 4.7.x or higher), for Windows with Visual Studio
 C++ 2015, for Mac OS X with GNU g++ 4.2 (BRAT 3.2.0, 32 bit) and
-clang 6.x (BRAT 4.1.0, 32 bit and 64 bit). In Mac OS X you should
+clang 6.x (BRAT 4.2.0, 32 bit and 64 bit). In Mac OS X you should
 make sure you have installed the Developer Tools. Both 32 bit and
 64 bit builds use SDK 10.8 and libc++.
 
@@ -369,7 +370,7 @@ a Linux-based platform:
     The following additional options were inherited from 
     BRAT 3.1.0 and, with the exception of MATLAB support for 64 
     bit, so far they are supported only to the extent where they 
-    are compatible without changes with BRAT 4.1.0.
+    are compatible without changes with BRAT 4.2.0.
     
     -DBRATHL_BUILD_FORTRAN=OFF
 
