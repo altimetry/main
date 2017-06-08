@@ -23,6 +23,12 @@
 #include "SublayersDialog.h"
 
 
+
+//static 
+const QString CSubLayerIdentifier::delim = ":";
+
+
+
 void CSublayersDialog::CreateWidgets()
 {
 	mLayersTable = new QTreeWidget( this );
@@ -57,23 +63,24 @@ void CSublayersDialog::CreateWidgets()
 }
 
 
-CSublayersDialog::CSublayersDialog( QWidget* parent, QStringList list, QString delim, Qt::WindowFlags fl )	//delim = ":" , Qt::WindowFlags fl = 0 
+
+
+CSublayersDialog::CSublayersDialog( QWidget* parent, const std::vector<CSubLayerIdentifier> &list, Qt::WindowFlags fl )	//delim = ":" , Qt::WindowFlags fl = 0 
 	: base_t( parent, fl )
+	, mList( list )
 {
 	CreateWidgets();
 
 	setWindowTitle( tr( "Select vector layer to open..." ) );
 	mLayersTable->setHeaderLabels( QStringList() << tr( "Layer ID" ) << tr( "Layer name" ) << tr( "Number of features" ) << tr( "Geometry type" ) );
 
-	foreach( QString item, list )
+	for ( auto const &id: mList )
 	{
-		QStringList elements = item.split( delim );
-		while ( elements.size() > 4 )
-		{
-			elements[ 1 ] += delim + elements[ 2 ];
-			elements.removeAt( 2 );
-		}
-		mLayersTable->addTopLevelItem( new QTreeWidgetItem( elements ) );
+		assert__( id.IsPlolygonType() );
+
+		auto *item = new QTreeWidgetItem( id.IdElements() );
+		item->setData( 0, Qt::UserRole, QVariant::fromValue(&id) );	//using QVariant::fromValue is critical to retrieve value later
+		mLayersTable->addTopLevelItem( item );
 	}
 
 	for ( int i = 0; i < mLayersTable->columnCount(); i++ )
@@ -94,34 +101,16 @@ CSublayersDialog::~CSublayersDialog()
 {}
 
 
-QString CSublayersDialog::selectionName()
+
+
+
+const CSubLayerIdentifier* CSublayersDialog::selection()
 {
 	auto selected_items = mLayersTable->selectedItems();		assert__( selected_items.size() <= 1 );
 	if ( selected_items.empty() )
-		return "";
+		return nullptr;
 
-	// If there are more sub layers of the same name (virtual for geometry types), add geometry type
-
-	QString name = selected_items.at( 0 )->text( 1 );
-	int count = 0;
-	for ( int j = 0; j < mLayersTable->topLevelItemCount(); j++ )
-	{
-		if ( mLayersTable->topLevelItem( j )->text( 1 ) == name )
-		{
-			count++;
-		}
-	}
-
-	if ( count > 1 )
-	{
-		name += ":" + selected_items.at( 0 )->text( 3 );
-	}
-	else
-	{
-		name += ":any";
-	}
-
-	return name;
+	return selected_items.at( 0 )->data( 0, Qt::UserRole ).value<const CSubLayerIdentifier*>();
 }
 
 
@@ -133,7 +122,10 @@ int CSublayersDialog::exec()
 	// make sure three are sub-layers to choose
 	//
 	if ( mLayersTable->topLevelItemCount() == 0 )
+	{
+		SimpleWarnBox( "No layers were found with polygon geometry types." );
 		return base_t::Rejected;
+	}
 
 	return base_t::exec();
 }

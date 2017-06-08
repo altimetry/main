@@ -84,16 +84,84 @@
 #include "MapWidget.h"
 
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//		MapWidget statics
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+//////////////
+// Directories
+//////////////
+
+
+//static 
+std::string CMapWidget::smQgisPluginsDir;
+//static 
+std::string CMapWidget::smVectorLayerPath;
+//static 
+std::string CMapWidget::smRasterLayerPath;
+//static
+std::string CMapWidget::smURLRasterLayerPath;
+
+
+void CMapWidget::SetQGISDirectories(const std::string &QgisPluginsDir,
+	const std::string &VectorLayerPath,
+	const std::string &RasterLayerPath ,
+	const std::string &URLRasterLayerPath)
+{
+	smQgisPluginsDir = QgisPluginsDir;
+	smVectorLayerPath = VectorLayerPath;
+	smRasterLayerPath = RasterLayerPath;
+	smURLRasterLayerPath = URLRasterLayerPath;
+}
+
+
+//static 
+const std::string& CMapWidget::QgisPluginsDir()
+{
+	assert__( IsDir( smQgisPluginsDir ) );
+
+	return smQgisPluginsDir;
+}
+//static 
+const std::string& CMapWidget::VectorLayerPath()
+{
+	assert__( IsDir( smVectorLayerPath ) );
+
+	return smVectorLayerPath;
+}
+//static 
+const std::string& CMapWidget::RasterLayerPath()
+{
+	//no assert, not mandatory
+
+	return smRasterLayerPath;
+}
+//static
+const std::string& CMapWidget::URLRasterLayerPath()
+{
+	//no assert, not mandatory
+
+	return smURLRasterLayerPath;
+}
+
+
+
+
+//////////////
+// KML Tools
+//////////////
+
 
 // This method will load with OGR the layers  in parameter. It has been conceived to use the new URI
-// format of the OGR provider so as to give precisions about which sublayer to load into QGIS. It is normally triggered by the
-// sublayer selection dialog.
+// format of the OGR provider so as to give precisions about which sublayer to load into QGIS. It is
+// normally triggered by the sublayer selection dialog.
 //
-QgsVectorLayer* LoadOGRSublayer( QString layertype, QString uri, QString name )
+QgsVectorLayer* LoadOGRSublayer( QString layertype, QString URI, QString name )
 {
-    // The uri must contain the actual uri of the vectorLayer from which we are going to load the sub-layer.
+    // The URI must contain the actual URI of the vectorLayer from which we are going to load the sub-layer.
 	//
-    QString fileName = QFileInfo( uri ).baseName();
+    QString fileName = QFileInfo( URI ).baseName();
 
     QString composedURI;
     QStringList elements = name.split( ":" );
@@ -113,11 +181,11 @@ QgsVectorLayer* LoadOGRSublayer( QString layertype, QString uri, QString name )
 
     if ( layertype != "GRASS" )
     {
-        composedURI = uri + "|layername=" + sub_name;
+        composedURI = URI + "|layername=" + sub_name;
     }
     else
     {
-        composedURI = uri + "|layerindex=" + sub_name;
+        composedURI = URI + "|layerindex=" + sub_name;
     }
 
     if ( !sub_type.isEmpty() )
@@ -144,30 +212,66 @@ QgsVectorLayer* CMapWidget::AskUserForOGRSublayers( QWidget *parent, QgsVectorLa
 {
     assert__( layer );
 
-    QStringList sublayers = layer->dataProvider()->subLayers();
+	// I. get parent layer URI and type; we need it to call LoadOGRSublayer
 
-    CSublayersDialog dlg( parent, sublayers );
+	QString URI = layer->source();
+	//
+	//the separator char & was changed to | to be compatible with URL for protocol drivers
+	//
+	if ( URI.contains( '|', Qt::CaseSensitive ) )
+	{
+		// If we get here, there are some options added to the filename.
+		// A valid URI is of the form: filename&option1=value1&option2=value2,...
+		// We want only the filename here, so we get the first part of the split.
+		//
+		QStringList theURIParts = URI.split( "|" );
+		URI = theURIParts.at( 0 );
+	}
+	QString layertype = layer->dataProvider()->storageType();
+	LOG_TRACE( "Layer type " + layertype );
+
+
+	// II. Create the filtered list of layer identifiers
+	// 
+	std::vector<CSubLayerIdentifier> filtered_v;
+	{
+		// ... create full sub-layers list
+
+		QStringList sublayers = layer->dataProvider()->subLayers();
+		std::vector<CSubLayerIdentifier> v;
+		for ( auto const &id : sublayers )
+		{
+			v.push_back( CSubLayerIdentifier( id ) );
+		}
+
+		// ... filter invalid and empty sub-layers
+
+		for ( auto &id : v )
+		{
+			if ( !id.IsPlolygonType() )
+				continue;
+
+			auto *sublayer = LoadOGRSublayer( layertype, URI, id.UniqueQualifiedName( v ) );
+			if ( sublayer && !sublayer->extent().isEmpty() )
+				filtered_v.push_back( id );
+			delete sublayer;
+		}
+	}
+
+
+	// III ask user to selected one of filtered
+	// 
+	CSublayersDialog dlg( parent, filtered_v );
     if ( dlg.exec() == QDialog::Accepted )
     {
-        QString uri = layer->source();
-        
-		//the separator char & was changed to | to be compatible with URL for protocol drivers
-		//
-        if ( uri.contains( '|', Qt::CaseSensitive ) )
-        {
-            // If we get here, there are some options added to the filename.
-            // A valid uri is of the form: filename&option1=value1&option2=value2,...
-            // We want only the filename here, so we get the first part of the split.
-			//
-            QStringList theURIParts = uri.split( "|" );
-            uri = theURIParts.at( 0 );
-        }
 
-		QString layertype = layer->dataProvider()->storageType();
-        LOG_TRACE( "Layer type " + layertype );
+		const CSubLayerIdentifier *id = dlg.selection();		assert__( id );
 
-        return LoadOGRSublayer( layertype, uri, dlg.selectionName() );
+		// UniqueQualifiedName: If there are more sub layers of the same name (virtual for geometry types), add geometry type
+
+		return LoadOGRSublayer( layertype, URI, id->UniqueQualifiedName( filtered_v ) );
     }
+
 	return nullptr;
 }
 
@@ -199,7 +303,8 @@ bool CMapWidget::OpenLayer( QWidget *parent, const QString &path, QgsRectangle &
         if ( sublayers.count() > 0 )
         {
             auto *sublayer = AskUserForOGRSublayers( parent, layer );
-			if ( sublayer )
+			result = sublayer != nullptr;
+			if ( result )
 			{
 				delete layer;
 				layer = sublayer;
@@ -219,66 +324,8 @@ bool CMapWidget::OpenLayer( QWidget *parent, const QString &path, QgsRectangle &
 }
 
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//		Map statics
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-//////////////
-// Directories
-//////////////
-
-
-//static 
-std::string CMapWidget::smQgisPluginsDir;
-//static 
-std::string CMapWidget::smVectorLayerPath;
-//static 
-std::string CMapWidget::smRasterLayerPath;
-//static
-std::string CMapWidget::smURLRasterLayerPath;
-
-
-void CMapWidget::SetQGISDirectories(const std::string &QgisPluginsDir,
-    const std::string &VectorLayerPath,
-    const std::string &RasterLayerPath ,
-    const std::string &URLRasterLayerPath)
-{
-	smQgisPluginsDir = QgisPluginsDir;
-	smVectorLayerPath = VectorLayerPath;
-	smRasterLayerPath = RasterLayerPath;
-    smURLRasterLayerPath = URLRasterLayerPath;
-}
-
-
-//static 
-const std::string& CMapWidget::QgisPluginsDir()
-{
-	assert__( IsDir( smQgisPluginsDir ) );
-
-	return smQgisPluginsDir;
-}
-//static 
-const std::string& CMapWidget::VectorLayerPath()
-{
-	assert__( IsDir( smVectorLayerPath ) );
-
-	return smVectorLayerPath;
-}
-//static 
-const std::string& CMapWidget::RasterLayerPath()
-{
-	//no assert, not mandatory
-
-	return smRasterLayerPath;
-}
-//static
-const std::string& CMapWidget::URLRasterLayerPath()
-{
-    //no assert, not mandatory
-
-    return smURLRasterLayerPath;
-}
 
 
 

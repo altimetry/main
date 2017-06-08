@@ -21,6 +21,90 @@
 #include <QDialog>
 
 
+
+
+
+class CSubLayerIdentifier
+{
+	// statics 
+	// 
+	static const QString delim;
+
+	// instance data
+	// 
+	QString mFullID;
+	QStringList mIdElements;
+
+	// construction / destruction
+	
+public:
+	CSubLayerIdentifier( const QString &id )
+		: mFullID( id )
+	{
+		mIdElements = mFullID.split( delim );
+		while ( mIdElements.size() > 4 )
+		{
+			mIdElements[ 1 ] += delim + mIdElements[ 2 ];
+			mIdElements.removeAt( 2 );
+		}
+	}
+
+	// access
+	// 
+	const QStringList& IdElements() const { return mIdElements; }
+
+	// Assumes "this" is in list
+	// 
+	// If there are more layers with the same name,
+	// geometry type is appended separated by semicolon, example: <layer>:<geometryType>
+	//
+	QString UniqueQualifiedName( const std::vector<CSubLayerIdentifier> &list ) const
+	{
+		// If there are more sub layers of the same name (virtual for geometry types), add geometry type
+
+		int count = 0;
+		QString qualified_name = LayerName();
+
+		for ( auto const &item : list )
+		{
+			if ( item.LayerName() == LayerName() )
+			{
+				count++;
+			}
+		}						assert__( count >= 1 );
+
+		if ( count > 1 )
+		{
+			qualified_name += ":" + GeometryType();
+		}
+		else
+		{
+			qualified_name += ":any";
+		}
+
+		return qualified_name;
+	}
+
+	const QString& LayerID() const { return mIdElements[ 0 ]; }
+	const QString& LayerName() const { return mIdElements[ 1 ]; }
+	const QString& NumberOfFeatures() const { return mIdElements[ 2 ]; }
+	const QString& GeometryType() const { return mIdElements[ 3 ]; }
+
+	bool IsPlolygonType() const
+	{
+		auto const type = q2a( GeometryType() );
+		return type.find( "Polygon" ) != std::string::npos;
+	}
+};
+
+
+Q_DECLARE_METATYPE(const CSubLayerIdentifier*)
+
+
+
+
+
+
 class CSublayersDialog : public QDialog
 {
 #if defined (__APPLE__)
@@ -44,20 +128,20 @@ protected:
 
 	QTreeWidget *mLayersTable = nullptr;
 
+	const std::vector<CSubLayerIdentifier> &mList;
 
 	//construction / destruction
 
 	void CreateWidgets();
 public:
-    CSublayersDialog( QWidget* parent, QStringList list, QString delim = ":" , Qt::WindowFlags fl = 0 );
+    CSublayersDialog( QWidget* parent, const std::vector<CSubLayerIdentifier> &list, Qt::WindowFlags fl = 0 );
     virtual ~CSublayersDialog();
 
 	//access
 
-    // Returns selected layer. If there are more layers with the same name,
-    // geometry type is appended separated by semicolon, example: <layer>:<geometryType>
+    // Returns selected layer
 	//
-    QString selectionName();
+	const CSubLayerIdentifier* selection();
 
 protected:
 	virtual void  accept() override;
