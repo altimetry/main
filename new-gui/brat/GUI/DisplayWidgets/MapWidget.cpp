@@ -294,7 +294,9 @@ bool CMapWidget::OpenLayer( QWidget *parent, const QString &path, QgsRectangle &
 	bool result = layer->isValid();
 	if ( result )
 	{
-        layer->setProviderEncoding( "System" );
+		LOG_WARN( "All area rotations defined in KML files are ignored." );
+
+		layer->setProviderEncoding( "System" );
         QStringList sublayers = layer->dataProvider()->subLayers();
         LOG_TRACE( QString( "got valid layer with %1 sub-layers" ).arg( sublayers.count() ) );
 
