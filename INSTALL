@@ -47,8 +47,8 @@ necessarily installed by default.
 + For Mac OS X: double-click the image file appropriate for the
 type of application you want to install: brat-4.2.0-macosx-i386.dmg
 for 32 bit BRAT applications, or brat-4.2.0-macosx-x86_64.dmg for 
-64 bit BRAT applications (Intel only). Then, drag the 'brat' and 
-'scheduler' applications to the 'Applications' folder on your machine. 
+64 bit BRAT applications (Intel only). Then, drag the 'brat.app' and 
+'scheduler.app' bundles to the 'Applications' folder on your machine. 
 For a full installation, documentation included, copy the mounted 
 image folder to the 'Applications' folder; this is the recommended 
 way if you plan to use several BRAT versions on the same machine.
@@ -333,7 +333,7 @@ a Linux-based platform:
 
     -DBRAT_BUILD_GUI=ON
 
-	 Use this option to enable building brat and scheduler. 
+	 Use this option to enable building BRAT and SCHEDULER. 
 
 	 -DBUILD_TESTING:BOOL=OFF
 

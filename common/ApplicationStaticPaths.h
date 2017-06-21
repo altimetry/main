@@ -27,8 +27,8 @@
 //	Ensure common names across applications
 
 #define ORGANIZATION_NAME "ESA"
-#define BRAT_APPLICATION_NAME "brat"
-#define SCHEDULER_APPLICATION_NAME "scheduler"		//IMPORTANT: this name must match BRATSCHEDULER_EXE in brat ApplicationPaths.cpp
+#define BRAT_APPLICATION_NAME "BRAT"
+#define SCHEDULER_APPLICATION_NAME "SCHEDULER"		//IMPORTANT: this name must match BRATSCHEDULER_EXE in brat ApplicationPaths.cpp
 #define RADS_SERVICE_NAME "RadsService"
 
 

@@ -57,7 +57,7 @@ const std::string osg_paths_SUBDIR = "osgPlugins-3.4.0";
 
 
 const std::string BRATSHOWSTATS_EXE		= setExecExtension( "BratStats" );
-const std::string BRATSCHEDULER_EXE		= setExecExtension( SCHEDULER_APPLICATION_NAME );		//IMPORTANT: this name must match app_name in scheduler main.cpp
+const std::string BRATSCHEDULER_EXE		= setExecExtension( ToLowerCopy( std::string( SCHEDULER_APPLICATION_NAME ) ) );	//IMPORTANT: this name must match app_name in scheduler main.cpp
 const std::string BRATEXPORTGEOTIFF_EXE = setExecExtension( "BratExportGeoTiff" );
 const std::string BRATEXPORTASCII_EXE	= setExecExtension( "BratExportAscii" );
 const std::string BRATCREATEZFXY_EXE	= setExecExtension( "BratCreateZFXY" );
