@@ -44,6 +44,7 @@ class CApplicationSettingsDlg : public QDialog
 
 	using base_t = QDialog;
 
+	using ELayerBaseType = CMapWidget::ELayerBaseType;
 
 
 	//static members
@@ -66,9 +67,8 @@ class CApplicationSettingsDlg : public QDialog
 	QRadioButton *mUseRasterLayer = nullptr;
     QRadioButton *mUseRasterLayerURI = nullptr;
     QLineEdit *mLayerURLLineEdit = nullptr;
-	QRadioButton *mViewsUseVectorLayer = nullptr;
-	QRadioButton *mViewsUseRasterLayer = nullptr;
-    QRadioButton *mViewsUseRasterLayerURI = nullptr;
+	QToolButton *mMapViewsDefaultLayerDialogPushButton = nullptr;
+	ELayerBaseType mViewMapsLayerBaseType;		//initialized in constructor
 	QCheckBox *mVectorSimplifyMethodCheck = nullptr;
 	QWidget *mStartupOptionsPage = nullptr;
 
@@ -142,7 +142,7 @@ private slots:
 	void HandleBrowseDataDirectory();
     void HandleBrowseProjectsPath();
     void HandleMainLayerTypeChanged( bool toggled );
-    void HandleViewsLayerTypeChanged( bool toggled );
+	void HandleViewsDefaultLayerDialog();
 
 	void HandleRadsInstall( bool toggled );
 	void HandleRadsStart_Test( bool toggled );

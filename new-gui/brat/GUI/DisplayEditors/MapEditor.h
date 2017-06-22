@@ -20,6 +20,7 @@
 
 
 #include "AbstractDisplayEditor.h"
+#include "GUI/DisplayWidgets/MapWidget.h"
 
 
 class CGeoPlot;
@@ -59,6 +60,8 @@ class CMapEditor : public CAbstractDisplayEditor
 
 	using base_t = CAbstractDisplayEditor;
 
+	using ELayerBaseType = CMapWidget::ELayerBaseType;
+
 
 	// instance data
 
@@ -69,6 +72,7 @@ class CMapEditor : public CAbstractDisplayEditor
 	bool mGlobeProcessing = false;
 	bool mDisplaying2D = false;
 	bool mDisplaying3D = false;
+	ELayerBaseType mLayerBaseType;		//initialized in all constructors
 	//
 	//...map/globe managed widgets/actions
 	QProgressBar *mProgressBar = nullptr;
@@ -80,6 +84,7 @@ class CMapEditor : public CAbstractDisplayEditor
 	QAction *mActionMeasure = nullptr;
 	QAction *mActionMeasureArea = nullptr;
 	QToolButton *mMeasureButton = nullptr;
+	QToolButton *mMapLayerDialogPushButton = nullptr;
 	QAction *mActionDecorationGrid = nullptr;
     QAction *mActionMapTips = nullptr;
 
@@ -171,6 +176,8 @@ protected:
 	bool SetParamsAndNumberOfContours( int field_index, std::pair< unsigned, unsigned > grid , unsigned contours );
 
 protected slots:
+
+	void HandleViewsLayerDialog();
 
 	void HandleCurrentFieldChanged( int field_index );
 

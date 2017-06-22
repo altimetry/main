@@ -715,7 +715,6 @@ void CAbstractDisplayEditor::HandleViewChanged( int index )
 	{
 		if ( parentWidget() )
 		{
-			//	TODO	implement recovery similar to HandleDeleteButtonClicked, closing if necessary
 			SimpleErrorBox( "This view editor will be closed." );
 			QTimer::singleShot( 1000, parentWidget(), SLOT( close() ) );
 		}

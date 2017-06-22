@@ -1006,11 +1006,16 @@ ACTION_ITEM* SetIcon( ACTION_ITEM *action_or_button, const std::string &icon_pat
 inline QToolButton* CreateDefaultToolButton( const std::string &name, const std::string &pix_path, const std::string &on_pix_path, const std::string &tip, bool auto_raise )
 {
 	QToolButton *button = new QToolButton;
-	if ( !name.empty() )
+	if ( name.empty() )
+	{
+		button->setToolButtonStyle( Qt::ToolButtonIconOnly );
+	}
+	else
 	{
 		button->setText( name.c_str() );
 		button->setToolButtonStyle( Qt::ToolButtonTextUnderIcon );
 	}
+
 	if (!tip.empty() )
 		button->setToolTip( tip.c_str() );
 

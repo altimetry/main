@@ -208,6 +208,7 @@ QgsVectorLayer* LoadOGRSublayer( QString layertype, QString URI, QString name )
 }
 
 
+//static 
 QgsVectorLayer* CMapWidget::AskUserForOGRSublayers( QWidget *parent, QgsVectorLayer *layer )
 {
     assert__( layer );
@@ -276,6 +277,7 @@ QgsVectorLayer* CMapWidget::AskUserForOGRSublayers( QWidget *parent, QgsVectorLa
 }
 
 
+//static 
 bool CMapWidget::OpenLayer( QWidget *parent, const QString &path, QgsRectangle &bounding_box )
 {
 	QString src = path.trimmed();
@@ -502,7 +504,8 @@ void CMapWidget::closeEvent( QCloseEvent *event )
 	{
 		event->ignore();
 	}
-	else {
+	else 
+	{
 		event->accept();
 	}
 }

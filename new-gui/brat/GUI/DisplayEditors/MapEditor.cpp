@@ -29,7 +29,7 @@
 #include "GUI/ActionsTable.h"
 #include "GUI/ControlPanels/ViewControlPanels/ViewControlPanels.h"
 #include "GUI/DisplayWidgets/GlobeWidget.h"				//these 3 includes must be done in this  order to avoid macro definition collisions
-#include "GUI/DisplayWidgets/MapWidget.h"
+#include "GUI/DisplayWidgets/Dialogs/ViewMapsLayerDialog.h"
 
 #include "BratLogger.h"
 #include "BratSettings.h"
@@ -48,7 +48,7 @@ void CMapEditor::ResetAndWireNewMap()
 		mMapView = nullptr;
 		RemoveView( p, false, false );
 	}
-	mMapView = new CMapWidget( mModel->Settings().VectorSimplifyMethod(), mModel->Settings().mViewsLayerBaseType, this );
+	mMapView = new CMapWidget( mModel->Settings().VectorSimplifyMethod(), mLayerBaseType, this );
 	mMapView->setMinimumSize( min_globe_widget_width, min_globe_widget_height );
 	mMapView->ConnectParentRenderWidgets( mProgressBar, mRenderSuppressionCBox );
 	mMapView->ConnectParentMeasureActions( mMeasureButton, mActionMeasure, mActionMeasureArea );
@@ -102,6 +102,10 @@ void CMapEditor::CreateWidgets()
 	mActionMapTips = CMapWidget::CreateMapTipsAction( mGraphicsToolBar );
 	mGraphicsToolBar->insertAction( after, mActionMapTips );
 
+	mMapLayerDialogPushButton = CreateToolButton( "", "://images/OSGeo/map-settings.png", CActionInfo::FormatTip( "Map Layer\nSelect base layer type" ) );
+                                                  
+	mGraphicsToolBar->insertWidget( after, mMapLayerDialogPushButton );
+
 	mMeasureButton = CMapWidget::CreateMapMeasureActions( mGraphicsToolBar, mActionMeasure, mActionMeasureArea );
 	mGraphicsToolBar->insertWidget( after, mMeasureButton );
 
@@ -113,15 +117,30 @@ void CMapEditor::CreateWidgets()
 	// add menu button for projections: should be done after view created
 
 	AddToolBarSeparator( after );
+
 	mProjectionsGroup = CreateProjectionsActions();
 	mToolProjection = AddMenuButton( eActionGroup_Projections, mProjectionsGroup->actions(), after );
 	AddToolBarSeparator( after );
+
+
+	// Center images (mixing actions with tool buttons aligns tool buttons left...)
+
+	QLayout* lay = mGraphicsToolBar->layout();
+	for ( int i = 0; i < lay->count(); ++i )
+	{
+		auto *item = lay->itemAt( i );
+		auto *widget = item->widget();
+		if ( widget == mMapLayerDialogPushButton || widget == mToolProjection )
+			lay->itemAt( i )->setAlignment( Qt::AlignCenter );	//doing this for separators makes them disappear...
+	}
 
 	Wire();
 }
 
 void CMapEditor::Wire()
 {
+	connect( mMapLayerDialogPushButton, &QToolButton::clicked, this, &CMapEditor::HandleViewsLayerDialog );
+
 	for ( auto a : mProjectionsGroup->actions() )
 	{
 		if ( a->isSeparator() )
@@ -156,6 +175,7 @@ void CMapEditor::Wire()
 
 CMapEditor::CMapEditor( CModel *model, const COperation *op, const std::string &display_name )		//display_name = ""
 	: base_t( true, model, op, display_name )
+	, mLayerBaseType( mModel ? mModel->Settings().mViewsLayerBaseType : ELayerBaseType::eVectorLayer )
 {
 	CreateWidgets();
 
@@ -171,6 +191,7 @@ CMapEditor::CMapEditor( CModel *model, const COperation *op, const std::string &
 
 CMapEditor::CMapEditor( CDisplayDataProcessor *proc, CGeoPlot* wplot )
 	: base_t( true, proc )
+	, mLayerBaseType( ELayerBaseType::eVectorLayer )
 {
 	CreateWidgets();
 
@@ -185,6 +206,7 @@ CMapEditor::CMapEditor( CDisplayDataProcessor *proc, CGeoPlot* wplot )
 
 CMapEditor::CMapEditor( CDisplayFilesProcessor *proc, CGeoPlot* wplot )
 	: base_t( true, proc )
+	, mLayerBaseType( ELayerBaseType::eVectorLayer )
 {
 	BRAT_MSG_NOT_IMPLEMENTED( "Critical Error: using CDisplayFilesProcessor" )
 }
@@ -256,9 +278,12 @@ void CMapEditor::Show2D( bool checked )
 	mMapView->setVisible( checked );
 
 	mMeasureButton->setEnabled( checked );
-	//mActionDecorationGrid->setEnabled( checked );
+
 	if( mToolProjection )
 		mToolProjection->setEnabled( checked );
+
+	if( mMapLayerDialogPushButton )
+		mMapLayerDialogPushButton->setEnabled( checked );
 
 	mMapProcessing = false;
 	mDisplaying2D = true;
@@ -371,6 +396,38 @@ bool CMapEditor::ResetViews( bool reset_2d, bool reset_3d, bool enable_2d, bool 
 	return true;
 }
 
+
+void CMapEditor::HandleViewsLayerDialog()
+{
+	std::string url = mModel->BratPaths().RasterLayerPath();
+
+	CViewMapsLayerDialog dlg( mLayerBaseType, !url.empty(), this );
+	if ( dlg.exec() == QDialog::Accepted )
+	{
+		auto type = dlg.LayerBaseType();		assert__( type != CMapWidget::ELayerBaseType::eRasterURL || !url.empty() );
+
+		if ( mLayerBaseType != type )
+		{
+            WaitCursor wait;
+
+            mMapView->stopRendering();
+            mMapView->setVisible(false);
+			mLayerBaseType = type;
+			if ( !ChangeView() )
+			{
+				if ( parentWidget() )
+				{
+					SimpleErrorBox( "This view editor will be closed." );
+					QTimer::singleShot( 1000, parentWidget(), SLOT( close() ) );
+				}
+				else	//we should be starting; not likely
+				{
+					throw CException( "Unrecoverable error: the view could not be displayed." );
+				}
+			}
+		}
+	}
+}
 
 
 //virtual 
