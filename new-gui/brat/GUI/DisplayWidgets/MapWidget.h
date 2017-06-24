@@ -192,6 +192,9 @@ protected:
     QTimer mMapTipsTimer;
     QTimer mGlobeTipsTimer;
 
+	//zoom control
+	double mDefaultMapUnitsPerPixel = 0.;
+
 
 	//reference to parent widgets
 	//
@@ -303,18 +306,30 @@ public:
 	
 	void ReplaceDataLayer( size_t index, QgsVectorLayer* new_layer, bool render = false );
 
+
 protected:
+
 	void RemoveTracksLayer();
 
+
+	using base_t::zoomIn;
+	using base_t::zoomOut;
+
+	bool ZoomAllowed( bool shrinking );
+
+
 public:
+
+	void ZoomIn();
+
+	void ZoomOut();
+
 
 	void RemoveTracksLayerFeatures( bool render = false );
 
 	void SelectArea( double lonm, double lonM, double latm, double latM );
 	void RemoveAreaSelection( bool with_signal = false );
 	
-
-	void Home();
 
 	bool Save2Image( const QString &path, const QString &format, const QString &extension );
 
@@ -413,6 +428,9 @@ protected:
 
     virtual void closeEvent( QCloseEvent *event ) override;
 
+	virtual void wheelEvent( QWheelEvent *e ) override;
+
+
 signals:
 	void CurrentLayerSelectionChanged();
 	void GridEnabled( bool enabled );
@@ -421,6 +439,8 @@ signals:
 	void MapTipTriggerd( CMapTip *mpMaptip, QgsMapLayer *layer, QgsPoint &map_position );
 
 public slots:
+
+	void Home();
 
 	void ShowMouseCoordinate( const QgsPoint & p );
 	void ShowMouseCoordinate( const QString s, bool erase = false );
@@ -458,6 +478,11 @@ protected slots:
 
 	void HandleAddRaster();
 	void HandleRemoveLayers();
+
+	//control zoom
+
+	void HandleExtentsChanged();
+	void HandleMapUnitsChanged();
 };
 
 

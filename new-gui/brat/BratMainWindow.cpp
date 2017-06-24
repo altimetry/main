@@ -1478,13 +1478,13 @@ void CBratMainWindow::openRecentWorkspace_triggered( QAction *action )
 
 void CBratMainWindow::on_action_Zoom_In_triggered()
 {
-	mDesktopManager->Map()->zoomIn();
+	mDesktopManager->Map()->ZoomIn();
 }
 
 
 void CBratMainWindow::on_action_Zoom_Out_triggered()
 {
-	mDesktopManager->Map()->zoomOut();
+	mDesktopManager->Map()->ZoomOut();
 }
 
 

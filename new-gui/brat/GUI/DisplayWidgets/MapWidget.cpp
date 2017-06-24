@@ -434,11 +434,24 @@ void CMapWidget::Init()
 	//mMainLayer->setCrs( QgsCoordinateReferenceSystem() );
 	//SetDefaultProjection();
 
+
+#if defined (DEBUG) || defined(_DEBUG)
+	connect( this, &CMapWidget::extentsChanged, this, &CMapWidget::HandleExtentsChanged );
+	connect( this, &CMapWidget::destinationCrsChanged, this, &CMapWidget::HandleExtentsChanged );
+#endif
+	// This is not always triggered when projection changes, but mDefaultMapUnitsPerPixel
+	// needs to be reset anyway
+	//
+	connect( this, &CMapWidget::mapUnitsChanged, this, &CMapWidget::HandleMapUnitsChanged );
+
+
     //// Set the Map Canvas Layer Set
     //SetLayerSet(mLayerSet);
 
 	setParallelRenderingEnabled( false );
     refresh();
+
+	QTimer::singleShot( 1000, this, &CMapWidget::HandleMapUnitsChanged );
 
 	
 #if defined (DEBUG) || defined(_DEBUG)
@@ -456,17 +469,6 @@ void CMapWidget::Init()
 
 #endif
 }
-
-
-#if defined (__unix__)
-#pragma GCC diagnostic warning "-Wdeprecated-declarations"
-#endif
-
-#if defined (WIN32) || defined(_WIN32)
-#pragma warning ( default : 4996 )
-#endif
-
-
 
 
 CMapWidget::CMapWidget( bool vector_simplify, ELayerBaseType layer_base_type, QWidget *parent, bool with_tracks_layer )		//with_tracks_layer = false 
@@ -513,6 +515,17 @@ void CMapWidget::closeEvent( QCloseEvent *event )
 
 
 
+#if defined (__unix__)
+#pragma GCC diagnostic warning "-Wdeprecated-declarations"
+#endif
+
+#if defined (WIN32) || defined(_WIN32)
+#pragma warning ( default : 4996 )
+#endif
+
+
+
+
 ////////////////////////////
 //	Debug Context Menu 
 ////////////////////////////
@@ -535,6 +548,8 @@ void CMapWidget::HandleRemoveLayers()
 
 ////////////////////////////
 //		Projections
+//		
+//	- see also Zoom
 ////////////////////////////
 
 bool CMapWidget::SetDefaultProjection()
@@ -549,36 +564,54 @@ bool CMapWidget::SetProjection( const QgsCoordinateReferenceSystem &crs )
 {
 	assert__( hasCrsTransformEnabled() );
 
-	if ( crs.mapUnits() == QGis::UnknownUnit )
+	std::string critical_msg = "An error occurred while switching projections.\nYou can try again switching from the default to the desired projection.\n";
+	try
 	{
-		LOG_WARN( "Projection with unknown map units." );
-		return false;
+		if ( crs.mapUnits() == QGis::UnknownUnit )
+		{
+			LOG_WARN( "Projection with unknown map units." );
+			return false;
+		}
+
+		if ( !crs.isValid() )
+		{
+			LOG_WARN( "Invalid projection specification." );
+			return false;
+		}
+
+		freeze();
+
+		setDestinationCrs( crs );
+		setMapUnits( crs.mapUnits() );
+
+		if ( mDecorationGrid )
+		{
+			mDecorationGrid->setMapUnits( crs.mapUnits() );
+			if ( !mDecorationGrid->enabled() )				//the grid can disable itself
+				if ( mActionDecorationGrid )
+					mActionDecorationGrid->setChecked( false );
+		}
+
+		mDefaultMapUnitsPerPixel = 0;
+
+		freeze( false );
+
+		Home();
+
+		return true;
+	}
+	catch ( const CException &e )
+	{
+		critical_msg += e.Message();
+	}
+	catch ( ... )
+	{
 	}
 
-	if ( !crs.isValid() )
-	{
-		LOG_WARN( "Invalid projection specification." );
-		return false;
-	}
+	SimpleErrorBox( critical_msg );
+	SetDefaultProjection();
 
-	freeze();
-
-	setDestinationCrs( crs );
-	setMapUnits( crs.mapUnits() );
-
-	if ( mDecorationGrid )
-	{
-		mDecorationGrid->setMapUnits( crs.mapUnits() );
-		if ( !mDecorationGrid->enabled() )				//the grid can disable itself
-			if ( mActionDecorationGrid )
-				mActionDecorationGrid->setChecked( false );
-	}
-
-	freeze( false );
-
-	Home();
-
-	return true;
+	return false;
 }
 
 bool CMapWidget::SetProjection( unsigned id )
@@ -589,10 +622,6 @@ bool CMapWidget::SetProjection( unsigned id )
 }
 
 
-void CMapWidget::Home()
-{
-	zoomToFullExtent();		//makes refresh()
-}
 
 
 
@@ -2133,7 +2162,108 @@ QgsRasterLayer* CMapWidget::AddRasterLayer( const QString &layer_path, const QSt
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //		Zoom
+//		
+//	- see also Projections
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+void CMapWidget::HandleMapUnitsChanged()
+{
+	if ( !isVisible() )
+		return;
+
+	mDefaultMapUnitsPerPixel =  mapUnitsPerPixel();		//reset to 0. in SetProjection
+}
+
+
+void CMapWidget::HandleExtentsChanged()
+{
+#if defined (DEBUG) || defined(_DEBUG)
+
+	static bool processing = false;
+
+	if ( processing )
+		return;
+
+	if ( !isVisible() )
+		return;
+
+	QgsRectangle ext = extent();
+
+	if ( ext.isEmpty() )
+		return;
+
+	processing = true;
+
+	// Add a 5% margin around the full extent: ext.scale( 1.05 );
+
+	auto map_width = ext.width();
+	auto map_height = ext.height();
+
+	auto qw = width();										//independent of zoom, of course
+	auto qh = height();										//idem
+
+	qDebug() << mapUnitsPerPixel() << " <=== ===> " << scale();
+
+	auto map_width_u =  map_width / mapUnitsPerPixel();		//independent of zoom
+	auto map_height_u =  map_height / mapUnitsPerPixel();	//idem
+
+	auto width_u =  qw * mapUnitsPerPixel();
+	auto height_u =  qh * mapUnitsPerPixel();
+
+	if ( mDefaultMapUnitsPerPixel < mapUnitsPerPixel() )
+		LOG_WARN( "assert__( mDefaultMapUnitsPerPixel >= mapUnitsPerPixel() )" );
+
+	processing = false;
+
+#endif
+}
+
+
+bool CMapWidget::ZoomAllowed( bool shrinking )
+{
+	if ( mDefaultMapUnitsPerPixel == 0 )
+		HandleMapUnitsChanged();
+
+    const auto mupp = mapUnitsPerPixel();
+	if ( shrinking && ( mDefaultMapUnitsPerPixel > 0 ) && ( mDefaultMapUnitsPerPixel < mupp ) )
+		return false;
+
+	return true;
+}
+
+
+//virtual 
+void CMapWidget::wheelEvent( QWheelEvent *e )
+{
+    const bool shrinking = e->delta() <= 0;
+	if ( ZoomAllowed( shrinking ) )
+        base_t::wheelEvent( e );
+}
+
+
+void CMapWidget::ZoomIn()
+{
+	if ( !ZoomAllowed( false ) )
+		return;
+
+	base_t::zoomIn();
+}
+
+
+void CMapWidget::ZoomOut()
+{
+	if ( !ZoomAllowed( true ) )
+		return;
+
+	base_t::zoomOut();
+}
+
+
+void CMapWidget::Home()
+{
+	zoomToFullExtent();		//makes refresh()
+}
 
 
 //virtual 
@@ -2145,6 +2275,17 @@ void CMapWidget::keyPressEvent( QKeyEvent * e ) //override
 
 			zoomToFullExtent();
 			break;
+
+		case Qt::Key_PageUp:
+			QgsDebugMsg( "Zoom in" );
+			ZoomIn();					//replacing original code: zoomIn -> ZoomIn
+			break;
+
+		case Qt::Key_PageDown:
+			QgsDebugMsg( "Zoom out" );
+			ZoomOut();					//replacing original code: zoomOut -> ZoomOut
+			break;
+
 		default:
 			base_t::keyPressEvent( e );
 	}
@@ -2451,6 +2592,9 @@ void CMapWidget::ConnectParentRenderWidgets( QProgressBar *bar, QCheckBox *box )
 void CMapWidget::CreateRenderWidgets( QStatusBar *bar, QProgressBar *&progress, QCheckBox *&box )
 {
 	progress = new QProgressBar( bar );
+    QPalette p = progress->palette();
+    p.setBrush(QPalette::Highlight, QBrush(Qt::red));
+    progress->setPalette(p);
 	progress->setObjectName( "mProgressBar" );
 	progress->setMaximumWidth( 100 );
 	progress->setWhatsThis( tr( "Progress bar that displays the status of time-intensive operations" ) );
