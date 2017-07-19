@@ -76,7 +76,8 @@ class CBratFilterControls : public CDesktopControlsPanel
     QToolButton *mRenameArea = nullptr;
     QToolButton *mDeleteArea = nullptr;
 
-    QLineEdit *mMaxLatEdit = nullptr;
+	QLineEdit *mFirstCoordEdit = nullptr;	//point to the 1st of the following 4 in the Z-order
+	QLineEdit *mMaxLatEdit = nullptr;
     QLineEdit *mMaxLonEdit = nullptr;
     QLineEdit *mMinLatEdit = nullptr;
     QLineEdit *mMinLonEdit = nullptr;
@@ -153,6 +154,8 @@ protected:
     void updateCyclePassWidgets();
     void updateRelativeTimeWidgets();
 
+	void EndAreaSelection();
+	bool ValidateArea( double &min_lon, double &max_lon, double &min_lat, double &max_lat, QRectF *pbox = nullptr );
 
 signals:
     void FiltersChanged();
@@ -180,6 +183,7 @@ public slots:
     void HandleRenameArea();
     void HandleDeleteArea();
     void HandleAreaChecked(QListWidgetItem*area_item);
+	void EnableRectangularSelection( bool enable );
 
 	void HandleUseTimeToggled( bool toggled );
     void HandleStartDateTimeChanged(const QDateTime &start_datetime);

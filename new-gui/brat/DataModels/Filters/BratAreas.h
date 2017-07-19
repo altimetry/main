@@ -61,6 +61,43 @@ class CArea : public std::vector< CVertex >
 	using base_t = std::vector< CVertex >;
 
 
+	//statics
+	
+public:
+
+	// Rejects:
+	// - longitude values outside the range [-180,180]
+	// - latitude values outside the range [-90,90]
+	// - empty areas
+	//
+	// Assumes that the values are normalized (not min > max), so
+	// normalize (QgsRectangle ctor does it) before validating
+	// 
+	static inline bool Validate( double min_lon, double max_lon, double min_lat, double max_lat )
+	{
+		//check empty
+		// 
+		if ( max_lat == min_lat || max_lon == min_lon )
+			return false;
+
+		//check in range
+		//  
+		double lon_min = std::min( max_lon, min_lon );
+		double lon_max = std::max( max_lon, min_lon );
+		if ( ( std::min( -180., lon_min ) < -180. ) || std::max( 180., lon_max ) > 180. )
+			return false;
+
+		double lat_min = std::min( max_lat, min_lat );
+		double lat_max = std::max( max_lat, min_lat );
+		if ( ( std::min( -90., lat_min ) < -90. ) || std::max( 90., lat_max ) > 90. )
+			return false;
+
+		return true;
+	}
+
+
+protected:
+
 	//instance data
 
 	std::string mName;

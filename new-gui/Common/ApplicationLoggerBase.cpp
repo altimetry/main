@@ -182,8 +182,7 @@ QTime InternalOutputStream::sTime;
 CApplicationLoggerBase *CApplicationLoggerBase::smInstance = nullptr;
 
 
-//
-//
+//static
 void CApplicationLoggerBase::TraceWrite( const QString& msg, int debuglevel, const char* file, const char* function, int line ) //debuglevel = 1, const char* file = nullptr, const char* function = nullptr, int line = -1 
 {
 	InternalOutputStream::debug( msg, debuglevel, file, function, line );

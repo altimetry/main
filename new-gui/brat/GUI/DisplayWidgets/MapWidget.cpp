@@ -2172,9 +2172,15 @@ void CMapWidget::HandleMapUnitsChanged()
 	if ( !isVisible() )
 		return;
 
-	mDefaultMapUnitsPerPixel =  mapUnitsPerPixel();		//reset to 0. in SetProjection
+	mDefaultMapUnitsPerPixel = mapUnitsPerPixel();		//reset to 0. in SetProjection
+
+	mDefaultMapUnitsPerPixel += ( mDefaultMapUnitsPerPixel * 0.05 );
 }
 
+
+#if defined (_MSC_VER)
+#pragma warning ( disable : 4189 )
+#endif
 
 void CMapWidget::HandleExtentsChanged()
 {
@@ -2218,6 +2224,10 @@ void CMapWidget::HandleExtentsChanged()
 
 #endif
 }
+
+#if defined (_MSC_VER)
+#pragma warning ( default : 4189 )
+#endif
 
 
 bool CMapWidget::ZoomAllowed( bool shrinking )

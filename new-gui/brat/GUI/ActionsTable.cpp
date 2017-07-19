@@ -153,7 +153,7 @@ CActionInfo ActionsTable[ EActionTags_size ] =
 	{ eAction_Projection_Default, "Default", "Original projection", "://images/OSGeo/projection.png", "://images/OSGeo/projection.png" },
 
 
-    { eAction_SelectFeatures, "Rectangular Selection", CActionInfo::FormatTip("Selection Tool\nSelect area with mouse"), ":/images/themes/default/mActionSelectRectangle.svg", ":/images/themes/default/mActionSelectRectangle.svg" },
+    { eAction_SelectFeatures, "Rectangular Selection", CActionInfo::FormatTip("Selection Tool\nSelect an area with mouse or writing values, then add it to the areas list using the new area button"), ":/images/themes/default/mActionSelectRectangle.svg", ":/images/themes/default/mActionSelectRectangle.svg" },
 
     { eAction_SelectPolygon, "Polygon Selection", CActionInfo::FormatTip("Polygon Selection\nSelect Features by Polygon"), ":/images/themes/default/mActionSelectPolygon.svg", ":/images/themes/default/mActionSelectPolygon.svg" },
 
