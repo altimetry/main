@@ -2602,9 +2602,6 @@ void CMapWidget::ConnectParentRenderWidgets( QProgressBar *bar, QCheckBox *box )
 void CMapWidget::CreateRenderWidgets( QStatusBar *bar, QProgressBar *&progress, QCheckBox *&box )
 {
 	progress = new QProgressBar( bar );
-    QPalette p = progress->palette();
-    p.setBrush(QPalette::Highlight, QBrush(Qt::red));
-    progress->setPalette(p);
 	progress->setObjectName( "mProgressBar" );
 	progress->setMaximumWidth( 100 );
 	progress->setWhatsThis( tr( "Progress bar that displays the status of time-intensive operations" ) );
@@ -2770,6 +2767,153 @@ void CMapWidget::SetNextTip( const QgsPoint &geo_point, bool globe )
 }
 
 
+static QgsPoint WrapDecimal(const QgsPoint &g)
+{
+	//first, limit longitude to -360 to 360 degree range
+	// 
+	double wrapped_X = fmod( g.x(), 360.0 );
+
+	//next, wrap around longitudes > 180 or < -180 degrees, so that eg "190E" -> "170W"
+	// 
+	if ( wrapped_X > 180.0 )
+	{
+		wrapped_X = wrapped_X - 360.0;
+	}
+	else if ( wrapped_X < -180.0 )
+	{
+		wrapped_X = wrapped_X + 360.0;
+	}
+
+	//first, limit latitude to -180 to 180 degree range
+	// 
+	double wrapped_Y = fmod( g.y(), 180.0 );
+
+	//next, wrap around latitudes > 90 or < -90 degrees, so that eg "110S" -> "70N"
+	// 
+	if ( wrapped_Y > 90.0 )
+	{
+		wrapped_Y = wrapped_Y - 180.0;
+	}
+	else if ( wrapped_Y < -90.0 )
+	{
+		wrapped_Y = wrapped_Y + 180.0;
+	}
+
+	return QgsPoint(wrapped_X, wrapped_Y);
+};
+
+
+// Taken from QgsPoint::toDegreesMinutesSeconds
+// 
+QString CMapWidget::ToDegreesMinutesSeconds( const QgsPoint &geo, int thePrecision, bool with_seconds ) const
+{
+	const bool useSuffix = true, padded = false;
+	const QgsPoint g = WrapDecimal( geo );
+
+	double myWrappedX = g.x();
+	double myWrappedY = g.y();
+
+	int myDegreesX = int( qAbs( myWrappedX ) );
+	double myFloatMinutesX = double(( qAbs( myWrappedX ) - myDegreesX ) * 60 );
+	int myIntMinutesX = int( myFloatMinutesX );
+	double mySecondsX = double( myFloatMinutesX - myIntMinutesX ) * 60;
+
+	int myDegreesY = int( qAbs( myWrappedY ) );
+	double myFloatMinutesY = double(( qAbs( myWrappedY ) - myDegreesY ) * 60 );
+	int myIntMinutesY = int( myFloatMinutesY );
+	double mySecondsY = double( myFloatMinutesY - myIntMinutesY ) * 60;
+
+	//make sure rounding to specified precision doesn't create seconds >= 60
+	if ( qRound( mySecondsX * pow( 10.0, thePrecision ) ) >= 60 * pow( 10.0, thePrecision ) )
+	{
+		mySecondsX = qMax( mySecondsX - 60, 0.0 );
+		myIntMinutesX++;
+		if ( myIntMinutesX >= 60 )
+		{
+			myIntMinutesX -= 60;
+			myDegreesX++;
+		}
+	}
+	if ( qRound( mySecondsY * pow( 10.0, thePrecision ) ) >= 60 * pow( 10.0, thePrecision ) )
+	{
+		mySecondsY = qMax( mySecondsY - 60, 0.0 );
+		myIntMinutesY++;
+		if ( myIntMinutesY >= 60 )
+		{
+			myIntMinutesY -= 60;
+			myDegreesY++;
+		}
+	}
+
+	QString myXHemisphere;
+	QString myYHemisphere;
+	QString myXSign;
+	QString myYSign;
+	if ( useSuffix )
+	{
+		myXHemisphere = myWrappedX < 0 ? QObject::tr( "W" ) : QObject::tr( "E" );
+		myYHemisphere = myWrappedY < 0 ? QObject::tr( "S" ) : QObject::tr( "N" );
+	}
+	else
+	{
+		if ( myWrappedX < 0 )
+		{
+			myXSign = QObject::tr( "-" );
+		}
+		if ( myWrappedY < 0 )
+		{
+			myYSign = QObject::tr( "-" );
+		}
+	}
+	//check if coordinate is all zeros for the specified precision, and if so,
+	//remove the sign and hemisphere strings
+	if ( myDegreesX == 0 && myIntMinutesX == 0 && qRound( mySecondsX * pow( 10.0, thePrecision ) ) == 0 )
+	{
+		myXSign = QString();
+		myXHemisphere = QString();
+	}
+	if ( myDegreesY == 0 && myIntMinutesY == 0 && qRound( mySecondsY * pow( 10.0, thePrecision ) ) == 0 )
+	{
+		myYSign = QString();
+		myYHemisphere = QString();
+	}
+	//also remove directional prefix from 180 degree longitudes
+	if ( myDegreesX == 180 && myIntMinutesX == 0 && qRound( mySecondsX * pow( 10.0, thePrecision ) ) == 0 )
+	{
+		myXHemisphere = QString();
+	}
+	//pad minutes with leading digits if required
+	QString myMinutesX = padded ? QString( "%1" ).arg( myIntMinutesX, 2, 10, QChar( '0' ) ) : QString::number( myIntMinutesX );
+	QString myMinutesY = padded ? QString( "%1" ).arg( myIntMinutesY, 2, 10, QChar( '0' ) ) : QString::number( myIntMinutesY );
+	//pad seconds with leading digits if required
+	int digits = 2 + ( thePrecision == 0 ? 0 : 1 + thePrecision ); //1 for decimal place if required
+	QString myStrSecondsX = padded ? QString( "%1" ).arg( mySecondsX, digits, 'f', thePrecision, QChar( '0' ) ) : QString::number( mySecondsX, 'f', thePrecision );
+	QString myStrSecondsY = padded ? QString( "%1" ).arg( mySecondsY, digits, 'f', thePrecision, QChar( '0' ) ) : QString::number( mySecondsY, 'f', thePrecision );
+
+	QString rep =
+	with_seconds ?
+	(
+		myXSign + QString::number( myDegreesX ) + QChar( 176 ) +
+		myMinutesX + QChar( 0x2032 ) +
+		myStrSecondsX + QChar( 0x2033 ) +
+		myXHemisphere + ',' +
+		myYSign + QString::number( myDegreesY ) + QChar( 176 ) +
+		myMinutesY + QChar( 0x2032 ) +
+		myStrSecondsY + QChar( 0x2033 ) +
+		myYHemisphere )
+	:
+	(
+		myXSign + QString::number( myDegreesX ) + QChar( 176 ) +
+		myMinutesX + QChar( 0x2032 ) +
+		myXHemisphere + ',' +
+		myYSign + QString::number( myDegreesY ) + QChar( 176 ) +
+		myMinutesY + QChar( 0x2032 ) +
+		myYHemisphere );
+
+	return rep;
+}
+
+
 // "geo" are map (not mouse) coordinates
 //
 void CMapWidget::ShowMouseDegreeCoordinates( const QgsPoint &geo, bool erase, bool globe )
@@ -2777,7 +2921,7 @@ void CMapWidget::ShowMouseDegreeCoordinates( const QgsPoint &geo, bool erase, bo
 	if ( globe )
 		SetNextTip( geo, globe );
 
-    if ( erase )
+	if ( erase )
 	{
 		mCoordsEdit->clear();
 	}
@@ -2785,15 +2929,15 @@ void CMapWidget::ShowMouseDegreeCoordinates( const QgsPoint &geo, bool erase, bo
 	{
 		if ( mCoordinatesFormat == "DM" )
 		{
-			mCoordsEdit->setText( geo.toDegreesMinutes( mMousePrecisionDecimalPlaces ) );
+			mCoordsEdit->setText( ToDegreesMinutesSeconds( geo, mMousePrecisionDecimalPlaces, false ) );
 		}
 		else if ( mCoordinatesFormat == "DMS" )
 		{
-			mCoordsEdit->setText( geo.toDegreesMinutesSeconds( mMousePrecisionDecimalPlaces ) );
+			mCoordsEdit->setText( ToDegreesMinutesSeconds( geo, mMousePrecisionDecimalPlaces, true ) );
 		}
 		else
 		{
-			mCoordsEdit->setText( geo.toString( mMousePrecisionDecimalPlaces ) );
+			mCoordsEdit->setText( WrapDecimal( geo ).toString( mMousePrecisionDecimalPlaces ) );
 		}
 	}
 }

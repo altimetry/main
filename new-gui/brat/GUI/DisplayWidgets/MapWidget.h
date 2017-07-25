@@ -445,6 +445,7 @@ public slots:
 	void ShowMouseCoordinate( const QgsPoint & p );
 	void ShowMouseCoordinate( const QString s, bool erase = false );
 	void ShowMouseDegreeCoordinates( const QgsPoint & p, bool erase, bool globe );
+	QString ToDegreesMinutesSeconds( const QgsPoint &geo, int thePrecision, bool with_seconds ) const;
 
 protected slots:
 
