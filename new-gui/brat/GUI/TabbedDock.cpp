@@ -61,6 +61,9 @@ void CTabbedDock::CreateContents( QWidget *top_widget )	//top_widget = nullptr
 
 	setWidget( mDockContents );
 
+	mTabWidget->setFocusPolicy( Qt::NoFocus );
+	setFocusPolicy( Qt::NoFocus );
+
 	//Wire
 
 	connect( mTabWidget, SIGNAL( currentChanged( int ) ), this, SIGNAL( TabSelected( int ) ), Qt::QueuedConnection );

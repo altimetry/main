@@ -64,12 +64,17 @@ static const std::string DATASET_SELECTION_LOG_FILENAME = "DatasetSelection.log"
 //////////////////////////////////////////////////////////////
 
 //static 
+QDateTime CBratFilter::smDateTimeMin = QDateTime( QDate(1950, 1, 1), QTime(0, 0, 0) );
+//static 
+QDateTime CBratFilter::smDateTimeMax = QDateTime( QDate(7999, 12, 31), QTime(23, 59, 59) );
+
+//static 
 const bool CBratFilter::smUsingRelativeTimes = false;
 
 //static 
 const bool CBratFilter::smUsingCyclePass = false;
 
-// Setting Brathl internal reference date year (1950)
+// Setting Brathl internal reference date year (1950); cannot be before
 //
 //static
 const QDateTime CBratFilter::smStartTime = QDateTime( QDate(1950, 1, 1), QTime(0, 0, 0) );
@@ -89,6 +94,53 @@ const bool CBratFilter::smUseCurrentTime = true;
 const int CBratFilter::smRelativeStartDays = defaultValue< int >();
 //static
 const int CBratFilter::smRelativeStopDays = defaultValue< int >();
+
+
+
+//static 
+void CBratFilter::SetRelativeTimesValidationRange( const QDateTime &m, const QDateTime &M )
+{
+	assert__( m < M && m <= smStartTime );	//cannot be after minimum default start time
+
+	smDateTimeMin = m;
+	smDateTimeMax = M;
+}
+
+
+//static 
+QDateTime CBratFilter::CorrectDateTime( const QDateTime &dt )
+{
+	QDateTime new_dt = dt;
+
+	if ( new_dt < smDateTimeMin )
+		new_dt = smDateTimeMin;
+
+	if ( new_dt > smDateTimeMax )
+		new_dt = smDateTimeMax;
+
+	return new_dt;
+}
+
+
+// Returns the number of days to add to dt for it
+// to remain inside the [smDateTimeMin, smDateTimeMax]
+// boundaries. Can be a negative number.
+// 
+//static 
+int CBratFilter::DaysOverflow( const QDateTime &dt )
+{
+	static int margin = 0;
+
+	if ( ( std::round( ( smDateTimeMin - dt ).days() ) ) > 0  )
+		return ( smDateTimeMin - dt ).days() + margin;
+
+	if ( ( std::round( ( dt - smDateTimeMax ).days() ) > 0 ) )
+		return ( smDateTimeMax - dt ).days() - margin;
+
+	return 0;
+}
+
+
 
 
 
@@ -400,45 +452,120 @@ std::pair< bool, bool > CBratFilter::Apply( const CStringList& files_in, CString
 }
 
 
-void CBratFilter::Relative2AbsoluteTimes()
+
+void CBratFilter::UpdateRelativeDaysFromAbsoluteTimes()
 {
-    // Check if relative times are default values
-    if ( isDefaultValue(mRelativeStartDays) && isDefaultValue(mRelativeStopDays) )
-        return;
-    else if ( isDefaultValue(mRelativeStartDays) )
-        mRelativeStartDays = mRelativeStopDays;
-    else if ( isDefaultValue(mRelativeStopDays) )
-        mRelativeStopDays = mRelativeStartDays;
+	mRelativeStartDays = std::round( ( mStartTime - mRelativeReferenceTime ).days() );
+	mRelativeStopDays = std::round( ( mStopTime - mRelativeReferenceTime ).days() );
 
-    // Calculate Absolute Start and Stop times
-    if ( mUseCurrentTime ){ mRelativeReferenceTime = QDateTime::currentDateTime(); }
+	qDebug() << "mRelativeStartDays " << mRelativeStartDays;
+	qDebug() << "mRelativeStopDays " << mRelativeStopDays;
 
-    mStartTime = mRelativeReferenceTime.addDays( mRelativeStartDays );
-    mStopTime  = mRelativeReferenceTime.addDays( mRelativeStopDays );
+	qDebug() << "mStartTime - mRelativeReferenceTime" << std::round( ( mStartTime - mRelativeReferenceTime ).days() );
+	qDebug() << "mStopTime - mRelativeReferenceTime" << std::round( ( mStopTime - mRelativeReferenceTime ).days() );
+
+	assert__( mRelativeStartDays == std::round( ( mStartTime - mRelativeReferenceTime ).days() ) );
+	assert__( mRelativeStopDays == std::round( ( mStopTime - mRelativeReferenceTime ).days() ) );
+}
+
+void CBratFilter::EnableRelativeTimes( bool enable ) 
+{ 
+	const bool switching_from_absolute_to_relative = !mUsingRelativeTimes && enable;
+
+	mUsingRelativeTimes = enable; 
+
+	if ( switching_from_absolute_to_relative )
+	{
+		UpdateRelativeDaysFromAbsoluteTimes();
+	}
+
+	if ( mUsingRelativeTimes )
+	{
+		mUsingCyclePass = false;
+
+		if ( mRelativeReferenceTime.isNull() || !mRelativeReferenceTime.isValid() )
+			mRelativeReferenceTime = QDateTime::currentDateTime();
+
+		if ( mUseCurrentTime )	//update for the time of the call
+		{
+			mRelativeReferenceTime = QDateTime::currentDateTime();
+		}
+
+		if ( mStartTime == smStartTime )	//assuming 1st usage of relative times without having used absolute times
+		{
+			bool result = UpdateRelative2AbsoluteTimes( 0, 0, mUseCurrentTime, mRelativeReferenceTime );		assert__(result);
+		}
+	}
+}
+
+
+
+bool CBratFilter::UpdateRelative2AbsoluteTimes( int start, int stop, bool use_current, const QDateTime &relative_ref )	//relative_ref = QDateTime::currentDateTime() 
+{
+    if ( isDefaultValue(start) && isDefaultValue(stop) )
+        return !mUsingRelativeTimes;
+
+	if ( !use_current && ( relative_ref.isNull() || !relative_ref.isValid() ) )
+		return false;
+
+	if ( isDefaultValue(start) )
+		start = stop;
+    else 
+	if ( isDefaultValue(stop) )
+		stop = start;
+
+	if ( start > stop )
+		return false;
+
+	if ( !mRelativeReferenceTime.addDays( start ).isValid() || !mRelativeReferenceTime.addDays( stop ).isValid() )
+		return false;
+
+	mUseCurrentTime = use_current;
+	
+	mRelativeReferenceTime = mUseCurrentTime ? QDateTime::currentDateTime() : relative_ref;
+
+	mStartTime = CorrectDateTime( mRelativeReferenceTime.addDays( start ) );
+
+	mStopTime  = CorrectDateTime( mRelativeReferenceTime.addDays( stop ) );
+
+	UpdateRelativeDaysFromAbsoluteTimes();
+
+	return true;
 }
 
 
 void CBratFilter::SetDefaultValues()
 {
-	mUsingRelativeTimes = false;	//absolute always valid (if not using cycle-pass)
-	mUsingCyclePass = false;		//date-times always valid
+	SetDefaultCyclePassValues();
 
-    SetDefaultDateValues();
-
-    SetDefaultCyclePassValues();
-
-    SetDefaultRelativeDays();
-}
-
-
-void CBratFilter::SetDefaultDateValues()
-{
 	//set to valid values that filter nothing
 
+	mUsingRelativeTimes = smUsingRelativeTimes;		//false; absolute always valid (if not using cycle-pass)
+	mUsingCyclePass = smUsingCyclePass;				//false; date-times always valid
+
 	// Setting Brathl internal reference date year (1950): see smStartTime definition
-    mStartTime = smStartTime;
-    mStopTime  = QDateTime::currentDateTime();
+	// 
+	mStartTime = smStartTime;
+	mStopTime  = QDateTime::currentDateTime();
+
+	mUseCurrentTime = smUseCurrentTime;
+
+	mRelativeReferenceTime = QDateTime::currentDateTime();
+
+	UpdateRelativeDaysFromAbsoluteTimes();
 }
+
+
+void CBratFilter::SetDefaultCyclePassValues()
+{
+	//set to all invalid values
+
+	mStartCycle = smStartCycle;
+	mStopCycle = smStopCycle;
+	mStartPass = smStartPass;
+	mStopPass = smStopPass;
+}
+
 
 bool CBratFilter::InvalidCyclePassValues() const
 {
@@ -449,26 +576,7 @@ bool CBratFilter::InvalidCyclePassValues() const
 		mStopPass == smStopPass;
 }
 
-void CBratFilter::SetDefaultCyclePassValues()
-{
-	//set to all invalid values
 
-    mStartCycle = smStartCycle;
-    mStopCycle = smStopCycle;
-    mStartPass = smStartPass;
-    mStopPass = smStopPass;
-}
-
-void CBratFilter::SetDefaultRelativeDays()
-{
-	//set to invalid values
-	//
-	mRelativeStartDays = smRelativeStartDays;
-    mRelativeStopDays = smRelativeStopDays;
-
-    mUseCurrentTime = smUseCurrentTime;
-    mRelativeReferenceTime = QDateTime::currentDateTime();
-}
 
 
 //////////////////////////////////////////////////////////////
@@ -953,9 +1061,9 @@ bool CBratFilters::Load()
             k_v( STARTPASS_KEY,				&filter.StartPass(),			CBratFilter::smStartPass ),
             k_v( STOPPASS_KEY,				&filter.StopPass(),				CBratFilter::smStopPass ),
 
-            k_v( RELATIVE_START_DAYS_KEY,	&filter.RelativeStartDays(),	CBratFilter::smRelativeStartDays ),
-            k_v( RELATIVE_STOP_DAYS_KEY,	&filter.RelativeStopDays(),		CBratFilter::smRelativeStopDays ),
-            k_v( USE_CURRENT_TIME_KEY,		&filter.UseCurrentTime(),		CBratFilter::smUseCurrentTime ),
+            k_v( RELATIVE_START_DAYS_KEY,	&filter.mRelativeStartDays,		CBratFilter::smRelativeStartDays ),
+            k_v( RELATIVE_STOP_DAYS_KEY,	&filter.mRelativeStopDays,		CBratFilter::smRelativeStopDays ),
+            k_v( USE_CURRENT_TIME_KEY,		&filter.mUseCurrentTime,		CBratFilter::smUseCurrentTime ),
             k_v( RELATIVE_REFERENCE_TIME,	&relative_ref_time )
         );
 
@@ -968,7 +1076,7 @@ bool CBratFilters::Load()
 
         filter.StartTime() = stime.empty() ? CBratFilter::smStartTime : QDateTime::fromString( stime.c_str(), t2q( date_time_format ) );
         filter.StopTime() = etime.empty() ?  QDateTime::currentDateTime() : QDateTime::fromString( etime.c_str(), t2q( date_time_format ) );
-        filter.RelativeReferenceTime() = relative_ref_time.empty() ?
+        filter.mRelativeReferenceTime = relative_ref_time.empty() ?
                                                 QDateTime::currentDateTime() :
                                                 QDateTime::fromString( relative_ref_time.c_str(), t2q( date_time_format ) );
 

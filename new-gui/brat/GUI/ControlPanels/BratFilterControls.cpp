@@ -68,6 +68,7 @@ inline typename ValidatorTraits<double>::type* CreateValidator( QObject *parent,
 }
 
 
+
 void CBratFilterControls::CreateWidgets()
 {
     // I. Top buttons row
@@ -214,10 +215,16 @@ void CBratFilterControls::CreateWidgets()
 
 	mUseTimeRadio = new QRadioButton( "Use Dates");
 	mUseCyclePassRadio = new QRadioButton( cycle_pas_radio_text );
-	mStartTimeEdit = new QDateTimeEdit();                      mStopTimeEdit = new QDateTimeEdit();
-    mStartTimeEdit->setCalendarPopup(true);                    mStopTimeEdit->setCalendarPopup(true);
-    mStartTimeEdit->setDisplayFormat("yyyy.MM.dd hh:mm:ss");   mStopTimeEdit->setDisplayFormat("yyyy.MM.dd hh:mm:ss");
-    mStartTimeEdit->setMinimumDateTime( minDateTime );         mStopTimeEdit->setMinimumDateTime( minDateTime );
+
+	mStartTimeEdit = new QDateTimeEdit();								mStopTimeEdit = new QDateTimeEdit();
+    mStartTimeEdit->setCalendarPopup(true);								mStopTimeEdit->setCalendarPopup(true);
+    mStartTimeEdit->setDisplayFormat("yyyy.MM.dd hh:mm:ss");			mStopTimeEdit->setDisplayFormat("yyyy.MM.dd hh:mm:ss");
+    mStartTimeEdit->setMinimumDateTime( minDateTime );					mStopTimeEdit->setMinimumDateTime( minDateTime );
+
+	// Any date-time edit is good; we found no other way to do this
+	// 
+	CBratFilter::SetRelativeTimesValidationRange( mStartTimeEdit->minimumDateTime(), mStartTimeEdit->maximumDateTime() );
+
 
     static QRegExpValidator *textValidator = new QRegExpValidator( QRegExp("[0-9]+"), this ); // only numeric letters
 
@@ -246,35 +253,6 @@ void CBratFilterControls::CreateWidgets()
         LayoutWidgets( Qt::Horizontal, { new QLabel( "Stop Pass" ),  mStopPassEdit  } )
     } );
 
-    //   III.2 One-Click Time Filtering
-
-#if defined (ONE_CLICK_TIME_FILTERING)
-
-    auto *one_click_title =
-        LayoutWidgets( Qt::Horizontal, { WidgetLine( nullptr, Qt::Horizontal ), new QLabel( "One-Click Time Filtering" ), WidgetLine( nullptr, Qt::Horizontal ) }, nullptr, s, m, m, m, m );
-
-    //    Checkable menu items --> ATTENTION: are exclusive checkable menu items??
-    auto last_month  = new QCheckBox( "Last Month" );
-    auto last_year   = new QCheckBox( "Last Year" );
-    auto last_cycle  = new QCheckBox( "Last Cycle" );
-    auto *month_year_cycle_layout = LayoutWidgets( Qt::Vertical, {last_month, last_year, last_cycle} );
-
-    QFrame *lineVertical_1 = WidgetLine( nullptr, Qt::Vertical );
-    QFrame *lineVertical_2 = WidgetLine( nullptr, Qt::Vertical );
-
-    auto reference_date       = new QCheckBox( "Reference Date" );
-    auto reference_date_text  = new QDateEdit;			  reference_date_text->setCalendarPopup(true);
-    QBoxLayout *refDateBox = LayoutWidgets( Qt::Vertical, { reference_date, reference_date_text} );
-
-    //    Adding previous widgets to this...
-
-    AddTopLayout( ELayoutType::Vertical,
-    {
-        mWhenBox,
-        one_click_title,
-        LayoutWidgets( Qt::Horizontal, { month_year_cycle_layout, lineVertical_1, relative_times, lineVertical_2, refDateBox }
-    ) }, s, m, m, m, m );
-#endif
 
     mAbsoluteTimesBox = CreateGroupBox(  ELayoutType::Horizontal, 
 	{ 
@@ -296,10 +274,14 @@ void CBratFilterControls::CreateWidgets()
 	} 
 	);
 
-    mRelativeStart  = new QLineEdit(this);
-    mRelativeStop   = new QLineEdit(this);
+
+	mRelativeStart = new QLineEdit(this);
+    mRelativeStop = new QLineEdit(this);
     mRelativeStart->setToolTip( "Insert the number of days later than reference date (or earlier if number of days is negative)" );
     mRelativeStop->setToolTip( "Insert the number of days later than reference date (or earlier if number of days is negative)" );
+
+	mRelativeStart->setValidator( new QIntValidator );
+	mRelativeStop->setValidator( new QIntValidator );
 
     mRefDateTimeEdit = new QDateTimeEdit();
     mRefDateTimeEdit->setCalendarPopup(true);
@@ -308,24 +290,25 @@ void CBratFilterControls::CreateWidgets()
     mRefDateTimeEdit->setToolTip( "Edit reference date" );
 
     mUseCurrentDateTime = new QCheckBox( "Current DateTime" );
-    mUseCurrentDateTime->setLayoutDirection( Qt::RightToLeft );
+    //mUseCurrentDateTime->setLayoutDirection( Qt::RightToLeft );
     mUseCurrentDateTime->setToolTip( "Use current datetime as reference date" );
     mUseCurrentDateTime->setStyleSheet( "QCheckBox:checked{color: black;} QCheckBox:unchecked {color: grey;} QCheckBox:disabled {color: grey;}");
 
-    QBoxLayout *days_box = LayoutWidgets( Qt::Vertical, {
-                                                 LayoutWidgets( Qt::Horizontal, { new QLabel( "Start" ), mRelativeStart } ),
-                                                 LayoutWidgets( Qt::Horizontal, { new QLabel( "Stop" ),  mRelativeStop } )
-                                                } );
+	mStartTimeEdit->setCalendarPopup(false);							mStopTimeEdit->setCalendarPopup(false);
 
-    QBoxLayout *RefDate_box = LayoutWidgets( Qt::Vertical, {
-                                                 mUseCurrentDateTime,
-                                                 mRefDateTimeEdit
-                                                } );
+	QBoxLayout *days_l = LayoutWidgets( Qt::Vertical, {
+		LayoutWidgets( Qt::Horizontal, { new QLabel( "Start" ), mRelativeStart } ),
+		LayoutWidgets( Qt::Horizontal, { new QLabel( "Stop" ),  mRelativeStop } )
+	} );
 
-    mRelativeTimesBox = CreateGroupBox( ELayoutType::Horizontal, { days_box, nullptr, RefDate_box}, "Use Relative Time (days)" );
+	//auto *RefDate_box = CreateGroupBox( ELayoutType::Vertical, {
+	auto *RefDate_box = LayoutWidgets( Qt::Vertical, { mUseCurrentDateTime, mRefDateTimeEdit }, nullptr, 2,2,2,2,2 );
+	RefDate_box->setAlignment( Qt::AlignCenter );
+
+	mRelativeTimesBox = CreateGroupBox( ELayoutType::Horizontal, { days_l, nullptr, RefDate_box }, "Use Relative Time (days)" );
     mRelativeTimesBox->setCheckable( true );
+	mRelativeTimesBox->setAlignment( Qt::AlignCenter );
 
-    //LayoutWidgets( Qt::Horizontal, {dates_box, nullptr, cycles_box, nullptr, pass_box}, mWhenBox );
     mWhenBox = AddTopGroupBox( ELayoutType::Vertical,
     {
         mAbsoluteTimesBox,
@@ -388,8 +371,11 @@ void CBratFilterControls::Wire()
     connect( mRelativeTimesBox, SIGNAL( toggled( bool ) ), this, SLOT( HandleRelativeTimesBoxChecked( bool ) ) );
     mRelativeTimesBox->setChecked( false );
 
-    connect( mRelativeStart,   SIGNAL( textEdited(const QString &) ), this, SLOT( HandleRelativeStartTimeChanged() ) );
-    connect( mRelativeStop,    SIGNAL( textEdited(const QString &) ), this, SLOT( HandleRelativeStopTimeChanged() ) );
+    //connect( mRelativeStart,   SIGNAL( textEdited(const QString &) ), this, SLOT( HandleRelativeStartTimeChanged() ) );
+    //connect( mRelativeStop,    SIGNAL( textEdited(const QString &) ), this, SLOT( HandleRelativeStopTimeChanged() ) );
+	connect( mRelativeStart,   SIGNAL( editingFinished() ), this, SLOT( HandleRelativeStartTimeChanged() ) );
+	connect( mRelativeStop,    SIGNAL( editingFinished() ), this, SLOT( HandleRelativeStopTimeChanged() ) );
+
     connect( mRefDateTimeEdit, SIGNAL( dateTimeChanged(const QDateTime&) ), this, SLOT( HandleRelativeReferenceTimeChanged(const QDateTime&) ) );
 
     connect( mUseCurrentDateTime, SIGNAL( toggled( bool ) ), this, SLOT( HandleCurrentDateTimeBoxChecked( bool ) ) );
@@ -578,6 +564,13 @@ void CBratFilterControls::HandleSaveFilters()
 
 
 
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///											Space Related Functions
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
 void CBratFilterControls::HandleClearWhere()
 {
 	mFilter->DeleteAllAreas();
@@ -589,22 +582,6 @@ void CBratFilterControls::HandleClearWhere()
 	HandleCurrentLayerSelectionChanged();
 }
 
-
-void CBratFilterControls::HandleClearWhen()
-{
-	mFilter->SetDefaultValues();
-
-	updateDateWidgets();
-	updateCyclePassWidgets();
-	updateRelativeTimeWidgets();
-}
-
-
-
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-///											Space Related Functions
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 void CBratFilterControls::FillFiltersCombo()
@@ -1102,6 +1079,35 @@ void CBratFilterControls::SaveAllAreas()
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
+
+void CBratFilterControls::HandleClearWhen()
+{
+	mFilter->SetDefaultValues();
+
+	mAbsoluteTimesBox->setChecked( !mFilter->UsingRelativeTimes() );
+	mRelativeTimesBox->setChecked( mFilter->UsingRelativeTimes() );
+	mUseTimeRadio->setChecked( !mFilter->UsingCyclePass() );
+	mUseCyclePassRadio->setChecked( mFilter->UsingCyclePass() );
+
+	// Events triggered by the previous assignments, or if Clear is 
+	// clicked directly from a (relative) time widget, the finished 
+	// signal being also triggered, the filter is reassigned and 
+	// the default values are lost
+	// 
+	mFilter->SetDefaultValues();
+
+	updateDateWidgets();
+	updateCyclePassWidgets();
+	updateRelativeTimeWidgets();
+}
+
+
+
+
+////////////////////
+///	Absolute Times	
+////////////////////
+
 void CBratFilterControls::HandleUseTimeToggled( bool toggled )
 {
 	mStartTimeEdit->setEnabled( toggled );
@@ -1109,8 +1115,7 @@ void CBratFilterControls::HandleUseTimeToggled( bool toggled )
 
 	if ( mFilter )
 	{
-		mFilter->EnableCyclePass( false );
-		//updateCyclePassWidgets();
+		mFilter->EnableCyclePass( false );		//updateCyclePassWidgets();
 	}
 }
 
@@ -1124,8 +1129,7 @@ void CBratFilterControls::HandleUseCyclePass( bool toggled )
 
 	if ( mFilter )
 	{
-		mFilter->EnableCyclePass( true );
-		//updateCyclePassWidgets();
+		mFilter->EnableCyclePass( true ); 		//updateCyclePassWidgets();
 	}
 }
 
@@ -1133,6 +1137,13 @@ void CBratFilterControls::HandleUseCyclePass( bool toggled )
 void CBratFilterControls::HandleStartDateTimeChanged(const QDateTime &start_datetime)
 {
 	assert__( mFilter && !mFilter->UsingCyclePass() );
+
+	if ( !mFilter->UsingRelativeTimes() && ( start_datetime.isNull() || !start_datetime.isValid() ) )
+	{
+		SimpleErrorBox( "Invalid date-time start." );
+		mStartTimeEdit->setDateTime( mFilter->StartTime() );
+		return;
+	}
 
 	mFilter->StartTime() = start_datetime;
 
@@ -1146,6 +1157,13 @@ void CBratFilterControls::HandleStartDateTimeChanged(const QDateTime &start_date
 void CBratFilterControls::HandleStopDateTimeChanged(const QDateTime &stop_datetime)
 {
 	assert__( mFilter && !mFilter->UsingCyclePass() );
+
+	if ( !mFilter->UsingRelativeTimes() && ( stop_datetime.isNull() || !stop_datetime.isValid() ) )
+	{
+		SimpleErrorBox( "Invalid date-time stop." );
+		mStopTimeEdit->setDateTime( mFilter->StopTime() );
+		return;
+	}
 
 	mFilter->StopTime() = stop_datetime;
 
@@ -1224,38 +1242,50 @@ void CBratFilterControls::HandleStopPassChanged()
 }
 
 
+
+////////////////////
+///	Relative Times	
+////////////////////
+
+
 void CBratFilterControls::HandleRelativeTimesBoxChecked( bool checked )
 {
-    mAbsoluteTimesBox->setEnabled( !checked );
+	mAbsoluteTimesBox->setEnabled( !checked );
+	if (checked)
+		mRelativeStart->setFocus();
 
-    if ( mFilter )
-    {
+	if ( mFilter )
+	{
+		// Updates current DateTime if necessary
+		// 			
 		mFilter->EnableRelativeTimes( checked );
 		if ( checked )
-        {
-            // For updating current DateTime
-            if ( mFilter->UseCurrentTime() ) 
-			{ 
-				mFilter->RelativeReferenceTime() = QDateTime::currentDateTime(); 
-			}
-            mRefDateTimeEdit->setDateTime( mFilter->RelativeReferenceTime() );
-        }
-        updateDateWidgets();
-        updateCyclePassWidgets();
-        updateRelativeTimeWidgets();
-    }
+		{
+			mRefDateTimeEdit->setDateTime( mFilter->RelativeReferenceTime() );
+		}
+		updateDateWidgets();
+		updateCyclePassWidgets();
+		updateRelativeTimeWidgets();
+	}
 }
 
 
 void CBratFilterControls::HandleRelativeStartTimeChanged()
 {
-    ValidateAndStoreValue( mRelativeStart,                // Text box                                                   -------------------------------------
-                           mFilter->RelativeStartDays(),  // Filter value          Start  Stop    Ref    Start  Stop   | X1 and X2 are the number of days    |
-                           mFilter->RelativeStopDays(),   // Default Param         __|_____|_______|_______|_____|__   | later [or earlier if it's negative] |
-                           CTools::m_defaultValueINT32,   // Min                     |     |               |     |     | than Ref datetime)                  |
-                           mFilter->RelativeStopDays() ); // Max (should be < X2)   -X1   -X2              X1    X2     -------------------------------------
+	QString value_str = mRelativeStart->text();
+	int new_start_value = value_str.isEmpty() ? mFilter->RelativeStartDays() : value_str.toInt(),
+		new_stop_value = mFilter->RelativeStopDays();
 
-    mFilter->Relative2AbsoluteTimes();
+	new_start_value += CBratFilter::DaysOverflow( mFilter->RelativeReferenceTime().addDays( new_start_value) );
+	new_stop_value = std::max( new_start_value, new_stop_value  );
+
+    //                                      -------------------------------------
+    // Start  Stop    Ref    Start  Stop   | X1 and X2 are the number of days    |
+    // __|_____|_______|_______|_____|__   | later [or earlier if it's negative] |
+    //   |     |               |     |     | than Ref date-time)                 |
+    //  -X1   -X2              X1    X2     -------------------------------------
+
+	bool result = mFilter->UpdateRelative2AbsoluteTimes( new_start_value, new_stop_value, mFilter->UseCurrentTime(), mFilter->RelativeReferenceTime() );	assert__( result );
 
     updateRelativeTimeWidgets();
     updateDateWidgets();
@@ -1266,13 +1296,20 @@ void CBratFilterControls::HandleRelativeStartTimeChanged()
 
 void CBratFilterControls::HandleRelativeStopTimeChanged()
 {
-    ValidateAndStoreValue( mRelativeStop,                  // Text box                                                   -------------------------------------
-                           mFilter->RelativeStopDays(),    // Filter value          Start  Stop    Ref    Start  Stop   | X1 and X2 are the number of days    |
-                           mFilter->RelativeStartDays(),   // Default Param         __|_____|_______|_______|_____|__   | later [or earlier if it's negative] |
-                           mFilter->RelativeStartDays(),   // Min (should be > X1)    |     |               |     |     | than Ref datetime)                  |
-                           CTools::m_defaultValueINT32  ); // Max                    -X1   -X2              X1    X2     -------------------------------------
+	QString value_str = mRelativeStop->text();
+	int new_start_value = mFilter->RelativeStartDays(), 
+		new_stop_value = value_str.isEmpty() ? mFilter->RelativeStopDays() : value_str.toInt();
 
-    mFilter->Relative2AbsoluteTimes();
+	new_stop_value += CBratFilter::DaysOverflow( mFilter->RelativeReferenceTime().addDays( new_stop_value) );
+	new_start_value = std::min( new_start_value, new_stop_value  );
+
+	//                                       -------------------------------------
+    //  Start  Stop    Ref    Start  Stop   | X1 and X2 are the number of days    |
+    //  __|_____|_______|_______|_____|__   | later [or earlier if it's negative] |
+    //    |     |               |     |     | than Ref date-time)                  |
+    //   -X1   -X2              X1    X2     -------------------------------------
+
+	bool result = mFilter->UpdateRelative2AbsoluteTimes( new_start_value, new_stop_value, mFilter->UseCurrentTime(), mFilter->RelativeReferenceTime() );	assert__( result );
 
     updateRelativeTimeWidgets();
     updateDateWidgets();
@@ -1287,29 +1324,41 @@ void CBratFilterControls::HandleCurrentDateTimeBoxChecked( bool checked )
 
     if ( mFilter )
     {
-        mFilter->UseCurrentTime() = checked;
-
         // Re-calculate start and stop dates using new reference date
-        mFilter->Relative2AbsoluteTimes();
-        updateDateWidgets();
-        updateRelativeTimeWidgets();
+        //
+		bool result = mFilter->UpdateRelative2AbsoluteTimes( mFilter->RelativeStartDays(), mFilter->RelativeStopDays(), checked, mFilter->RelativeReferenceTime() );	assert__( result );
+		updateRelativeTimeWidgets();
+		updateDateWidgets();
 
 	    emit FilterCompositionChanged( mFilter->Name() );
 	}
 }
 
 
-void CBratFilterControls::HandleRelativeReferenceTimeChanged(const QDateTime &ref_datetime)
+void CBratFilterControls::HandleRelativeReferenceTimeChanged( const QDateTime &ref_datetime )
 {
-    mFilter->RelativeReferenceTime() = ref_datetime;
+	if ( !mFilter->UseCurrentTime() && ( ref_datetime.isNull() || !ref_datetime.isValid() ) )
+	{
+		SimpleErrorBox( "Invalid date-time reference." );
+		mRefDateTimeEdit->setDateTime( mFilter->RelativeReferenceTime() );
+		return;
+	}
+
+	QDateTime dt = CBratFilter::CorrectDateTime( ref_datetime );
 
     // Re-calculate start and stop dates using new reference date
-    mFilter->Relative2AbsoluteTimes();
-    updateDateWidgets();
+    // 
+	bool result = mFilter->UpdateRelative2AbsoluteTimes( mFilter->RelativeStartDays(), mFilter->RelativeStopDays(), mFilter->UseCurrentTime(), dt );	assert__( result );
+	updateRelativeTimeWidgets();		//TODO: DELETE THIS OR CHECK 
+	updateDateWidgets();
 
     emit FilterCompositionChanged( mFilter->Name() );
 }
 
+
+////////////////////
+///
+////////////////////
 
 // ---------------------------------------------------------------------------------------
 // This method is used to validate the (start/stop) Cycle, Pass and Relative time values.
@@ -1338,33 +1387,32 @@ void CBratFilterControls::ValidateAndStoreValue(QLineEdit *TextBox, int &ValueIn
 
 void CBratFilterControls::updateDateWidgets()
 {
-    // BLOCK SIGNALS //
+    // BLOCK SIGNALS
+    // 
     // Signals are blocked, otherwise HandleStartDateTimeChanged or HandleStopDateTimeChanged are called
+    // 
     mStartTimeEdit->blockSignals( true );
     mStopTimeEdit->blockSignals( true );
 
-    // UPDATE start/stop dates and max/min allowed
-    mStartTimeEdit->setMaximumDateTime( mFilter->StopTime() ); // Stop_datetime defines the maximum allowed start_datetime
-    mStopTimeEdit->setMinimumDateTime( mFilter->StartTime() ); // Start_datetime defines the minimum allowed stop_datetime
-    mStartTimeEdit->setDateTime( mFilter->StartTime() );
+    // UPDATE max/min allowed
+    // 
+    //  Stop_datetime defines the maximum allowed start_datetime
+    //  
+	mStartTimeEdit->setMaximumDateTime( mFilter->StopTime() );		assert__( CBratFilter::CorrectDateTime( mFilter->StopTime() ) == mFilter->StopTime() );
+
+	// Start_datetime defines the minimum allowed stop_datetime
+	// 
+    mStopTimeEdit->setMinimumDateTime( mFilter->StartTime() );		assert__( CBratFilter::CorrectDateTime( mFilter->StartTime() ) == mFilter->StartTime() );
+
+
+	// UPDATE start/stop
+	// 
+	mStartTimeEdit->setDateTime( mFilter->StartTime() );
     mStopTimeEdit->setDateTime( mFilter->StopTime() );
 
-    // SET READ_ONLY PALETTE
-    //bool markAsReadOnly = ( !isDefaultValue(mFilter->StartCycle()) &
-    //                        !isDefaultValue(mFilter->StopCycle())  &
-    //                        !isDefaultValue(mFilter->StartPass())  &
-    //                        !isDefaultValue(mFilter->StopPass())
-    //                       );
-    //QPalette *palette_readOnly = new QPalette();
-    //if ( markAsReadOnly )
-    //{
-    //    palette_readOnly->setColor(QPalette::Base, Qt::gray );
-    //    palette_readOnly->setColor(QPalette::Text,Qt::black);
-    //}
-    //mStartTimeEdit->setPalette( *palette_readOnly );
-    //mStopTimeEdit->setPalette( *palette_readOnly );
 
-    // UNBLOCK SIGNALS //
+    // UNBLOCK SIGNALS
+    // 
     mStartTimeEdit->blockSignals( false );
     mStopTimeEdit->blockSignals( false );
 }
@@ -1401,13 +1449,30 @@ void CBratFilterControls::updateRelativeTimeWidgets()
 {
 	assert__( mFilter );
 
-	// UPDATE start/stop Relative Times
-    mRelativeStart->setText( isDefaultValue(mFilter->RelativeStartDays()) ? "" : n2q(mFilter->RelativeStartDays()) );
-    mRelativeStop->setText(  isDefaultValue(mFilter->RelativeStopDays() ) ? "" : n2q(mFilter->RelativeStopDays()) );
-    mRefDateTimeEdit->setDateTime( mFilter->RelativeReferenceTime() );
+	// Signal blocking only to avoid redundant events; if all is
+	// accurate (inside filters and in the relative time widgets
+	// processing) signal blocking can be commented out and all
+	// the rest remains the same. Can serve as test for later
+	// changes.
+	// 
+	mRelativeStart->blockSignals( true );
+	mRelativeStop->blockSignals( true );
+	mRefDateTimeEdit->blockSignals( true );
 
-    // SET Checked/Unchecked
+	int start = mFilter->RelativeStartDays();
+	mRelativeStart->setText( isDefaultValue( start ) ? "" : n2q( start ) );
+
+	int stop = mFilter->RelativeStopDays();
+	mRelativeStop->setText( isDefaultValue( stop ) ? "" : n2q( stop ) );
+
+	QDateTime dt = mFilter->RelativeReferenceTime();
+	mRefDateTimeEdit->setDateTime( dt );
+
     mUseCurrentDateTime->setChecked( mFilter->UseCurrentTime() );
+
+	mRelativeStart->blockSignals( false );
+	mRelativeStop->blockSignals( false );
+	mRefDateTimeEdit->blockSignals( false );
 }
 
 

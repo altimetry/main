@@ -2621,6 +2621,7 @@ void CMapWidget::CreateRenderWidgets( QStatusBar *bar, QProgressBar *&progress, 
 		"events. When not checked, no rendering is done. This allows you "
 		"to add a large number of layers and symbolize them before rendering." ) );
 	box->setToolTip( tr( "Toggle map rendering" ) );
+	box->setFocusPolicy( Qt::NoFocus );
 }
 
 
@@ -3062,6 +3063,8 @@ void CMapWidget::CreateCoordinatesWidget( QStatusBar *bar, QLineEdit *&coords, Q
 	coords->setContentsMargins( 0, 0, 0, 0 );
 	coords->setAlignment( Qt::AlignCenter );
 	SetReadOnlyEditor( coords, true );
+	coords->setFocusPolicy( Qt::NoFocus );
+
 
 	// Coordinates format possible values: "DM", "DMS", "Decimal"
 	//
@@ -3073,6 +3076,7 @@ void CMapWidget::CreateCoordinatesWidget( QStatusBar *bar, QLineEdit *&coords, Q
 	format_button->setObjectName( "format" );
     format_button->setMaximumWidth( 40 );
     format_button->setMaximumHeight( 20 );
+	format_button->setFocusPolicy( Qt::NoFocus );
 }
 
 

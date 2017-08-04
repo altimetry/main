@@ -46,6 +46,7 @@ QGroupBox* CBasicLogShell::CreateDebugWidgets( const std::vector<std::string> &l
     mMaxMsgs->setText( n2s<std::string>( smMaxMsgsPerSec ).c_str() );
     mMaxMsgs->setToolTip( "Default: " + t2q( n2s<std::string >( smDefaultMaxMsgsPerSec ) ) + ". A big number can hang the application" );
     MaxMsgs_label->setBuddy( mMaxMsgs );
+	mMaxMsgs->setFocusPolicy( Qt::NoFocus );
     QPushButton *set_button = new QPushButton( "Set" );
     set_button->setFocusPolicy( Qt::NoFocus );
 
@@ -66,6 +67,7 @@ QGroupBox* CBasicLogShell::CreateDebugWidgets( const std::vector<std::string> &l
 	"", nullptr, 2, 2, 2, 2, 2 );
 
 	box->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Maximum );
+	box->setFocusPolicy( Qt::NoFocus );
 
 	return box;
 }

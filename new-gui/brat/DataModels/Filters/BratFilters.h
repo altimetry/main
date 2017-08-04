@@ -97,11 +97,14 @@ class CBratFilter
     friend class CBratFilters;
 
 
-public:
-
 	/////////////////////////////
     //		static members
 	/////////////////////////////
+	
+	static QDateTime smDateTimeMin;
+	static QDateTime smDateTimeMax;
+
+public:
 
 	static inline CDate q2brat( const QDateTime &q )
 	{
@@ -123,6 +126,16 @@ public:
 			QDate( b.GetYear(), b.GetMonth(), b.GetDay() ), 
 			QTime( b.GetHour(), b.GetMinute(), b.GetSecond(), b.GetMuSecond() ) );
 	}
+
+
+
+	static void SetRelativeTimesValidationRange( const QDateTime &m, const QDateTime &M );
+
+
+	static QDateTime CorrectDateTime( const QDateTime &dt );
+
+
+	static int DaysOverflow( const QDateTime &dt );
 
 
 protected:
@@ -253,19 +266,12 @@ public:
 	int RelativeStartDays() const { return mRelativeStartDays; }
     int RelativeStopDays() const { return mRelativeStopDays; }
 	bool UseCurrentTime() const { return mUseCurrentTime; }
-	QDateTime RelativeReferenceTime() const { return mRelativeReferenceTime; }
+	const QDateTime& RelativeReferenceTime() const { return mRelativeReferenceTime; }
 
 
 	//setters
 
 	void SetDefaultValues();
-
-	void EnableRelativeTimes( bool enable ) 
-	{ 
-		mUsingRelativeTimes = enable; 
-		if ( enable )
-			mUsingCyclePass = false;
-	}
 
 	//...absolute times
 
@@ -279,14 +285,13 @@ public:
     int& StartPass() { return mStartPass; }
     int& StopPass() { return mStopPass; }
 
-	void Relative2AbsoluteTimes();
 
-	//...relative times
+	//...relative times	
+	// - see also static members
+	
+	void EnableRelativeTimes( bool enable );
 
-	int& RelativeStartDays() { return mRelativeStartDays; }
-    int& RelativeStopDays() { return mRelativeStopDays; }
-	bool& UseCurrentTime() { return mUseCurrentTime; }
-	QDateTime& RelativeReferenceTime() { return mRelativeReferenceTime; }
+	bool UpdateRelative2AbsoluteTimes( int start, int stop, bool use_current, const QDateTime &relative_ref = QDateTime::currentDateTime() );
 
 
 
@@ -302,8 +307,8 @@ protected:
 	bool GetTimeBounds( CDate &Start, CDate &Stop, const std::string &label_for_cycle_pass, std::string &error_msg ) const;
 
 	void SetDefaultCyclePassValues();
-	void SetDefaultDateValues();
-	void SetDefaultRelativeDays();
+
+	void UpdateRelativeDaysFromAbsoluteTimes();
 
 public:
 	std::pair< bool, bool > Apply( const CStringList& files_in, CStringList& files_out, std::string &error_msg, CProgressInterface *progress ) const;

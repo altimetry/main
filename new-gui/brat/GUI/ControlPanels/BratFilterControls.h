@@ -106,6 +106,7 @@ class CBratFilterControls : public CDesktopControlsPanel
     QLineEdit *mRelativeStop = nullptr;
     QDateTimeEdit *mRefDateTimeEdit = nullptr;
     QCheckBox *mUseCurrentDateTime = nullptr;
+
     QGroupBox *mRelativeTimesBox = nullptr;
 
     QWidget *mWhenBox = nullptr;
