@@ -347,9 +347,9 @@ bool CDesktopControlsPanel::DrawDatasetTracks( const CDataset *dataset, bool for
 			record = product_info.Record();
 
 			std::string lonlat_error_msg, time_error_msg;
-			std::pair<CAliasInfo, CAliasInfo> lon_lat_alias_info = product_info.FindLonLatFields( mModel.Settings().mUseUnsupportedFields, 
+			std::pair<CAliasInfo, CAliasInfo> lon_lat_alias_info = product_info.FindLonLatFields( mModel.Settings().UseUnsupportedFields(), 
 				(bool&)alias_used[ eAliasIndexLon ], (bool&)alias_used[ eAliasIndexLat ], lonlat_error_msg );
-			CAliasInfo time_alias_info = product_info.FindTimeField( mModel.Settings().mUseUnsupportedFields, (bool&)alias_used[ eAliasIndexTime ], time_error_msg );
+			CAliasInfo time_alias_info = product_info.FindTimeField( mModel.Settings().UseUnsupportedFields(), (bool&)alias_used[ eAliasIndexTime ], time_error_msg );
 			if ( lon_lat_alias_info.first.Empty() || lon_lat_alias_info.second.Empty() || time_alias_info.Empty() )
 			{
 				skip_iteration = true;

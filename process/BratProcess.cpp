@@ -841,15 +841,15 @@ int32_t CBratProcess::GetDefinition
 //----------------------------------------
 int32_t CBratProcess::GetDefinition
 		(CFileParams		&params,
-		 const std::string		&prefix,
+		 const std::string	&prefix,
 		 CExpression    	&field,
-		 std::string			*name,
+		 std::string		*name,
 		 NetCDFVarKind		*kind,
 		 CUnit			*unit,
-		 std::string			*title,
-		 std::string			*comment,
-		 std::string			*dataFormat,
-		 uint32_t               *group,
+		 std::string	*title,
+		 std::string	*comment,
+		 std::string	*dataFormat,
+		 uint32_t       *group,
 		 double			&min,
 		 double			&max,
 		 uint32_t		&count,
@@ -1909,10 +1909,10 @@ std::string CBratProcess::PositionModeStr(CBratProcess::PositionMode	mode)
 }
 //----------------------------------------
 bool CBratProcess::CheckPositionValue
-		(double		value,
-		 double		min,
-		 double		step,
-		 uint32_t	count,
+		(double	value,
+		 double	min,
+		 double	step,
+		 size_t	count,
 		 CBratProcess::PositionMode	mode,
 		 uint32_t	&position)
 {
@@ -2109,58 +2109,58 @@ void CBratProcess::ConstructProduct(CStringList& fileName, bool createVirtualFie
   ConstructProduct(stringArray, createVirtualField); 
 }
 //----------------------------------------
-bool CBratProcess::Initialize(std::string& msg)
+bool CBratProcess::Initialize( std::string& msg )
 {
-    CTrace::GetInstance();
+	CTrace::GetInstance();
 
-  // Register Brat algorithms
-  CBratAlgorithmBase::RegisterCAlgorithms();
+	// Register Brat algorithms
+	// 
+	CBratAlgorithmBase::RegisterCAlgorithms();
 
-  // Load aliases dictionnary
-  std::string errorMsg;
-  CAliasesDictionary::LoadAliasesDictionary(&errorMsg, false);
-  if (!(errorMsg.empty())) 
-  {
-    std::string msg = CTools::Format("WARNING: %s",  errorMsg.c_str());
-    CTrace::Tracer(1, msg);
-  }
-  
-  GetParameters();
-  
-  //GetFieldWithNoXYCommonDim();
-  
-  //m_fieldWithNoXYCommonDim.Dump(*(CTrace::GetInstance()->GetDumpContext()));
+	// Load aliases dictionary
+	// 
+	std::string errorMsg;
+	CAliasesDictionary::LoadAliasesDictionary( &errorMsg, false );
+	if ( !errorMsg.empty() )
+	{
+		std::string msg = CTools::Format( "WARNING: %s", errorMsg.c_str() );
+		CTrace::Tracer( 1, msg );
+	}
 
-  ReplaceAxisDefinition();
+	GetParameters();
 
-  BeforeBuildListFieldsToRead();
-  BuildListFieldsToRead();
-  AfterBuildListFieldsToRead();
+	//GetFieldWithNoXYCommonDim();	m_fieldWithNoXYCommonDim.Dump(*(CTrace::GetInstance()->GetDumpContext()));
 
-  ConstructProduct(m_inputFiles, true, mCheckedDataset );
+	ReplaceAxisDefinition();
 
-  // if no field in Select expression, test if it is always true or always false
-  if (!m_select.HasFieldNames())
-  {
-    
-    // And get the result
-    CExpressionValue exprValueSelect = m_select.Execute(m_product);
-    
-    if (exprValueSelect.IsTrue() == 1)
-    {
-      m_alwaysTrue = true;
-    }
-    else
-    {
-      m_alwaysFalse = true;
-      msg.append("======> 'Selection' expression (SELECT parameter) is always 'false'. No data to select." 
-                     "To select data, you have to change 'Selection expression'. <======\n");
-      return false;
+	BeforeBuildListFieldsToRead();
+	BuildListFieldsToRead();
+	AfterBuildListFieldsToRead();
 
-    }
-  }
-  return true;
+	ConstructProduct( m_inputFiles, true, mCheckedDataset );
 
+	// if no field in Select expression, test if it is always true or always false
+	// 
+	if ( !m_select.HasFieldNames() )
+	{
+		// And get the result
+		// 
+		CExpressionValue exprValueSelect = m_select.Execute( m_product );
+
+		if ( exprValueSelect.IsTrue() == 1 )
+		{
+			m_alwaysTrue = true;
+		}
+		else
+		{
+			m_alwaysFalse = true;
+			msg.append( "======> 'Selection' expression (SELECT parameter) is always 'false'. No data to select."
+				"To select data, you have to change 'Selection expression'. <======\n" );
+			return false;
+		}
+	}
+
+	return true;
 }
 
 //----------------------------------------
@@ -2731,7 +2731,7 @@ void CBratProcess::AddVarsFromNetCdf()
 
 	size_t nbExpr = m_fields.size();
 
-	// Add each expression (as NetCdf variable) to the output Netcdf fle
+	// Add each expression (as NetCdf variable) to the output Netcdf file
 	for ( uint32_t i = 0; i < nbExpr; i++ )
 	{
 		CStringArray fieldDims;
@@ -3049,7 +3049,7 @@ CDoubleArrayOb* CBratProcess::GetDoubleArrayOb(CBratObject* ob, bool withExcept 
 void CBratProcess::MergeDataValue
 		(double* data,
 		 double* values,
-		 uint32_t nbValues,
+		 size_t nbValues,
          uint32_t indexExpr,
 		 double* countValues,
          double* meanValues,
@@ -3328,12 +3328,7 @@ void CBratProcess::MergeDataValue
 
 
 //----------------------------------------
-void CBratProcess::FinalizeMergingOfDataValues
-		(double* data,
-     uint32_t indexExpr,
-		 uint32_t nbValues,
-		 double* countValues,
-         double* meanValues)
+void CBratProcess::FinalizeMergingOfDataValues(double* data, size_t indexExpr, size_t nbValues, double* countValues, double* meanValues)
 
 {
   uint32_t indexValues = 0;

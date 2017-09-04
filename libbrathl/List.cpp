@@ -1060,7 +1060,7 @@ DoublePtr CDoublePtrArray::NewMatrix(double initialValue /* = CTools::m_defaultV
     return NULL;
   }
 
-  uint32_t nbData = m_matrixDims.GetProductValues();
+  uint32_t nbData = m_matrixDims.GetValuesProduct();
   
   if (nbData <= 0)
   {
@@ -1095,7 +1095,7 @@ void CDoublePtrArray::Dump(std::ostream& fOut /* = std::cerr */) const
     DoublePtr matrix = *it;
     if ( matrix != NULL)
     {
-      uint32_t nbValues = m_matrixDims.GetProductValues();
+      uint32_t nbValues = m_matrixDims.GetValuesProduct();
 
       for (uint32_t i = 0 ; i < nbValues ; i++)
       {
@@ -1177,7 +1177,7 @@ void CArrayDoublePtrArray::GetMinMaxValues(double& min, double& max, bool recalc
         continue;
       }
 
-      uint32_t nbValues = m_matrixDims.GetProductValues();
+      uint32_t nbValues = m_matrixDims.GetValuesProduct();
 
       for (uint32_t indexValues = 0 ; indexValues < nbValues; indexValues++)
       {
@@ -1221,7 +1221,7 @@ void CArrayDoublePtrArray::AdjustValidMinMax(double value)
 }
 
 //----------------------------------------
-void CArrayDoublePtrArray::ResizeRC(uint32_t nrows, uint32_t ncols)
+void CArrayDoublePtrArray::ResizeRC(size_t nrows, size_t ncols)
 {
   this->resize(nrows);
 
@@ -1231,7 +1231,7 @@ void CArrayDoublePtrArray::ResizeRC(uint32_t nrows, uint32_t ncols)
                                     nrows, ncols), BRATHL_LOGIC_ERROR);
   }
 
-  for (uint32_t i = 0; i < nrows; ++i)
+  for (size_t i = 0; i < nrows; ++i)
   {
     this->at(i).resize(ncols, NULL);
   }
@@ -1252,11 +1252,11 @@ void CArrayDoublePtrArray::Set(const CArrayDoublePtrArray& a)
   
   ResizeRC(nRows, nCols);
 
-  uint32_t nbData =  m_matrixDims.GetProductValues();
+  uint32_t nbData =  m_matrixDims.GetValuesProduct();
 
-  for (uint32_t i = 0 ; i < nRows ; i++)
+  for (size_t i = 0 ; i < nRows ; i++)
   {
-    for (uint32_t j = 0; j < nCols; j++)
+    for (size_t j = 0; j < nCols; j++)
     {
       DoublePtr aValues = a[i][j];
       if (aValues == NULL)
@@ -1285,34 +1285,25 @@ const CArrayDoublePtrArray& CArrayDoublePtrArray::operator =(const CArrayDoubleP
 
 void CArrayDoublePtrArray::RemoveAll()
 {
-    
-  CArrayDoublePtrArray::iterator it;
+	for ( iterator it = begin(); it != end(); it++ )
+	{
+		Remove( *it );
+	}
 
-  for (it = begin() ; it != end() ; it++)
-  {
-    Remove(*it);
-  }
-
-  arraydoubleptrarray::clear();
-
+	clear();
 }
 //----------------------------------------
-void CArrayDoublePtrArray::Remove(doubleptrarray& vect)
+void CArrayDoublePtrArray::Remove( doubleptrarray& vect )
 {
+	if ( m_bDelete )
+	{
+		for ( doubleptrarray::iterator it = vect.begin(); it != vect.end(); it++ )
+		{
+			Delete( *it );
+		}
+	}
 
-  doubleptrarray::iterator it;
-
-  if (m_bDelete)
-  {
-    for (it = vect.begin() ; it != vect.end() ; it++)
-    {
-      Delete(*it);
-    }
-
-  }
-
-  vect.clear();
-
+	vect.clear();
 }
 
 //----------------------------------------
@@ -1327,7 +1318,7 @@ void CArrayDoublePtrArray::Delete(DoublePtr matrix)
 }
 
 //----------------------------------------
-uint32_t CArrayDoublePtrArray::GetMatrixDim(uint32_t row)
+size_t CArrayDoublePtrArray::GetMatrixDim(size_t row)
 {
 
   if (row >= GetMatrixNumberOfDims())
@@ -1367,7 +1358,7 @@ DoublePtr CArrayDoublePtrArray::NewMatrix(double initialValue /* = CTools::m_def
     return NULL;
   }
 
-  uint32_t nbData = m_matrixDims.GetProductValues();
+  uint32_t nbData = m_matrixDims.GetValuesProduct();
   
   if (nbData <= 0)
   {
@@ -1443,7 +1434,7 @@ void CArrayDoublePtrArray::Dump(std::ostream& fOut /* = std::cerr */) const
       DoublePtr matrix = this->at(row).at(col);
       if ( matrix != NULL)
       {
-        uint32_t nbValues = m_matrixDims.GetProductValues();
+        uint32_t nbValues = m_matrixDims.GetValuesProduct();
 
         for (uint32_t i = 0 ; i < nbValues ; i++)
         {
@@ -1555,7 +1546,7 @@ void CArrayDoubleArray::AdjustValidMinMax(double value)
 }
 
 //----------------------------------------
-void CArrayDoubleArray::ResizeRC(uint32_t nrows, uint32_t ncols)
+void CArrayDoubleArray::ResizeRC(size_t nrows, size_t ncols)
 {
   this->resize(nrows);
 
@@ -1565,7 +1556,7 @@ void CArrayDoubleArray::ResizeRC(uint32_t nrows, uint32_t ncols)
                                     nrows, ncols), BRATHL_LOGIC_ERROR);
   }
 
-  for (uint32_t i = 0; i < nrows; ++i)
+  for (size_t i = 0; i < nrows; ++i)
   {
     this->at(i).resize(ncols);
   }
@@ -1584,9 +1575,9 @@ void CArrayDoubleArray::Set(const CArrayDoubleArray& a)
   
   ResizeRC(nRows, nCols);
 
-  for (uint32_t i = 0 ; i < nRows ; i++)
+  for (size_t i = 0 ; i < nRows ; i++)
   {
-    for (uint32_t j = 0; j < nCols; j++)
+    for (size_t j = 0; j < nCols; j++)
     {
       (*this)[i][j] = a[i][j];;
     }       
@@ -1606,16 +1597,12 @@ const CArrayDoubleArray& CArrayDoubleArray::operator =(const CArrayDoubleArray& 
 
 void CArrayDoubleArray::RemoveAll()
 {
-    
-  CArrayDoubleArray::iterator it;
+	for ( iterator it = begin(); it != end(); it++ )
+	{
+		it->clear();
+	}
 
-  for (it = begin() ; it != end() ; it++)
-  {
-    it->clear();
-  }
-
-  arraydoublearray::clear();
-
+	clear();
 }
 
 /*
@@ -1917,7 +1904,7 @@ void CMatrix::Dump(std::ostream& fOut /* = std::cerr */) const
 //-------------------------------------------------------------
 
 //----------------------------------------
-CMatrixDoublePtr::CMatrixDoublePtr(uint32_t nrows, uint32_t ncols)
+CMatrixDoublePtr::CMatrixDoublePtr(size_t nrows, size_t ncols)
       : CMatrix()
 {
   m_data.ResizeRC(nrows, ncols);
@@ -1950,7 +1937,7 @@ const CMatrixDoublePtr& CMatrixDoublePtr::operator =(const CMatrixDoublePtr& m)
 
 }
 //----------------------------------------
-DoublePtr CMatrixDoublePtr::operator() (unsigned row, unsigned col)
+DoublePtr CMatrixDoublePtr::operator() (size_t row, size_t col)
 {
   if (row >= GetNumberOfRows() || col >= GetNumberOfCols())
   {
@@ -1962,7 +1949,7 @@ DoublePtr CMatrixDoublePtr::operator() (unsigned row, unsigned col)
 }
 
 //----------------------------------------
-DoublePtr CMatrixDoublePtr::operator() (unsigned row, unsigned col) const
+DoublePtr CMatrixDoublePtr::operator() (size_t row, size_t col) const
 {
   if (row >= GetNumberOfRows() || col >= GetNumberOfCols())
   {
@@ -1973,7 +1960,7 @@ DoublePtr CMatrixDoublePtr::operator() (unsigned row, unsigned col) const
   return m_data[row][col];
 }
 //----------------------------------------
-doubleptrarray& CMatrixDoublePtr::operator[](const uint32_t& row)
+doubleptrarray& CMatrixDoublePtr::operator[](const size_t & row)
 {
   if (row >= GetNumberOfRows() )
   {
@@ -1985,7 +1972,7 @@ doubleptrarray& CMatrixDoublePtr::operator[](const uint32_t& row)
 }
 
 //----------------------------------------
-const doubleptrarray& CMatrixDoublePtr::operator[](const uint32_t & row) const
+const doubleptrarray& CMatrixDoublePtr::operator[](const size_t &row) const
 {
   if (row >= GetNumberOfRows() )
   {
@@ -1997,7 +1984,7 @@ const doubleptrarray& CMatrixDoublePtr::operator[](const uint32_t & row) const
 }
 
 //----------------------------------------
-void CMatrixDoublePtr::Set(uint32_t& row, uint32_t& col, DoublePtr x)
+void CMatrixDoublePtr::Set(size_t &row, size_t &col, double* x)
 {
   if (row >= GetNumberOfRows() || col >= GetNumberOfCols())
   {
@@ -2008,7 +1995,7 @@ void CMatrixDoublePtr::Set(uint32_t& row, uint32_t& col, DoublePtr x)
   m_data[row][col] = x;
 }
 //----------------------------------------
-void CMatrixDoublePtr::SetMatrixDimsData(uint32_t nbValues)
+void CMatrixDoublePtr::SetMatrixDimsData(size_t nbValues)
 {
   m_data.GetMatrixDims()->RemoveAll();
   m_data.GetMatrixDims()->Insert(nbValues);
@@ -2047,9 +2034,9 @@ void CMatrixDoublePtr::ScaleDownData(double scaleFactor, double addOffset, doubl
   size_t nRows = this->GetNumberOfRows();
   size_t nCols = this->GetNumberOfCols();
 
-  for ( uint32_t row = 0 ; row < nRows ; row++ )
+  for ( size_t row = 0 ; row < nRows ; row++ )
   {
-    for ( uint32_t col = 0 ; col < nCols ; col++ )
+    for ( size_t col = 0 ; col < nCols ; col++ )
     {
       DoublePtr matrix = this->At(row, col);
       if ( matrix == NULL)
@@ -2057,9 +2044,9 @@ void CMatrixDoublePtr::ScaleDownData(double scaleFactor, double addOffset, doubl
         continue;
       }
 
-      uint32_t nbValues = GetMatrixNumberOfValuesData();
+	  size_t nbValues = GetMatrixNumberOfValuesData();
 
-      for (uint32_t i = 0 ; i < nbValues ; i++)
+      for (size_t i = 0 ; i < nbValues ; i++)
       {
         double value = matrix[i];
 
@@ -2084,9 +2071,9 @@ void CMatrixDoublePtr::ScaleUpData(double scaleFactor, double addOffset, double 
   size_t nRows = this->GetNumberOfRows();
   size_t nCols = this->GetNumberOfCols();
 
-  for ( uint32_t row = 0 ; row < nRows ; row++ )
+  for ( size_t row = 0 ; row < nRows ; row++ )
   {
-    for ( uint32_t col = 0 ; col < nCols ; col++ )
+    for ( size_t col = 0 ; col < nCols ; col++ )
     {
 
 
@@ -2096,9 +2083,9 @@ void CMatrixDoublePtr::ScaleUpData(double scaleFactor, double addOffset, double 
         continue;
       }
 
-      uint32_t nbValues = GetMatrixNumberOfValuesData();
+	  size_t nbValues = GetMatrixNumberOfValuesData();
 
-      for (uint32_t i = 0 ; i < nbValues ; i++)
+      for (size_t i = 0 ; i < nbValues ; i++)
       {
         double value = matrix[i];
 
@@ -2151,7 +2138,7 @@ void CMatrixDoublePtr::Dump(std::ostream& fOut /* = std::cerr */) const
 //-------------------------------------------------------------
 
 //----------------------------------------
-CMatrixDouble::CMatrixDouble(uint32_t nrows, uint32_t ncols)
+CMatrixDouble::CMatrixDouble(size_t nrows, size_t ncols)
       : CMatrix()
 {
   m_data.ResizeRC(nrows, ncols);
@@ -2184,7 +2171,7 @@ const CMatrixDouble& CMatrixDouble::operator =(const CMatrixDouble& m)
 
 }
 //----------------------------------------
-DoublePtr CMatrixDouble::operator() (unsigned row, unsigned col)
+double* CMatrixDouble::operator() (size_t row, size_t col)
 {
   if (row >= GetNumberOfRows() || col >= GetNumberOfCols())
   {
@@ -2196,7 +2183,7 @@ DoublePtr CMatrixDouble::operator() (unsigned row, unsigned col)
 }
 
 //----------------------------------------
-DoublePtr CMatrixDouble::operator() (unsigned row, unsigned col) const
+double* CMatrixDouble::operator() (size_t row, size_t col) const
 {
   if (row >= GetNumberOfRows() || col >= GetNumberOfCols())
   {
@@ -2204,10 +2191,10 @@ DoublePtr CMatrixDouble::operator() (unsigned row, unsigned col) const
                                     row, col, GetNumberOfRows(), GetNumberOfCols()), BRATHL_LOGIC_ERROR);
   }
 
-  return const_cast<DoublePtr const>(&m_data[row][col]);;
+  return const_cast<double *const>(&m_data[row][col]);;
 }
 //----------------------------------------
-doublearray& CMatrixDouble::operator[](const uint32_t& row)
+std::vector< double >& CMatrixDouble::operator[](const size_t &row)
 {
   if (row >= GetNumberOfRows() )
   {
@@ -2219,7 +2206,7 @@ doublearray& CMatrixDouble::operator[](const uint32_t& row)
 }
 
 //----------------------------------------
-const doublearray& CMatrixDouble::operator[](const uint32_t & row) const
+const std::vector< double >& CMatrixDouble::operator[](const size_t &row) const
 {
   if (row >= GetNumberOfRows() )
   {
@@ -2231,7 +2218,7 @@ const doublearray& CMatrixDouble::operator[](const uint32_t & row) const
 }
 
 //----------------------------------------
-void CMatrixDouble::Set(uint32_t& row, uint32_t& col, DoublePtr x)
+void CMatrixDouble::Set(size_t &row, size_t &col, double* x)
 {
   if (row >= GetNumberOfRows() || col >= GetNumberOfCols())
   {
@@ -2253,9 +2240,9 @@ void CMatrixDouble::ScaleDownData(double scaleFactor, double addOffset, double d
   size_t nRows = this->GetNumberOfRows();
   size_t nCols = this->GetNumberOfCols();
 
-  for ( uint32_t row = 0 ; row < nRows ; row++ )
+  for ( size_t row = 0 ; row < nRows ; row++ )
   {
-    for ( uint32_t col = 0 ; col < nCols ; col++ )
+    for ( size_t col = 0 ; col < nCols ; col++ )
     {
       double value = *(this->At(row, col));
 
@@ -2279,9 +2266,9 @@ void CMatrixDouble::ScaleUpData(double scaleFactor, double addOffset, double def
   size_t nRows = this->GetNumberOfRows();
   size_t nCols = this->GetNumberOfCols();
 
-  for ( uint32_t row = 0 ; row < nRows ; row++ )
+  for ( size_t row = 0 ; row < nRows ; row++ )
   {
-    for ( uint32_t col = 0 ; col < nCols ; col++ )
+    for ( size_t col = 0 ; col < nCols ; col++ )
     {
       double value = *(this->At(row, col));
 

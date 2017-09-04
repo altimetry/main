@@ -26,8 +26,8 @@
 
 void CViewMapsLayerDialog::CreateWidgets( bool enable_uri )
 {
-	mViewsUseVectorLayer = new QRadioButton( "Use vector layers" );
-	mViewsUseRasterLayer = new QRadioButton( "Use raster layers" );
+	mViewsUseVectorLayer = new QRadioButton( "Use vector layer" );
+	mViewsUseRasterLayer = new QRadioButton( "Use application local raster file" );
 	mViewsUseRasterLayerURI = new QRadioButton( "Use application raster layer URI" );
 	mViewsUseRasterLayerURI->setToolTip( "This option is valid only if a layer URI is defined in the application settings" );
 

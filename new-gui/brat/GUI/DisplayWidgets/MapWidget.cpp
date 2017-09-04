@@ -99,6 +99,8 @@ std::string CMapWidget::smQgisPluginsDir;
 //static 
 std::string CMapWidget::smVectorLayerPath;
 //static 
+std::string CMapWidget::smDefaultRasterLayerPath;
+//static 
 std::string CMapWidget::smRasterLayerPath;
 //static
 std::string CMapWidget::smURLRasterLayerPath;
@@ -106,11 +108,13 @@ std::string CMapWidget::smURLRasterLayerPath;
 
 void CMapWidget::SetQGISDirectories(const std::string &QgisPluginsDir,
 	const std::string &VectorLayerPath,
-	const std::string &RasterLayerPath ,
+	const std::string &DefaultRasterLayerPath,
+	const std::string &RasterLayerPath,
 	const std::string &URLRasterLayerPath)
 {
 	smQgisPluginsDir = QgisPluginsDir;
 	smVectorLayerPath = VectorLayerPath;
+	smDefaultRasterLayerPath = DefaultRasterLayerPath;
 	smRasterLayerPath = RasterLayerPath;
 	smURLRasterLayerPath = URLRasterLayerPath;
 }
@@ -359,7 +363,7 @@ void CMapWidget::Init()
 	Q_UNUSED( preg );
 
     assert__( mLayerBaseType != eVectorLayer || IsFile( smVectorLayerPath ) );
-    assert__( mLayerBaseType != eRasterLayer || IsFile( smRasterLayerPath ) );
+    assert__( mLayerBaseType != eRasterLayer || IsFile( smDefaultRasterLayerPath ) );
 		
     if ( mLayerBaseType == eVectorLayer )
     {
@@ -376,31 +380,32 @@ void CMapWidget::Init()
     else
     {
         std::string raster_url = mLayerBaseType == eRasterLayer ? smRasterLayerPath : smURLRasterLayerPath;        //"/home/brat/s3-altb/project/dev/support/data/WebMapServices_xml_files/map_GoogleMaps_jpg.xml";
-        std::string provider = mLayerBaseType == eRasterLayer ? "" : "wms";
+		const bool using_web_service = mLayerBaseType == eRasterURL || GetLastExtensionFromPath( smRasterLayerPath ) == "xml";
+        std::string provider = using_web_service ? "wms" : "";
         mMainRasterLayer = AddRasterLayer( t2q( raster_url ), "raster", t2q( provider ) );
 		if ( mMainRasterLayer )
 		{
-			//auto crs = mMainRasterLayer->crs();
-			//setMapUnits( crs.mapUnits() );
-			//auto crs = mMainRasterLayer->crs();
-
-            //mMainRasterLayer->setCrs( mapSettings().destinationCrs() );
-            //setDestinationCrs( mMainRasterLayer->crs() );
-        }
-		else if ( mLayerBaseType == eRasterURL )
+			LOG_TRACE( "Raster layer created successfully." );
+		}
+		else if ( mLayerBaseType == eRasterLayer || mLayerBaseType == eRasterURL )
 		{
-			if ( !IsFile( smRasterLayerPath ) )
+			if ( !IsFile( smDefaultRasterLayerPath ) )
 				throw CException( "Loading layer from URL or file failed. Cannot continue." );
 
 			mLayerBaseType = eRasterLayer;
-            // mMainRasterLayer = AddRasterLayer( t2q( "L:/project/dev/source/data/maps/raster-image/world_GoogleMaps_TMS.xml" ), "raster", "" );
-            mMainRasterLayer = AddRasterLayer( t2q( smRasterLayerPath ), "raster", "" );
-			LOG_WARN( "Raster layer URL seems invalid. Tried to load the default layer instead." );
+            mMainRasterLayer = AddRasterLayer( t2q( smDefaultRasterLayerPath ), "raster", "" );
+
+			//TODO: comment in when QGIS authentication problem for wms is solved
+			// 
+			//QTimer::singleShot( 2000, []()	//if at start-up, the log window is not ready yet, give it some time
+			//{
+				LOG_WARN( "Raster layer: local file or URL seems invalid, please check the application settings. Loaded default layer instead." );
+			//});
 		}
 		mMainLayer = mMainRasterLayer;
 	}
 
-	//addRasterLayer( "http://server.arcgisonline.com/arcgis/rest/services/ESRI_Imagery_World_2D/MapServer?f=json&pretty=true", "raster", "" );
+	//mMainRasterLayer = AddRasterLayer( "http://server.arcgisonline.com/arcgis/rest/services/ESRI_Imagery_World_2D/MapServer?f=json&pretty=true", "raster", "wms" );
 	//crs=EPSG:900913&dpiMode=7&featureCount=10&format=image/png&layers=precipitation&styles=&url=http://wms.openweathermap.org/service
 
     //mMainLayer =  new QgsVectorLayer(mVectorLayerPath, myLayerBaseName, myProviderName);

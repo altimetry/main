@@ -692,7 +692,7 @@ class CNetCDFDimension : public CBratObject
 public:
 
   CNetCDFDimension();
-  CNetCDFDimension(const std::string& name, int32_t length, bool isUnlimited = false);
+  CNetCDFDimension(const std::string& name, int_t length, bool isUnlimited = false);
   CNetCDFDimension(const std::string& name, CNetCDFDimension& from);
   CNetCDFDimension(CNetCDFDimension& d);
 
@@ -704,8 +704,8 @@ public:
   bool IsUnlimited() { return m_isUnlimited;};
   void SetIsUnlimited(bool value) { m_isUnlimited = value; };
   
-  int32_t GetLength() { return m_length;};
-  void SetLength(int32_t value) { m_length = value; };
+  int_t GetLength() { return m_length;};
+  void SetLength(int_t value) { m_length = value; };
   
   int32_t GetDimId() { return m_dimId; };
   void SetDimId(int32_t value) { m_dimId = value; };
@@ -753,7 +753,7 @@ protected:
 protected:
 
   std::string m_name;
-  int32_t m_length;
+  int_t m_length;
 
   int32_t m_dimId;
 

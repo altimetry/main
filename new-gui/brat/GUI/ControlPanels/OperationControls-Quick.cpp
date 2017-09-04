@@ -111,12 +111,12 @@ const std::string& COperationControls::QuickFindAliasValue( const CProductInfo &
 
 CAliasInfo COperationControls::QuickFindField( const CProductInfo &pi, EPredefinedVariables index, bool &alias_used, std::string &field_error_msg )
 {
-    return pi.FindField( QuickVariableAlias( index ), mModel.Settings().mUseUnsupportedFields, alias_used, field_error_msg );
+    return pi.FindField( QuickVariableAlias( index ), mModel.Settings().UseUnsupportedFields(), alias_used, field_error_msg );
 }
 
 CAliasInfo COperationControls::QuickFindField( const CProductInfo &pi, EPredefinedSelectionCriteria index, bool &alias_used, std::string &field_error_msg )
 {
-    return pi.FindField( QuickCriteriaAlias( index ), mModel.Settings().mUseUnsupportedFields, alias_used, field_error_msg );
+    return pi.FindField( QuickCriteriaAlias( index ), mModel.Settings().UseUnsupportedFields(), alias_used, field_error_msg );
 }
 
 
@@ -403,7 +403,7 @@ void COperationControls::HandleSelectedDatasetChanged_Quick( int dataset_index )
 
 		std::string field_error_msg;
 		bool lon_alias_used, lat_alias_used;
-        std::pair<CAliasInfo, CAliasInfo> fields = pi.FindLonLatFields( mModel.Settings().mUseUnsupportedFields, lon_alias_used, lat_alias_used, field_error_msg );
+        std::pair<CAliasInfo, CAliasInfo> fields = pi.FindLonLatFields( mModel.Settings().UseUnsupportedFields(), lon_alias_used, lat_alias_used, field_error_msg );
 		if ( !fields.first.Empty() && !fields.second.Empty() )
 		{
 			has_lon_lat_fields = true;
@@ -642,7 +642,7 @@ COperation* COperationControls::CreateQuickOperation( CMapTypeOp::ETypeOp type )
 	bool lon_alias_used, lat_alias_used;
 	std::string field_error_msg;
     std::pair<CAliasInfo, CAliasInfo> lon_lat_fields = 
-		pi.FindLonLatFields( mModel.Settings().mUseUnsupportedFields, lon_alias_used, lat_alias_used, field_error_msg );		assert__( !lon_lat_fields.first.Empty() && !lon_lat_fields.second.Empty() );
+		pi.FindLonLatFields( mModel.Settings().UseUnsupportedFields(), lon_alias_used, lat_alias_used, field_error_msg );		assert__( !lon_lat_fields.first.Empty() && !lon_lat_fields.second.Empty() );
 
 	if ( !operation->HasFormula() )
 	{

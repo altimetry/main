@@ -146,10 +146,13 @@ public:
     bool SetWorkspacesDirectory( const std::string &path );
 
 
+	std::string DefaulLocalFileRasterLayerPath() const;
 
     const std::string& RasterLayerPath() const { return mRasterLayerPath; }
 
-    const std::string& URLRasterLayerPath() const { return mURLRasterLayerPath; }
+	void SetRasterLayerPath( const std::string &path ) { mRasterLayerPath = path; }
+
+	const std::string& URLRasterLayerPath() const { return mURLRasterLayerPath; }
 
     void SetURLRasterLayerPath( const std::string &path ) { mURLRasterLayerPath = path; }
 

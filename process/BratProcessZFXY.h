@@ -46,24 +46,24 @@ public:
   virtual int32_t Execute(std::string& msg);
 
   static bool LoessFilterGrid(CMatrix& matrix, CMatrix *result,
-		                                   bool circularX, int32_t waveLengthX,
-		                                   bool circularY, int32_t waveLengthY,
+		                                   bool circularX, int_t waveLengthX,
+		                                   bool circularY, int_t waveLengthY,
                                        bool smoothData, bool extrapolData);
 
 
   static bool LoessFilterGrid(CMatrixDoublePtr& matrix, CMatrixDoublePtr *result,
-		                                   bool circularX, int32_t waveLengthX,
-		                                   bool circularY, int32_t waveLengthY,
+		                                   bool circularX, int_t waveLengthX,
+		                                   bool circularY, int_t waveLengthY,
                                        bool smoothData, bool extrapolData);
 
   static bool LoessFilterGrid(CMatrixDouble& matrix, CMatrixDouble *result,
-		                                   bool circularX, int32_t waveLengthX,
-		                                   bool circularY, int32_t waveLengthY,
+		                                   bool circularX, int_t waveLengthX,
+		                                   bool circularY, int_t waveLengthY,
                                        bool smoothData, bool extrapolData);
 
   static bool LoessFilterGrid(double	*data, double	*result,
-		                                   int32_t nbX, bool circularX, int32_t waveLengthX,
-		                                   int32_t nbY, bool circularY, int32_t waveLengthY,
+		                                   int_t nbX, bool circularX, int_t waveLengthX,
+		                                   int_t nbY, bool circularY, int_t waveLengthY,
 		                                   bool smoothData, bool extrapolData);
 
 public:
@@ -79,14 +79,13 @@ protected:
   virtual void AddFieldIndexes(CFieldIndex* fieldIndex, CNetCDFVarDef* varDef);
   
 
-  virtual void GetParameters(const std::string &commandFileName);
-  virtual void GetParameters();
+  virtual void GetParameters(const std::string &commandFileName) override;
+  virtual void GetParameters() override;
 
   //virtual void CheckNetCdfFields(CStringArray& fields);
 
-  virtual void BuildListFieldsToRead();
-  virtual void BeforeBuildListFieldsToRead();
-  virtual void AfterBuildListFieldsToRead();
+  virtual void BeforeBuildListFieldsToRead() override;
+  virtual void AfterBuildListFieldsToRead() override;
 
   void AddComplementDimensionsFromNetCdf();
 
@@ -103,8 +102,6 @@ protected:
   CMatrixDoublePtr* NewMatrixDoublePtr();
   CMatrixDouble* NewMatrixDouble();
 
-  double* NewDoubleArray(uint32_t nbElts);
-
 
   void RegisterData();
 
@@ -113,19 +110,16 @@ protected:
   
   int32_t WriteData();
 
-  void GetDataValuesFromMatrix(uint32_t indexExpr, uint32_t xPos, uint32_t yPos, DoublePtr& dataValues, uint32_t& nbValues);
+  void GetDataValuesFromMatrix(size_t indexExpr, uint32_t xPos, uint32_t yPos, double *&dataValues, size_t& nbValues);
 
-  //void GetDataValuesFromMatrix(CMatrixDouble* matrix, uint32_t indexExpr, uint32_t xPos, uint32_t yPos, DoublePtr& dataValues, uint32_t& nbValues);
-  //void GetDataValuesFromMatrix(CMatrixDoublePtr* matrix, uint32_t indexExpr, uint32_t xPos, uint32_t yPos, DoublePtr& dataValues, uint32_t& nbValues);
-
-  void GetDataValuesFromMatrix(uint32_t indexExpr, uint32_t xPos, uint32_t yPos, 
-                              DoublePtr& dataValues, DoublePtr& countValues, DoublePtr& meanValues, uint32_t& nbValues);
+  void GetDataValuesFromMatrix(size_t indexExpr, uint32_t xPos, uint32_t yPos, double *&dataValues, 
+	  double *&countValues, double *&meanValues, size_t& nbValues);
 
   virtual void SubstituteAxisDim(const CStringArray& fieldDims, CStringArray& fieldDimsOut);
   virtual void OnAddDimensionsFromNetCdf();
 
 
-  bool CheckValuesSimilar(uint32_t indexExpr, double* dataValues, uint32_t nbValues, uint32_t xPos, uint32_t yPos, std::string& msg);
+  bool CheckValuesSimilar(uint32_t indexExpr, double* dataValues, size_t nbValues, uint32_t xPos, uint32_t yPos, std::string& msg);
   //bool CheckValuesSimilar(uint32_t indexExpr);
 
   /*
@@ -137,41 +131,27 @@ protected:
   double* ComputeMergeDataValueParameters(CRecordSet* recordSet, uint32_t index, double xPos, double yPos);
   
 
-  CMatrix* GetMatrix(uint32_t index, bool withExcept = true);
-  CMatrixDouble* GetMatrixDouble(uint32_t index, bool withExcept = true);
-  CMatrixDoublePtr* GetMatrixDoublePtr(uint32_t index, bool withExcept = true);
-
-  static CMatrix* GetMatrix(CBratObject* ob, bool withExcept = true);
-  static CMatrixDouble* GetMatrixDouble(CBratObject* ob, bool withExcept = true);
-  static CMatrixDoublePtr* GetMatrixDoublePtr(CBratObject* ob, bool withExcept = true);
-
-  bool IsMatrixDouble(uint32_t index);
-  bool IsMatrixDoublePtr(uint32_t index);
-
-  static bool IsMatrixDouble(CMatrix* matrix);
-  static bool IsMatrixDoublePtr(CMatrix* matrix);
-
-  static CUIntArray* CheckMatrixDataPtr(CUIntArray* matrixData);
-
-
+  CMatrix* GetMatrix( size_t index );
+  CMatrixDouble* GetMatrixDouble( size_t index );
+  CMatrixDoublePtr* GetMatrixDoublePtr( size_t index );
 
 protected:
 
   double m_xMin;
   double m_xMax;
-  uint32_t m_xCount;
+  size_t m_xCount;
   double m_xStep;
   bool m_xCircular;
-  int32_t	m_xLoessCutoff;
+  int32_t m_xLoessCutoff;
 
 
   std::string m_yComment;
   double m_yMin;
   double m_yMax;
-  uint32_t m_yCount;
+  size_t m_yCount;
   double m_yStep;
   bool m_yCircular;
-  int32_t	m_yLoessCutoff;
+  int32_t m_yLoessCutoff;
 
   CBratEmbeddedPythonProcess::PositionMode m_positionMode;
   CBratEmbeddedPythonProcess::OutsideMode m_outsideMode;
@@ -179,22 +159,18 @@ protected:
   std::vector<bool> m_smooth;
   std::vector<bool> m_extrapolate;
 
-  uint32_t m_nbDataByGrid;
+  size_t m_nbDataByGrid;
   
   //CDoubleArray m_xData;
   //CDoubleArray m_yData;
-  DoublePtr	m_xData;
-  DoublePtr m_yData;
+  double *	m_xData;
+  double * m_yData;
 
-  // Grids data array, contains as many CMatrixDoublePtr object as field expression (m_nbFields)
-  CObArray m_grids;
+private:
 
-
-
-  //CDoublePtrDoubleMap m_measures;
-//  CUIntArray m_matrixDims;
-
-
+	// Grids data array, contains as many CMatrixDoublePtr or CMatrixDouble as field expression (m_nbFields)
+  // 
+  CObjectPointersArray<CMatrix> m_grids;
 };
 
 

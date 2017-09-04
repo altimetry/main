@@ -65,11 +65,14 @@ class CApplicationSettingsDlg : public QDialog
     QCheckBox *mLoadLastProjectAtAtartupCheckBox = nullptr;
 	QRadioButton *mUseVectorLayer = nullptr;
 	QRadioButton *mUseRasterLayer = nullptr;
-    QRadioButton *mUseRasterLayerURI = nullptr;
+	QLineEdit *mRasterLayerLineEdit = nullptr;
+	QPushButton *mRasterLayerBrowseButton = nullptr;
+	QRadioButton *mUseRasterLayerURI = nullptr;
     QLineEdit *mLayerURLLineEdit = nullptr;
 	QToolButton *mMapViewsDefaultLayerDialogPushButton = nullptr;
 	ELayerBaseType mViewMapsLayerBaseType;		//initialized in constructor
 	QCheckBox *mVectorSimplifyMethodCheck = nullptr;
+	QPushButton *mResetLayerOptionsPushButton = nullptr;
 	QWidget *mStartupOptionsPage = nullptr;
 
 	QGroupBox *mRadsOutputBox = nullptr;
@@ -141,6 +144,8 @@ private slots:
 
 	void HandleBrowseDataDirectory();
     void HandleBrowseProjectsPath();
+	void HandleBrowseRasterLayerFile();
+	void HandleResetLayerOptions();
     void HandleMainLayerTypeChanged( bool toggled );
 	void HandleViewsDefaultLayerDialog();
 

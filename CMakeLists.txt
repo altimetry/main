@@ -708,6 +708,7 @@ IF( WIN32)
 		${QWT3D_BIN_DIR}/qwtplot3d${DLL_SUFFIX}
 		${QGIS_BIN_DIR}/qgis_core${DLL_SUFFIX}
 		${QGIS_BIN_DIR}/qgis_gui${DLL_SUFFIX}
+		${QGIS_BIN_DIR}/qgis_analysis${DLL_SUFFIX}
 		${OSG_EARTH_BIN_DIR}/osgEarth${DBG_SUFFIX}${DLL_SUFFIX}
 		${OSG_EARTH_BIN_DIR}/osgEarthAnnotation${DBG_SUFFIX}${DLL_SUFFIX}
 		${OSG_EARTH_BIN_DIR}/osgEarthFeatures${DBG_SUFFIX}${DLL_SUFFIX}
@@ -2760,6 +2761,7 @@ if(BRAT_BUILD_GUI)
 		new-gui/brat/GUI/ControlPanels/Dialogs/RadsPhasesDialog.cpp
 		new-gui/brat/GUI/DisplayWidgets/PSProcessing.cpp
 		new-gui/brat/GUI/DisplayWidgets/Dialogs/ViewMapsLayerDialog.cpp
+		new-gui/brat/NcDumpDialog.cpp
 	)
 
 		
@@ -2889,6 +2891,7 @@ if(BRAT_BUILD_GUI)
 		new-gui/brat/GUI/ControlPanels/Dialogs/RadsPhasesDialog.h
 		new-gui/brat/GUI/DisplayWidgets/PSProcessing.h
 		new-gui/brat/GUI/DisplayWidgets/Dialogs/ViewMapsLayerDialog.h
+		new-gui/brat/NcDumpDialog.h
 	)
 
 
@@ -3512,13 +3515,14 @@ if(APPLE)
     COMMENT "Copying the files needed for Mac OS X distribution"
     COMMAND rm -rf ${BDIST_PKGDIR}
     COMMAND mkdir ${BDIST_PKGDIR}
-	COMMAND cp -R ${BRAT_BINARY_DIR}/bin/brat.app ${BDIST_PKGDIR}
-    COMMAND cp -RL ${BRAT_BINARY_DIR}/bin/scheduler.app ${BDIST_PKGDIR}
-
+	
 	COMMAND cp ${BRAT_BINARY_DIR}/externals/coda/bin/coda*			${BRAT_BINARY_DIR}/bin/brat.app/Contents/MacOS/
     COMMAND cp ${BRAT_BINARY_DIR}/externals/netcdf-c/ncdump/bin/nc* ${BRAT_BINARY_DIR}/bin/brat.app/Contents/MacOS/
     COMMAND cp ${BRAT_BINARY_DIR}/externals/netcdf-c/ncgen/bin/nc*	${BRAT_BINARY_DIR}/bin/brat.app/Contents/MacOS/
     COMMAND cp ${BRAT_BINARY_DIR}/externals/netcdf-c/ncgen3/bin/nc* ${BRAT_BINARY_DIR}/bin/brat.app/Contents/MacOS/
+	
+	COMMAND cp -R ${BRAT_BINARY_DIR}/bin/brat.app ${BDIST_PKGDIR}
+    COMMAND cp -RL ${BRAT_BINARY_DIR}/bin/scheduler.app ${BDIST_PKGDIR}
 	
     COMMAND mkdir ${BDIST_PKGDIR}/doc
     COMMAND cp ${BRAT_SOURCE_DIR}/doc/brat_user_manual.pdf					${BDIST_PKGDIR}/doc/brat_user_manual_${BRAT_VERSION}.pdf

@@ -17,6 +17,7 @@
 */
 
 
+#include "NcDumpDialog.h"
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -250,12 +251,26 @@ void TestPyAlgo()
 
 
 
-void TestSettingsPaths( const CBratSettings &mSettings )
+void TestSettingsPaths( const CBratSettings &settings )
 {
 	std::string
-	msg = "Main application settings file: " + mSettings.FilePath();
+	msg = "Main application settings file: " + settings.FilePath();
 	msg += "\nCurrent Working Directory: " + q2a( QDir::currentPath() );
 	msg += "\n\n";
-	msg += mSettings.BratPaths().ToString();
+	msg += settings.BratPaths().ToString();
 	SimpleMsgBox( msg );
+}
+
+void TestNcDump( CBratMainWindow *w, const CBratSettings &settings )
+{
+	static const std::string ncdump = settings.BratPaths().mExecutableDir + "/ncdump";
+	static QString netcdf_path;
+
+	auto path = BrowseFile( w, "Open netcdf file", netcdf_path );
+	if ( !path.isEmpty() )
+	{
+		netcdf_path = path;
+		CNcDumpDialog *pdlg = new CNcDumpDialog( false, ncdump, netcdf_path, w );
+		pdlg->show();
+	}
 }

@@ -45,6 +45,7 @@ namespace brathl
 
 class CProductNetCdf : public CProduct
 {
+	DECLARE_BASE_TYPE(CProduct)
 
 public:
 
@@ -90,9 +91,9 @@ public:
 
   virtual bool Close() override;
 
-  virtual bool Open(const std::string& fileName, const std::string& dataSetName, CStringList& listFieldToRead);
-  virtual bool Open(const std::string& fileName, const std::string& dataSetName) override;
-  virtual bool Open(const std::string& fileName) override;
+  // There is also a protected override below
+  // 
+  using base_t::Open;
 
   virtual void Rewind () override;
   virtual bool NextRecord ();
@@ -189,6 +190,8 @@ protected:
   virtual void InitInternalFieldName(const std::string& dataSetName, CStringList& listField, bool convertDate = false) override;
   virtual void InitInternalFieldName(CStringList& listField, bool convertDate = false) override;
 
+  // All other overloaded are inherited; see using clause above
+  // 
   virtual bool Open() override;
 
   virtual std::string MakeInternalFieldName(const std::string& dataSetName, const std::string& field) override;

@@ -86,6 +86,7 @@ protected:
 
 	static std::string smQgisPluginsDir;
 	static std::string smVectorLayerPath;
+	static std::string smDefaultRasterLayerPath;
 	static std::string smRasterLayerPath;
     static std::string smURLRasterLayerPath;
 
@@ -101,7 +102,8 @@ public:
 	static void SetQGISDirectories( 
 		const std::string &QgisPluginsDir, 
 		const std::string &VectorLayerPath, 
-        const std::string &RasterLayerPath,
+		const std::string &DefaultRasterLayerPath,
+		const std::string &RasterLayerPath,
         const std::string &URLRasterLayerPath );
 
 

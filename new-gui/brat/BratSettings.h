@@ -41,13 +41,21 @@ class CBratSettings : public CApplicationSettings
     using base_t = CApplicationSettings;
 
     friend class CBratApplication;
+	friend class CBratMainWindow;
 
 
     //////////////////////////////////////
     //	static members
     //////////////////////////////////////
 
-    static const CMapWidget::ELayerBaseType smDefaultLayerBaseType;
+public:
+
+	static const CMapWidget::ELayerBaseType smDefaultLayerBaseType;
+	static const bool smVectorSimplifyMethod = true;
+
+
+protected:
+
 	static const bool smUseUnsupportedFields;
 	static const size_t smMinimumFilesToWarnUser;
 	static const size_t smMinimumFilesToProgressTrack;
@@ -68,7 +76,7 @@ protected:
 
     CApplicationPaths &mBratPaths;
 
-public:
+public:									//TODO: change this to protected
     std::string m_lastDataPath;
     std::string m_lastPageReached;
     bool mAdvancedOperations = false;
@@ -79,7 +87,7 @@ public:
 
     CMapWidget::ELayerBaseType mMainLayerBaseType = CMapWidget::ELayerBaseType::eRasterLayer;
     CMapWidget::ELayerBaseType mViewsLayerBaseType = CMapWidget::ELayerBaseType::eVectorLayer;
-	bool mVectorSimplifyMethod = true;
+	bool mVectorSimplifyMethod = smVectorSimplifyMethod;
 
 	bool mDesktopManagerSdi = true;
 	bool mCheckOpenGL = true;
@@ -159,6 +167,11 @@ public:
 	bool VectorSimplifyMethod() const { return mVectorSimplifyMethod; }
 
 
+	void SetRasterLayerPath( const std::string &path )
+	{
+		mBratPaths.SetRasterLayerPath( path );
+	}
+	
     void SetURLRasterLayerPath( const std::string &path )
     {
         mBratPaths.SetURLRasterLayerPath( path );
@@ -184,7 +197,10 @@ public:
     //...OpenGL internal stuff for VMs, namely in macs with Intel graphics
     
     bool OsgEarthUsePbufferTestForVms() const { return mOsgEarthUsePbufferTestForVms; }
-    
+
+
+	bool UseUnsupportedFields() const { return mUseUnsupportedFields; }
+
     
 public:
 

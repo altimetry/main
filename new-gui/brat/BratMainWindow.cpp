@@ -692,7 +692,8 @@ CBratMainWindow::CBratMainWindow( CBratApplication &app )
 	CMapWidget::SetQGISDirectories(
 		mSettings.BratPaths().mQgisPluginsDir,
 		mSettings.BratPaths().mVectorLayerPath,
-        mSettings.BratPaths().RasterLayerPath(),
+		mSettings.BratPaths().DefaulLocalFileRasterLayerPath(),
+		mSettings.BratPaths().RasterLayerPath(),
         mSettings.BratPaths().URLRasterLayerPath() );
 
 	CGlobeWidget::SetOSGDirectories( mSettings.BratPaths().mGlobeDir );
@@ -1713,7 +1714,8 @@ void CBratMainWindow::on_action_Youtube_Video_Tutorials_triggered()
 void CBratMainWindow::on_action_Test_triggered()
 {
 #if defined (DEBUG) || defined(_DEBUG)
-	TestPyAlgo();
+	//TestPyAlgo();
+	TestNcDump( this, mSettings );
 #endif
 }
 // TEST CODE SECTION ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

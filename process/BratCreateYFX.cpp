@@ -39,6 +39,9 @@ using namespace processes;
 
 static const char *app_name = "BratCreateYFX";
 
+//-checked "F:/data/workspaces/CyclePass/Operations/Create_RLA.par"
+//-checked "E:/data/brat/workspaces/Demo/Operations/Create_Op2_Jason_2_YFX.par"
+//-checked "E:/data/brat/workspaces/Demo/Operations/CreateOp5_Cryosat_waveforms.par"'
 
 /*
 **

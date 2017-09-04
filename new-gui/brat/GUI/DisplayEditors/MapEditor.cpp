@@ -175,7 +175,7 @@ void CMapEditor::Wire()
 
 CMapEditor::CMapEditor( CModel *model, const COperation *op, const std::string &display_name )		//display_name = ""
 	: base_t( true, model, op, display_name )
-	, mLayerBaseType( mModel ? mModel->Settings().mViewsLayerBaseType : ELayerBaseType::eVectorLayer )
+	, mLayerBaseType( mModel ? mModel->Settings().ViewsLayerBaseType() : ELayerBaseType::eVectorLayer )
 {
 	CreateWidgets();
 

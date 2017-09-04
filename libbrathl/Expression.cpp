@@ -979,7 +979,7 @@ void CExpressionValue::BuildValue(ExpressionValueType	Type, ExpressionValueDimen
   }
   else
   {
-    NbValues = Dimensions.GetProductValues();
+    NbValues = Dimensions.GetValuesProduct();
   }
 
 /*
@@ -992,7 +992,7 @@ void CExpressionValue::BuildValue(ExpressionValueType	Type, ExpressionValueDimen
   m_Value	= new CValueData(NbValues, Value, MakeCopy);
 }
 //----------------------------------------
-void CExpressionValue::BuildValue(ExpressionValueType	type, ExpressionValueDimensions	&dimensions, const CDoubleArray& value)
+void CExpressionValue::BuildValue(ExpressionValueType type, ExpressionValueDimensions &dimensions, const CDoubleArray& value)
 {
   DeleteValue();
   m_Value = NULL;

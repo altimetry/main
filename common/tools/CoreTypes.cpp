@@ -1270,21 +1270,13 @@ size_t* CUIntArray::ToSizeTArray()
 
 }
 //----------------------------------------
-uint32_t CUIntArray::GetProductValues() const
+uint32_t CUIntArray::GetValuesProduct() const
 {
-	uint32_t product = 1;
-
-	if ( this->size() <= 0 )
-	{
-		product = 0;
-	}
-
-	CUIntArray::const_iterator it;
-	for ( it = this->begin(); it != this->end(); it++ )
+	uint32_t product = empty() ? 0 : 1;
+	for ( CUIntArray::const_iterator it = begin(); it != end(); it++ )
 	{
 		product	*= *it;
 	}
-
 	return product;
 }
 

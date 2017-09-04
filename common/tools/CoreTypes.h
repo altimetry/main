@@ -543,7 +543,7 @@ public:
 
         virtual void RemoveAll() { this->clear(); }
 
-	uint32_t GetProductValues() const;
+	uint32_t GetValuesProduct() const;
 
 	///Dump fonction
 	virtual void Dump( std::ostream& fOut = std::cerr ) const;

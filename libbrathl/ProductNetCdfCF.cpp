@@ -111,166 +111,166 @@ void CProductNetCdfCF::RewindEnd ()
 }
 
 //----------------------------------------
-void CProductNetCdfCF::RewindProcess ()
+void CProductNetCdfCF::RewindProcess()
 {
-  m_externalFile->MustBeOpened();
+	m_externalFile->MustBeOpened();
 
-  CStringArray		dimNamesArray;
+	CStringArray		dimNamesArray;
 
-  m_dimIds.RemoveAll();
-  m_dimValues.RemoveAll();
-  m_dimIndexes.RemoveAll();
-  m_dimsCount.RemoveAll();
+	m_dimIds.RemoveAll();
+	m_dimValues.RemoveAll();
+	m_dimIndexes.RemoveAll();
+	m_dimsCount.RemoveAll();
 
-  m_atBeginning = true;
+	m_atBeginning = true;
 
-  if (m_fieldsToRead->size() <= 0)
-  {
-    m_nbRecords = 0;
-    return;
-  }
+	if ( m_fieldsToRead->size() <= 0 )
+	{
+		m_nbRecords = 0;
+		return;
+	}
 
-  m_nbRecords = 1;
-  bool allFiedsScalar = true;
-
-  CObMap::iterator it;
-  for (it = m_fieldsToRead->begin() ; it != m_fieldsToRead->end() ; it++)
-  {
-    CFieldNetCdf *field = CExternalFiles::GetFieldNetCdf(it->second);
-
-    field->InitDimIndexes(AT_BEGINNING);
-
-    if (field->HasDim())
-    {
-      allFiedsScalar = false;
-      m_dimIndexes.Insert(field->GetDimNames(), AT_BEGINNING, false, false);
-      m_dimIds.Insert(field->GetDimIds(), false, false);
-      m_dimValues.Insert(field->GetDimValues(), false, false);
-    }
-
-  }
-/*
-  CUIntMap::iterator itUintMap;
-  for (itUintMap = m_dimValues.begin(); itUintMap != m_dimValues.end(); itUintMap++)
-  {
-    m_nbRecords *= itUintMap->second;
-  }
-  */
-  CNetCDFFiles* file = m_externalFile->GetFile();
-
-  bool readAxisOneByOne = true;
-
-  if ( (m_axisDims.size() <= 0))
-  {
-    CStringArray fields;
-    m_fieldsToRead->GetKeys(fields);
-    GetNetCdfDimensions(fields, m_axisDims);
-    readAxisOneByOne = false;
-  }
-
-  CStringArray::const_iterator itStringArray;
-  for (itStringArray = m_axisDims.begin(); itStringArray != m_axisDims.end(); itStringArray++)
-  {
-    CNetCDFDimension* netCDFDim = file->GetNetCDFDim(*itStringArray);
-    if (netCDFDim == NULL)
-    {
-      throw CException(CTools::Format("ERROR: CProductNetCdfCF::Rewind() - dimension '%s' not found in file '%s'\n",
-                                    itStringArray->c_str(),
-                                    file->GetName().c_str()),
-			               BRATHL_LOGIC_ERROR);
-    }
-
-    uint32_t countValue = 1;
-
-    m_nbRecords *= netCDFDim->GetLength();
-    if ( ( ! readAxisOneByOne ) && ( ! m_forceReadDataOneByOne ))
-    {
-      countValue = netCDFDim->GetLength();
-      m_nbRecords = 1;
-    }
-
-    if (m_dimsToReadOneByOne.Exists(*itStringArray))
-    {
-      countValue = 1;
-    }
-
-    m_dimsCount.Insert(*itStringArray, countValue);
-  }
-
-  for (itStringArray = m_complementDims.begin(); itStringArray != m_complementDims.end(); itStringArray++)
-  {
-    CNetCDFDimension* netCDFDim = file->GetNetCDFDim(*itStringArray);
-    if (netCDFDim == NULL)
-    {
-      throw CException(CTools::Format("ERROR: CProductNetCdfCF::Rewind() - dimension '%s' not found in file '%s'\n",
-                                    itStringArray->c_str(),
-                                    file->GetName().c_str()),
-			               BRATHL_LOGIC_ERROR);
-    }
-
-    uint32_t maxIndex = m_dimValues.Exists(*itStringArray);
-
-    //if ((m_forceReadDataOneByOne) || (m_forceReadDataComplementDimsOneByOne))
-    if (m_forceReadDataOneByOne)
-    {
-      //m_nbRecords *= netCDFDim->GetLength();
-      maxIndex = 1;
-    }
-
-    if (m_dimsToReadOneByOne.Exists(*itStringArray))
-    {
-      //m_nbRecords *= netCDFDim->GetLength();
-      maxIndex = 1;
-    }
-
-    m_dimsCount.Insert(*itStringArray, maxIndex);
-  }
+	m_nbRecords = 1;
+	bool allFiedsScalar = true;
 
 
-  size_t nbIndexes = m_dimIndexes.size();
-  size_t nbIds = m_dimIds.size();
-  size_t nbDimValues = m_dimValues.size();
-  size_t nbDimsCount = m_dimsCount.size();
+	for ( CObMap::iterator it = m_fieldsToRead->begin(); it != m_fieldsToRead->end(); it++ )
+	{
+		CFieldNetCdf *field = CExternalFiles::GetFieldNetCdf( it->second );
 
-  if ((nbIndexes != nbIds) || (nbIndexes != nbDimValues) || (nbIndexes != nbDimsCount))
-  {
-      CException e(CTools::Format("ERROR - CProductNetCdfCF::Rewind() - : Arrays have not the same size: "
-                                  "m_dimIndexes size=%d - m_dimIds size=%d - m_dimValues size=%d - m_dimsCount size=%d",
-                                  nbIndexes,
-                                  nbIds,
-                                  nbDimValues,
-                                  nbDimsCount),
-                  BRATHL_LOGIC_ERROR);
-      CTrace::Tracer("%s", e.what());
-      Dump(*CTrace::GetDumpContext());
-      throw (e);
+		field->InitDimIndexes( AT_BEGINNING );
 
-  }
-  /*
-  if (nbIndexes <= 0)
-  {
-      CException e(CTools::Format("ERROR - CProductNetCdfCF::Rewind() - : Array sizes are zero : "
-                                  "m_dimIndexes size=%d - m_dimIds size=%d - m_dimValues size=%d",
-                                  nbIndexes,
-                                  nbIds,
-                                  nbDimValues),
-                  BRATHL_LOGIC_ERROR);
-      CTrace::Tracer("%s", e.what());
-      Dump(*CTrace::GetDumpContext());
-      throw (e);
+		if ( field->HasDim() )
+		{
+			allFiedsScalar = false;
+			m_dimIndexes.Insert( field->GetDimNames(), AT_BEGINNING, false, false );
+			m_dimIds.Insert( field->GetDimIds(), false, false );
+			m_dimValues.Insert( field->GetDimValues(), false, false );
+		}
 
-  }
-  */
+	}
+	/*
+	  CUIntMap::iterator itUintMap;
+	  for (itUintMap = m_dimValues.begin(); itUintMap != m_dimValues.end(); itUintMap++)
+	  {
+		m_nbRecords *= itUintMap->second;
+	  }
+	  */
+	CNetCDFFiles* file = m_externalFile->GetFile();
 
-  //////////////////SetFieldIndex();
+	bool readAxisOneByOne = true;
 
-  //----------------------------
-  CProductNetCdf::RewindProcess();
-  //----------------------------
+	if ( ( m_axisDims.size() <= 0 ) )
+	{
+		CStringArray fields;
+		m_fieldsToRead->GetKeys( fields );
+		GetNetCdfDimensions( fields, m_axisDims );
+		readAxisOneByOne = false;
+	}
+
+
+	for ( CStringArray::const_iterator itStringArray = m_axisDims.begin(); itStringArray != m_axisDims.end(); itStringArray++ )
+	{
+		CNetCDFDimension* netCDFDim = file->GetNetCDFDim( *itStringArray );
+		if ( netCDFDim == NULL )
+		{
+			throw CException( CTools::Format( "ERROR: CProductNetCdfCF::Rewind() - dimension '%s' not found in file '%s'\n",
+				itStringArray->c_str(),
+				file->GetName().c_str() ),
+				BRATHL_LOGIC_ERROR );
+		}
+
+		uint32_t countValue = 1;
+
+		m_nbRecords *= netCDFDim->GetLength();
+		if ( ( ! readAxisOneByOne ) && ( ! m_forceReadDataOneByOne ) )
+		{
+			countValue = netCDFDim->GetLength();
+			m_nbRecords = 1;
+		}
+
+		if ( m_dimsToReadOneByOne.Exists( *itStringArray ) )
+		{
+			countValue = 1;
+		}
+
+		m_dimsCount.Insert( *itStringArray, countValue );
+	}
+
+	for ( CStringArray::const_iterator itStringArray = m_complementDims.begin(); itStringArray != m_complementDims.end(); itStringArray++ )
+	{
+		CNetCDFDimension* netCDFDim = file->GetNetCDFDim( *itStringArray );
+		if ( netCDFDim == NULL )
+		{
+			throw CException( CTools::Format( "ERROR: CProductNetCdfCF::Rewind() - dimension '%s' not found in file '%s'\n",
+				itStringArray->c_str(),
+				file->GetName().c_str() ),
+				BRATHL_LOGIC_ERROR );
+		}
+
+		uint32_t maxIndex = m_dimValues.Exists( *itStringArray );
+
+		//if ((m_forceReadDataOneByOne) || (m_forceReadDataComplementDimsOneByOne))
+		if ( m_forceReadDataOneByOne )
+		{
+			//m_nbRecords *= netCDFDim->GetLength();
+			maxIndex = 1;
+		}
+
+		if ( m_dimsToReadOneByOne.Exists( *itStringArray ) )
+		{
+			//m_nbRecords *= netCDFDim->GetLength();
+			maxIndex = 1;
+		}
+
+		m_dimsCount.Insert( *itStringArray, maxIndex );
+	}
+
+
+	size_t nbIndexes = m_dimIndexes.size();
+	size_t nbIds = m_dimIds.size();
+	size_t nbDimValues = m_dimValues.size();
+	size_t nbDimsCount = m_dimsCount.size();
+
+	if ( ( nbIndexes != nbIds ) || ( nbIndexes != nbDimValues ) || ( nbIndexes != nbDimsCount ) )
+	{
+		CException e( CTools::Format( "ERROR - CProductNetCdfCF::Rewind() - : Arrays have not the same size: "
+			"m_dimIndexes size=%d - m_dimIds size=%d - m_dimValues size=%d - m_dimsCount size=%d",
+			nbIndexes,
+			nbIds,
+			nbDimValues,
+			nbDimsCount ),
+			BRATHL_LOGIC_ERROR );
+		CTrace::Tracer( "%s", e.what() );
+		Dump( *CTrace::GetDumpContext() );
+		throw ( e );
+
+	}
+	/*
+	if (nbIndexes <= 0)
+	{
+		CException e(CTools::Format("ERROR - CProductNetCdfCF::Rewind() - : Array sizes are zero : "
+									"m_dimIndexes size=%d - m_dimIds size=%d - m_dimValues size=%d",
+									nbIndexes,
+									nbIds,
+									nbDimValues),
+					BRATHL_LOGIC_ERROR);
+		CTrace::Tracer("%s", e.what());
+		Dump(*CTrace::GetDumpContext());
+		throw (e);
+
+	}
+	*/
+
+	//////////////////SetFieldIndex();
+
+	//----------------------------
+	CProductNetCdf::RewindProcess();
+	//----------------------------
 
 }
 //----------------------------------------
-void CProductNetCdfCF::Rewind ()
+void CProductNetCdfCF::Rewind()
 {
   RewindInit();
 

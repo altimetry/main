@@ -1402,34 +1402,12 @@ namespace brathl
 		}
 
 	}
-	/*
-	//----------------------------------------
-	CField* CProductNetCdf::GetFieldRead(const std::string& fieldName)
-	{
-	  return dynamic_cast<CField*> (m_fieldsToRead->Exists(fieldName));
-	}
-	*/
-
-	//----------------------------------------
-	bool CProductNetCdf::Open( const std::string& fileName, const std::string& dataSetName, CStringList& listFieldToRead )
-	{
-		return CProduct::Open( fileName, dataSetName, listFieldToRead );
-	}
-	//----------------------------------------
-	bool CProductNetCdf::Open( const std::string& fileName, const std::string& dataSetName )
-	{
-		return CProduct::Open( fileName, dataSetName );
-	}
-	//----------------------------------------
-	bool CProductNetCdf::Open( const std::string& fileName )
-	{
-		return CProduct::Open( fileName );
-	}
 
 	//----------------------------------------
 	bool CProductNetCdf::Open()
 	{
 		// Close and delete
+		// 
 		Close();
 		DeleteExternalFile();
 
@@ -1454,14 +1432,13 @@ namespace brathl
 
 		m_externalFile->SetOffset( m_offset );
 
-		//Loads data dictionary.
+		//Loads data dictionary
+		// 
 		LoadFieldsInfo();
 
 		FillDescription();
 
-
 		return true;
-
 	}
 
 	//----------------------------------------
@@ -1544,7 +1521,6 @@ namespace brathl
 		m_recordCount = 0;
 
 		CreateFieldSets();
-
 	}
 
 	//----------------------------------------
@@ -1574,20 +1550,15 @@ namespace brathl
 	//----------------------------------------
 	void CProductNetCdf::ReadBratRecord( int32_t iRecord )
 	{
-
 		CheckFileOpened();
 
-		// If the file to open is the first in the list or if the file is not in the list
-		// reset offset
+		// If the file to open is the first in the list or if the file is not in the list reset offset
+		// 
 		int32_t indexFile = m_fileList.FindIndex( m_currFileName );
 		if ( indexFile <= 0 )
 		{
 			SetOffset( 0.0 );
 		}
-
-		CStringList::iterator itField;
-
-		// m_oneRecordsInMemory = true;
 
 		if ( ( iRecord < 0 ) || ( iRecord >= GetNumberOfRecords() ) )
 		{
@@ -1605,11 +1576,6 @@ namespace brathl
 			m_currentRecord = -1;
 			Rewind();
 		}
-
-		//  if (m_currentRecord < 0)
-		//  {
-		//    Rewind();
-		//  }
 
 		while ( m_currentRecord < iRecord )
 		{
@@ -1631,44 +1597,20 @@ namespace brathl
 			}
 		}
 
-		CObMap::iterator it;
-		for ( it = m_fieldsToRead->begin(); it != m_fieldsToRead->end(); it++ )
+		for ( CObMap::iterator it = m_fieldsToRead->begin(); it != m_fieldsToRead->end(); it++ )
 		{
 			CFieldNetCdf *field = CExternalFiles::GetFieldNetCdf( it->second );
 			field->SetCurrentPos( m_currentRecord );
 
+			CFieldSet *field_set = m_dataSet.GetFieldSet( field->GetKey() );
 
-			CFieldSetArrayDbl* fieldSetArrayDbl = dynamic_cast<CFieldSetArrayDbl*>( m_dataSet.GetFieldSet( field->GetKey() ) );
-			/*
-				if (fieldSetArrayDbl == NULL)
-				{
-				  std::string msg = CTools::Format("ERROR in CProductNetCdf::ReadBratRecord - fieldSetArrayDbl not found for field '%s' at the record number %d of %d"
-											  "(fieldSetArrayDbl seems to be NULL or not a CFieldSetArrayDbl object",
-											  field->GetName().c_str(),
-											  iRecord,
-											  GetNumberOfRecords() - 1);
-				  CProductException e(msg, m_currFileName, GetProductClass(), GetProductType(), BRATHL_LOGIC_ERROR);
-				  throw (e);
-				}
-			*/
-			CFieldSetDbl* fieldSetDbl = dynamic_cast<CFieldSetDbl*>( m_dataSet.GetFieldSet( field->GetKey() ) );
+			CFieldSetArrayDbl *fieldSetArrayDbl = dynamic_cast<CFieldSetArrayDbl*>( field_set );
+			CFieldSetDbl *fieldSetDbl = dynamic_cast<CFieldSetDbl*>( field_set );
 
-			/*
-				if (fieldSetDbl == NULL)
-				{
-				  std::string msg = CTools::Format("ERROR in CProductNetCdf::ReadBratRecord - fieldSetDbl not found for field '%s' at the record number %d of %d"
-											  "(fieldSetDbl seems to be NULL or not a CFieldSetDbl object",
-											  field->GetName().c_str(),
-											  iRecord,
-											  GetNumberOfRecords() - 1);
-				  CProductException e(msg, m_currFileName, GetProductClass(), GetProductType(), BRATHL_LOGIC_ERROR);
-				  throw (e);
-				}
-			*/
-			// Erase previous read data values
-			//fieldSetArrayDbl->GetDataVector().RemoveAll();
+			assert__( !fieldSetArrayDbl || !fieldSetDbl );		assert__( fieldSetArrayDbl || fieldSetDbl );
 
-			// -------------- Read data --------------------
+			// Read data
+			// 
 			if ( fieldSetArrayDbl != NULL )
 			{
 				Read( field, fieldSetArrayDbl->GetDataVector() );
@@ -1677,18 +1619,6 @@ namespace brathl
 			{
 				Read( field, fieldSetDbl->GetDataRef() );
 			}
-			//Read(field, fieldSetDbl->GetDataRef());
-
-			// Insert a new Record or return record if exists
-		//    if (m_oneRecordsInMemory)
-		//    {
-		//      InsertRecord(0);
-		//    }
-		//    else
-		//    {
-		//      InsertRecord(field->GetCurrentPos());
-		//    }
-
 		}
 
 		m_recordCount += m_dataSet.size();
@@ -1697,9 +1627,8 @@ namespace brathl
 		{
 			AddOffset( this->GetNumberOfRecords() );
 		}
-
-
 	}
+
 
 	//----------------------------------------
 	void CProductNetCdf::GetNetCdfDimensions( const std::vector<CExpression>& expressions, CStringArray& commonDimNames )
@@ -1863,18 +1792,13 @@ namespace brathl
 	//----------------------------------------
 	void CProductNetCdf::CreateFieldSets()
 	{
-		//  CStringArray::iterator it;
-		  //CStringArray fieldsName;
-		  //m_externalFile->GetFieldNames(fieldsName);
-
-
 		m_dataSet.SetName( "Dataset" );
 
-		// Insert a new Record at position 0,  or return record if exists
+		// Insert a new Record at position 0, or return record if exists
+		// 
 		InsertRecord( 0 );
 
-		CObMap::iterator it;
-		for ( it = m_fieldsToRead->begin(); it != m_fieldsToRead->end(); it++ )
+		for ( CObMap::iterator it = m_fieldsToRead->begin(); it != m_fieldsToRead->end(); it++ )
 		{
 			CFieldNetCdf *field = CExternalFiles::GetFieldNetCdf( it->second );
 

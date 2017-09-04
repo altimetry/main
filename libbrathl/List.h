@@ -61,7 +61,7 @@ typedef std::list<CBratObject*> oblist;
 typedef std::vector<DoublePtr> doubleptrarray; 
 
 /*! Creates a type name for object array */ 
-typedef std::vector<CBratObject*> obarray; 
+typedef std::vector<CBratObject*> obarray;
 
 /*! Creates a type name for std::map object base class */ 
 typedef std::map<std::string, std::string> mapstring; 
@@ -373,12 +373,10 @@ protected:
  \version 1.0
 */
 
-/*! Creates a type name for array of DoublePtr array */ 
-typedef std::vector<doubleptrarray> arraydoubleptrarray; 
-  
 
-class CArrayDoublePtrArray : public arraydoubleptrarray
+class CArrayDoublePtrArray : public std::vector< std::vector< double* > >
 {
+	DECLARE_BASE_TYPE( std::vector< std::vector< double* > > )
 
 public:
     
@@ -397,9 +395,13 @@ public:
   virtual void Remove(doubleptrarray& vect);
 
   CUIntArray* GetMatrixDims() { return &m_matrixDims; };
+  const CUIntArray* GetMatrixDims() const 
+  { 
+	  return const_cast<CArrayDoublePtrArray*>( this )->GetMatrixDims();
+  };
   void SetMatrixDims(const CUIntArray& matrixDims) { m_matrixDims = matrixDims; };
 
-  uint32_t GetMatrixDim(uint32_t row);
+  size_t GetMatrixDim(size_t row);
 
   size_t GetMatrixNumberOfDims() { return m_matrixDims.size(); };
 
@@ -411,7 +413,7 @@ public:
   bool GetDelete() {return m_bDelete;};
   void SetDelete(bool value) {m_bDelete = value;};
 
-  void ResizeRC(uint32_t nrows, uint32_t ncols);
+  void ResizeRC(size_t nrows, size_t ncols);
 
   virtual const CArrayDoublePtrArray& operator= (const CArrayDoublePtrArray& m);
 
@@ -458,13 +460,10 @@ protected:
  \version 1.0
 */
 
-/*! Creates a type name for array of double array */ 
-typedef std::vector<double> doublearray; 
-typedef std::vector<doublearray> arraydoublearray; 
-  
 
-class CArrayDoubleArray : public arraydoublearray
+class CArrayDoubleArray : public std::vector< std::vector< double > >
 {
+	DECLARE_BASE_TYPE( std::vector< std::vector< double > > )
 
 public:
     
@@ -480,28 +479,12 @@ public:
   /** Remove all elements and clear the std::list*/
   virtual void RemoveAll();
 
-  /*
-  CUIntArray* GetMatrixDims() { return &m_matrixDims; };
-  void SetMatrixDims(const CUIntArray& matrixDims) { m_matrixDims = matrixDims; };
-
-  uint32_t GetMatrixDim(uint32_t row);
-
-  uint32_t GetMatrixNumberOfDims() { return m_matrixDims.size(); };
-
-  DoublePtr NewMatrix(double initialValue = CTools::m_defaultValueDOUBLE);
-  */
   void InitMatrix(double initialValue = CTools::m_defaultValueDOUBLE);
 
-  //void InitMatrixData(double initialValue = CTools::m_defaultValueDOUBLE);
-
-  void ResizeRC(uint32_t nrows, uint32_t ncols);
+  void ResizeRC(size_t nrows, size_t ncols);
 
   virtual const CArrayDoubleArray& operator= (const CArrayDoubleArray& m);
 
-  /*
-  double GetMinValue() { return m_minValue; };
-  double GetMaxValue() { return m_maxValue; };
-  */
   void GetMinMaxValues(double& min, double& max, bool recalc = true);
 
 
@@ -671,7 +654,7 @@ protected:
  \version 1.0
 */
 
-class CObArray : public obarray
+class CObArray : public std::vector<CBratObject*>
 {
 
 public:
@@ -724,6 +707,79 @@ public:
 protected:
 
   bool m_bDelete;
+};
+
+
+
+template< typename BRAT_OBJECT = CBratObject >
+class CObjectPointersArray : public std::vector<BRAT_OBJECT*>
+{
+	// types
+	
+	DECLARE_BASE_TYPE( std::vector<BRAT_OBJECT*> )
+
+	typedef typename base_t::const_iterator const_iterator;
+
+
+	//instance data
+
+	bool mDelete = true;
+
+
+	//construction / destruction
+
+public:
+
+	CObjectPointersArray( bool del = true )
+		: base_t()
+		, mDelete( del )
+	{}
+
+	CObjectPointersArray( const CObjectPointersArray<BRAT_OBJECT> &o )
+	{
+		*this = o;  
+	}
+
+	CObjectPointersArray<BRAT_OBJECT>& operator= ( const CObjectPointersArray<BRAT_OBJECT> &o )
+	{
+		if ( this != &o )
+		{
+			RemoveAll();
+			Insert( o );
+			mDelete = o.mDelete;
+		}
+		return *this;
+	}
+
+	virtual ~CObjectPointersArray()
+	{
+		RemoveAll();
+	}
+
+
+	// other member functions
+    
+    
+    using base_t::push_back;
+    
+    
+	virtual void Insert( const CObjectPointersArray<BRAT_OBJECT> &o )
+	{
+		for ( const_iterator it = o.begin(); it != o.end() ; ++it )
+		{
+			if (*it != NULL)
+			{
+				BRAT_OBJECT *new_ob = dynamic_cast<BRAT_OBJECT*>( (*it)->Clone() );			assert__( new_ob );
+				push_back( new_ob );
+			}
+		}
+	}
+
+
+	virtual void RemoveAll()
+	{
+		DestroyPointerCastsAndContainer<BRAT_OBJECT>( *this );
+	}
 };
 
 
@@ -1516,20 +1572,21 @@ protected:
 
   CMatrix(const CMatrix& m);
 
-  ~CMatrix();
-
   virtual void Set(const CMatrix& m);
 
   const CMatrix& operator= (const CMatrix& m);
 
 public:
 
+	virtual ~CMatrix();
+
+
   // Access methods to get the (i,j) element:
-  virtual DoublePtr operator() (uint32_t i, uint32_t j) = 0;        
-  virtual DoublePtr operator() (uint32_t i, uint32_t j) const = 0;
+  virtual double* operator() (size_t i, size_t j) = 0;        
+  virtual double* operator() (size_t i, size_t j) const = 0;
 
   
-  DoublePtr At(uint32_t i, uint32_t j) { return (*this)(i, j); };        
+  double* At(size_t i, size_t j) { return (*this)(i, j); };        
 
   virtual void ScaleDownData(double scaleFactor, double addOffset, double defaultValue = CTools::m_defaultValueDOUBLE) = 0;
   virtual void ScaleUpData(double scaleFactor, double addOffset, double defaultValue = CTools::m_defaultValueDOUBLE) = 0;
@@ -1539,7 +1596,7 @@ public:
   // #columns in this matrix
   virtual size_t GetNumberOfCols() const = 0;
   
-  virtual void Set(uint32_t& row, uint32_t& col, DoublePtr x) = 0;
+  virtual void Set(size_t& row, size_t& col, double* x) = 0;
 
   virtual void GetMinMaxValues(double& min, double& max) = 0; 
 
@@ -1558,9 +1615,9 @@ public:
   uint32_t GetMatrixNumberOfDimsData() { return m_data.GetMatrixNumberOfDims(); };
   */
 
-  virtual uint32_t GetMatrixNumberOfValuesData() { return 1; };
+  virtual size_t GetMatrixNumberOfValuesData() const { return 1; };
   
-  virtual size_t GetNumberOfValues() = 0;
+  virtual size_t GetNumberOfValues() const = 0;
 
   /*
   DoublePtr NewMatrixData(double initialValue = CTools::m_defaultValueDOUBLE) { return m_data.NewMatrix(initialValue); };
@@ -1599,7 +1656,7 @@ class CMatrixDoublePtr : public CMatrix
 
 public:
 
-  CMatrixDoublePtr(uint32_t nrows, uint32_t ncols);
+  CMatrixDoublePtr(size_t nrows, size_t ncols);
 
   CMatrixDoublePtr(const CMatrixDoublePtr& m);
 
@@ -1607,52 +1664,53 @@ public:
 
 
   // Access methods to get the (i,j) element:
-  virtual DoublePtr operator() (uint32_t i, uint32_t j) ;        
-  virtual DoublePtr operator() (uint32_t i, uint32_t j) const;
+  virtual double* operator() (size_t i, size_t j) override;
+  virtual double* operator() (size_t i, size_t j) const override;
 
-  virtual doubleptrarray& operator[](const uint32_t& i);
-  virtual const doubleptrarray& operator[](const uint32_t& i) const;
+  virtual doubleptrarray& operator[](const size_t & i);
+  virtual const doubleptrarray& operator[](const size_t & i) const;
   
   const CMatrixDoublePtr& operator= (const CMatrixDoublePtr& m);
   
   const CArrayDoublePtrArray& GetData() { return m_data; };
 
-  virtual void ScaleDownData(double scaleFactor, double addOffset, double defaultValue = CTools::m_defaultValueDOUBLE);
-  virtual void ScaleUpData(double scaleFactor, double addOffset, double defaultValue = CTools::m_defaultValueDOUBLE);
+  virtual void ScaleDownData(double scaleFactor, double addOffset, double defaultValue = CTools::m_defaultValueDOUBLE) override;
+  virtual void ScaleUpData(double scaleFactor, double addOffset, double defaultValue = CTools::m_defaultValueDOUBLE) override;
 
   // #rows in this matrix
-  virtual size_t GetNumberOfRows() const { return m_data.size(); };  
+  virtual size_t GetNumberOfRows() const override { return m_data.size(); }
   // #columns in this matrix
-  virtual size_t GetNumberOfCols() const { return m_data[0].size(); };  
+  virtual size_t GetNumberOfCols() const override { return m_data[0].size(); }
   
-  void Set(uint32_t& row, uint32_t& col, DoublePtr x);
+  void Set(size_t& row, size_t& col, double* x) override;
   void Set(const CMatrixDoublePtr& m);
 
-  virtual void GetMinMaxValues(double& min, double& max);
+  virtual void GetMinMaxValues(double& min, double& max) override;
 
-  CUIntArray* GetMatrixDimsData() { return m_data.GetMatrixDims(); };
-  void SetMatrixDimsData(const CUIntArray& matrixDims) { m_data.SetMatrixDims(matrixDims); };
-  void SetMatrixDimsData(uint32_t nbValues);
+  const CUIntArray* GetMatrixDimsData() const { return m_data.GetMatrixDims(); }
+  void SetMatrixDimsData(const CUIntArray& matrixDims) { m_data.SetMatrixDims(matrixDims); }
+  void SetMatrixDimsData(size_t nbValues);
 
   void InitMatrixDimsData(const CUIntArray& matrixDims, double initialValue = CTools::m_defaultValueDOUBLE);
 
-  CStringArray* GetMatrixDataDimIndexes() { return &m_matrixDataDimIndexes; };
-  void SetMatrixDataDimIndexes(const CStringArray& m) { m_matrixDataDimIndexes.Insert(m); };
+  CStringArray* GetMatrixDataDimIndexes() { return &m_matrixDataDimIndexes; }
+  void SetMatrixDataDimIndexes(const CStringArray& m) { m_matrixDataDimIndexes.Insert(m); }
 
-  bool IsMatrixDataSet();
+  bool IsMatrixDataSet() override;
 
-  uint32_t GetMatrixDimData(uint32_t row) { return m_data.GetMatrixDim(row); };
+  size_t GetMatrixDimData(size_t row) { return m_data.GetMatrixDim(row); }
 
-  size_t GetMatrixNumberOfDimsData() { return m_data.GetMatrixNumberOfDims(); };
-  uint32_t GetMatrixNumberOfValuesData() { return GetMatrixDimsData()->GetProductValues(); };
+  size_t GetMatrixNumberOfDimsData() { return m_data.GetMatrixNumberOfDims(); }
 
-  virtual size_t GetNumberOfValues() { return ( GetNumberOfRows() * GetNumberOfCols() * GetMatrixNumberOfValuesData() ); };
+  virtual size_t GetMatrixNumberOfValuesData() const override { return GetMatrixDimsData()->GetValuesProduct(); }
 
-  DoublePtr NewMatrixData(double initialValue = CTools::m_defaultValueDOUBLE) { return m_data.NewMatrix(initialValue); };
-  void InitMatrix(double initialValue = CTools::m_defaultValueDOUBLE) { m_data.InitMatrix(initialValue); };
+  virtual size_t GetNumberOfValues() const override { return ( GetNumberOfRows() * GetNumberOfCols() * GetMatrixNumberOfValuesData() ); }
+
+  DoublePtr NewMatrixData(double initialValue = CTools::m_defaultValueDOUBLE) { return m_data.NewMatrix(initialValue); }
+  void InitMatrix(double initialValue = CTools::m_defaultValueDOUBLE) override { m_data.InitMatrix(initialValue); }
 
   ///Dump fonction
-  virtual void Dump(std::ostream& fOut = std::cerr) const;
+  virtual void Dump(std::ostream& fOut = std::cerr) const override;
 
 protected : 
 
@@ -1670,7 +1728,7 @@ class CMatrixDouble : public CMatrix
 
 public:
 
-  CMatrixDouble(uint32_t nrows, uint32_t ncols);
+  CMatrixDouble(size_t nrows, size_t ncols);
 
   CMatrixDouble(const CMatrixDouble& m);
 
@@ -1678,52 +1736,38 @@ public:
 
 
   // Access methods to get the (i,j) element:
-  virtual DoublePtr operator() (uint32_t i, uint32_t j) ;        
-  virtual DoublePtr operator() (uint32_t i, uint32_t j) const;
+  virtual double* operator() (size_t i, size_t j) override;        
+  virtual double* operator() (size_t i, size_t j) const override;
   
-  virtual doublearray& operator[](const uint32_t& i);
-  virtual const doublearray& operator[](const uint32_t& i) const;
+  virtual std::vector< double >& operator[](const size_t &i);
+  virtual const std::vector< double >& operator[](const size_t &i) const;
 
   const CMatrixDouble& operator= (const CMatrixDouble& m);
 
   const CArrayDoubleArray& GetData() { return m_data; };
   
-  virtual void ScaleDownData(double scaleFactor, double addOffset, double defaultValue = CTools::m_defaultValueDOUBLE);
-  virtual void ScaleUpData(double scaleFactor, double addOffset, double defaultValue = CTools::m_defaultValueDOUBLE);
+  virtual void ScaleDownData(double scaleFactor, double addOffset, double defaultValue = CTools::m_defaultValueDOUBLE) override;
+  virtual void ScaleUpData(double scaleFactor, double addOffset, double defaultValue = CTools::m_defaultValueDOUBLE) override;
 
   // #rows in this matrix
-  virtual size_t GetNumberOfRows() const { return m_data.size(); };  
+  virtual size_t GetNumberOfRows() const override { return m_data.size(); }
   // #columns in this matrix
-  virtual size_t GetNumberOfCols() const { return m_data[0].size(); };  
+  virtual size_t GetNumberOfCols() const override { return m_data[0].size(); }
   
-  void Set(uint32_t& row, uint32_t& col, DoublePtr x);
+  void Set(size_t &row, size_t &col, double* x) override;
   void Set(const CMatrixDouble& m);
 
-  virtual void GetMinMaxValues(double& min, double& max);
+  virtual void GetMinMaxValues(double& min, double& max) override;
 
-  /*
-  CUIntArray* GetMatrixDimsData() { return m_data.GetMatrixDims(); };
-  void SetMatrixDimsData(const CUIntArray& matrixDims) { m_data.SetMatrixDims(matrixDims); };
-  void SetMatrixDimsData(uint32_t nbValues);
-  
-  void InitMatrixDimsData(const CUIntArray& matrixDims, double initialValue = CTools::m_defaultValueDOUBLE);
-*/
-  /*
-  uint32_t GetMatrixDimData(uint32_t row) { return m_data.GetMatrixDim(row); };
-  uint32_t GetMatrixNumberOfDimsData() { return m_data.GetMatrixNumberOfDims(); };
-  */
-  uint32_t GetMatrixNumberOfValuesData() { return 1; };
+  virtual size_t GetMatrixNumberOfValuesData() const override { return 1; }
 
-  virtual size_t GetNumberOfValues() { return ( GetNumberOfRows() * GetNumberOfCols() ); };
+  virtual size_t GetNumberOfValues() const override { return ( GetNumberOfRows() * GetNumberOfCols() ); }
 
-  /*
-  DoublePtr NewMatrixData(double initialValue = CTools::m_defaultValueDOUBLE) { return m_data.NewMatrix(initialValue); };
-  */
-  void InitMatrix(double initialValue = CTools::m_defaultValueDOUBLE) { m_data.InitMatrix(initialValue); };
+  void InitMatrix(double initialValue = CTools::m_defaultValueDOUBLE) override { m_data.InitMatrix(initialValue); }
 
 
   ///Dump fonction
-  virtual void Dump(std::ostream& fOut = std::cerr) const;
+  virtual void Dump(std::ostream& fOut = std::cerr) const override;
 
 protected : 
 

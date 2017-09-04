@@ -412,7 +412,7 @@ int32_t CBratProcessYFX::Execute(std::string& msg)
 
     for (int32_t iRecord = 0 ; iRecord < nRecords ; iRecord++)
     {
-      //Read fields for the record name  (listof field and record name are set in Open method of CProduct above)
+      //Read fields for the record name  (list of field and record name are set in Open method of CProduct above)
       m_product->ReadBratRecord(iRecord);
       RegisterData();
     }

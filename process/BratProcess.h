@@ -532,10 +532,10 @@ namespace processes
 		static std::string PositionModeStr( CBratProcess::PositionMode mode );
 
 		static bool CheckPositionValue
-		( double		value,
-			double		min,
-			double		step,
-			uint32_t	count,
+		( double	value,
+			double	min,
+			double	step,
+			size_t	count,
 			CBratProcess::PositionMode	mode,
 			uint32_t	&position );
 
@@ -675,7 +675,7 @@ namespace processes
 		void MergeDataValue
 		( double* data,
 			double* values,
-			uint32_t nbValues,
+			size_t nbValues,
 			uint32_t indexExpr,
 			double* countValues,
             double* meanValues,
@@ -689,13 +689,7 @@ namespace processes
 		//	double* countValue,
         //	double* meanValue );
 
-		void FinalizeMergingOfDataValues
-		( double* data,
-			uint32_t indexExpr,
-			uint32_t nbValues,
-			double* countValues,
-            double* meanValues);
-
+		void FinalizeMergingOfDataValues( double* data, size_t indexExpr, size_t nbValues, double* countValues, double* meanValues);
 	};
 
 }

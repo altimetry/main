@@ -66,11 +66,16 @@ const std::string BRATCREATEYFX_EXE		= setExecExtension( "BratCreateYFX" );
 const std::string RADS_SERVICE_NAME_EXE	= setExecExtension( RADS_SERVICE_NAME );
 
 
-//static 
 const std::string CApplicationPaths::smDefaultURLRasterLayerPath =
-		R"raw(&format=image/png&layers=bluemarble&styles=&url=http://disc1.sci.gsfc.nasa.gov/daac-bin/wms_airsnrt?layer%3DAIRS_SO2_A%26)raw";
-            //contextualWMSLegend=0&crs=EPSG:4326&dpiMode=all&featureCount=10&format=image/png&layers=bluemarble&styles=&url=http://disc1.sci.gsfc.nasa.gov/daac-bin/wms_airsnrt?layer%3DAIRS_SO2_A%26
+R"raw(&format=image/png&layers=bluemarble&styles=&url=http://disc1.sci.gsfc.nasa.gov/daac-bin/wms_airsnrt?layer%3DAIRS_SO2_A%26)raw";
+//contextualWMSLegend=0&crs=EPSG:4326&dpiMode=all&featureCount=10&format=image/png&layers=bluemarble&styles=&url=http://disc1.sci.gsfc.nasa.gov/daac-bin/wms_airsnrt?layer%3DAIRS_SO2_A%26
 
+
+
+std::string CApplicationPaths::DefaulLocalFileRasterLayerPath() const
+{
+	return mInternalDataDir + "/maps/raster-image/world_googlemaps.tif";
+}
 
 
 
@@ -81,7 +86,7 @@ CApplicationPaths::CApplicationPaths( const QString &exec_path, const QString &a
 	base_t( q2a( exec_path ), q2a( app_name ) )
 
     , mVectorLayerPath( mInternalDataDir + "/maps/ne_10m_coastline/ne_10m_coastline.shp" )
-    , mRasterLayerPath( mInternalDataDir + "/maps/raster-image/world_googlemaps.tif" )
+    , mRasterLayerPath( DefaulLocalFileRasterLayerPath() )
     , mURLRasterLayerPath( smDefaultURLRasterLayerPath )
 
     //"http://localhost:8080/geoserver/wfs?srsname=EPSG:23030&typename=union&version=1.0.0&request=GetFeature&service=WFS"

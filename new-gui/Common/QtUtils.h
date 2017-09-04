@@ -70,6 +70,7 @@
 #endif
 #include <QSettings>
 #include <QResource>
+#include <QProcess>
 #include <QThread>
 #include <QUrl>
 #include <QTimer>
@@ -441,6 +442,23 @@ inline bool SimpleQuestion( const STRING &msg )
 inline bool SimpleQuestion( const char *msg )
 {
 	return SimpleQuestion( QString( msg ) );
+}
+
+
+inline bool SimpleQuestionOrCancel( const QString &msg, bool &yes )
+{
+	auto result = QMessageBox::warning( ApplicationWindow(), "Question", msg, QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel );
+	yes = result == QMessageBox::Yes;
+	return result != QMessageBox::Cancel;
+}
+template< class STRING >
+inline bool SimpleQuestionOrCancel( const STRING &msg, bool &yes )
+{
+	return SimpleQuestionOrCancel( t2q( msg ), yes );
+}
+inline bool SimpleQuestionOrCancel( const char *msg, bool &yes )
+{
+	return SimpleQuestionOrCancel( QString( msg ), yes );
 }
 
 
@@ -869,6 +887,12 @@ inline const QString& TextType2String( const QLineEdit * )
 	return s;
 }
 
+inline const QColor& ReadOnlyColor()
+{
+	static const QColor grayed = QColor( 0xDFDFDF );
+	return grayed;
+}
+
 
 template< typename TEXT_EDITOR >
 inline void SetReadOnlyEditor( TEXT_EDITOR *ed, bool ro )
@@ -886,9 +910,56 @@ inline void SetReadOnlyEditor( TEXT_EDITOR *ed, bool ro )
 //splitter
 ///////////
 
-inline QSplitter* CreateSplitter( QWidget *parent, Qt::Orientation orientation )
+
+class QSyncSplitter : public QSplitter
 {
-    QSplitter *s = new QSplitter( orientation, parent );
+	//Q_OBJECT;		issues linker unresolved symbols
+
+	using base_t = QSplitter;
+
+public:
+	explicit QSyncSplitter( QWidget* parent = Q_NULLPTR )
+		: base_t( parent )
+	{}
+
+	explicit QSyncSplitter(Qt::Orientation o, QWidget* parent = Q_NULLPTR)
+		: base_t( o, parent)
+	{}
+
+	virtual ~QSyncSplitter()
+	{}
+
+
+
+	void Connect( QSyncSplitter *po, bool bi = false )
+	{
+		assert__( this != po );
+
+		if ( this != po )
+		{
+			connect( this, &QSyncSplitter::splitterMoved, po, &QSyncSplitter::MoveSplitter );
+			if ( bi )
+				po->Connect( this, false );
+		}
+	}
+
+	void MoveSplitter( int pos, int index )
+	{
+		blockSignals( true );
+		moveSplitter( pos, index );
+		blockSignals( false );
+	}
+};
+
+
+
+
+
+
+template< typename SPLITTER = QSplitter >
+inline SPLITTER* CreateSplitter( QWidget *parent, Qt::Orientation orientation )
+{
+	SPLITTER *s = new SPLITTER( orientation, parent );
     SetObjectName( s, "splitter" );
 	return s;
 }
@@ -912,10 +983,11 @@ inline QSplitter* CreateSplitterIn( QMainWindow *parent, Qt::Orientation orienta
 	parent->setCentralWidget( s );
 	return s;
 }
-inline QSplitter* CreateSplitter( QWidget *parent, Qt::Orientation o, const std::vector< QWidget* > &v, 
+template< typename SPLITTER = QSplitter >
+inline SPLITTER* CreateSplitter( QWidget *parent, Qt::Orientation o, const std::vector< QWidget* > &v, 
 	bool collapsible = false, const QList< int > sizes = QList< int >() )
 {
-	QSplitter *splitter = CreateSplitter( parent, o );
+	SPLITTER *splitter = CreateSplitter<SPLITTER>( parent, o );
 	int index = 0;
 	for ( auto *w : v )
 	{
@@ -982,6 +1054,46 @@ inline void insertToolBar( QMainWindow *w, QToolBar *toolbar, Qt::ToolBarArea ar
 ////////////////////
 
 // see also ActionsTable.*
+
+
+template< typename WIDGET > 
+QAction* CreateActionNoHandler( WIDGET *w, const char *icon_path, const char *name, const char *tip = "", const char *shortcut = nullptr )
+{
+	QAction *a = icon_path ? new QAction(QIcon( icon_path ), w->tr( name ), w ) : new QAction( w->tr( name ), w );
+	if ( shortcut )
+		a->setShortcut( w->tr( shortcut ) );
+	if ( tip )
+	{
+		// Qt: "The status tip is displayed on all status bars provided by the action's top-level parent widget."
+		// 
+		a->setStatusTip( w->tr( tip ) );
+		a->setToolTip( w->tr( tip ) );
+	}
+
+	return a;
+}
+
+
+template< typename WIDGET, typename HANDLER > 
+QAction* CreateAction( WIDGET *w, const char *icon_path, const char *name, HANDLER handler, const char *tip = "", const char *shortcut = nullptr )
+{
+	QAction *a = CreateActionNoHandler( w, icon_path, name, tip, shortcut );
+
+	w->connect( a, &QAction::triggered, w, handler );
+
+	return a;
+}
+
+
+template< typename WIDGET, typename HANDLER > 
+QAction* CreateActionLambda( WIDGET *w, const char *icon_path, const char *name, HANDLER handler, const char *tip = "", const char *shortcut = nullptr )
+{
+	QAction *a = CreateActionNoHandler( w, icon_path, name, tip, shortcut );
+
+	w->connect( a, &QAction::triggered, handler );
+
+	return a;
+}
 
 
 template< typename ACTION_ITEM >
@@ -1239,8 +1351,10 @@ inline LIST_TYPE* FillAnyList( LIST_TYPE *c, const CONTAINER &items, const std::
 		c->addItem( f( item ) );
 	}
 
+	auto const nitems = items.size();
+
 	for ( auto selected : selection )
-		if ( selected >= 0 )
+		if ( selected >= 0 && (size_t)selected < nitems )
 		{
 			c->item( selected )->setSelected( true );
 			c->setCurrentRow( selected );			 //setCurrentRow must be called for all selected items; if called once, deselects all others
@@ -1583,6 +1697,27 @@ inline void NotImplemented( const char *msg = nullptr )
 //////////////////////////////////////////////////////////////////
 //	Candidates
 //////////////////////////////////////////////////////////////////
+
+inline const QString& TranslateQProcessErrorMessage( QProcess::ProcessError error )
+{
+	static const QString msgs[] =
+	{
+		"Failed To Start",
+		"Crashed",
+		"Timed out",
+		"Read Error",
+		"Write Error",
+		"Unknown Error"
+	};
+	static const DEFINE_ARRAY_SIZE( msgs );
+
+	static_assert( ( QProcess::ProcessError::UnknownError + 1 ) == msgs_size, "ProcessError enumerated values differ in size from their respective messages array." );
+
+	assert__( error < (int)msgs_size );
+
+	return msgs[ error ];
+}
+
 
 //inline int ItemRow( QListWidgetItem *item )
 //{

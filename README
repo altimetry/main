@@ -27,6 +27,28 @@ authoritative.
 
 
 
+Known Issues
+============
+
+- Window Buttons in Gnome Desktop
+
+The software recognizes Gnome when when running in a Linux desktop 
+and sets the appropriate properties for the minimize, maximize and 
+close buttons to be displayed in view windows. However, in Debain 8 
+it was verified that additonal configuration steps might be necessary, 
+at the system level, for those buttons to be dislayed. 
+
+This issue, which affects not only BRAT but other GUI applications
+as well, can be solved by running 
+
+gsettings set org.gnome.desktop.wm.preferences button-layout appmenu:minimize,maximize,close
+
+and/or by calling gnome-tweak-tool from the command line and then 
+selecting "Windows", "Titlebar Buttons", and clicking "ON" for the 
+maximize and minimize buttons.
+
+
+
 Version History
 == == == == == == ==
 
@@ -328,12 +350,6 @@ Transitional release, preparing version 3.3.0 and focused on
 -----
   - First released version.
 
-
-
-Known Issues
-============
-
-There are currently no known issues.
 
 
 Further information

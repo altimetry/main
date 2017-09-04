@@ -2141,7 +2141,7 @@ CNetCDFDimension::CNetCDFDimension()
   Init();
 }
 //----------------------------------------
-CNetCDFDimension::CNetCDFDimension(const std::string& name, int32_t length, bool isUnlimited /* = false */)
+CNetCDFDimension::CNetCDFDimension(const std::string& name, int_t length, bool isUnlimited /* = false */)
 {
   Init();
   SetName(name);
@@ -2600,7 +2600,7 @@ long CNetCDFVarDef::GetNbData()
   }
 
 
-  nbData = m_dims.GetProductValues();
+  nbData = m_dims.GetValuesProduct();
 
   return nbData;
 }

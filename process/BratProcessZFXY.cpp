@@ -134,23 +134,11 @@ void CBratProcessZFXY::Init()
 //----------------------------------------
 void CBratProcessZFXY::DeleteData()
 {
-  
-  if (m_xData != NULL)
-  {
-    delete m_xData;
-    m_xData = NULL;
-  }
+	delete m_xData;
+	m_xData = NULL;
 
-  if (m_yData != NULL)
-  {
-    delete m_yData;
-    m_yData = NULL;
-  }
-  
-
-  //m_xData.RemoveAll();
-  //m_yData.RemoveAll();
-
+	delete m_yData;
+	m_yData = NULL;
 }
 
 //----------------------------------------
@@ -198,230 +186,232 @@ void CBratProcessZFXY::GetParameters(const std::string& commandFileName)
 //----------------------------------------
 void CBratProcessZFXY::GetParameters()
 {
-  LoadParams(m_commandFileName);
-  CheckFileParams();
+	LoadParams( m_commandFileName );
+	CheckFileParams();
 
-  CFileParams& params = *m_fileParams;
+	CFileParams& params = *m_fileParams;
 
-  // Verify keyword occurrences
-  uint32_t nbFields = params.CheckCount(kwFIELD,  1, base_t::NB_MAX_Y);
+	// Verify keyword occurrences
+	uint32_t nbFields = params.CheckCount( kwFIELD, 1, base_t::NB_MAX_Y );
 
-  params.CheckCount(kwOUTPUT);
-  params.CheckCount(kwRECORD);
+	params.CheckCount( kwOUTPUT );
+	params.CheckCount( kwRECORD );
 
 
-// Get keyword values
+	// Get keyword values
 
-  //CTrace *p =
-  CTrace::GetInstance();
+	  //CTrace *p =
+	CTrace::GetInstance();
 
-  //---------
+	//---------
 
-  params.m_mapParam[kwOUTPUT]->GetValue(m_outputFileName);
-  CTrace::Tracer(1, base_t::PCT_StrFmt, "Output file", m_outputFileName.c_str());
-  
-  m_internalFiles = new CInternalFilesZFXY(m_outputFileName.c_str(), Replace);
-  m_internalFiles->Open();
+	params.m_mapParam[ kwOUTPUT ]->GetValue( m_outputFileName );
+	CTrace::Tracer( 1, base_t::PCT_StrFmt, "Output file", m_outputFileName.c_str() );
 
-  //---------
+	m_internalFiles = new CInternalFilesZFXY( m_outputFileName.c_str(), Replace );
+	m_internalFiles->Open();
 
-  if (params.CheckCount(kwOUTPUT_TITLE, 0) == 1)
-  {
-    params.m_mapParam[kwOUTPUT_TITLE]->GetValue(m_outputTitle);
-  }
+	//---------
 
-  CTrace::Tracer(1, base_t::PCT_QStrFmt, "Output title", m_outputTitle.c_str());
-  
-  //---------
-
-  params.m_mapParam[kwRECORD]->GetValue(m_recordName);
-  CTrace::Tracer(1, base_t::PCT_StrFmt, "Data set name", m_recordName.c_str());
-
-  //---------
-
-  if (params.CheckCount(kwEXPAND_ARRAY, 0, 1) == 1)
-  {
-    params.m_mapParam[kwEXPAND_ARRAY]->GetValue(m_expandArray);
-  }
-  CTrace::Tracer(1, PCT_IntFmt, "Expand array", m_expandArray);
-
-  //---------
-
-  GetSelectParameter(params);
-
-  //---------
-
-  m_dataModeGlobal	= GetDataMode(params);
-  CTrace::Tracer(1, base_t::PCT_StrFmt, "Default data mode",  base_t::DataModeStr(m_dataModeGlobal).c_str());
-
-  //---------
-
-  m_positionMode	= base_t::GetPositionMode(params);
-  CTrace::Tracer(1, base_t::PCT_StrFmt, "Position mode",  base_t::PositionModeStr(m_positionMode).c_str());
-
-  //---------
-
-  m_outsideMode	= base_t::GetOutsideMode(params);
-  CTrace::Tracer(1, base_t::PCT_StrFmt, "Outside mode",  base_t::OutsideModeStr(m_outsideMode).c_str());
-
-  //---------
-
-  //If XMin/XMax and YMin/YMax are always expressed in base unit.
-  //If XMin/XMax and YMin/YMax account for a date, they are expressed in number of seconds since 1950-01-01 00;:00:00.0
-/*
-  base_t::GetVarDef(params,
-	          kwX,
-	          m_xField,
-	          &m_xName,
-	          &m_xType,
-	          &m_xUnit,
-	          &m_xTitle,
-	          &m_xComment,
-	          NULL,
-	          NULL,
-	          m_xMin,
-	          m_xMax,
-	          m_xCount,
-	          m_xStep,
-	          "X Data");
-*/
-  this->GetDefinition(params,
-	          kwX,
-	          m_xField,
-	          &m_xName,
-	          &m_xType,
-	          &m_xUnit,
-	          &m_xTitle,
-	          &m_xComment,
-	          NULL,
-	          NULL,
-	          m_xMin,
-	          m_xMax,
-	          m_xCount,
-	          m_xStep,
-	          "X Data");
-
-  m_xCircular	= base_t::IsLongitudeCircular(m_xMin, m_xMax, m_xType, &m_xUnit, CLatLonPoint::m_LONGITUDE_COMPARE_EPSILON);
-
-  this->GetDefinition(params,
-	          kwY,
-	          m_yField,
-	          &m_yName,
-	          &m_yType,
-	          &m_yUnit,
-	          &m_yTitle,
-	          &m_yComment,
-	          NULL,
-	          NULL,
-	          m_yMin,
-	          m_yMax,
-	          m_yCount,
-	          m_yStep,
-	          "Y Data");
-
-  m_yCircular	= base_t::IsLongitudeCircular(m_yMin, m_yMax, m_yType, &m_yUnit, CLatLonPoint::m_LONGITUDE_COMPARE_EPSILON);
-
-  ResizeArrayDependOnFields(nbFields);
-  
-  bool oneFilter	= false;
-  
-  uint32_t accruedDataSlices = 0;
-  uint32_t index;
-
-  for (index = 0; index < nbFields; index++)
-  {
-    this->GetDefinition(params,
-	            kwFIELD,
-	            m_fields[index],
-	            &m_names[index],
-	            &m_types[index],
-	            &m_units[index],
-	            &m_titles[index],
-	            &m_comments[index],
-	            NULL,
-	            NULL,
-	            "Value",
-	            index,
-	            nbFields);
-
-    bool smoothTmp;
-    bool extrapolateTmp;
-    
-    base_t::GetFilterDefinitions( params, kwFIELD, &smoothTmp, &extrapolateTmp, index, nbFields );
-
-    m_smooth[index]	= smoothTmp;
-
-    m_extrapolate[index]	= extrapolateTmp;
-
-    oneFilter	|= smoothTmp || extrapolateTmp;
-
-    m_dataMode[index] = GetDataMode( params, kwFIELD, 0, nbFields, index, m_dataModeGlobal );
-    if ( m_dataMode[index] == pctTIME )
-    {
-        mDataInterpolationTimeFieldName[index] = GetDataModeDITimeName( params, kwFIELD, 0, nbFields, index );
-        mDataInterpolationDateTime[index] = GetDataModeDIDateTime( params, kwFIELD, 0, nbFields, index );
-		mDataInterpolationDistanceWeighting[index] = GetDataModeDIDistanceWeighting(params, kwFIELD, 0, nbFields, index );
-		mDataInterpolationTimeWeighting[index] = GetDataModeDITimeWeighting(params, kwFIELD, 0, nbFields, index );
+	if ( params.CheckCount( kwOUTPUT_TITLE, 0 ) == 1 )
+	{
+		params.m_mapParam[ kwOUTPUT_TITLE ]->GetValue( m_outputTitle );
 	}
-  }
+
+	CTrace::Tracer( 1, base_t::PCT_QStrFmt, "Output title", m_outputTitle.c_str() );
+
+	//---------
+
+	params.m_mapParam[ kwRECORD ]->GetValue( m_recordName );
+	CTrace::Tracer( 1, base_t::PCT_StrFmt, "Data set name", m_recordName.c_str() );
+
+	//---------
+
+	if ( params.CheckCount( kwEXPAND_ARRAY, 0, 1 ) == 1 )
+	{
+		params.m_mapParam[ kwEXPAND_ARRAY ]->GetValue( m_expandArray );
+	}
+	CTrace::Tracer( 1, PCT_IntFmt, "Expand array", m_expandArray );
+
+	//---------
+
+	GetSelectParameter( params );
+
+	//---------
+
+	m_dataModeGlobal	= GetDataMode( params );
+	CTrace::Tracer( 1, base_t::PCT_StrFmt, "Default data mode", base_t::DataModeStr( m_dataModeGlobal ).c_str() );
+
+	//---------
+
+	m_positionMode	= base_t::GetPositionMode( params );
+	CTrace::Tracer( 1, base_t::PCT_StrFmt, "Position mode", base_t::PositionModeStr( m_positionMode ).c_str() );
+
+	//---------
+
+	m_outsideMode	= base_t::GetOutsideMode( params );
+	CTrace::Tracer( 1, base_t::PCT_StrFmt, "Outside mode", base_t::OutsideModeStr( m_outsideMode ).c_str() );
+
+	//---------
+
+	//If XMin/XMax and YMin/YMax are always expressed in base unit.
+	//If XMin/XMax and YMin/YMax account for a date, they are expressed in number of seconds since 1950-01-01 00;:00:00.0
+  /*
+	base_t::GetVarDef(params,
+				kwX,
+				m_xField,
+				&m_xName,
+				&m_xType,
+				&m_xUnit,
+				&m_xTitle,
+				&m_xComment,
+				NULL,
+				NULL,
+				m_xMin,
+				m_xMax,
+				m_xCount,
+				m_xStep,
+				"X Data");
+  */
+	uint32_t hack = 0;
+	this->GetDefinition( params,
+		kwX,
+		m_xField,
+		&m_xName,
+		&m_xType,
+		&m_xUnit,
+		&m_xTitle,
+		&m_xComment,
+		NULL,
+		NULL,
+		m_xMin,
+		m_xMax,
+		hack,
+		m_xStep,
+		"X Data" );
+	m_xCount = hack;
+
+	m_xCircular	= base_t::IsLongitudeCircular( m_xMin, m_xMax, m_xType, &m_xUnit, CLatLonPoint::m_LONGITUDE_COMPARE_EPSILON );
+
+	this->GetDefinition( params,
+		kwY,
+		m_yField,
+		&m_yName,
+		&m_yType,
+		&m_yUnit,
+		&m_yTitle,
+		&m_yComment,
+		NULL,
+		NULL,
+		m_yMin,
+		m_yMax,
+		hack,
+		m_yStep,
+		"Y Data" );
+	m_yCount = hack;
+
+	m_yCircular	= base_t::IsLongitudeCircular( m_yMin, m_yMax, m_yType, &m_yUnit, CLatLonPoint::m_LONGITUDE_COMPARE_EPSILON );
+
+	ResizeArrayDependOnFields( nbFields );
+
+	bool oneFilter	= false;
+
+	for ( uint32_t index = 0; index < nbFields; index++ )
+	{
+		this->GetDefinition( params,
+			kwFIELD,
+			m_fields[ index ],
+			&m_names[ index ],
+			&m_types[ index ],
+			&m_units[ index ],
+			&m_titles[ index ],
+			&m_comments[ index ],
+			NULL,
+			NULL,
+			"Value",
+			index,
+			nbFields );
+
+		bool smoothTmp;
+		bool extrapolateTmp;
+
+		base_t::GetFilterDefinitions( params, kwFIELD, &smoothTmp, &extrapolateTmp, index, nbFields );
+
+		m_smooth[ index ]	= smoothTmp;
+
+		m_extrapolate[ index ]	= extrapolateTmp;
+
+		oneFilter	|= smoothTmp || extrapolateTmp;
+
+		m_dataMode[ index ] = GetDataMode( params, kwFIELD, 0, nbFields, index, m_dataModeGlobal );
+		if ( m_dataMode[ index ] == pctTIME )
+		{
+			mDataInterpolationTimeFieldName[ index ] = GetDataModeDITimeName( params, kwFIELD, 0, nbFields, index );
+			mDataInterpolationDateTime[ index ] = GetDataModeDIDateTime( params, kwFIELD, 0, nbFields, index );
+			mDataInterpolationDistanceWeighting[ index ] = GetDataModeDIDistanceWeighting( params, kwFIELD, 0, nbFields, index );
+			mDataInterpolationTimeWeighting[ index ] = GetDataModeDITimeWeighting( params, kwFIELD, 0, nbFields, index );
+		}
+	}
 
 
-  if (oneFilter)
-  {
-    base_t::GetLoessCutoff(params, &m_xLoessCutoff, &m_yLoessCutoff);
-  }
+	if ( oneFilter )
+	{
+		base_t::GetLoessCutoff( params, &m_xLoessCutoff, &m_yLoessCutoff );
+	}
 
 
-  
-  CTrace::Tracer(1,"Allocating and initialising working structures");
-  
-  m_nbDataByGrid	= m_xCount * m_yCount;
-  
-  int32_t nbDataSlices = 0;
 
-  for (index = 0; index < nbFields; index++)
-  {
-    nbDataSlices	= base_t::GetMergedDataSlices( m_dataMode[index] );
-    
-    m_countOffsets[index] = -1;
-    m_meanOffsets[index] = -1;
+	CTrace::Tracer( 1, "Allocating and initialising working structures" );
 
-    switch (nbDataSlices)
-    {
-      //-------
-      case 2:
-      //-------
-        m_countOffsets[index] = nbFields + accruedDataSlices;
-        break;
-      //-------
-      case 3:
-      //-------
-        m_countOffsets[index] = nbFields + accruedDataSlices;
-        m_meanOffsets[index] = nbFields + accruedDataSlices + 1;
-        break;
-      //-------
-      default:
-      //-------
-        break;
-    }
+	m_nbDataByGrid	= m_xCount * m_yCount;
 
-    accruedDataSlices += (nbDataSlices - 1);
-    // add :  nbDataSlices to number of data to allocate.
-    m_nbDataAllocated	+= nbDataSlices ;
+	int32_t nbDataSlices = 0;
+	uint32_t accruedDataSlices = 0;
 
-  }
+	for ( uint32_t index = 0; index < nbFields; index++ )
+	{
+		nbDataSlices = GetMergedDataSlices( m_dataMode[ index ] );	//default is 1; 2 for pctMEAN and pctTIME; 3 for pctSTDDEV
+
+		m_countOffsets[ index ] = -1;
+		m_meanOffsets[ index ] = -1;
+
+		switch ( nbDataSlices )
+		{
+			//-------
+			case 2:
+				//-------
+				m_countOffsets[ index ] = nbFields + accruedDataSlices;
+				break;
+				//-------
+			case 3:
+				//-------
+				m_countOffsets[ index ] = nbFields + accruedDataSlices;
+				m_meanOffsets[ index ] = nbFields + accruedDataSlices + 1;
+				break;
+				//-------
+			default:
+				//-------
+				break;
+		}
+
+		accruedDataSlices += ( nbDataSlices - 1 );
+
+		// add :  nbDataSlices to number of data to allocate
+		// 
+		m_nbDataAllocated	+= nbDataSlices;
+	}
 
 
-  if (m_nbDataAllocated != (nbFields + accruedDataSlices))
-  {
-    throw CException(CTools::Format("ERROR: CBratProcessZFXY::GetParameters() - number of data to allocate (%d) != number of fields (%d) + data slices (%d)\n",
-                                    m_nbDataAllocated,
-                                    nbFields,
-                                    accruedDataSlices),
-			               BRATHL_LOGIC_ERROR);
-  }
+	if ( m_nbDataAllocated != ( nbFields + accruedDataSlices ) )
+	{
+		throw CException( CTools::Format( "ERROR: CBratProcessZFXY::GetParameters() - number of data to allocate (%d) != number of fields (%d) + data slices (%d)\n",
+			m_nbDataAllocated,
+			nbFields,
+			accruedDataSlices ),
+			BRATHL_LOGIC_ERROR );
+	}
 
-  DeleteFileParams();
+	DeleteFileParams();
 }
 
 
@@ -496,49 +486,6 @@ CMatrixDoublePtr* CBratProcessZFXY::NewMatrixDoublePtr()
   return matrix;
 
 }
-//----------------------------------------
-double* CBratProcessZFXY::NewDoubleArray(uint32_t nbElts)
-{
-  double* array = NULL;
-  try
-  {
-    array = new double[nbElts];
-  }
-  catch (CException& e)
-  {
-    throw CException(CTools::Format("ERROR in CBratProcessZFXY::NewDoubleArray(). Unable to allocate new memory to store %ld elements. Reason: %s\n",
-					  (long)nbElts,
-            e.what()),
-            BRATHL_ERROR);
-  }
-  catch (std::bad_alloc& e) // If memory allocation (new) failed...
-  {
-    m_grids.RemoveAll(); // free memory  to be able to allocate new for error msg
-    throw CMemoryException(CTools::Format("ERROR: CBratProcessZFXY::NewDoubleArray() - Unable to allocate new memory to store %ld elements.\nNative error: '%s'\n",
-                                   (long)nbElts,
-                                   e.what()));
-  }
-  catch (...)
-  {
-    m_grids.RemoveAll(); // free memory  to be able to allocate new for error msg
-    throw CMemoryException(CTools::Format("ERROR: CBratProcessZFXY::NewDoubleArray(). It may be that it does not remain enough memory to allocate %ld elements "
-                                           " or try to allocate more than your system architecture can ever handle",
-					  (long)nbElts));
-  }
-
-
-  if (array == NULL)
-  {
-    m_grids.RemoveAll(); // free memory  to be able to allocate new for error msg
-    throw CMemoryException(CTools::Format("ERROR: CBratProcessZFXY::NewDoubleArray(). It may be that it does not remain enough memory to allocate %ld elements "
-                                           " or try to allocate more than your system architecture can ever handle",
-					  (long)nbElts));
-
-  }
-  return array;
-
-}
-
 
 //----------------------------------------
 CMatrixDouble* CBratProcessZFXY::NewMatrixDouble()
@@ -590,21 +537,21 @@ CMatrixDouble* CBratProcessZFXY::NewMatrixDouble()
 }
 
 //----------------------------------------
-CMatrix* CBratProcessZFXY::CreateGrid(uint32_t index, const CExpressionValue& exprValue)
+CMatrix* CBratProcessZFXY::CreateGrid( uint32_t index, const CExpressionValue& exprValue )
 {
 
-  CMatrix* matrix = NULL;
+	CMatrix* matrix = NULL;
 
-  if (exprValue.GetNbDimensions() <= 0)
-  {
-    matrix = CreateGridDouble(index);
-  }
-  else
-  {
-    matrix = CreateGridDoublePtr(index, exprValue);
-  }
+	if ( exprValue.GetNbDimensions() <= 0 )
+	{
+		matrix = CreateGridDouble( index );
+	}
+	else
+	{
+		matrix = CreateGridDoublePtr( index, exprValue );
+	}
 
-  return matrix;
+	return matrix;
 
 }
 //----------------------------------------
@@ -775,7 +722,7 @@ CMatrixDoublePtr* CBratProcessZFXY::CreateGridDoublePtr(uint32_t index, const CE
 					  (long)(m_nbDataByGrid * m_nbDataAllocated)));
   }
 
-  return CBratProcessZFXY::GetMatrixDoublePtr(m_grids.at(index)); 
+  return CBratProcessZFXY::GetMatrixDoublePtr(index); 
 }
 //----------------------------------------
 CMatrixDouble* CBratProcessZFXY::CreateGridDouble(uint32_t index)
@@ -853,80 +800,41 @@ CMatrixDouble* CBratProcessZFXY::CreateGridDouble(uint32_t index)
   }
 
 
-  return CBratProcessZFXY::GetMatrixDouble(m_grids.at(index)); 
+  return CBratProcessZFXY::GetMatrixDouble(index); 
 
 }
 
-//----------------------------------------
-bool CBratProcessZFXY::IsMatrixDouble(uint32_t index)
-{
-  return (GetMatrixDouble(index, false) != NULL);
-}
-//----------------------------------------
-bool CBratProcessZFXY::IsMatrixDoublePtr(uint32_t index)
-{
-  return (GetMatrixDoublePtr(index, false) != NULL);
-}
-
-//----------------------------------------
-bool CBratProcessZFXY::IsMatrixDouble(CMatrix* matrix)
-{
-  return (GetMatrixDouble(matrix, false) != NULL);
-}
-
-//----------------------------------------
-bool CBratProcessZFXY::IsMatrixDoublePtr(CMatrix* matrix)
-{
-  return (GetMatrixDoublePtr(matrix, false) != NULL);
-}
 
 
 //----------------------------------------
 void CBratProcessZFXY::InitGrids()
 {
+	try
+	{
+		uint32_t index = 0;
 
-  uint32_t index = 0;
+		m_grids.resize(m_nbDataAllocated, NULL);
 
-  m_grids.resize(m_nbDataAllocated, NULL);
-  
-  DeleteData();
-  //m_xData = new double[m_xCount];
-  //m_yData = new double[m_yCount];
+		DeleteData();
+		m_xData = new double[m_xCount];
+		m_yData = new double[m_yCount];
 
-  m_xData = NewDoubleArray(m_xCount);
-  m_yData = NewDoubleArray(m_yCount);
+		for (size_t index = 0; index < m_xCount; index++)
+		{
+			m_xData[index]	= m_xMin + m_xStep * static_cast<double>(index);
+		}
 
-//  m_xData.resize(m_xCount);
-//  m_yData.resize(m_yCount);
-
-  CUnit unit = m_xUnit;
-
-  //for (index = 0; index < m_xCount - 1; index++)
-  for (index = 0; index < m_xCount; index++)
-  {
-    m_xData[index]	= m_xMin + m_xStep * static_cast<double>(index);
-  }
-
-  //m_xData[m_xCount - 1]	= m_xMax;
-  
-  
-  unit = m_yUnit;
-
-//  for (index = 0; index < m_yCount - 1; index++)
-  for (index = 0; index < m_yCount; index++)
-  {
-    m_yData[index]	= m_yMin + m_yStep * index;
-  }
-  
-  //m_yData[m_yCount - 1]	= m_yMax;
-
-
+		for (size_t index = 0; index < m_yCount; index++)
+		{
+			m_yData[index]	= m_yMin + m_yStep * index;
+		}
+	}
+	catch( ... )
+	{
+		throw CMemoryException( "ERROR: CBratProcessZFXY::InitGrids() out of memory allocating data structures," );
+	}
 }
-//----------------------------------------
-void CBratProcessZFXY::BuildListFieldsToRead()
-{
-  base_t::BuildListFieldsToRead();
-}
+
 //----------------------------------------
 void CBratProcessZFXY::AddComplementDimensionsFromNetCdf()
 {
@@ -970,145 +878,43 @@ void CBratProcessZFXY::AddComplementDimensionsFromNetCdf()
 
 
 //----------------------------------------
-CUIntArray* CBratProcessZFXY::CheckMatrixDataPtr(CUIntArray* matrixData)
+CMatrix* CBratProcessZFXY::GetMatrix( size_t index )
 {
-  if (matrixData == NULL)
-  {
-    CException e("CBratProcessZFXY::CheckMatrixDataPtr - matrixData is NULL"
-                 "matrixData seems not to be allocated",
-                 BRATHL_LOGIC_ERROR);
-    throw (e);
-  }
+	CMatrix* matrix = index < m_grids.size() ? m_grids.at( index ) : NULL;
+	if ( !matrix )
+	{
+		throw CException( CTools::Format( "CBratProcessZFXY::GetMatrix - matrix at index %d is NULL.", index ), BRATHL_LOGIC_ERROR );
+	}
+	return matrix;
+}
 
-  return matrixData;
+
+CMatrixDoublePtr* CBratProcessZFXY::GetMatrixDoublePtr( size_t index )
+{
+	CMatrixDoublePtr* matrix = dynamic_cast<CMatrixDoublePtr*>( GetMatrix( index ) );
+	if ( !matrix )
+	{
+		throw CException( CTools::Format( "CBratProcessZFXY::GetMatrixDoublePtr - matrix at index %d is NULL.\nObject is not an instance of CMatrixDoublePtr",
+			index ),
+			BRATHL_LOGIC_ERROR );
+	}
+	return matrix;
 
 }
 
-//----------------------------------------
-CMatrix* CBratProcessZFXY::GetMatrix(uint32_t index, bool withExcept /*= true*/)
+CMatrixDouble* CBratProcessZFXY::GetMatrixDouble( size_t index )
 {
-  CMatrix* matrix = NULL;
-  if (index < m_grids.size())
-  {
-    matrix = CBratProcessZFXY::GetMatrix( m_grids.at(index),  false);
-  }
-  if (withExcept)
-  {
-    if (matrix == NULL)
-    {
-      CException e(CTools::Format("CBratProcessZFXY::GetMatrix - matrix at index %d is NULL. "
-                   "Either object is not to be an instance of CMatrix or object doesn't exist",
-                   index),
-                   BRATHL_LOGIC_ERROR);
-      throw (e);
-    }
-  }
+	CMatrixDouble* matrix = dynamic_cast<CMatrixDouble*>( m_grids.at( index ) );
+	if ( !matrix )
+	{
+		throw CException( CTools::Format( "CBratProcessZFXY::GetMatrixDouble - matrix at index %d is NULL.\nObject is not an instance of CMatrixDouble",
+			index ),
+			BRATHL_LOGIC_ERROR );
+	}
 
-  return matrix;
-
+	return matrix;
 }
 
-//----------------------------------------
-CMatrixDoublePtr* CBratProcessZFXY::GetMatrixDoublePtr(uint32_t index, bool withExcept /*= true*/)
-{
-  CMatrixDoublePtr* matrix = NULL;
-  if (index < m_grids.size())
-  {
-    matrix = dynamic_cast<CMatrixDoublePtr*>( m_grids.at(index) );
-  }
-  if (withExcept)
-  {
-    if (matrix == NULL)
-    {
-      CException e(CTools::Format("CBratProcessZFXY::GetMatrixDoublePtr - matrix at index %d is NULL. "
-                   "Either object is not to be an instance of CMatrixDoublePtr or object doesn't exist",
-                   index),
-                   BRATHL_LOGIC_ERROR);
-      throw (e);
-    }
-  }
-
-  return matrix;
-
-}
-
-//----------------------------------------
-CMatrixDouble* CBratProcessZFXY::GetMatrixDouble(uint32_t index, bool withExcept /*= true*/)
-{
-  CMatrixDouble* matrix = NULL;
-  if (index < m_grids.size())
-  {
-    matrix = dynamic_cast<CMatrixDouble*>( m_grids.at(index) );
-  }
-  if (withExcept)
-  {
-    if (matrix == NULL)
-    {
-      CException e(CTools::Format("CBratProcessZFXY::GetMatrixDouble - matrix at index %d is NULL. "
-                   "Either object is not to be an instance of CMatrixDouble or object doesn't exist",
-                   index),
-                   BRATHL_LOGIC_ERROR);
-      throw (e);
-    }
-  }
-
-  return matrix;
-
-}
-//----------------------------------------
-CMatrix* CBratProcessZFXY::GetMatrix(CBratObject* ob, bool withExcept /*= true*/)
-{
-  CMatrix* matrix = dynamic_cast<CMatrix*>(ob);
-  if (withExcept)
-  {
-    if (matrix == NULL)
-    {
-      CException e("CBratProcessZFXY::GetMatrixDoublePtr - dynamic_cast<CMatrix*>(ob) returns NULL"
-                   "object seems not to be an instance of CMatrix",
-                   BRATHL_LOGIC_ERROR);
-      throw (e);
-    }
-  }
-
-  return matrix;
-
-}
-//----------------------------------------
-CMatrixDoublePtr* CBratProcessZFXY::GetMatrixDoublePtr(CBratObject* ob, bool withExcept /*= true*/)
-{
-  CMatrixDoublePtr* matrixDoublePtr = dynamic_cast<CMatrixDoublePtr*>(ob);
-  if (withExcept)
-  {
-    if (matrixDoublePtr == NULL)
-    {
-      CException e("CBratProcessZFXY::GetMatrixDoublePtr - dynamic_cast<CMatrixDoublePtr*>(ob) returns NULL"
-                   "object seems not to be an instance of CMatrixDoublePtr",
-                   BRATHL_LOGIC_ERROR);
-      throw (e);
-    }
-  }
-
-  return matrixDoublePtr;
-
-}
-//----------------------------------------
-CMatrixDouble* CBratProcessZFXY::GetMatrixDouble(CBratObject* ob, bool withExcept /*= true*/)
-{
-  CMatrixDouble* matrixDouble = dynamic_cast<CMatrixDouble*>(ob);
-  if (withExcept)
-  {
-    if (matrixDouble == NULL)
-    {
-      CException e("CBratProcessZFXY::GetMatrixDoublePtr - dynamic_cast<CMatrixDouble*>(ob) returns NULL"
-                   "object seems not to be an instance of CMatrixDouble",
-                   BRATHL_LOGIC_ERROR);
-      throw (e);
-    }
-  }
-
-  return matrixDouble;
-
-}
 
 
 //----------------------------------------
@@ -1132,9 +938,7 @@ int32_t CBratProcessZFXY::Execute( std::string& msg )
 	size_t nbFiles = m_inputFiles.size();
 	size_t cptFile = 0;
 
-	CStringArray::iterator itFile;
-
-	for ( itFile = m_inputFiles.begin(); itFile != m_inputFiles.end(); itFile++ )
+	for ( CStringArray::iterator itFile = m_inputFiles.begin(); itFile != m_inputFiles.end(); itFile++ )
 	{
 		cptFile++;
 
@@ -1142,6 +946,7 @@ int32_t CBratProcessZFXY::Execute( std::string& msg )
 			cptFile, nbFiles, ( *itFile ).c_str() );
 
 		// open file an set record name and list of field to read
+		// 
 		m_product->SetFieldSpecificUnits( m_fieldSpecificUnit );
 		m_product->Open( *itFile, m_recordName );
 
@@ -1150,7 +955,6 @@ int32_t CBratProcessZFXY::Execute( std::string& msg )
 		SetExpandArray( m_xField, true );
 		SetExpandArray( m_yField, true );
 
-
 		ReplaceAxisDefinition();
 
 		ReplaceFieldDefinition();
@@ -1158,11 +962,13 @@ int32_t CBratProcessZFXY::Execute( std::string& msg )
         m_product->SetListFieldToRead( m_listFieldsToRead, false );
 
 		// Get the number of record for the default record name (set in Open method of CProduct above)
-		int32_t nRecords = m_product->GetNumberOfRecords();
+		// 
+		int_t nRecords = m_product->GetNumberOfRecords();	//can be < 0
 
-		for ( int32_t iRecord = 0; iRecord < nRecords; iRecord++ )
+		for ( int_t iRecord = 0; iRecord < nRecords; iRecord++ )
 		{
-			//Read fields for the record name  (listof field and record name are set in Open method of CProduct above)
+			//Read fields for the record name  (list of field and record name are set in Open method of CProduct above)
+			// 
             m_product->ReadBratRecord( iRecord );
 			RegisterData();
 		}
@@ -1201,13 +1007,7 @@ void CBratProcessZFXY::RegisterData()
 			BRATHL_LOGIC_ERROR );
 	}
 
-	//CTrace *p = CTrace::GetInstance();
-
-	//p->Tracer(1,"Registering data ...");
-
 	CDataSet* dataSet = NULL;
-	CObArray::iterator itDataSet;
-
 	CRecordSet* recordSet = NULL;
 
 	CExpressionValue exprValue;
@@ -1224,7 +1024,7 @@ void CBratProcessZFXY::RegisterData()
 	//---------------------------------
 	// Picks up data from the recordset
 	//---------------------------------
-	for ( itDataSet = dataSet->begin(); itDataSet != dataSet->end(); itDataSet++ )
+	for ( CObArray::iterator itDataSet = dataSet->begin(); itDataSet != dataSet->end(); itDataSet++ )
 	{
 		recordSet = dataSet->GetRecordSet( itDataSet );
 
@@ -1252,7 +1052,7 @@ void CBratProcessZFXY::RegisterData()
 		//---------------------------------
 		recordSet->ExecuteExpression( m_xField, m_recordName, exprValue, m_product );
 
-		uint32_t nbValues = exprValue.GetNbValues();
+		size_t nbValues = exprValue.GetNbValues();
 
 		if ( nbValues == 0 )
 		{
@@ -1316,22 +1116,22 @@ void CBratProcessZFXY::RegisterData()
 		uint32_t xPos = 0;
 		uint32_t yPos = 0;
 
-		if ( base_t::CheckOutsideValue( xValue, m_xMin, m_xMax, m_xStep, m_outsideMode ) )
+		if ( CheckOutsideValue( xValue, m_xMin, m_xMax, m_xStep, m_outsideMode ) )
 		{
 			continue;
 		}
 
-		if ( base_t::CheckOutsideValue( yValue, m_yMin, m_yMax, m_yStep, m_outsideMode ) )
+		if ( CheckOutsideValue( yValue, m_yMin, m_yMax, m_yStep, m_outsideMode ) )
 		{
 			continue;
 		}
 
-		if ( base_t::CheckPositionValue( xValue, m_xMin, m_xStep, m_xCount, m_positionMode, xPos ) )
+		if ( CheckPositionValue( xValue, m_xMin, m_xStep, m_xCount, m_positionMode, xPos ) )
 		{
 			continue;
 		}
 
-		if ( base_t::CheckPositionValue( yValue, m_yMin, m_yStep, m_yCount, m_positionMode, yPos ) )
+		if ( CheckPositionValue( yValue, m_yMin, m_yStep, m_yCount, m_positionMode, yPos ) )
 		{
 			continue;
 		}
@@ -1405,7 +1205,11 @@ void CBratProcessZFXY::RegisterData()
 		{
 			recordSet->ExecuteExpression( m_fields.at( indexExpr ), m_recordName, exprValue, m_product );
 
-			CMatrix* matrix = GetMatrix( indexExpr, false );
+			CMatrix *matrix =
+				indexExpr < m_grids.size() ?
+				m_grids.at( indexExpr ) :
+				nullptr;
+
 			if ( matrix == NULL )
 			{
 				//recordSet->ExecuteExpression(m_fields.at(indexExpr), m_recordName, exprValue, m_product);
@@ -1443,12 +1247,12 @@ void CBratProcessZFXY::RegisterData()
 			}
 
 
-			CMatrixDouble* matrixDouble = CBratProcessZFXY::GetMatrixDouble( matrix, false );
+			CMatrixDouble *matrixDouble = dynamic_cast<CMatrixDouble*>( matrix );
+			CMatrixDoublePtr *matrixDoublePtr = dynamic_cast<CMatrixDoublePtr*>( matrix );
 
-			CMatrixDoublePtr* matrixDoublePtr = CBratProcessZFXY::GetMatrixDoublePtr( matrix, false );
+			assert__( ( matrixDouble && !matrixDoublePtr ) || ( !matrixDouble && matrixDoublePtr ) );
 
 			double* auxParams = ComputeMergeDataValueParameters( recordSet, indexExpr, xValue, yValue );
-
 			if ( matrixDouble != NULL )
 			{
 				MergeDataValue( *dataValues, exprValue.GetValues()[ 0 ], countValues, meanValues, auxParams, m_dataMode[ indexExpr ] );
@@ -1457,9 +1261,7 @@ void CBratProcessZFXY::RegisterData()
 			{
 				MergeDataValue( dataValues, exprValue.GetValues(), nbValues, indexExpr, countValues, meanValues, auxParams );
 			}
-
 		}
-
 	}
 
 	//p->Tracer(1,"End registering data");
@@ -1509,7 +1311,7 @@ double* CBratProcessZFXY::ComputeMergeDataValueParameters(CRecordSet* recordSet,
 }
 
 //----------------------------------------
-void CBratProcessZFXY::GetDataValuesFromMatrix(uint32_t indexExpr, uint32_t xPos, uint32_t yPos, DoublePtr& dataValues, uint32_t& nbValues)
+void CBratProcessZFXY::GetDataValuesFromMatrix(size_t indexExpr, uint32_t xPos, uint32_t yPos, double *&dataValues, size_t& nbValues)
 {
   /*
   //---------------------------------------
@@ -1555,7 +1357,7 @@ void CBratProcessZFXY::GetDataValuesFromMatrix(uint32_t indexExpr, uint32_t xPos
 }
 /*
 //----------------------------------------
-void CBratProcessZFXY::GetDataValuesFromMatrix(CMatrixDoublePtr* matrix, uint32_t indexExpr, uint32_t xPos, uint32_t yPos, DoublePtr& dataValues, uint32_t& nbValues)
+void CBratProcessZFXY::GetDataValuesFromMatrix(CMatrixDoublePtr* matrix, uint32_t indexExpr, uint32_t xPos, uint32_t yPos, double *&dataValues, uint32_t& nbValues)
 {
 
   dataValues = matrix->At(xPos, yPos);
@@ -1576,7 +1378,7 @@ void CBratProcessZFXY::GetDataValuesFromMatrix(CMatrixDoublePtr* matrix, uint32_
 
 }
 //----------------------------------------
-void CBratProcessZFXY::GetDataValuesFromMatrix(CMatrixDouble* matrix, uint32_t indexExpr, uint32_t xPos, uint32_t yPos, DoublePtr& dataValues, uint32_t& nbValues)
+void CBratProcessZFXY::GetDataValuesFromMatrix(CMatrixDouble* matrix, uint32_t indexExpr, uint32_t xPos, uint32_t yPos, double *&dataValues, uint32_t& nbValues)
 {
 
   dataValues = matrix->At(xPos, yPos);
@@ -1598,7 +1400,8 @@ void CBratProcessZFXY::GetDataValuesFromMatrix(CMatrixDouble* matrix, uint32_t i
 }
 */
 //----------------------------------------
-void CBratProcessZFXY::GetDataValuesFromMatrix(uint32_t indexExpr, uint32_t xPos, uint32_t yPos, DoublePtr& dataValues, DoublePtr& countValues, DoublePtr& meanValues, uint32_t& nbValues)
+void CBratProcessZFXY::GetDataValuesFromMatrix(size_t indexExpr, uint32_t xPos, uint32_t yPos, double *&dataValues, double *&countValues, double *&meanValues, 
+	size_t& nbValues)
 {
 
   
@@ -1634,7 +1437,7 @@ void CBratProcessZFXY::GetDataValuesFromMatrix(uint32_t indexExpr, uint32_t xPos
     }
     else //  countValues != NULL)
     {
-      uint32_t colsCount = matrix->GetMatrixNumberOfValuesData();
+      size_t colsCount = matrix->GetMatrixNumberOfValuesData();
       if (nbValues != colsCount)
       {
         throw CException(CTools::Format("ERROR: CBratProcessZFXY::GetDataValueFromMatrix() - data values array size (%d) is not equal to count values array size (%d).\n"
@@ -1670,7 +1473,7 @@ void CBratProcessZFXY::GetDataValuesFromMatrix(uint32_t indexExpr, uint32_t xPos
     }
     else   // (meanValues != NULL)
     {
-      uint32_t colsMean = matrix->GetMatrixNumberOfValuesData();
+      size_t colsMean = matrix->GetMatrixNumberOfValuesData();
       if (nbValues != colsMean)
       {
         throw CException(CTools::Format("ERROR: CBratProcessZFXY::GetDataValueFromMatrix() - data values array size (%d) is not equal to  mean values array size (%d)\n"
@@ -1689,659 +1492,660 @@ void CBratProcessZFXY::GetDataValuesFromMatrix(uint32_t indexExpr, uint32_t xPos
 //----------------------------------------
 int32_t CBratProcessZFXY::WriteData()
 {
-  uint32_t indexExpr = 0;
-  uint32_t countMatrixFilled = 0;
-  
-  int32_t result = BRATHL_SUCCESS;
-  
-  for (indexExpr = 0; indexExpr < m_fields.size(); indexExpr++)
-  {
-    CMatrix* matrix = GetMatrix(indexExpr, false);      
-
-    if (matrix == NULL)
-    {
-      CTrace::Tracer(1,">>>>>>>>>>>>>>>>>>>> WARNING >>>>>>>>>>>>>>>>>>>>>>>>>");
-      CTrace::Tracer(1,"No data have been selected for '%s' expression ", m_names[indexExpr].c_str());
-      CTrace::Tracer(1,">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
-      result = BRATHL_WARNING;
-      continue;
-    }
-
-    countMatrixFilled++;
-  }
-
-  if (countMatrixFilled == 0)
-  {
-
-    CTrace::Tracer(1,">>>>>>>>>>>>>>>>>>>> WARNING >>>>>>>>>>>>>>>>>>>>>>>>>");
-    CTrace::Tracer(1,"There is no data to write");
-    CTrace::Tracer(1,"Output file '%s' have not been created", m_outputFileName.c_str());
-    CTrace::Tracer(1,">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
-    m_internalFiles->Close();
-    CFile::Delete(m_outputFileName);
-    
-    result = BRATHL_WARNING;
-    return result;
-  }
-
-  CTrace::Tracer(1,"Creating output file '%s'", m_outputFileName.c_str());
-  
-  if (m_internalFiles == NULL)
-  {
-    throw CException("ERROR: CBratProcessZFXY::WriteData() - Unable to create NetCDF file because m_internalFiles is NULL.\n",
-			               BRATHL_LOGIC_ERROR);
-
-  }
-  
-  //CInternalFilesYFX	internalFilesYFX(m_outputFileName.c_str(), Replace);
-  //m_internalFiles->Open();
-
-  m_internalFiles->WriteFileTitle(m_outputTitle);
-
-  CTrace::Tracer(1,"Writing data");
-
-
-  //-----------------
-
-  // Warning : if data account for a date, they are expressed in numbers of seconds since 1950-01-01 00:00:00.0
-  // m_xData and/or m_yData have to be converted to unit expressed in the file
-  //if unit is set as 'xxxx since YYYY-MM-DD HH:MM:SS.MS'.
-
-  CUnit unit = m_xUnit;
-  unit.SetConversionFromBaseUnit();
-
-  for (uint32_t iXValue = 0 ; iXValue < m_xCount ; iXValue++)
-  {
-    m_xData[iXValue]	= unit.Convert(m_xData[iXValue]);
-  }
-
-
-  //---------------------------------------------
-  // Get X min and X max  (X is sorted)
-  //---------------------------------------------
-  setDefaultValue(m_validMin);
-  setDefaultValue(m_validMax);
-
-  if (m_xCount > 0)
-  {
-    m_validMin = m_xData[0];
-    m_validMax = m_xData[m_xCount - 1];
-  }
-  
-
-  //---------------------------------------------
-  // Create X netcdf dimension and variable
-  //---------------------------------------------
-  CNetCDFCoordinateAxis* addedXCoordVar = dynamic_cast<CNetCDFCoordinateAxis*>(m_internalFiles->GetNetCDFVarDef(m_xName));
-  
-  bool addDimToXCoord = false;
-
-  if (addedXCoordVar == NULL)
-  {
-    CNetCDFCoordinateAxis xCoordVar(m_xName);
-
-    addedXCoordVar = dynamic_cast<CNetCDFCoordinateAxis*>(m_internalFiles->AddNetCDFVarDef(xCoordVar));
-    addDimToXCoord = true;
-  }
-
-  addedXCoordVar->SetUnit(m_xUnit);
-  addedXCoordVar->SetDimKind(m_xType);
-
-  addedXCoordVar->AddAttribute(new CNetCDFAttrString(LONG_NAME_ATTR, m_xTitle));
-  addedXCoordVar->AddAttribute(new CNetCDFAttrString(COMMENT_ATTR, m_xComment));
-  
-  addedXCoordVar->SetValidMinMax(m_validMin, m_validMax);
+	int32_t result = BRATHL_SUCCESS;
 
-  CNetCDFDimension* addedXDim = m_internalFiles->GetNetCDFDim(m_xName);
+	size_t countMatrixFilled = 0;
+	const size_t size = m_fields.size();
+	for ( size_t indexExpr = 0; indexExpr < size; indexExpr++ )
+	{
+		CMatrix* matrix =
+			indexExpr < m_grids.size() ?
+			m_grids.at( indexExpr ) :
+			nullptr;
 
-  if (addedXDim == NULL)
-  {
-    CNetCDFDimension xDim(m_xName, m_xCount);
+		if ( matrix == nullptr )
+		{
+			CTrace::Tracer( 1, ">>>>>>>>>>>>>>>>>>>> WARNING >>>>>>>>>>>>>>>>>>>>>>>>>" );
+			CTrace::Tracer( 1, "No data have been selected for '%s' expression ", m_names[ indexExpr ].c_str() );
+			CTrace::Tracer( 1, ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" );
+			result = BRATHL_WARNING;
+			continue;
+		}
 
-    addedXDim = m_internalFiles->AddNetCDFDim(xDim);
-    
-    addedXCoordVar->AddNetCDFDim(*addedXDim);
-    addedXDim->AddCoordinateVariable(addedXCoordVar);
-  }
-  else
-  {
-    addedXDim->SetLength(m_xCount);
-    addedXCoordVar->ReplaceNetCDFDim(*addedXDim);
+		countMatrixFilled++;
+	}
 
-  }
+	if ( countMatrixFilled == 0 )
+	{
 
+		CTrace::Tracer( 1, ">>>>>>>>>>>>>>>>>>>> WARNING >>>>>>>>>>>>>>>>>>>>>>>>>" );
+		CTrace::Tracer( 1, "There is no data to write" );
+		CTrace::Tracer( 1, "Output file '%s' have not been created", m_outputFileName.c_str() );
+		CTrace::Tracer( 1, ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" );
+		m_internalFiles->Close();
+		CFile::Delete( m_outputFileName );
 
-  CUIntArray dimensions;
-  dimensions.Insert(m_xCount);
-  
-  CExpressionValue xValues(FloatType, dimensions, m_xData, false);;
-  xValues.SetName("xValues");
-  
+		result = BRATHL_WARNING;
+		return result;
+	}
 
-  //-----------------
+	CTrace::Tracer( 1, "Creating output file '%s'", m_outputFileName.c_str() );
 
-  unit = m_yUnit;
-  unit.SetConversionFromBaseUnit();
+	if ( m_internalFiles == NULL )
+	{
+		throw CException( "ERROR: CBratProcessZFXY::WriteData() - Unable to create NetCDF file because m_internalFiles is NULL.\n",
+			BRATHL_LOGIC_ERROR );
 
-  for (uint32_t iYValue = 0 ; iYValue < m_yCount ; iYValue++)
-  {
-    m_yData[iYValue]	= unit.Convert(m_yData[iYValue]);
-  }
+	}
 
+	//CInternalFilesYFX	internalFilesYFX(m_outputFileName.c_str(), Replace);
+	//m_internalFiles->Open();
 
-  //---------------------------------------------
-  // Get Y min and Y max  (Y is sorted)
-  //---------------------------------------------
-  setDefaultValue(m_validMin);
-  setDefaultValue(m_validMax);
+	m_internalFiles->WriteFileTitle( m_outputTitle );
 
-  if (m_yCount > 0)
-  {
-    m_validMin = m_yData[0];
-    m_validMax = m_yData[m_yCount - 1];
-  }
+	CTrace::Tracer( 1, "Writing data" );
 
-  
 
+	//-----------------
 
-  //---------------------------------------------
-  // Create Y netcdf dimension and variable
-  //---------------------------------------------
-  CNetCDFCoordinateAxis* addedYCoordVar = dynamic_cast<CNetCDFCoordinateAxis*>(m_internalFiles->GetNetCDFVarDef(m_yName));
-  
-  bool addDimToYCoord = false;
+	// Warning : if data account for a date, they are expressed in numbers of seconds since 1950-01-01 00:00:00.0
+	// m_xData and/or m_yData have to be converted to unit expressed in the file
+	//if unit is set as 'xxxx since YYYY-MM-DD HH:MM:SS.MS'.
 
-  if (addedYCoordVar == NULL)
-  {
-    CNetCDFCoordinateAxis yCoordVar(m_yName);
+	CUnit unit = m_xUnit;
+	unit.SetConversionFromBaseUnit();
 
-    addedYCoordVar = dynamic_cast<CNetCDFCoordinateAxis*>(m_internalFiles->AddNetCDFVarDef(yCoordVar));
-    addDimToYCoord = true;
-  }
+	for ( uint32_t iXValue = 0; iXValue < m_xCount; iXValue++ )
+	{
+		m_xData[ iXValue ]	= unit.Convert( m_xData[ iXValue ] );
+	}
 
-  addedYCoordVar->SetUnit(m_yUnit);
-  addedYCoordVar->SetDimKind(m_yType);
 
-  addedYCoordVar->AddAttribute(new CNetCDFAttrString(LONG_NAME_ATTR, m_yTitle));
-  addedYCoordVar->AddAttribute(new CNetCDFAttrString(COMMENT_ATTR, m_yComment));
-  
-  addedYCoordVar->SetValidMinMax(m_validMin, m_validMax);
+	//---------------------------------------------
+	// Get X min and X max  (X is sorted)
+	//---------------------------------------------
+	setDefaultValue( m_validMin );
+	setDefaultValue( m_validMax );
 
-  CNetCDFDimension* addedYDim = m_internalFiles->GetNetCDFDim(m_yName);
+	if ( m_xCount > 0 )
+	{
+		m_validMin = m_xData[ 0 ];
+		m_validMax = m_xData[ m_xCount - 1 ];
+	}
 
-  if (addedYDim == NULL)
-  {
-    CNetCDFDimension yDim(m_yName, m_yCount);
 
-    addedYDim = m_internalFiles->AddNetCDFDim(yDim);
-    
-    addedYCoordVar->AddNetCDFDim(*addedYDim);
-    addedYDim->AddCoordinateVariable(addedYCoordVar);
-  }
-  else
-  {
-    addedYDim->SetLength(m_yCount);
-    addedYCoordVar->ReplaceNetCDFDim(*addedYDim);
-
-  }
-
-
-
-  dimensions.RemoveAll();
-  dimensions.Insert(m_yCount);
-  
-  CExpressionValue yValues(FloatType, dimensions, m_yData, false);;
-  yValues.SetName("yValues");
-  
+	//---------------------------------------------
+	// Create X netcdf dimension and variable
+	//---------------------------------------------
+	CNetCDFCoordinateAxis* addedXCoordVar = dynamic_cast<CNetCDFCoordinateAxis*>( m_internalFiles->GetNetCDFVarDef( m_xName ) );
 
- 
-  //----------------
+	bool addDimToXCoord = false;
 
+	if ( addedXCoordVar == NULL )
+	{
+		CNetCDFCoordinateAxis xCoordVar( m_xName );
 
+		addedXCoordVar = dynamic_cast<CNetCDFCoordinateAxis*>( m_internalFiles->AddNetCDFVarDef( xCoordVar ) );
+		addDimToXCoord = true;
+	}
 
-  //////////////std::string dimType = xCoordVar.GetDimType();
+	addedXCoordVar->SetUnit( m_xUnit );
+	addedXCoordVar->SetDimKind( m_xType );
 
+	addedXCoordVar->AddAttribute( new CNetCDFAttrString( LONG_NAME_ATTR, m_xTitle ) );
+	addedXCoordVar->AddAttribute( new CNetCDFAttrString( COMMENT_ATTR, m_xComment ) );
 
+	addedXCoordVar->SetValidMinMax( m_validMin, m_validMax );
 
+	CNetCDFDimension* addedXDim = m_internalFiles->GetNetCDFDim( m_xName );
 
-//  OutputFile.CreateDim(XType, XName, DataWritten, XUnit.GetText(), XTitle, 
-//                       XComment, validMin, validMax);
+	if ( addedXDim == NULL )
+	{
+		CNetCDFDimension xDim( m_xName, m_xCount );
 
+		addedXDim = m_internalFiles->AddNetCDFDim( xDim );
 
-  //-----------------------------
-  // Merge data
-  //-----------------------------
-  CIntMap mapVarIndexExpr;
+		addedXCoordVar->AddNetCDFDim( *addedXDim );
+		addedXDim->AddCoordinateVariable( addedXCoordVar );
+	}
+	else
+	{
+		addedXDim->SetLength( m_xCount );
+		addedXCoordVar->ReplaceNetCDFDim( *addedXDim );
 
-  // 2 loops for netcdf performance
-  for (indexExpr = 0; indexExpr < m_fields.size(); indexExpr++)
-  {
-    setDefaultValue(m_validMin);
-    setDefaultValue(m_validMax);
-   
-    double* dataValues = NULL;
-    double* countValues = NULL;
-    double* meanValues = NULL;
+	}
 
-    unit = m_units[indexExpr];
-    unit.SetConversionFromBaseUnit();
 
-    bool applyFilter = m_smooth[indexExpr] || m_extrapolate[indexExpr];
-    
-    //---------------------------------------
-    CMatrix* matrix = GetMatrix(indexExpr, false);      
+	CUIntArray dimensions;
+	dimensions.Insert( m_xCount );
 
-    if (matrix == NULL)
-    {
-      continue;
-    }
+	CExpressionValue xValues( FloatType, dimensions, m_xData, false );;
+	xValues.SetName( "xValues" );
 
-    //---------------------------------------
-    CTrace::Tracer(1,CTools::Format("\t==> Merge data of field '%s'", matrix->GetName().c_str()));
-
-    uint32_t nbValues = 0;
-
-    for (uint32_t xPos = 0 ; xPos < m_xCount ; xPos++)
-    {
-      for (uint32_t yPos = 0 ; yPos < m_yCount ; yPos++)
-      {
-
-        GetDataValuesFromMatrix(indexExpr, xPos, yPos, dataValues, countValues, meanValues, nbValues);
-
-        //---------------------------------------------
-        if (CBratProcessZFXY::IsMatrixDoublePtr(matrix))
-        //---------------------------------------------
-        {
-	        FinalizeMergingOfDataValues(dataValues,
-                                        indexExpr,
-                                        nbValues,
-                                        countValues,
-                                        meanValues);
-
-          for (uint32_t indexValues = 0 ; indexValues < nbValues; indexValues++)
-          {
-            //---------------------------------------------
-            // converts to asked unit
-            //---------------------------------------------
-            if (!isDefaultValue(dataValues[indexValues]))
-            {
-              dataValues[indexValues]	= unit.Convert(dataValues[indexValues]);
-            }
-          }
-
-        }
-        //---------------------------------------------
-        else if (CBratProcessZFXY::IsMatrixDouble(matrix))
-        //---------------------------------------------
-        {
-
-	        FinalizeMergingOfDataValues(*dataValues,
-                                        countValues,
-                                        meanValues,
-                                        m_dataMode[indexExpr]);
-          //---------------------------------------------
-          // converts to asked unit
-          //---------------------------------------------
-          if (!isDefaultValue(*dataValues))
-          {
-            *dataValues	= unit.Convert(*dataValues);
-          }
-
-        }
-
-        
-
-
-      } //for (uint32_t yPos ....
-
-    } //for (uint32_t xPos ....
-
-    if (applyFilter)
-    {      
-      CTrace::Tracer(1,CTools::Format("\t==> Apply filters to field '%s'", matrix->GetName().c_str()));
-
-      CBratProcessZFXY::LoessFilterGrid(*matrix, NULL,
-			                                  m_xCircular, m_xLoessCutoff,
-                                        m_yCircular, m_yLoessCutoff,
-			                                  m_smooth[indexExpr],
-			                                  m_extrapolate[indexExpr]);
-
-    }
-
-    //---------------------------------------------
-    // compute variable min and max
-    //---------------------------------------------
-    CTrace::Tracer(1,CTools::Format("\t==> Compute min./max. values of field '%s'", matrix->GetName().c_str()));
-    matrix->GetMinMaxValues(m_validMin, m_validMax);
-
-
-    CNetCDFVarDef* addedVarDef = m_internalFiles->GetNetCDFVarDef(m_names[indexExpr]);
-    if (addedVarDef == NULL)
-    {
-      CNetCDFVarDef varDef(m_names[indexExpr], m_units[indexExpr]);
-
-      varDef.AddAttribute(new CNetCDFAttrString(LONG_NAME_ATTR, m_titles[indexExpr]));
-      varDef.AddAttribute(new CNetCDFAttrString(COMMENT_ATTR, m_comments[indexExpr]));
-      
-      addedVarDef = m_internalFiles->AddNetCDFVarDef(varDef);
-
-    }
-
-    addedVarDef->SetValidMinMax(m_validMin, m_validMax);
-    
-    if (base_t::IsProductNetCdf())
-    {
-      //=============
-      if ( ! addedVarDef->IsCoordinateAxis() )
-      {
-        CNetCDFDimension* varDim = NULL;
-        //-------------
-        if ( addedVarDef->HasCommonDims(m_xName) )
-        {
-          varDim = addedVarDef->GetNetCDFDim(addedXDim->GetName());
-          if (varDim == NULL)
-          {
-            addedVarDef->InsertNetCDFDim(*addedXDim, 0); // X first dim
-          }
-          else
-          {
-            varDim->SetLength(m_xCount);
-            addedVarDef->ReplaceNetCDFDim(*varDim);
-          }
-        }
-        //-------------
-        if ( addedVarDef->HasCommonDims(m_yName) )
-        {
-          varDim = addedVarDef->GetNetCDFDim(addedYDim->GetName());
-          if (varDim == NULL)
-          {
-            addedVarDef->InsertNetCDFDim(*addedYDim, 1); // Y second dim
-          }
-          else
-          {
-            varDim->SetLength(m_yCount);
-            addedVarDef->ReplaceNetCDFDim(*varDim);
-          }
-        }
-        //-------------
-
-      }
-      //=============
-    }
-    else if ( ! addedVarDef->IsCoordinateAxis() ) // not a CProductNetCdf object
-    {
-      //-------------
-      CNetCDFDimension* varDim = addedVarDef->GetNetCDFDim(addedXDim->GetName());
-      if (varDim == NULL)
-      {
-        addedVarDef->InsertNetCDFDim(*addedXDim, 0); // X first dim
-      }
-      else
-      {
-        varDim->SetLength(m_xCount);
-        addedVarDef->ReplaceNetCDFDim(*varDim);
-      }
-
-      //-------------
-      varDim = addedVarDef->GetNetCDFDim(addedYDim->GetName());
-      if (varDim == NULL)
-      {
-        addedVarDef->InsertNetCDFDim(*addedYDim, 1); // Y second dim
-      }
-      else
-      {
-        varDim->SetLength(m_yCount);
-        addedVarDef->ReplaceNetCDFDim(*varDim);
-      }
-    }
-
-    mapVarIndexExpr.Insert(addedVarDef->GetName(), indexExpr, false);
-
-
-  } //for (uint32_t indexExpr = 0;...
-
-  CTrace::Tracer(1,"\t==> Write Netcdf file structure");
-
-  //---------------------------------------------
-  // Create netcdf dimensions
-   //---------------------------------------------
-  m_internalFiles->WriteDimensions();
-  //---------------------------------------------
-  // Create netcdf variables
-   //---------------------------------------------
-  m_internalFiles->WriteVariables();
-  
-  //---------------------------------------------
-  // Write netcdf dimension's data or variables that depend neither on X nor on Y
-  //---------------------------------------------
-  CTrace::Tracer(1,"\t==> Write Netcdf data values");
-
-  CObMap* mapNetCdfVarDefs = m_internalFiles->GetNetCDFVarDefs();
-  CObMap::const_iterator itVarDef;
-
-  for (itVarDef = mapNetCdfVarDefs->begin() ;  itVarDef != mapNetCdfVarDefs->end() ; itVarDef++)
-  {
-    CNetCDFVarDef* varDef = dynamic_cast<CNetCDFVarDef*>(itVarDef->second);
-    
-    if (varDef == NULL)
-    {
-      //-----------
-      continue;
-      //-----------
-    }
-
-    CNetCDFCoordinateAxis* coordAxis = dynamic_cast<CNetCDFCoordinateAxis*>(varDef);
-    
-    std::string coordAxisName = ((coordAxis != NULL) ? coordAxis->GetName() : "");
-
-    if (! base_t::IsProductNetCdf() && (coordAxis == NULL) ) 
-    {
-      //-----------
-      continue;
-      //-----------
-    }
-
-    if ( base_t::IsProductNetCdf() && (coordAxis == NULL) 
-      && ( varDef->HasCommonDims(m_xName) ||  varDef->HasCommonDims(m_yName) ) )
-    {
-      //-----------
-      continue;
-      //-----------
-    }
-
-    //if (! (coordAxis->GetAxis().empty()) )
-    if ( coordAxisName.compare(m_xName) == 0 )
-    {
-      m_internalFiles->WriteData(coordAxis, &xValues);
-      //-----------
-      continue;
-      //-----------
-    }
-    else if ( coordAxisName.compare(m_yName) == 0 )
-    {
-      m_internalFiles->WriteData(coordAxis, &yValues);
-      //-----------
-      continue;
-      //-----------
-    }
-    else
-    {
-      // Is it a CFieldIndex object ? (only for "product" objects that are not CProductNetCdf object)
-      // ==> Write variable data.
-      CExpressionValue dataWritten;
-      dataWritten.SetName("dataWritten2");
-
-      CFieldIndex* fieldIndex = dynamic_cast<CFieldIndex*>(m_mapFieldIndexesToRead.Exists(varDef->GetName()));
-      
-      if (fieldIndex != NULL)
-      {
-        
-        CDoubleArray vect;
-        fieldIndex->Read(vect);
-        dataWritten.SetNewValue(vect);
-
-      }
-      else if (base_t::IsProductNetCdf())
-      {
-        // It's a CProductNetCdf, and variable depend neither on X nor on Y
-        // ==> Write variable data.
-        
-        int32_t indexVar = mapVarIndexExpr.Exists(varDef->GetName());
-
-        if (isDefaultValue(indexVar))
-        {
-          throw CException(CTools::Format("ERROR: CBratProcessZFXY::WriteData() - variable index not found\n. Coordinate axis name is '%s'.\n",
-                                          varDef->GetName().c_str()),
-			                     BRATHL_LOGIC_ERROR);
-        }
-
-
-        double* dataValues = NULL;
-        uint32_t nbValues = 0;
-        
-        //------------
-        GetDataValuesFromMatrix(indexVar, 0, 0, dataValues, nbValues);
-        //------------
-                
-        dataWritten.SetNewValue(FloatType, *(varDef->GetDims()), dataValues);
-
-      }
-
-      //----------------------------------
-      m_internalFiles->WriteData(varDef, &dataWritten);
-      //----------------------------------
-
-    }
-
-  }
-
-  //---------------------------------------------
-  // Write netcdf variable's data (which ones have common dim with X and/or Y)
-  //---------------------------------------------
-
-
-  for (itVarDef = mapNetCdfVarDefs->begin() ;  itVarDef != mapNetCdfVarDefs->end() ; itVarDef++)
-  {
-    CNetCDFVarDef* varDef = dynamic_cast<CNetCDFVarDef*>(itVarDef->second);
-    
-    if (varDef == NULL)
-    {
-      //-----------
-      continue;
-      //-----------
-    }
-
-    CNetCDFCoordinateAxis* coordAxis = dynamic_cast<CNetCDFCoordinateAxis*>(varDef);
-
-    // Axis variables have already been written
-    if (coordAxis != NULL)
-    {
-      //-----------
-      continue;
-      //-----------
-    }
-
-    // Variables of a CProductNetCdf object that don't depend on axes have already been written
-    if ( base_t::IsProductNetCdf() 
-        && ! varDef->HasCommonDims(m_xName) && ! varDef->HasCommonDims(m_yName) )
-    {
-      //-----------
-      continue;
-      //-----------
-    }
-
-
-
-    int32_t indexVar = mapVarIndexExpr.Exists(varDef->GetName());
-
-    /*
-    long nbData = varDef->GetNbData();
-    
-    CExpressionValue dataWritten;
-    dataWritten.SetName("dataWritten1");
-
-    dataWritten.SetNewValue(FloatType, *(varDef->GetDims()), NULL);
-
-    double* data = dataWritten.GetValues();
-    long iData = 0;
-
-    //---------------------------------------
-    CMatrix* matrix = GetMatrix(indexVar);      
-    //---------------------------------------
-     
-    
-    for (uint32_t xPos = 0 ; xPos < m_xCount ; xPos++)
-    {
-      for (uint32_t yPos = 0 ; yPos < m_yCount ; yPos++)
-      {
-
-        uint32_t nbValues = 0;
-        double* dataValues = NULL;
-        //------------
-        GetDataValuesFromMatrix(indexVar, xPos, yPos, dataValues, nbValues);
-        //------------
-
-        //---------------------------------------------
-        if (CBratProcessZFXY::IsMatrixDoublePtr(matrix))
-        //---------------------------------------------
-        {
-          uint32_t indexValues = 0;
-      
-          for (indexValues = 0 ; indexValues < nbValues; indexValues++)
-          {
-            data[iData] = dataValues[indexValues];
-            //--------
-            iData++;
-            //--------
-
-          }
-        }
-        //---------------------------------------------
-        else if (CBratProcessZFXY::IsMatrixDouble(matrix))
-        //---------------------------------------------
-        {
-          data[iData] = *dataValues;
-          //--------
-          iData++;
-          //--------
-
-        }
-
-
-      } //for (uint32_t yPos ....
-
-    } //for (uint32_t xPos ....
-
-    */    
-
-    //---------------------------------------
-    CMatrix* matrix = GetMatrix(indexVar, false);      
-    //---------------------------------------
-    if (matrix == NULL)
-    {
-      continue;
-    }
-
-    //CProductNetCdfCF* productNetCdfCF = GetProductNetCdfCF(m_product, false);
-
-//    m_product->Dump(*(CTrace::GetInstance()->GetDumpContext()));
-    //--------------------------
-    m_internalFiles->WriteData(varDef, matrix);
-    //--------------------------
-
-    //delete []data;
-    //data = NULL;
-
-  }
-
-  CTrace::Tracer(1,"Data written");
-  CTrace::Tracer(1,"Output file '%s' created", m_outputFileName.c_str());
-
-  m_internalFiles->Close();
-
-  return result;
 
+	//-----------------
+
+	unit = m_yUnit;
+	unit.SetConversionFromBaseUnit();
+
+	for ( uint32_t iYValue = 0; iYValue < m_yCount; iYValue++ )
+	{
+		m_yData[ iYValue ]	= unit.Convert( m_yData[ iYValue ] );
+	}
+
+
+	//---------------------------------------------
+	// Get Y min and Y max  (Y is sorted)
+	//---------------------------------------------
+	setDefaultValue( m_validMin );
+	setDefaultValue( m_validMax );
+
+	if ( m_yCount > 0 )
+	{
+		m_validMin = m_yData[ 0 ];
+		m_validMax = m_yData[ m_yCount - 1 ];
+	}
+
+
+
+
+	//---------------------------------------------
+	// Create Y netcdf dimension and variable
+	//---------------------------------------------
+	CNetCDFCoordinateAxis* addedYCoordVar = dynamic_cast<CNetCDFCoordinateAxis*>( m_internalFiles->GetNetCDFVarDef( m_yName ) );
+
+	bool addDimToYCoord = false;
+
+	if ( addedYCoordVar == NULL )
+	{
+		CNetCDFCoordinateAxis yCoordVar( m_yName );
+
+		addedYCoordVar = dynamic_cast<CNetCDFCoordinateAxis*>( m_internalFiles->AddNetCDFVarDef( yCoordVar ) );
+		addDimToYCoord = true;
+	}
+
+	addedYCoordVar->SetUnit( m_yUnit );
+	addedYCoordVar->SetDimKind( m_yType );
+
+	addedYCoordVar->AddAttribute( new CNetCDFAttrString( LONG_NAME_ATTR, m_yTitle ) );
+	addedYCoordVar->AddAttribute( new CNetCDFAttrString( COMMENT_ATTR, m_yComment ) );
+
+	addedYCoordVar->SetValidMinMax( m_validMin, m_validMax );
+
+	CNetCDFDimension* addedYDim = m_internalFiles->GetNetCDFDim( m_yName );
+
+	if ( addedYDim == NULL )
+	{
+		CNetCDFDimension yDim( m_yName, m_yCount );
+
+		addedYDim = m_internalFiles->AddNetCDFDim( yDim );
+
+		addedYCoordVar->AddNetCDFDim( *addedYDim );
+		addedYDim->AddCoordinateVariable( addedYCoordVar );
+	}
+	else
+	{
+		addedYDim->SetLength( m_yCount );
+		addedYCoordVar->ReplaceNetCDFDim( *addedYDim );
+
+	}
+
+
+
+	dimensions.RemoveAll();
+	dimensions.Insert( m_yCount );
+
+	CExpressionValue yValues( FloatType, dimensions, m_yData, false );;
+	yValues.SetName( "yValues" );
+
+
+
+	//----------------
+
+
+
+	//////////////std::string dimType = xCoordVar.GetDimType();
+
+
+
+
+  //  OutputFile.CreateDim(XType, XName, DataWritten, XUnit.GetText(), XTitle, 
+  //                       XComment, validMin, validMax);
+
+
+	//-----------------------------
+	// Merge data
+	//-----------------------------
+	CIntMap mapVarIndexExpr;
+
+	// 2 loops for netcdf performance
+	for ( size_t indexExpr = 0; indexExpr < m_fields.size(); indexExpr++ )
+	{
+		setDefaultValue( m_validMin );
+		setDefaultValue( m_validMax );
+
+		double* dataValues = NULL;
+		double* countValues = NULL;
+		double* meanValues = NULL;
+
+		unit = m_units[ indexExpr ];
+		unit.SetConversionFromBaseUnit();
+
+		bool applyFilter = m_smooth[ indexExpr ] || m_extrapolate[ indexExpr ];
+
+		CMatrix *matrix =
+			indexExpr < m_grids.size() ?
+			m_grids.at( indexExpr ) :
+			nullptr;
+
+		if ( matrix == NULL )
+		{
+			continue;
+		}
+
+
+
+		//---------------------------------------
+		CTrace::Tracer( 1, CTools::Format( "\t==> Merge data of field '%s'", matrix->GetName().c_str() ) );
+
+		size_t nbValues = 0;
+		const bool is_matrix_double_ptr = dynamic_cast<CMatrixDoublePtr*>( matrix ) != nullptr;		assert__( is_matrix_double_ptr || dynamic_cast<CMatrixDouble*>( matrix ) );
+
+		for ( size_t xPos = 0; xPos < m_xCount; xPos++ )
+		{
+			for ( size_t yPos = 0; yPos < m_yCount; yPos++ )
+			{
+				GetDataValuesFromMatrix( indexExpr, xPos, yPos, dataValues, countValues, meanValues, nbValues );
+
+				if ( is_matrix_double_ptr )
+				{
+					FinalizeMergingOfDataValues( dataValues,
+						indexExpr,
+						nbValues,
+						countValues,
+						meanValues );
+
+					for ( size_t indexValues = 0; indexValues < nbValues; indexValues++ )
+					{
+						//---------------------------------------------
+						// converts to asked unit
+						//---------------------------------------------
+						if ( !isDefaultValue( dataValues[ indexValues ] ) )
+						{
+							dataValues[ indexValues ]	= unit.Convert( dataValues[ indexValues ] );
+						}
+					}
+
+				}
+				else
+				{
+					FinalizeMergingOfDataValues( *dataValues,
+						countValues,
+						meanValues,
+						m_dataMode[ indexExpr ] );
+					//---------------------------------------------
+					// converts to asked unit
+					//---------------------------------------------
+					if ( !isDefaultValue( *dataValues ) )
+					{
+						*dataValues	= unit.Convert( *dataValues );
+					}
+				}
+
+			} //for (size_t yPos ....
+
+		} //for (size_t xPos ....
+
+		if ( applyFilter )
+		{
+			CTrace::Tracer( 1, CTools::Format( "\t==> Apply filters to field '%s'", matrix->GetName().c_str() ) );
+
+			CBratProcessZFXY::LoessFilterGrid( *matrix, NULL,
+				m_xCircular, m_xLoessCutoff,
+				m_yCircular, m_yLoessCutoff,
+				m_smooth[ indexExpr ],
+				m_extrapolate[ indexExpr ] );
+
+		}
+
+		//---------------------------------------------
+		// compute variable min and max
+		//---------------------------------------------
+		CTrace::Tracer( 1, CTools::Format( "\t==> Compute min./max. values of field '%s'", matrix->GetName().c_str() ) );
+		matrix->GetMinMaxValues( m_validMin, m_validMax );
+
+
+		CNetCDFVarDef* addedVarDef = m_internalFiles->GetNetCDFVarDef( m_names[ indexExpr ] );
+		if ( addedVarDef == NULL )
+		{
+			CNetCDFVarDef varDef( m_names[ indexExpr ], m_units[ indexExpr ] );
+
+			varDef.AddAttribute( new CNetCDFAttrString( LONG_NAME_ATTR, m_titles[ indexExpr ] ) );
+			varDef.AddAttribute( new CNetCDFAttrString( COMMENT_ATTR, m_comments[ indexExpr ] ) );
+
+			addedVarDef = m_internalFiles->AddNetCDFVarDef( varDef );
+
+		}
+
+		addedVarDef->SetValidMinMax( m_validMin, m_validMax );
+
+		if ( base_t::IsProductNetCdf() )
+		{
+			//=============
+			if ( ! addedVarDef->IsCoordinateAxis() )
+			{
+				CNetCDFDimension* varDim = NULL;
+				//-------------
+				if ( addedVarDef->HasCommonDims( m_xName ) )
+				{
+					varDim = addedVarDef->GetNetCDFDim( addedXDim->GetName() );
+					if ( varDim == NULL )
+					{
+						addedVarDef->InsertNetCDFDim( *addedXDim, 0 ); // X first dim
+					}
+					else
+					{
+						varDim->SetLength( m_xCount );
+						addedVarDef->ReplaceNetCDFDim( *varDim );
+					}
+				}
+				//-------------
+				if ( addedVarDef->HasCommonDims( m_yName ) )
+				{
+					varDim = addedVarDef->GetNetCDFDim( addedYDim->GetName() );
+					if ( varDim == NULL )
+					{
+						addedVarDef->InsertNetCDFDim( *addedYDim, 1 ); // Y second dim
+					}
+					else
+					{
+						varDim->SetLength( m_yCount );
+						addedVarDef->ReplaceNetCDFDim( *varDim );
+					}
+				}
+				//-------------
+
+			}
+			//=============
+		}
+		else if ( ! addedVarDef->IsCoordinateAxis() ) // not a CProductNetCdf object
+		{
+			//-------------
+			CNetCDFDimension* varDim = addedVarDef->GetNetCDFDim( addedXDim->GetName() );
+			if ( varDim == NULL )
+			{
+				addedVarDef->InsertNetCDFDim( *addedXDim, 0 ); // X first dim
+			}
+			else
+			{
+				varDim->SetLength( m_xCount );
+				addedVarDef->ReplaceNetCDFDim( *varDim );
+			}
+
+			//-------------
+			varDim = addedVarDef->GetNetCDFDim( addedYDim->GetName() );
+			if ( varDim == NULL )
+			{
+				addedVarDef->InsertNetCDFDim( *addedYDim, 1 ); // Y second dim
+			}
+			else
+			{
+				varDim->SetLength( m_yCount );
+				addedVarDef->ReplaceNetCDFDim( *varDim );
+			}
+		}
+
+		mapVarIndexExpr.Insert( addedVarDef->GetName(), indexExpr, false );
+
+
+	} //for (uint32_t indexExpr = 0;...
+
+	CTrace::Tracer( 1, "\t==> Write Netcdf file structure" );
+
+	//---------------------------------------------
+	// Create netcdf dimensions
+	 //---------------------------------------------
+	m_internalFiles->WriteDimensions();
+	//---------------------------------------------
+	// Create netcdf variables
+	 //---------------------------------------------
+	m_internalFiles->WriteVariables();
+
+	//---------------------------------------------
+	// Write netcdf dimension's data or variables that depend neither on X nor on Y
+	//---------------------------------------------
+	CTrace::Tracer( 1, "\t==> Write Netcdf data values" );
+
+	CObMap* mapNetCdfVarDefs = m_internalFiles->GetNetCDFVarDefs();
+	CObMap::const_iterator itVarDef;
+
+	for ( itVarDef = mapNetCdfVarDefs->begin(); itVarDef != mapNetCdfVarDefs->end(); itVarDef++ )
+	{
+		CNetCDFVarDef* varDef = dynamic_cast<CNetCDFVarDef*>( itVarDef->second );
+
+		if ( varDef == NULL )
+		{
+			//-----------
+			continue;
+			//-----------
+		}
+
+		CNetCDFCoordinateAxis* coordAxis = dynamic_cast<CNetCDFCoordinateAxis*>( varDef );
+
+		std::string coordAxisName = ( ( coordAxis != NULL ) ? coordAxis->GetName() : "" );
+
+		if ( ! base_t::IsProductNetCdf() && ( coordAxis == NULL ) )
+		{
+			//-----------
+			continue;
+			//-----------
+		}
+
+		if ( base_t::IsProductNetCdf() && ( coordAxis == NULL )
+			&& ( varDef->HasCommonDims( m_xName ) || varDef->HasCommonDims( m_yName ) ) )
+		{
+			//-----------
+			continue;
+			//-----------
+		}
+
+		//if (! (coordAxis->GetAxis().empty()) )
+		if ( coordAxisName.compare( m_xName ) == 0 )
+		{
+			m_internalFiles->WriteData( coordAxis, &xValues );
+			//-----------
+			continue;
+			//-----------
+		}
+		else if ( coordAxisName.compare( m_yName ) == 0 )
+		{
+			m_internalFiles->WriteData( coordAxis, &yValues );
+			//-----------
+			continue;
+			//-----------
+		}
+		else
+		{
+			// Is it a CFieldIndex object ? (only for "product" objects that are not CProductNetCdf object)
+			// ==> Write variable data.
+			CExpressionValue dataWritten;
+			dataWritten.SetName( "dataWritten2" );
+
+			CFieldIndex* fieldIndex = dynamic_cast<CFieldIndex*>( m_mapFieldIndexesToRead.Exists( varDef->GetName() ) );
+
+			if ( fieldIndex != NULL )
+			{
+
+				CDoubleArray vect;
+				fieldIndex->Read( vect );
+				dataWritten.SetNewValue( vect );
+
+			}
+			else if ( base_t::IsProductNetCdf() )
+			{
+				// It's a CProductNetCdf, and variable depend neither on X nor on Y
+				// ==> Write variable data.
+
+				int32_t indexVar = mapVarIndexExpr.Exists( varDef->GetName() );
+
+				if ( isDefaultValue( indexVar ) )
+				{
+					throw CException( CTools::Format( "ERROR: CBratProcessZFXY::WriteData() - variable index not found\n. Coordinate axis name is '%s'.\n",
+						varDef->GetName().c_str() ),
+						BRATHL_LOGIC_ERROR );
+				}
+
+
+				double* dataValues = NULL;
+				size_t nbValues = 0;
+
+				//------------
+				GetDataValuesFromMatrix( indexVar, 0, 0, dataValues, nbValues );
+				//------------
+
+				dataWritten.SetNewValue( FloatType, *( varDef->GetDims() ), dataValues );
+
+			}
+
+			//----------------------------------
+			m_internalFiles->WriteData( varDef, &dataWritten );
+			//----------------------------------
+
+		}
+
+	}
+
+	//---------------------------------------------
+	// Write netcdf variable's data (which ones have common dim with X and/or Y)
+	//---------------------------------------------
+
+
+	for ( itVarDef = mapNetCdfVarDefs->begin(); itVarDef != mapNetCdfVarDefs->end(); itVarDef++ )
+	{
+		CNetCDFVarDef* varDef = dynamic_cast<CNetCDFVarDef*>( itVarDef->second );
+
+		if ( varDef == NULL )
+		{
+			//-----------
+			continue;
+			//-----------
+		}
+
+		CNetCDFCoordinateAxis* coordAxis = dynamic_cast<CNetCDFCoordinateAxis*>( varDef );
+
+		// Axis variables have already been written
+		if ( coordAxis != NULL )
+		{
+			//-----------
+			continue;
+			//-----------
+		}
+
+		// Variables of a CProductNetCdf object that don't depend on axes have already been written
+		if ( base_t::IsProductNetCdf()
+			&& ! varDef->HasCommonDims( m_xName ) && ! varDef->HasCommonDims( m_yName ) )
+		{
+			//-----------
+			continue;
+			//-----------
+		}
+
+
+
+		int32_t indexVar = mapVarIndexExpr.Exists( varDef->GetName() );
+
+		/*
+		long nbData = varDef->GetNbData();
+
+		CExpressionValue dataWritten;
+		dataWritten.SetName("dataWritten1");
+
+		dataWritten.SetNewValue(FloatType, *(varDef->GetDims()), NULL);
+
+		double* data = dataWritten.GetValues();
+		long iData = 0;
+
+		//---------------------------------------
+		CMatrix* matrix = GetMatrix(indexVar);
+		//---------------------------------------
+
+
+		for (uint32_t xPos = 0 ; xPos < m_xCount ; xPos++)
+		{
+		  for (uint32_t yPos = 0 ; yPos < m_yCount ; yPos++)
+		  {
+
+			uint32_t nbValues = 0;
+			double* dataValues = NULL;
+			//------------
+			GetDataValuesFromMatrix(indexVar, xPos, yPos, dataValues, nbValues);
+			//------------
+
+			//---------------------------------------------
+			if (CBratProcessZFXY::IsMatrixDoublePtr(matrix))
+			//---------------------------------------------
+			{
+			  uint32_t indexValues = 0;
+
+			  for (indexValues = 0 ; indexValues < nbValues; indexValues++)
+			  {
+				data[iData] = dataValues[indexValues];
+				//--------
+				iData++;
+				//--------
+
+			  }
+			}
+			//---------------------------------------------
+			else if (CBratProcessZFXY::IsMatrixDouble(matrix))
+			//---------------------------------------------
+			{
+			  data[iData] = *dataValues;
+			  //--------
+			  iData++;
+			  //--------
+
+			}
+
+
+		  } //for (uint32_t yPos ....
+
+		} //for (uint32_t xPos ....
+
+		*/
+
+		//---------------------------------------
+		CMatrix *matrix =
+			indexVar < m_grids.size() ?
+			m_grids.at( indexVar ) :
+			nullptr;
+		//---------------------------------------
+
+		if ( matrix == NULL )
+		{
+			continue;
+		}
+
+		//CProductNetCdfCF* productNetCdfCF = GetProductNetCdfCF(m_product, false);
+
+	//    m_product->Dump(*(CTrace::GetInstance()->GetDumpContext()));
+		//--------------------------
+		m_internalFiles->WriteData( varDef, matrix );
+		//--------------------------
+
+		//delete []data;
+		//data = NULL;
+
+	}
+
+	CTrace::Tracer( 1, "Data written" );
+	CTrace::Tracer( 1, "Output file '%s' created", m_outputFileName.c_str() );
+
+	m_internalFiles->Close();
+
+	return result;
 }
+
 
 //----------------------------------------
 //CObArrayOb* CBratProcessZFXY::GetOneMeasure(double key, bool withExcept /*= true*/)
@@ -2397,8 +2201,8 @@ void CBratProcessZFXY::SubstituteAxisDim(const CStringArray& fieldDims, CStringA
     }
     
   }
-  int32_t last = 0;
 
+  size_t last = 0;
   for (last = arrayTmp.size() - 1; last >= 0 ; last--)
   {
     if (! arrayTmp.at(last).empty() ) 
@@ -2408,7 +2212,7 @@ void CBratProcessZFXY::SubstituteAxisDim(const CStringArray& fieldDims, CStringA
     
   }
 
-  int32_t i = 0;
+  size_t i = 0;
   for (i = first ; i <= last ; i++)
   {
     std::string str = arrayTmp.at(i);
@@ -2469,106 +2273,95 @@ void CBratProcessZFXY::OnAddDimensionsFromNetCdf()
 
 
 //----------------------------------------
-bool CBratProcessZFXY::CheckValuesSimilar(uint32_t indexExpr, double* dataValues, uint32_t nbValues, uint32_t xPos, uint32_t yPos,  std::string& msg)
+bool CBratProcessZFXY::CheckValuesSimilar( uint32_t indexExpr, double* dataValues, size_t nbValues, uint32_t xPos, uint32_t yPos, std::string& msg )
 {
+	CMatrix* matrix = GetMatrix( indexExpr );
+	CMatrixDoublePtr* matrix_double_ptr = dynamic_cast<CMatrixDoublePtr*>( matrix );	assert__( matrix_double_ptr || dynamic_cast<CMatrixDouble*>( matrix ) );
 
-  bool bSimilarValues = true;
+	//---------------------------------------------
+	if ( matrix_double_ptr )
+	//---------------------------------------------
+	{
+		if ( matrix_double_ptr->GetMatrixDimsData()->size() <= 0 )
+		{
+			return true;
+		}
+	}
 
-  CMatrix* matrix = GetMatrix(indexExpr);      
-  //---------------------------------------------
-  if (CBratProcessZFXY::IsMatrixDoublePtr(matrix))
-  //---------------------------------------------
-  {
-    CMatrixDoublePtr* matrixDoublePtr = CBratProcessZFXY::GetMatrixDoublePtr(matrix);
-    if (matrixDoublePtr->GetMatrixDimsData()->size() <= 0)
-    {
-      return bSimilarValues;
-    }
+	size_t cols = matrix->GetMatrixNumberOfValuesData();
+	if ( cols <= 0 )
+	{
+		return true;
+	}
 
-  }
-  //---------------------------------------------
-  else if (CBratProcessZFXY::IsMatrixDouble(matrix))
-  //---------------------------------------------
-  {
-  }
-
-  uint32_t cols = matrix->GetMatrixNumberOfValuesData();
-  if (cols <= 0)
-  {
-    return bSimilarValues;
-  }
-
-  if (cols != nbValues)
-  {
-    return false;
-  }
-
-  double* dataValuesRef = matrix->At(xPos, yPos);
+	if ( cols != nbValues )
+	{
+		return false;
+	}
 
 
-  //---------------------------------------------
-  if (CBratProcessZFXY::IsMatrixDoublePtr(matrix))
-  //---------------------------------------------
-  {
-    uint32_t indexValues = 0;
+	double* dataValuesRef = matrix->At( xPos, yPos );
+	bool bSimilarValues = true;
 
-    for (indexValues = 0 ; indexValues < cols; indexValues++)
-    {
-      if (dataValuesRef[indexValues] == base_t::MergeIdentifyUnsetData)
-      {
-        break;
-      }
-      if ( ! areEqual(dataValuesRef[indexValues], dataValues[indexValues]) )
-      {
-        bSimilarValues = false;
-        break;
-    }
-  }
+	//---------------------------------------------
+	if ( matrix_double_ptr )
+	//---------------------------------------------
+	{
+		for ( uint32_t indexValues = 0; indexValues < cols; indexValues++ )
+		{
+			if ( dataValuesRef[ indexValues ] == base_t::MergeIdentifyUnsetData )
+			{
+				break;
+			}
+			if ( !areEqual( dataValuesRef[ indexValues ], dataValues[ indexValues ] ) )
+			{
+				bSimilarValues = false;
+				break;
+			}
+		}
+	}
+	//---------------------------------------------
+	else
+	//---------------------------------------------
+	{
+		if ( !areEqual( *dataValuesRef, *dataValues ) )
+		{
+			bSimilarValues = false;
+		}
+	}
 
-  }
-  //---------------------------------------------
-  else if (CBratProcessZFXY::IsMatrixDouble(matrix))
-  //---------------------------------------------
-  {
-    if ( ! areEqual(*dataValuesRef, *dataValues) )
-    {
-      bSimilarValues = false;
-    }
 
-  }
+	std::string format = "WARNING - Regarding to X / Y values %.15g / %.15g, values contained in %s dimension are not similar with read previous values.\n"
+		"Only the first values will be stored in the NetCdf output file.\n"
+		"Expressions below that depend on %s dimension might be inconsistent:\n%s";
 
+	CNetCDFDimension* netCDFdim = m_internalFiles->GetNetCDFDim( m_names[ indexExpr ] );
+	if ( netCDFdim == NULL )
+	{
+		throw CException( CTools::Format( "ERROR - CBratProcessZFXY::CheckValuesSimilar - Unable to find dimension '%s' in output Netcdf file.",
+			m_names[ indexExpr ].c_str() ),
+			BRATHL_LOGIC_ERROR );
+	}
 
-  std::string format = "WARNING - Regarding to X / Y values %.15g / %.15g, values contained in %s dimension are not similar with read previous values.\n"
-        "Only the first values will be stored in the NetCdf output file.\n" 
-        "Expressions below that depend on %s dimension might be inconsistent:\n%s";
+	CStringArray strArray;
+	strArray.Insert( m_names[ indexExpr ] );
 
-  CNetCDFDimension* netCDFdim = m_internalFiles->GetNetCDFDim(m_names[indexExpr]);
-  if (netCDFdim == NULL)
-  {
-    throw CException(CTools::Format("ERROR - CBratProcessZFXY::CheckValuesSimilar - Unable to find dimension '%s' in output Netcdf file.",
-                                    m_names[indexExpr].c_str()), 
-                     BRATHL_LOGIC_ERROR);
-  }
+	CStringArray complement;
+	CStringArray* coordVars = netCDFdim->GetCoordinateVariables();
 
-  CStringArray strArray;
-  strArray.Insert(m_names[indexExpr]);
+	strArray.Complement( *coordVars, complement );
 
-  CStringArray complement;
-  CStringArray* coordVars = netCDFdim->GetCoordinateVariables();
+	std::string coordVarAsString = complement.ToString( ", ", false );
 
-  strArray.Complement(*coordVars, complement);
+	msg = CTools::Format( format.c_str(),
+		m_xData[ xPos ],
+		m_yData[ yPos ],
+		m_names[ indexExpr ].c_str(),
+		m_names[ indexExpr ].c_str(),
+		coordVarAsString.c_str() );
+	;
 
-  std::string coordVarAsString = complement.ToString(", ", false);
-
-  msg = CTools::Format(format.c_str(), 
-                       m_xData[xPos],
-                       m_yData[yPos],
-                       m_names[indexExpr].c_str(),
-                       m_names[indexExpr].c_str(),
-                       coordVarAsString.c_str());
-                       ;
-  return bSimilarValues;
-
+	return bSimilarValues;
 }
 
 
@@ -2579,17 +2372,17 @@ bool CBratProcessZFXY::CheckValuesSimilar(uint32_t indexExpr, double* dataValues
 // big enough to contain at least nbX*nbY data.
 
 bool CBratProcessZFXY::LoessFilterGrid(double	*data, double	*result,
-		                                   int32_t nbX, bool circularX, int32_t waveLengthX,
-		                                   int32_t nbY, bool circularY, int32_t waveLengthY,
+		                                   int_t nbX, bool circularX, int_t waveLengthX,
+		                                   int_t nbY, bool circularY, int_t waveLengthY,
 		                                   bool smoothData, bool extrapolData)
 {
 	// index limits for inner loops
-  int32_t	minX;
-  int32_t	maxX;
+  int_t	minX;
+  int_t	maxX;
 	// in case of a grid covering the
 				// equator (circular grid)
-  int32_t	minY;
-  int32_t	maxY;
+  int_t	minY;
+  int_t	maxY;
 
   bool		doDist;
   double	dist	= 0.0;
@@ -2639,7 +2432,7 @@ bool CBratProcessZFXY::LoessFilterGrid(double	*data, double	*result,
     maxY	= nbY;
   }
 
-  int32_t	nbData	= nbX * nbY;
+  int_t	nbData	= nbX * nbY;
   
   double	*buffer	= (result != NULL ? result : new double[nbData]);
 
@@ -2649,11 +2442,11 @@ bool CBratProcessZFXY::LoessFilterGrid(double	*data, double	*result,
     // Initializes result with input data
     memcpy(buffer, data, sizeof(*buffer) * nbData);
 
-    for (int32_t xIndex=0; xIndex < nbX; xIndex++)
+    for (int_t xIndex=0; xIndex < nbX; xIndex++)
     {
-      for (int32_t yIndex=0; yIndex < nbY; yIndex++)
+      for (int_t yIndex=0; yIndex < nbY; yIndex++)
       {
-      	int32_t	indexInGrid	= GRIDINDEX(xIndex, yIndex);
+      	int_t	indexInGrid	= GRIDINDEX(xIndex, yIndex);
 
 	      bool	isDefault	= isDefaultValue( data[indexInGrid] );
 
@@ -2663,15 +2456,15 @@ bool CBratProcessZFXY::LoessFilterGrid(double	*data, double	*result,
 	        double smooth	= 0.0;
 	        double weight	= 0.0;
 	        
-          for (int32_t xLocal = MAX(minX, xIndex-waveLengthX) ; xLocal < MIN(maxX, xIndex+waveLengthX+1); xLocal++)
+          for (int_t xLocal = MAX(minX, xIndex-waveLengthX) ; xLocal < MIN(maxX, xIndex+waveLengthX+1); xLocal++)
 	        {
 	          double sqrNormDistX	= static_cast<double>(xLocal-xIndex) / static_cast<double>(waveLengthX);
 	          
             sqrNormDistX *= sqrNormDistX;
 
-	          for (int32_t yLocal = MAX(minY, yIndex-waveLengthY) ; yLocal < MIN(maxY, yIndex + waveLengthY + 1); yLocal++)
+	          for (int_t yLocal = MAX(minY, yIndex-waveLengthY) ; yLocal < MIN(maxY, yIndex + waveLengthY + 1); yLocal++)
 	          {
-	            int32_t	localIndexInGrid	= GRIDINDEX(xLocal, yLocal);
+	            int_t	localIndexInGrid	= GRIDINDEX(xLocal, yLocal);
 
 	            if (! isDefaultValue(data[localIndexInGrid]))
 	            {
@@ -2737,469 +2530,447 @@ bool CBratProcessZFXY::LoessFilterGrid(double	*data, double	*result,
 
 }
 //----------------------------------------
-bool CBratProcessZFXY::LoessFilterGrid(CMatrix& matrix, CMatrix *result,
-		                                   bool circularX, int32_t waveLengthX,
-		                                   bool circularY, int32_t waveLengthY,
-		                                   bool smoothData, bool extrapolData)
+bool CBratProcessZFXY::LoessFilterGrid( CMatrix& matrix, CMatrix *result,
+	bool circularX, int_t waveLengthX,
+	bool circularY, int_t waveLengthY,
+	bool smoothData, bool extrapolData )
 {
-  if (CBratProcessZFXY::IsMatrixDouble(&matrix))
-  {
-    CMatrixDouble* resultDouble = NULL;
+	CMatrixDoublePtr *matrix_double_ptr = dynamic_cast<CMatrixDoublePtr*>( &matrix );
+	CMatrixDouble *matrix_double = dynamic_cast<CMatrixDouble*>( &matrix );				assert__( matrix_double_ptr || matrix_double );
 
-    if (result != NULL)
-    {
-      if (! CBratProcessZFXY::IsMatrixDouble(result))
-      {
-        return false;
-      }
-      
-      resultDouble = CBratProcessZFXY::GetMatrixDouble(result);
+	if ( !matrix_double_ptr )
+	{
+		CMatrixDouble *resultDouble = dynamic_cast<CMatrixDouble*>( result );
 
-    }
-    CMatrixDouble* matrixDouble = CBratProcessZFXY::GetMatrixDouble(&matrix);
-    
-    return CBratProcessZFXY::LoessFilterGrid(*matrixDouble, resultDouble,
-		                                   circularX, waveLengthX,
-		                                   circularY, waveLengthY,
-		                                   smoothData, extrapolData);
-    
-  }
+		if ( result && !resultDouble )
+		{
+			return false;
+		}
 
-  if (CBratProcessZFXY::IsMatrixDoublePtr(&matrix))
-  {
-    CMatrixDoublePtr* resultDoublePtr = NULL;
+		return CBratProcessZFXY::LoessFilterGrid( *matrix_double, resultDouble,
+			circularX, waveLengthX,
+			circularY, waveLengthY,
+			smoothData, extrapolData );
 
-    if (result != NULL)
-    {
-      if (! CBratProcessZFXY::IsMatrixDoublePtr(result))
-      {
-        return false;
-      }
-      
-      resultDoublePtr = CBratProcessZFXY::GetMatrixDoublePtr(result);
+	}
 
-    }
-    CMatrixDoublePtr* matrixDoublePtr = CBratProcessZFXY::GetMatrixDoublePtr(&matrix);
-    
+	if ( matrix_double_ptr )
+	{
+		CMatrixDoublePtr *resultDoublePtr = dynamic_cast<CMatrixDoublePtr*>( result );
 
-    return CBratProcessZFXY::LoessFilterGrid(*matrixDoublePtr, resultDoublePtr,
-		                                   circularX, waveLengthX,
-		                                   circularY, waveLengthY,
-		                                   smoothData, extrapolData);
-  }
+		if ( result && !resultDoublePtr )
+		{
+			return false;
+		}
 
-  return false;
+		return CBratProcessZFXY::LoessFilterGrid( *matrix_double_ptr, resultDoublePtr,
+			circularX, waveLengthX,
+			circularY, waveLengthY,
+			smoothData, extrapolData );
+	}
 
+	return false;
 }
+
+
 //----------------------------------------
 // If result is NULL, matrix is modified upon exit.
 // If result is not NULL it must point to an matrix with the same numbers of rows and columns than matrix
 
-bool CBratProcessZFXY::LoessFilterGrid(CMatrixDouble& matrix, CMatrixDouble *result,
-		                                   bool circularX, int32_t waveLengthX,
-		                                   bool circularY, int32_t waveLengthY,
-		                                   bool smoothData, bool extrapolData)
+bool CBratProcessZFXY::LoessFilterGrid( CMatrixDouble& matrix, CMatrixDouble *result,
+	bool circularX, int_t waveLengthX,
+	bool circularY, int_t waveLengthY,
+	bool smoothData, bool extrapolData )
 {
-
-  CMatrixDouble* matrixTmp = CBratProcessZFXY::GetMatrixDouble(&matrix);
-
-  int32_t nbX = matrix.GetNumberOfRows();
-  int32_t nbY = matrix.GetNumberOfCols();
+	int_t nbX = matrix.GetNumberOfRows();
+	int_t nbY = matrix.GetNumberOfCols();
 
 	// index limits for inner loops
-  int32_t	minX;
-  int32_t	maxX;
+	int_t	minX;
+	int_t	maxX;
 	// in case of a grid covering the
 				// equator (circular grid)
-  int32_t	minY;
-  int32_t	maxY;
+	int_t	minY;
+	int_t	maxY;
 
-  bool		doDist;
-  double	dist	= 0.0;
+	bool		doDist;
+	double	dist	= 0.0;
 
-  // Calculates the position of a data inside the data array
-  //#define GRIDINDEX(X, Y) ( ( ((X) + nbX) % nbX ) * nbY + ((Y) + nbY) % nbY )
- 
-  waveLengthX	/= 2;
+	// Calculates the position of a data inside the data array
+	//#define GRIDINDEX(X, Y) ( ( ((X) + nbX) % nbX ) * nbY + ((Y) + nbY) % nbY )
 
-  if ((waveLengthX < 0) || (waveLengthX > (nbX / 2)))
-  {
-    waveLengthX	= 0;
-  }
+	waveLengthX	/= 2;
 
-  waveLengthY	/= 2;
+	if ( ( waveLengthX < 0 ) || ( waveLengthX > ( nbX / 2 ) ) )
+	{
+		waveLengthX	= 0;
+	}
 
-  if ((waveLengthY < 0) || (waveLengthY > (nbY/2)))
-  {
-    waveLengthY	= 0;
-  }
+	waveLengthY	/= 2;
 
-  doDist = (waveLengthX > 0) && (waveLengthY > 0);
+	if ( ( waveLengthY < 0 ) || ( waveLengthY > ( nbY / 2 ) ) )
+	{
+		waveLengthY	= 0;
+	}
 
-  if (circularX)
-  {
-    // The grid covers the whole earth in longitude so we can have indexes
-    // outside the array bounds. GRIDINDEX take this into account		
-    minX	= -nbX;
-    maxX	= 2 * nbX;
-  }
-  else
-  {
-    minX	= 0;
-    maxX	= nbX;
-  }
+	doDist = ( waveLengthX > 0 ) && ( waveLengthY > 0 );
 
-  if (circularY)
-  {
-    // The grid covers the whole earth in longitude so we can have indexes
-    // outside the array bounds. GRIDINDEX take this into account
-    minY	= -nbY;
-    maxY	= 2 * nbY;
-  }
-  else
-  {
-    minY	= 0;
-    maxY	= nbY;
-  }
+	if ( circularX )
+	{
+		// The grid covers the whole earth in longitude so we can have indexes
+		// outside the array bounds. GRIDINDEX take this into account		
+		minX	= -nbX;
+		maxX	= 2 * nbX;
+	}
+	else
+	{
+		minX	= 0;
+		maxX	= nbX;
+	}
 
-  //int32_t	nbData	= nbX * nbY;
-  
-  CMatrixDouble *buffer = NULL;
-  
-  if (result != NULL)
-  {
-    buffer = CBratProcessZFXY::GetMatrixDouble(result);
-  }
-  else
-  {
-    buffer = new CMatrixDouble(matrix.GetNumberOfRows(), matrix.GetNumberOfCols());
-  }
+	if ( circularY )
+	{
+		// The grid covers the whole earth in longitude so we can have indexes
+		// outside the array bounds. GRIDINDEX take this into account
+		minY	= -nbY;
+		maxY	= 2 * nbY;
+	}
+	else
+	{
+		minY	= 0;
+		maxY	= nbY;
+	}
 
-  try // To catch exceptions for data integrity
-  {
-    // Initializes result with input data
-    *buffer = *matrixTmp;
+	//int32_t	nbData	= nbX * nbY;
 
-    for (int32_t xIndex = 0; xIndex < nbX; xIndex++)
-    {
-      for (int32_t yIndex = 0; yIndex < nbY; yIndex++)
-      {
-      	//int32_t	indexInGrid	= GRIDINDEX(xIndex, yIndex);
-        DoublePtr values = matrixTmp->At(xIndex, yIndex);
-        if (values == NULL)
-        {
-          continue;
-        }
+	CMatrixDouble *buffer = result ? result : new CMatrixDouble( matrix.GetNumberOfRows(), matrix.GetNumberOfCols() );
+	CMatrixDouble* matrixTmp = &matrix;
 
-        double value = values[0];
+	try // To catch exceptions for data integrity
+	{
+		// Initializes result with input data
+		*buffer = *matrixTmp;
 
-	      bool isDefault	= isDefaultValue( value );
+		for ( int32_t xIndex = 0; xIndex < nbX; xIndex++ )
+		{
+			for ( int32_t yIndex = 0; yIndex < nbY; yIndex++ )
+			{
+				//int32_t	indexInGrid	= GRIDINDEX(xIndex, yIndex);
+				double * values = matrixTmp->At( xIndex, yIndex );
+				if ( values == NULL )
+				{
+					continue;
+				}
 
-        if ((smoothData && (! isDefault)) || (extrapolData && isDefault))
-        {
-          // Smoothing with pixels around the current one
-	        double smooth	= 0.0;
-	        double weight	= 0.0;
-	        
-          for (int32_t xLocal = MAX( minX, (xIndex - waveLengthX) ) ; xLocal < MIN( maxX, (xIndex + waveLengthX + 1) ); xLocal++)
-	        {
-	          double sqrNormDistX	= static_cast<double>(xLocal-xIndex) / static_cast<double>(waveLengthX);
-	          
-            sqrNormDistX *= sqrNormDistX;
-            int32_t xx = ((xLocal + nbX) % nbX ) ;
+				double value = values[ 0 ];
 
-	          for (int32_t yLocal = MAX(minY, (yIndex - waveLengthY) ) ; yLocal < MIN(maxY, (yIndex + waveLengthY + 1) ); yLocal++)
-	          {
-              int32_t yy = ((yLocal + nbY) % nbY ) ;
+				bool isDefault	= isDefaultValue( value );
 
-	            //int32_t	localIndexInGrid	= GRIDINDEX(xLocal, yLocal);
-	            //int32_t	localIndexInGrid2	= GRIDINDEX(xx, yy);
-              
-              DoublePtr valuesLocal = matrixTmp->At(xx, yy);
+				if ( ( smoothData && ( ! isDefault ) ) || ( extrapolData && isDefault ) )
+				{
+					// Smoothing with pixels around the current one
+					double smooth	= 0.0;
+					double weight	= 0.0;
 
-              if (valuesLocal == NULL)
-              {
-                continue;
-              }
+					for ( int_t xLocal = MAX( minX, ( xIndex - waveLengthX ) ); xLocal < MIN( maxX, ( xIndex + waveLengthX + 1 ) ); xLocal++ )
+					{
+						double sqrNormDistX	= static_cast<double>( xLocal - xIndex ) / static_cast<double>( waveLengthX );
 
-              double valueLocal = valuesLocal[0];
+						sqrNormDistX *= sqrNormDistX;
+						int_t xx = ( ( xLocal + nbX ) % nbX );
 
-	            if (! isDefaultValue(valueLocal))
-	            {
-		            // Weighting
-		            if (doDist)
-		            {
-	                double normDistY	= static_cast<double>(yLocal - yIndex) / static_cast<double>(waveLengthY);
-		              
-                  dist = sqrt( sqrNormDistX + (normDistY * normDistY) );
-		            }
+						for ( int_t yLocal = MAX( minY, ( yIndex - waveLengthY ) ); yLocal < MIN( maxY, ( yIndex + waveLengthY + 1 ) ); yLocal++ )
+						{
+							int_t yy = ( ( yLocal + nbY ) % nbY );
 
-		            double wij = (dist <= 1.0 ? pow((1.0 - pow(dist, 3.0)),3.0) : 0.0);
+							//int32_t	localIndexInGrid	= GRIDINDEX(xLocal, yLocal);
+							//int32_t	localIndexInGrid2	= GRIDINDEX(xx, yy);
 
-		            smooth += wij * valueLocal;
-		            weight += wij;
-	            }
-	          }
-	        }
+							double * valuesLocal = matrixTmp->At( xx, yy );
 
-	        if (!isZero(weight))
-          {
-            DoublePtr bufferValues = buffer->At(xIndex, yIndex);
-            if (bufferValues != NULL)
-            {
-	            bufferValues[0] = smooth / weight;
-            }
-          }
-        
-        } // end  if ((SmoothData && (! isDefault)) || (ExtrapolData && isDefault))
-      }
-    }
+							if ( valuesLocal == NULL )
+							{
+								continue;
+							}
 
-    // Report computed result
-    if (result == NULL)
-    {
-      *matrixTmp = *buffer;
-    }
-  }
-  catch (CException& e)
-  {
-    if (result == NULL) 
-    {
-      delete buffer;
-      buffer = NULL;
-    }
+							double valueLocal = valuesLocal[ 0 ];
 
-    throw e;
-  }
-  catch (...)
-  {
-    if (result == NULL) 
-    {
-      delete buffer;
-      buffer = NULL;
-    }
+							if ( ! isDefaultValue( valueLocal ) )
+							{
+								// Weighting
+								if ( doDist )
+								{
+									double normDistY	= static_cast<double>( yLocal - yIndex ) / static_cast<double>( waveLengthY );
 
-    throw;
-  }
- 
-  if (result == NULL) 
-  {
-    delete buffer;
-    buffer = NULL;
-  }
-  
-  return true;
+									dist = sqrt( sqrNormDistX + ( normDistY * normDistY ) );
+								}
+
+								double wij = ( dist <= 1.0 ? pow( ( 1.0 - pow( dist, 3.0 ) ), 3.0 ) : 0.0 );
+
+								smooth += wij * valueLocal;
+								weight += wij;
+							}
+						}
+					}
+
+					if ( !isZero( weight ) )
+					{
+						double * bufferValues = buffer->At( xIndex, yIndex );
+						if ( bufferValues != NULL )
+						{
+							bufferValues[ 0 ] = smooth / weight;
+						}
+					}
+
+				} // end  if ((SmoothData && (! isDefault)) || (ExtrapolData && isDefault))
+			}
+		}
+
+		// Report computed result
+		if ( result == NULL )
+		{
+			*matrixTmp = *buffer;
+		}
+	}
+	catch ( CException& e )
+	{
+		if ( result == NULL )
+		{
+			delete buffer;
+			buffer = NULL;
+		}
+
+		throw e;
+	}
+	catch ( ... )
+	{
+		if ( result == NULL )
+		{
+			delete buffer;
+			buffer = NULL;
+		}
+
+		throw;
+	}
+
+	if ( result == NULL )
+	{
+		delete buffer;
+		buffer = NULL;
+	}
+
+	return true;
 }
 
 //----------------------------------------
 // If result is NULL, matrix is modified upon exit.
 // If result is not NULL it must point to an matrix with the same numbers of rows and columns than matrix
 
-bool CBratProcessZFXY::LoessFilterGrid(CMatrixDoublePtr& matrix, CMatrixDoublePtr *result,
-		                                   bool circularX, int32_t waveLengthX,
-		                                   bool circularY, int32_t waveLengthY,
-		                                   bool smoothData, bool extrapolData)
+bool CBratProcessZFXY::LoessFilterGrid( CMatrixDoublePtr& matrix, CMatrixDoublePtr *result,
+	bool circularX, int_t waveLengthX,
+	bool circularY, int_t waveLengthY,
+	bool smoothData, bool extrapolData )
 {
 
-  uint32_t numOfValuePerPoint = matrix.GetMatrixNumberOfValuesData();
+	size_t numOfValuePerPoint = matrix.GetMatrixNumberOfValuesData();
 
-  if (numOfValuePerPoint != 1)
-  {
-    CTrace::Tracer(1, CTools::Format("WARNING - The filters are not applied to '%s' expression because the number of values per point (x/y) is not equal to 1 (number is %d)", 
-        matrix.GetName().c_str(), numOfValuePerPoint));
+	if ( numOfValuePerPoint != 1 )
+	{
+		CTrace::Tracer( 1, CTools::Format( "WARNING - The filters are not applied to '%s' expression because the number of values per point (x/y) is not equal to 1 (number is %d)",
+			matrix.GetName().c_str(), numOfValuePerPoint ) );
 
-    return false;
-  }
+		return false;
+	}
 
 
-  CMatrixDoublePtr* matrixTmp = CBratProcessZFXY::GetMatrixDoublePtr(&matrix);
-
-  int32_t nbX = matrix.GetNumberOfRows();
-  int32_t nbY = matrix.GetNumberOfCols();
+	int_t nbX = matrix.GetNumberOfRows();
+	int_t nbY = matrix.GetNumberOfCols();
 
 	// index limits for inner loops
-  int32_t	minX;
-  int32_t	maxX;
+	int_t	minX;
+	int_t	maxX;
 	// in case of a grid covering the
 				// equator (circular grid)
-  int32_t	minY;
-  int32_t	maxY;
+	int_t	minY;
+	int_t	maxY;
 
-  bool		doDist;
-  double	dist	= 0.0;
+	bool		doDist;
+	double	dist	= 0.0;
 
-  // Calculates the position of a data inside the data array
-  //#define GRIDINDEX(X, Y) ( ( ((X) + nbX) % nbX ) * nbY + ((Y) + nbY) % nbY )
- 
-  waveLengthX	/= 2;
+	// Calculates the position of a data inside the data array
+	//#define GRIDINDEX(X, Y) ( ( ((X) + nbX) % nbX ) * nbY + ((Y) + nbY) % nbY )
 
-  if ((waveLengthX < 0) || (waveLengthX > (nbX / 2)))
-  {
-    waveLengthX	= 0;
-  }
+	waveLengthX	/= 2;
 
-  waveLengthY	/= 2;
+	if ( ( waveLengthX < 0 ) || ( waveLengthX > ( nbX / 2 ) ) )
+	{
+		waveLengthX	= 0;
+	}
 
-  if ((waveLengthY < 0) || (waveLengthY > (nbY/2)))
-  {
-    waveLengthY	= 0;
-  }
+	waveLengthY	/= 2;
 
-  doDist = (waveLengthX > 0) && (waveLengthY > 0);
+	if ( ( waveLengthY < 0 ) || ( waveLengthY > ( nbY / 2 ) ) )
+	{
+		waveLengthY	= 0;
+	}
 
-  if (circularX)
-  {
-    // The grid covers the whole earth in longitude so we can have indexes
-    // outside the array bounds. GRIDINDEX take this into account		
-    minX	= -nbX;
-    maxX	= 2 * nbX;
-  }
-  else
-  {
-    minX	= 0;
-    maxX	= nbX;
-  }
+	doDist = ( waveLengthX > 0 ) && ( waveLengthY > 0 );
 
-  if (circularY)
-  {
-    // The grid covers the whole earth in longitude so we can have indexes
-    // outside the array bounds. GRIDINDEX take this into account
-    minY	= -nbY;
-    maxY	= 2 * nbY;
-  }
-  else
-  {
-    minY	= 0;
-    maxY	= nbY;
-  }
+	if ( circularX )
+	{
+		// The grid covers the whole earth in longitude so we can have indexes
+		// outside the array bounds. GRIDINDEX take this into account		
+		minX	= -nbX;
+		maxX	= 2 * nbX;
+	}
+	else
+	{
+		minX	= 0;
+		maxX	= nbX;
+	}
 
-  //int32_t	nbData	= nbX * nbY;
-  
-  CMatrixDoublePtr *buffer = NULL;
-  
-  if (result != NULL)
-  {
-    buffer = CBratProcessZFXY::GetMatrixDoublePtr(result);
-  }
-  else
-  {
-    buffer = new CMatrixDoublePtr(matrix.GetNumberOfRows(), matrix.GetNumberOfCols());
-  }
+	if ( circularY )
+	{
+		// The grid covers the whole earth in longitude so we can have indexes
+		// outside the array bounds. GRIDINDEX take this into account
+		minY	= -nbY;
+		maxY	= 2 * nbY;
+	}
+	else
+	{
+		minY	= 0;
+		maxY	= nbY;
+	}
 
-  try // To catch exceptions for data integrity
-  {
-    // Initializes result with input data
-    *buffer = *matrixTmp;
+	//int32_t	nbData	= nbX * nbY;
 
-    for (int32_t xIndex = 0; xIndex < nbX; xIndex++)
-    {
-      for (int32_t yIndex = 0; yIndex < nbY; yIndex++)
-      {
-      	//int32_t	indexInGrid	= GRIDINDEX(xIndex, yIndex);
-        DoublePtr values = matrixTmp->At(xIndex, yIndex);
-        if (values == NULL)
-        {
-          continue;
-        }
+	CMatrixDoublePtr *buffer = NULL;
+	if ( result != NULL )
+	{
+		buffer = result;
+	}
+	else
+	{
+		buffer = new CMatrixDoublePtr( matrix.GetNumberOfRows(), matrix.GetNumberOfCols() );
+	}
 
-        double value = values[0];
+	CMatrixDoublePtr *matrixTmp = &matrix;
 
-	      bool isDefault	= isDefaultValue( value );
 
-        if ((smoothData && (! isDefault)) || (extrapolData && isDefault))
-        {
-          // Smoothing with pixels around the current one
-	        double smooth	= 0.0;
-	        double weight	= 0.0;
-	        
-          for (int32_t xLocal = MAX( minX, (xIndex - waveLengthX) ) ; xLocal < MIN( maxX, (xIndex + waveLengthX + 1) ); xLocal++)
-	        {
-	          double sqrNormDistX	= static_cast<double>(xLocal-xIndex) / static_cast<double>(waveLengthX);
-	          
-            sqrNormDistX *= sqrNormDistX;
-            int32_t xx = ((xLocal + nbX) % nbX ) ;
+	try // To catch exceptions for data integrity
+	{
+		// Initializes result with input data
+		*buffer = *matrixTmp;
 
-	          for (int32_t yLocal = MAX(minY, (yIndex - waveLengthY) ) ; yLocal < MIN(maxY, (yIndex + waveLengthY + 1) ); yLocal++)
-	          {
-              int32_t yy = ((yLocal + nbY) % nbY ) ;
+		for ( int_t xIndex = 0; xIndex < nbX; xIndex++ )
+		{
+			for ( int_t yIndex = 0; yIndex < nbY; yIndex++ )
+			{
+				//int_t	indexInGrid	= GRIDINDEX(xIndex, yIndex);
+				double * values = matrixTmp->At( xIndex, yIndex );
+				if ( values == NULL )
+				{
+					continue;
+				}
 
-	            //int32_t	localIndexInGrid	= GRIDINDEX(xLocal, yLocal);
-	            //int32_t	localIndexInGrid2	= GRIDINDEX(xx, yy);
-              
-              DoublePtr valuesLocal = matrixTmp->At(xx, yy);
+				double value = values[ 0 ];
 
-              if (valuesLocal == NULL)
-              {
-                continue;
-              }
+				bool isDefault	= isDefaultValue( value );
 
-              double valueLocal = valuesLocal[0];
+				if ( ( smoothData && ( ! isDefault ) ) || ( extrapolData && isDefault ) )
+				{
+					// Smoothing with pixels around the current one
+					double smooth	= 0.0;
+					double weight	= 0.0;
 
-	            if (! isDefaultValue(valueLocal))
-	            {
-		            // Weighting
-		            if (doDist)
-		            {
-	                double normDistY	= static_cast<double>(yLocal - yIndex) / static_cast<double>(waveLengthY);
-		              
-                  dist = sqrt( sqrNormDistX + (normDistY * normDistY) );
-		            }
+					for ( int_t xLocal = MAX( minX, ( xIndex - waveLengthX ) ); xLocal < MIN( maxX, ( xIndex + waveLengthX + 1 ) ); xLocal++ )
+					{
+						double sqrNormDistX	= static_cast<double>( xLocal - xIndex ) / static_cast<double>( waveLengthX );
 
-		            double wij = (dist <= 1.0 ? pow((1.0 - pow(dist, 3.0)),3.0) : 0.0);
+						sqrNormDistX *= sqrNormDistX;
+						int_t xx = ( ( xLocal + nbX ) % nbX );
 
-		            smooth += wij * valueLocal;
-		            weight += wij;
-	            }
-	          }
-	        }
+						for ( int_t yLocal = MAX( minY, ( yIndex - waveLengthY ) ); yLocal < MIN( maxY, ( yIndex + waveLengthY + 1 ) ); yLocal++ )
+						{
+							int_t yy = ( ( yLocal + nbY ) % nbY );
 
-	        if (!isZero(weight))
-          {
-            DoublePtr bufferValues = buffer->At(xIndex, yIndex);
-            if (bufferValues != NULL)
-            {
-	            bufferValues[0] = smooth / weight;
-            }
-          }
-        
-        } // end  if ((SmoothData && (! isDefault)) || (ExtrapolData && isDefault))
-      }
-    }
+							//int32_t	localIndexInGrid	= GRIDINDEX(xLocal, yLocal);
+							//int32_t	localIndexInGrid2	= GRIDINDEX(xx, yy);
 
-    // Report computed result
-    if (result == NULL)
-    {
-      *matrixTmp = *buffer;
-    }
-  }
-  catch (CException& e)
-  {
-    if (result == NULL) 
-    {
-      delete buffer;
-      buffer = NULL;
-    }
+							double * valuesLocal = matrixTmp->At( xx, yy );
 
-    throw e;
-  }
-  catch (...)
-  {
-    if (result == NULL) 
-    {
-      delete buffer;
-      buffer = NULL;
-    }
+							if ( valuesLocal == NULL )
+							{
+								continue;
+							}
 
-    throw;
-  }
- 
-  if (result == NULL) 
-  {
-    delete buffer;
-    buffer = NULL;
-  }
-  
-  return true;
+							double valueLocal = valuesLocal[ 0 ];
+
+							if ( ! isDefaultValue( valueLocal ) )
+							{
+								// Weighting
+								if ( doDist )
+								{
+									double normDistY	= static_cast<double>( yLocal - yIndex ) / static_cast<double>( waveLengthY );
+
+									dist = sqrt( sqrNormDistX + ( normDistY * normDistY ) );
+								}
+
+								double wij = ( dist <= 1.0 ? pow( ( 1.0 - pow( dist, 3.0 ) ), 3.0 ) : 0.0 );
+
+								smooth += wij * valueLocal;
+								weight += wij;
+							}
+						}
+					}
+
+					if ( !isZero( weight ) )
+					{
+						double * bufferValues = buffer->At( xIndex, yIndex );
+						if ( bufferValues != NULL )
+						{
+							bufferValues[ 0 ] = smooth / weight;
+						}
+					}
+
+				} // end  if ((SmoothData && (! isDefault)) || (ExtrapolData && isDefault))
+			}
+		}
+
+		// Report computed result
+		if ( result == NULL )
+		{
+			*matrixTmp = *buffer;
+		}
+	}
+	catch ( CException& e )
+	{
+		if ( result == NULL )
+		{
+			delete buffer;
+			buffer = NULL;
+		}
+
+		throw e;
+	}
+	catch ( ... )
+	{
+		if ( result == NULL )
+		{
+			delete buffer;
+			buffer = NULL;
+		}
+
+		throw;
+	}
+
+	if ( result == NULL )
+	{
+		delete buffer;
+		buffer = NULL;
+	}
+
+	return true;
 }
 
 

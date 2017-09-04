@@ -51,6 +51,7 @@ static const std::string ENTRY_MAIN_LAYER_BASE_TYPE	=				"main_layer_base_type";
 static const std::string ENTRY_VIEWS_LAYER_BASE_TYPE =				"views_layer_base_type";
 static const std::string ENTRY_VECTOR_SIMPLIFY_METHOD =				"vector_simplify_method";
 
+static const std::string ENTRY_FILE_RASTER_LAYER_PATH =				"file_path_raster_layer_path";
 static const std::string ENTRY_URL_RASTER_LAYER_PATH =				"url_raster_layer_path";
 static const std::string ENTRY_USER_DATA_PATH =						"user_data_path";
 static const std::string ENTRY_WORKSPACES_DIR =						"workspaces_dir";
@@ -227,6 +228,7 @@ bool CBratSettings::LoadPaths()
 
 			k_v( ENTRY_USER_DATA_PATH,			&mBratPaths.mUserDataDirectory ),
             k_v( ENTRY_WORKSPACES_DIR,			&mBratPaths.mWorkspacesDirectory ),
+			k_v( ENTRY_FILE_RASTER_LAYER_PATH,  &mBratPaths.mRasterLayerPath, mBratPaths.DefaulLocalFileRasterLayerPath() ),
             k_v( ENTRY_URL_RASTER_LAYER_PATH,   &mBratPaths.mURLRasterLayerPath, mBratPaths.smDefaultURLRasterLayerPath ),
 
             k_v( ENTRY_PORTABLE_PATHS,			&mBratPaths.mUsePortablePaths )
@@ -244,7 +246,8 @@ bool CBratSettings::SavePaths()
 
 			k_v( ENTRY_USER_DATA_PATH,			mBratPaths.UserDataDirectory() ),
             k_v( ENTRY_WORKSPACES_DIR,          mBratPaths.WorkspacesDirectory() ),
-            k_v( ENTRY_URL_RASTER_LAYER_PATH,	mBratPaths.URLRasterLayerPath() ),
+			k_v( ENTRY_FILE_RASTER_LAYER_PATH,	mBratPaths.RasterLayerPath() ),
+			k_v( ENTRY_URL_RASTER_LAYER_PATH,	mBratPaths.URLRasterLayerPath() ),
 
             k_v( ENTRY_PORTABLE_PATHS,			mBratPaths.UsePortablePaths() )
 		);
