@@ -287,6 +287,17 @@ set(ZLIB_LIBRARY ${ZLIB_LIBRARIES};${SZIP_LIBRARIES} CACHE INTERNAL "")
 
 if (NOT WIN32)
 
+    # For the linker not to mistake /usr/bin/idn (or curl) with /usr/[lib64 | lib/x86_64-linux-gnu]/libidn.so
+    # (the same for libcurl.so)
+    #
+    IF (IS_CENTOS_SYSTEM)
+        set (ENV{PATH} "/usr/lib64:$ENV{PATH}")
+    ELSE()
+        IF(NOT APPLE)
+            set (ENV{PATH} "/usr/lib/x86_64-linux-gnu:$ENV{PATH}")
+        ENDIF()
+    ENDIF()
+
     set(USE_LIBDL OFF CACHE BOOL "")
     set(ENABLE_DYNAMIC_LOADING OFF CACHE BOOL "" FORCE) # CRITICAL
 
@@ -301,10 +312,10 @@ if (NOT WIN32)
         set(HAVE_LIBM curl;m;idn;z;ssl;crypt;dl CACHE STRING "" FORCE)
 
 		# became necesary with debian 8, to override option in parent scope
-
+		#
 		if ( "${CMAKE_SYSTEM_NAME}" STREQUAL "Linux" )
 		  set(CMAKE_FIND_LIBRARY_SUFFIXES ".so;.a;")
-		endif ()
+	    endif ()
 
 	endif ()
 

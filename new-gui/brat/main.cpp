@@ -30,6 +30,14 @@
 
 int main( int argc, char *argv[] )
 try {
+    //https://docs.qgis.org/2.14/en/docs/user_manual/auth_system/auth_overview.html
+    //http://lists.osgeo.org/pipermail/qgis-user/2017-January/038776.html
+    
+    qputenv( "QGIS_AUTH_DB_DIR_PATH", "/home/brat/s3-altb/bin");
+    
+    qDebug() << QTextCodec::codecForLocale()->name();
+            
+    
 	LOG_TRACE( "\n*** Entering main." );
 
 	CBratApplication::Prologue( argc, argv );

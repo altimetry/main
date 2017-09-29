@@ -213,6 +213,63 @@ void CBratApplication::CheckOpenGL( bool extended )		//extended = false
 }
 
 
+// The QCA library of OsGeo4W crashes with QCA::scanForPlugins()
+// preventing the initialization of QgsAuthManager, whose default
+// state is enabled; so, it remains enabled even when its own
+// initialization throws an exception (...). On the other hand,
+// there is no way to disable it manually (flag mAuthDisabled is
+// private, and inaccessible through any method). This prevents
+// BRAT from using layer URLs. Without a chance to compile our
+// own QCA for windows and to recompile all its dependencies,
+// this hack remains; given the enormity of this hack, we could
+// as well, with less discretion and less complication
+//#define private public
+// before the include, and
+//#undef private
+// after the include, directly assigning mAuthDisabled in
+// DisableQGISAuthentication (*).
+//
+#if defined (Q_OS_WIN)
+#define mAuthDisabled friend DisableAuth(); bool mAuthDisabled;
+#endif
+
+#include <qgsauthmanager.h>
+
+#if defined (Q_OS_WIN)
+#undef mAuthDisabled
+#endif
+
+bool DisableAuth()
+{
+#if defined (Q_OS_WIN)
+    QgsAuthManager::instance()->mAuthDisabled = true;
+#endif
+    return QgsAuthManager::instance()->isDisabled();
+}
+
+
+void CBratApplication::DisableQGISAuthentication()
+{
+    try {
+#if defined (Q_OS_WIN)
+		DisableAuth();		// (*) QgsAuthManager::instance()->mAuthDisabled = true;
+#else
+        QgsAuthManager::instance()->init( QgsApplication::pluginPath() );
+#endif
+	}
+	catch ( ... )
+    {}
+
+    QString sstatus =
+            QgsAuthManager::instance()->isDisabled() ?
+                "disabled" :
+                "enabled. Layer URLs can fail loading";
+
+    LOG_TRACE( "QgsAuthManager status is " + sstatus );
+}
+
+
+
 void CBratApplication::CheckWindowsStat()
 {
 #if defined (WIN32) || defined(_WIN32)
@@ -277,6 +334,7 @@ void CBratApplication::CheckRunMode()
 
 
 
+
 CBratApplication::CBratApplication( int &argc, char **argv, bool GUIenabled, QString customConfigPath )	//customConfigPath = QString() 
 
 	: base_t( argc, argv, GUIenabled, customConfigPath.isEmpty() ? smApplicationPaths->mInternalDataDir.mPath.c_str() : customConfigPath )
@@ -309,6 +367,11 @@ CBratApplication::CBratApplication( int &argc, char **argv, bool GUIenabled, QSt
 	LOG_TRACE( "qgisUserDbFilePath==" + qgisUserDbFilePath() );		//variable mConfigPath
     LOG_TRACEstd( "Qt plugins==" + mSettings.BratPaths().mQtPluginsDir.mPath );
     LOG_TRACEstd( "QGIS plugins==" + mSettings.BratPaths().mQgisPluginsDir );
+
+
+    // QGIS - disable authentication
+    //
+    DisableQGISAuthentication();
 
 
 	// To be sure that number have always a decimal point (and not a comma or something else)

@@ -65,11 +65,17 @@ const std::string BRATCREATEYFX_EXE		= setExecExtension( "BratCreateYFX" );
 
 const std::string RADS_SERVICE_NAME_EXE	= setExecExtension( RADS_SERVICE_NAME );
 
-
-const std::string CApplicationPaths::smDefaultURLRasterLayerPath =
-R"raw(&format=image/png&layers=bluemarble&styles=&url=http://disc1.sci.gsfc.nasa.gov/daac-bin/wms_airsnrt?layer%3DAIRS_SO2_A%26)raw";
+// The wms provider does not seem to work in mac, with the current set of dependencies. Only the gdal-wms provider.
+// But the default smDefaultWMSRasterLayerPath does not work in mac even with the gdal-wms provider, so a diferent URI is specified.
+// However, it must still be copied by the user to the standard raster URL (gdal), because with wms only never works.
+//
+const std::string CApplicationPaths::smDefaultWMSRasterLayerPath =
+#if defined(Q_OS_MAC)        
+    R"raw(http://server.arcgisonline.com/arcgis/rest/services/ESRI_Imagery_World_2D/MapServer?f=json&pretty=true)raw";
+#else
+    R"raw(&format=image/png&layers=bluemarble&styles=&url=http://disc1.sci.gsfc.nasa.gov/daac-bin/wms_airsnrt?layer%3DAIRS_SO2_A%26)raw";
+#endif
 //contextualWMSLegend=0&crs=EPSG:4326&dpiMode=all&featureCount=10&format=image/png&layers=bluemarble&styles=&url=http://disc1.sci.gsfc.nasa.gov/daac-bin/wms_airsnrt?layer%3DAIRS_SO2_A%26
-
 
 
 std::string CApplicationPaths::DefaulLocalFileRasterLayerPath() const
@@ -87,7 +93,7 @@ CApplicationPaths::CApplicationPaths( const QString &exec_path, const QString &a
 
     , mVectorLayerPath( mInternalDataDir + "/maps/ne_10m_coastline/ne_10m_coastline.shp" )
     , mRasterLayerPath( DefaulLocalFileRasterLayerPath() )
-    , mURLRasterLayerPath( smDefaultURLRasterLayerPath )
+    , mWMSRasterLayerPath( smDefaultWMSRasterLayerPath )
 
     //"http://localhost:8080/geoserver/wfs?srsname=EPSG:23030&typename=union&version=1.0.0&request=GetFeature&service=WFS"
     //"url=http://kaart.maaamet.ee/wms/alus&format=image/png&layers=MA-ALUS&styles=&crs=EPSG:AUTO"
@@ -181,7 +187,7 @@ bool CApplicationPaths::operator == ( const CApplicationPaths &o ) const
         // user re-definable
 
         mRasterLayerPath == o.mRasterLayerPath &&
-		mURLRasterLayerPath == o.mRasterLayerPath;
+		mWMSRasterLayerPath == o.mWMSRasterLayerPath;
 	;
 }
 
@@ -210,7 +216,7 @@ std::string CApplicationPaths::ToString() const
     s += ("\nmExecBratSchedulerName == " + mExecBratSchedulerName);
 
     s += ( "\nRasterLayer Path == " + mRasterLayerPath );
-    s += ( "\nmURLRasterLayer Path == " + mURLRasterLayerPath );
+    s += ( "\nmURLRasterLayer Path == " + mWMSRasterLayerPath );
 
 	s += ( "\nRads Service Executable == " + mRadsServicePath );
 

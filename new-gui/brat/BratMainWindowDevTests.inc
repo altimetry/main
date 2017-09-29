@@ -264,7 +264,7 @@ void TestSettingsPaths( const CBratSettings &settings )
 void TestNcDump( CBratMainWindow *w, const CBratSettings &settings )
 {
 	static const std::string ncdump = settings.BratPaths().mExecutableDir + "/ncdump";
-	static QString netcdf_path;
+	static QString netcdf_path = settings.BratPaths().UserDataDirectory().c_str();
 
 	auto path = BrowseFile( w, "Open netcdf file", netcdf_path );
 	if ( !path.isEmpty() )

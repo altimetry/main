@@ -177,6 +177,7 @@ protected:
 
 	void CheckRunMode();
 	void CreateSplash();
+    void DisableQGISAuthentication();
 public:
     CBratApplication( int &argc, char **argv, bool GUIenabled, QString customConfigPath = QString() );
 

@@ -79,7 +79,8 @@ namespace brathl
 		CHECK_TYPE( CExternalFilesZFXY );
 
 		// Generic Netcdf roducts
-		CHECK_TYPE( CExternalFilesNetCDFCFGeneric );
+		CHECK_TYPE( CExternalFilesNetCDFCFGenericStandard );
+		CHECK_TYPE( CExternalFilesNetCDFCFGenericVariant1 );
 
 		// Sentinel 3A
 		CHECK_TYPE( CExternalFilesSentinel3A );

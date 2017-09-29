@@ -54,10 +54,15 @@ class CNcDumpDialog : public QDialog
     /////////////////////////////
 
 	QLineEdit *mNcDumpOptionsLineEdit = nullptr;
-	QPushButton *mRunAgainButton = nullptr;
+	bool mDumpOutputToMsgBox = false;
+	QPushButton *mRunForHelp = nullptr;
 	CTextWidget *mDumpTextWidget = nullptr;
+	QCheckBox *mWrapTextCheckBox = nullptr;
+	QCheckBox *mMonoFont = nullptr;
 	CTextWidget *mHelpText = nullptr;
     QDialogButtonBox *mButtonBox = nullptr;
+
+	QMessageBox *mDumpOutputMsgBox = nullptr;
 
 	const QString mNetcdfFilePath;
 	const std::string mNcDumpath;
@@ -89,7 +94,11 @@ protected:
 
 	COsProcess* ProcessFinished( int exit_code, QProcess::ExitStatus exitStatus );
 
-		/////////////////////////////
+
+	void Run( const std::string &options );
+
+
+	/////////////////////////////
     //		overrides
     /////////////////////////////
 

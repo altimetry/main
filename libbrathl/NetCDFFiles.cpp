@@ -4558,7 +4558,8 @@ std::pair< std::string, std::string > CNetCDFFiles::IdentifyExistingFile( bool c
 		// Generic Netcdf
 		// ---------------------------------------------------------
 
-		file_type.first = GENERIC_NETCDF_TYPE;
+
+		file_type.first = m_mapNetCDFVarDefs.find("lat") == m_mapNetCDFVarDefs.end() ? GENERIC_NETCDF_TYPE_VARIANT_1 : GENERIC_NETCDF_TYPE_STANDARD;
 
 	}
 	catch ( CException &e )

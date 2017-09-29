@@ -263,6 +263,9 @@
                       <distributionFile>
                         <origin>@CMAKE_SOURCE_DIR@/INSTALL</origin>
                       </distributionFile>
+                      <distributionFile>
+                        <origin>@CMAKE_SOURCE_DIR@/README</origin>
+                      </distributionFile>
                       <distributionDirectory>
                             <origin>@CMAKE_BINARY_DIR@/doc/coda</origin>
                         </distributionDirectory>

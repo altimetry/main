@@ -24,20 +24,22 @@
 
 
 
-void CViewMapsLayerDialog::CreateWidgets( bool enable_uri )
+void CViewMapsLayerDialog::CreateWidgets( bool enable_uri, bool enable_wms_uri )
 {
-	mViewsUseVectorLayer = new QRadioButton( "Use vector layer" );
-	mViewsUseRasterLayer = new QRadioButton( "Use application local raster file" );
-	mViewsUseRasterLayerURI = new QRadioButton( "Use application raster layer URI" );
-	mViewsUseRasterLayerURI->setToolTip( "This option is valid only if a layer URI is defined in the application settings" );
+	mViewsUseVectorLayer = new QRadioButton( "Use a vector layer" );
+	mViewsUseRasterLayer = new QRadioButton( "Use application raster layer file or URI" );
+	mViewsUseRasterLayerWMS = new QRadioButton( "Use application raster layer URI (WMS)" );
+	mViewsUseRasterLayer->setToolTip( "This option is valid only if a layer URI is defined in the application settings" );
+	mViewsUseRasterLayerWMS->setToolTip( "This option is valid only if a WMS layer URI is defined in the application settings" );
 
-	mViewsUseRasterLayerURI->setEnabled( enable_uri );		assert__( enable_uri || mLayerBaseType != CMapWidget::ELayerBaseType::eRasterURL );
+	mViewsUseRasterLayer->setEnabled( enable_uri );				assert__( enable_uri || mLayerBaseType != CMapWidget::ELayerBaseType::eRasterLayer );
+	mViewsUseRasterLayerWMS->setEnabled( enable_wms_uri );		assert__( enable_wms_uri || mLayerBaseType != CMapWidget::ELayerBaseType::eRasterLayerWMS );
 
     auto *views_layers_group = CreateGroupBox( ELayoutType::Vertical,
                                         {
                                             mViewsUseVectorLayer,
                                             mViewsUseRasterLayer,
-											mViewsUseRasterLayerURI
+											mViewsUseRasterLayerWMS
                                         },
                                         "", this );
 
@@ -73,7 +75,7 @@ void CViewMapsLayerDialog::Wire()
 
 	mViewsUseVectorLayer->setChecked( mLayerBaseType == CMapWidget::ELayerBaseType::eVectorLayer );
 	mViewsUseRasterLayer->setChecked( mLayerBaseType == CMapWidget::ELayerBaseType::eRasterLayer );
-	mViewsUseRasterLayerURI->setChecked( mLayerBaseType == CMapWidget::ELayerBaseType::eRasterURL );
+	mViewsUseRasterLayerWMS->setChecked( mLayerBaseType == CMapWidget::ELayerBaseType::eRasterLayerWMS );
 
 
     //button box
@@ -88,11 +90,11 @@ void CViewMapsLayerDialog::Wire()
 }
 
 
-CViewMapsLayerDialog::CViewMapsLayerDialog( ELayerBaseType type, bool enable_uri, QWidget *parent )
+CViewMapsLayerDialog::CViewMapsLayerDialog( ELayerBaseType type, bool enable_uri, bool enable_wms_uri, QWidget *parent )
 	: QDialog( parent )
 	, mLayerBaseType( type )
 {
-	CreateWidgets( enable_uri );
+	CreateWidgets( enable_uri, enable_wms_uri );
 	setWindowTitle( "Layer Type" );
 }
 
@@ -116,8 +118,8 @@ bool CViewMapsLayerDialog::ValidateAndAssign()
     if ( mViewsUseRasterLayer->isChecked() )
 		mLayerBaseType = ELayerBaseType::eRasterLayer;
 	else
-    if ( mViewsUseRasterLayerURI->isChecked() )
-		mLayerBaseType = ELayerBaseType::eRasterURL;
+    if ( mViewsUseRasterLayerWMS->isChecked() )
+		mLayerBaseType = ELayerBaseType::eRasterLayerWMS;
 	else
 	{
 		assert__( false );

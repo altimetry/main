@@ -193,7 +193,10 @@ bool CProductList::IsYFX() const
 //----------------------------------------
 bool CProductList::IsGenericNetCdf() const
 {
-  return (CTools::StringToLower(m_productType).compare(CTools::StringToLower(GENERIC_NETCDF_TYPE)) == 0);
+  return 
+	  (CTools::StringToLower(m_productType).compare(CTools::StringToLower(GENERIC_NETCDF_TYPE_STANDARD)) == 0)
+	  ||
+	  (CTools::StringToLower(m_productType).compare(CTools::StringToLower(GENERIC_NETCDF_TYPE_VARIANT_1)) == 0);
 }
 //----------------------------------------
 bool CProductList::IsSameProduct(const std::string& productClass, const std::string& productType)

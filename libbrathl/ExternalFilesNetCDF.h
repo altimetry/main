@@ -290,15 +290,30 @@ protected:
 //-------------------------------------------------------------
 //------------------- CExternalFilesNetCDFCFGeneric class -----
 //-------------------------------------------------------------
-class CExternalFilesNetCDFCFGeneric : public CExternalFilesNetCDFCF
+class CExternalFilesNetCDFCFGenericStandard : public CExternalFilesNetCDFCF
 {
+	DECLARE_BASE_TYPE( CExternalFilesNetCDFCF )
 public:
-  CExternalFilesNetCDFCFGeneric( const std::string &name = "" );
+	CExternalFilesNetCDFCFGenericStandard( const std::string &name = "" );
 
-  virtual ~CExternalFilesNetCDFCFGeneric();
+  virtual ~CExternalFilesNetCDFCFGenericStandard();
 
-  static std::string TypeOf() { return GENERIC_NETCDF_TYPE; }
+  static std::string TypeOf() { return GENERIC_NETCDF_TYPE_STANDARD; }
   virtual std::string GetType() { return TypeOf(); }
+};
+
+
+
+class CExternalFilesNetCDFCFGenericVariant1 : public CExternalFilesNetCDFCF
+{
+	DECLARE_BASE_TYPE( CExternalFilesNetCDFCF )
+public:
+	CExternalFilesNetCDFCFGenericVariant1( const std::string &name = "" );
+
+	virtual ~CExternalFilesNetCDFCFGenericVariant1();
+
+	static std::string TypeOf() { return GENERIC_NETCDF_TYPE_VARIANT_1; }
+	virtual std::string GetType() { return TypeOf(); }
 };
 
 

@@ -103,20 +103,20 @@ std::string CMapWidget::smDefaultRasterLayerPath;
 //static 
 std::string CMapWidget::smRasterLayerPath;
 //static
-std::string CMapWidget::smURLRasterLayerPath;
+std::string CMapWidget::smWMSRasterLayerPath;
 
 
 void CMapWidget::SetQGISDirectories(const std::string &QgisPluginsDir,
 	const std::string &VectorLayerPath,
 	const std::string &DefaultRasterLayerPath,
 	const std::string &RasterLayerPath,
-	const std::string &URLRasterLayerPath)
+	const std::string &WMSRasterLayerPath)
 {
 	smQgisPluginsDir = QgisPluginsDir;
 	smVectorLayerPath = VectorLayerPath;
 	smDefaultRasterLayerPath = DefaultRasterLayerPath;
 	smRasterLayerPath = RasterLayerPath;
-	smURLRasterLayerPath = URLRasterLayerPath;
+	smWMSRasterLayerPath = WMSRasterLayerPath;
 }
 
 
@@ -142,11 +142,11 @@ const std::string& CMapWidget::RasterLayerPath()
 	return smRasterLayerPath;
 }
 //static
-const std::string& CMapWidget::URLRasterLayerPath()
+const std::string& CMapWidget::WMSRasterLayerPath()
 {
 	//no assert, not mandatory
 
-	return smURLRasterLayerPath;
+	return smWMSRasterLayerPath;
 }
 
 
@@ -379,15 +379,14 @@ void CMapWidget::Init()
     }
     else
     {
-        std::string raster_url = mLayerBaseType == eRasterLayer ? smRasterLayerPath : smURLRasterLayerPath;        //"/home/brat/s3-altb/project/dev/support/data/WebMapServices_xml_files/map_GoogleMaps_jpg.xml";
-		const bool using_web_service = mLayerBaseType == eRasterURL || GetLastExtensionFromPath( smRasterLayerPath ) == "xml";
-        std::string provider = using_web_service ? "wms" : "";
-        mMainRasterLayer = AddRasterLayer( t2q( raster_url ), "raster", t2q( provider ) );
-		if ( mMainRasterLayer )
+        QString raster_url = t2q( mLayerBaseType == eRasterLayer ? smRasterLayerPath : smWMSRasterLayerPath );        //"/home/brat/s3-altb/project/dev/support/data/WebMapServices_xml_files/map_GoogleMaps_jpg.xml";
+        QString provider = mLayerBaseType == eRasterLayerWMS ? "wms" : "";
+        mMainRasterLayer = AddRasterLayer( raster_url, "raster", provider );
+        if ( mMainRasterLayer )
 		{
 			LOG_TRACE( "Raster layer created successfully." );
 		}
-		else if ( mLayerBaseType == eRasterLayer || mLayerBaseType == eRasterURL )
+		else if ( mLayerBaseType == eRasterLayer || mLayerBaseType == eRasterLayerWMS )
 		{
 			if ( !IsFile( smDefaultRasterLayerPath ) )
 				throw CException( "Loading layer from URL or file failed. Cannot continue." );
@@ -395,12 +394,10 @@ void CMapWidget::Init()
 			mLayerBaseType = eRasterLayer;
             mMainRasterLayer = AddRasterLayer( t2q( smDefaultRasterLayerPath ), "raster", "" );
 
-			//TODO: comment in when QGIS authentication problem for wms is solved
-			// 
-			//QTimer::singleShot( 2000, []()	//if at start-up, the log window is not ready yet, give it some time
-			//{
-				LOG_WARN( "Raster layer: local file or URL seems invalid, please check the application settings. Loaded default layer instead." );
-			//});
+			QTimer::singleShot( 2000, []()	//if at start-up, the log window is not ready yet, give it some time
+			{
+				LOG_WARN( "Raster layer: unable to use specified local file or URL. Loaded default raster layer." );
+			});
 		}
 		mMainLayer = mMainRasterLayer;
 	}
@@ -415,12 +412,12 @@ void CMapWidget::Init()
 	//setupMapLayers();
 
 	//http://gis.stackexchange.com/questions/37154/can-i-disable-mouse-wheel-zoom-in-qgis
-
-	setWheelAction( WheelZoomToMouseCursor, 1.1 );
+    //
+    setWheelAction( WheelZoomToMouseCursor, 1.1 );
 
     setExtent( mMainLayer->extent() );
     enableAntiAliasing( true );
-    setCanvasColor( ViewsDefaultBackgroundColor() );		//setCanvasColor(QColor(255, 255, 255));
+    setCanvasColor( ViewsDefaultBackgroundColor() );
     freeze( false );
 
 	// projections
@@ -2132,14 +2129,14 @@ QgsVectorLayer* CMapWidget::AddOGRVectorLayer( const QString &layer_path, QgsSym
 //                             false
 //                             );
 //
-QgsRasterLayer* CMapWidget::AddRasterLayer( const QString &layer_path, const QString &base_name, const QString &provider, QgsSymbolV2* symbol )	//symbol = nullptr
+QgsRasterLayer* CMapWidget::AddRasterLayer( const QString &layer_path, const QString &base_name, const QString &provider, QgsSymbolV2 *symbol )	//symbol = nullptr
 {
     Q_UNUSED( symbol );
 
 	std::string name = CreateUniqueLayerName( q2a( base_name ) );
     auto l = provider.isEmpty() ? 
 		new QgsRasterLayer( layer_path, name.c_str() ) : 
-		new QgsRasterLayer( layer_path, name.c_str(), provider );
+        new QgsRasterLayer( layer_path, name.c_str(), provider );
 
 	if ( l->isValid() ) 
 	{

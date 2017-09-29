@@ -2313,7 +2313,11 @@ if(BRAT_BUILD_GUI)
 	INCLUDE_DIRECTORIES(
 		${GDAL_INCLUDE_DIR}
 	)
-	
+
+    INCLUDE_DIRECTORIES(
+        ${QCA_INCLUDE_DIR}
+    )
+
 	SET(QGIS_MIN_VERSION 2.8.3)
 	FIND_PACKAGE(QGIS ${QGIS_MIN_VERSION} REQUIRED)
 	IF (QGIS_FOUND)
@@ -2512,6 +2516,7 @@ if(BRAT_BUILD_GUI)
 		new-gui/Common/SingleApplication/qtlocalpeer.cpp
 		new-gui/Common/SingleApplication/qtlockedfile.cpp
 		new-gui/Common/System/OsProcess.cpp
+		new-gui/Common/GUI/FindReplaceDialog.cpp
 	)
 
 
@@ -2544,6 +2549,7 @@ if(BRAT_BUILD_GUI)
 		new-gui/Common/SingleApplication/qtlocalpeer.h
 		new-gui/Common/SingleApplication/qtlockedfile.h
 		new-gui/Common/System/OsProcess.h
+		new-gui/Common/GUI/FindReplaceDialog.h
 	)
 
     if (ENABLE_QT5)
@@ -2762,6 +2768,7 @@ if(BRAT_BUILD_GUI)
 		new-gui/brat/GUI/DisplayWidgets/PSProcessing.cpp
 		new-gui/brat/GUI/DisplayWidgets/Dialogs/ViewMapsLayerDialog.cpp
 		new-gui/brat/NcDumpDialog.cpp
+		new-gui/Common/GUI/FindReplaceDialog.cpp
 	)
 
 		
@@ -2892,6 +2899,7 @@ if(BRAT_BUILD_GUI)
 		new-gui/brat/GUI/DisplayWidgets/PSProcessing.h
 		new-gui/brat/GUI/DisplayWidgets/Dialogs/ViewMapsLayerDialog.h
 		new-gui/brat/NcDumpDialog.h
+		new-gui/Common/GUI/FindReplaceDialog.h
 	)
 
 

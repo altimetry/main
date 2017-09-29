@@ -172,9 +172,9 @@ public:
 		mBratPaths.SetRasterLayerPath( path );
 	}
 	
-    void SetURLRasterLayerPath( const std::string &path )
+    void SetWMSRasterLayerPath( const std::string &path )
     {
-        mBratPaths.SetURLRasterLayerPath( path );
+        mBratPaths.SetWMSRasterLayerPath( path );
     }
 
 

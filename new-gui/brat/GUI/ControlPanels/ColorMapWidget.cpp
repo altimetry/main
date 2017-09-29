@@ -84,7 +84,7 @@ QPixmap rainbow( int w, int h )
 CColorMapLabel::CColorMapLabel( QWidget *parent )	//parent = nullptr 
 	: base_t( parent )
 {
-	setMaximumHeight( 25 );
+	setMaximumHeight( tool_icon_size );
 	setSizePolicy( QSizePolicy::Minimum, QSizePolicy::Fixed );
 }
 

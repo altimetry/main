@@ -30,9 +30,11 @@
 
 //(*) black: if it is decided to change the color, match the MoveTo default color argument
 //
-CTextWidget::CTextWidget( QWidget *parent ) :		//QWidget *parent = nullptr
-	base_t( parent ), 
-	mSizeHint( 60 * fontMetrics().width('x'), 10 * fontMetrics().lineSpacing() )
+CTextWidget::CTextWidget( QWidget *parent )	//parent = nullptr
+
+	: base_t( parent ) 
+	, find_base_t( false, false, this )
+	, mSizeHint( 60 * fontMetrics().width('x'), 10 * fontMetrics().lineSpacing() )
 {
 	auto sheet = styleSheet();
 	setStyleSheet( "selection-color: white; selection-background-color: black; " + sheet );								//(*) //this is the only way of seeing the selection without focus (important in find dialog, for instance)
@@ -70,7 +72,7 @@ void CTextWidget::SetReadOnlyEditor( bool ro )
 void CTextWidget::SetHelpProperties( const QString &text, int empty_lines, int spacing, Qt::Alignment alignment, bool wrap )	//alignment = Qt::AlignCenter , bool wrap = false
 {
 	SetReadOnlyEditor( true );
-    setWrapText( wrap );
+    SetWrapText( wrap );
     setText( text );
     MoveToTop();
     MoveToEnd( true );
@@ -89,6 +91,44 @@ void CTextWidget::SetHelpProperties( const QString &text, int empty_lines, int s
 }
 
 
+//virtual 
+void CTextWidget::SetFontBold( bool bold )
+{
+	QFont f = font();
+	f.setBold( bold );
+	setFont( f );
+}
+
+
+//virtual 
+void CTextWidget::SetMonoFont( bool mono )
+{
+	// nested functions
+
+	auto make_font = []()
+	{
+		QFont font;
+		font.setFamily( font.defaultFamily() );
+		return font;
+	};
+
+
+	auto make_mono_font = []()
+	{
+#ifdef Q_WS_MAC
+		QFont mono_font( "Courier", 12 );
+#else
+		QFont mono_font( "Monospace", 8 );
+#endif
+		mono_font.setStyleHint( QFont::TypeWriter );
+		return mono_font;
+	};
+
+
+	// function body
+
+	setFont( mono ? make_mono_font() : make_font() );
+}
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -204,7 +244,7 @@ void CTextWidget::getPosition( int &line, int &col ) const
 {
     QTextDocument *doc = document();
     QTextBlock block = doc->begin();
-    const int cursorOffset = getPosition();
+    const int cursorOffset = std::max( int(0), getPosition() );		//getPosition can return -1
     int off = 0;
     int len = block.length();
     int otherGuyLine = 1;
@@ -331,7 +371,12 @@ QSize CTextWidget::sizeHint() const
 //////////////////////////////////////////////////////////////////////////
 
 
-void CTextWidget::setWrapText( bool wrap )
+bool CTextWidget::HasWrapText() const
+{
+	return lineWrapMode() == WidgetWidth || wordWrapMode() == QTextOption::WrapAtWordBoundaryOrAnywhere;
+}
+
+void CTextWidget::SetWrapText( bool wrap )
 {
     if ( wrap ) 
 	{

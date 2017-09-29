@@ -112,7 +112,7 @@ void  CSaveAsFormula::CreateWidgets()
                             }, this, 6, 6, 6, 6, 6 );                       Q_UNUSED( main_l );
 
 
-    setWindowTitle( "Save Formula As");
+    setWindowTitle( "Save As Formula");
 
     //	Wrap up dimensions
 

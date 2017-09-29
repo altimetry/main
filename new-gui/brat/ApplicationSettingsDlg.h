@@ -67,8 +67,8 @@ class CApplicationSettingsDlg : public QDialog
 	QRadioButton *mUseRasterLayer = nullptr;
 	QLineEdit *mRasterLayerLineEdit = nullptr;
 	QPushButton *mRasterLayerBrowseButton = nullptr;
-	QRadioButton *mUseRasterLayerURI = nullptr;
-    QLineEdit *mLayerURLLineEdit = nullptr;
+	QRadioButton *mUseRasterLayerWMS = nullptr;
+    QLineEdit *mLayerWMSLineEdit = nullptr;
 	QToolButton *mMapViewsDefaultLayerDialogPushButton = nullptr;
 	ELayerBaseType mViewMapsLayerBaseType;		//initialized in constructor
 	QCheckBox *mVectorSimplifyMethodCheck = nullptr;

@@ -275,6 +275,50 @@ inline QString MakeMainWindowTitle( const QString &title = QString() )	//returns
 
 
 
+
+///////////////////////////////////////////////////////////////////
+//                  Dialogs with Window Properties
+///////////////////////////////////////////////////////////////////
+
+
+inline void SetWindowProperties( QDialog *w )
+{
+	static const bool is_gnome = IsGnomeDesktop();
+
+	Qt::WindowFlags f = w->windowFlags();
+
+#if defined (_WIN32) || defined (WIN32)
+
+	// Show maximize button in windows
+	// If this is set in linux, it will not center the dialog over parent
+	// 
+	f = ( f & ~Qt::Dialog ) | Qt::Window | Qt::WindowMaximizeButtonHint | Qt::WindowMinimizeButtonHint;
+
+#elif defined (Q_OS_LINUX)
+
+	// Show buttons in gnome
+	// In Debian 8 the user must also call gnome-tweak-tool from the command line and then:
+	//  - select Windows | Titlebar Buttons
+	//  - click ON for maximize and minimize buttons
+	//
+	if ( is_gnome )
+	{
+		f = ( w->windowFlags() & ~Qt::Dialog ) | Qt::Window | Qt::WindowCloseButtonHint | Qt::WindowMaximizeButtonHint | Qt::WindowMinimizeButtonHint;
+	}
+
+#elif defined (Q_OS_MAC)
+	// 
+	// Qt::WindowStaysOnTopHint also works (too well: stays on top of other apps also). Without this, we have the mac MDI mess...
+	// 
+	f = ( w->windowFlags() & ~Qt::Dialog ) | Qt::Tool;
+#endif
+
+	w->setWindowFlags( f );
+}
+
+
+
+
 ///////////////////////////////////////////////////////////////////
 //                  Simple Message Boxes
 ///////////////////////////////////////////////////////////////////
@@ -328,7 +372,7 @@ inline bool SimpleSystemOpenFile( const std::string &path )
 
 // DO NOT DELETE: serve as reference for comparison with the implementation 
 //	style below	(better, see comment there)
-//	However, auto-close can only be implemented with this style
+//	However, auto-close and non-modal can only be implemented with this style
 //
 inline void SimpleMsgBox2( const QString &msg )
 {
@@ -342,6 +386,23 @@ template< class STRING >
 inline void SimpleMsgBox2( const STRING &msg )
 {
 	SimpleMsgBox2( t2q( msg ) );
+}
+
+
+// If auto_delete is:
+// - true, no not delete the returned pointer
+// - false, keep the returned pointer and delete it when the dialog is no longer needed
+// 
+inline QMessageBox* SimpleMsgBox_NotModal( const QString &msg, bool auto_delete = true )
+{
+	QMessageBox *msgBox = new QMessageBox( ApplicationWindow() );
+	msgBox->setWindowModality( Qt::WindowModality::NonModal );
+	if ( auto_delete )
+		msgBox->setAttribute( Qt::WA_DeleteOnClose );
+	msgBox->setIcon( QMessageBox::Information );
+	msgBox->setText( msg );
+	msgBox->show();
+	return msgBox;
 }
 
 
@@ -1204,7 +1265,7 @@ inline QActionGroup* CreateActionGroup( QObject *parent, std::initializer_list<Q
 
 inline QToolButton* CreateMenuButton( const std::string &name, const std::string &pix_path, const std::string &tip, const QList<QAction*> &actions )
 {
-	QMenu *menu = new QMenu();
+	QMenu *menu = new QMenu( name.c_str() );
 	for ( auto a : actions )
 		menu->addAction( a );
 

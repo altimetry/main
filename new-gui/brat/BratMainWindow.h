@@ -194,6 +194,10 @@ private:
     //
     void StartInInstantPlotSaveMode( const std::string &display_name, const std::string &path, bool is_3d, CDisplayData::EImageExportType type);
 
+	// Used also after applications settings changed
+	//
+	void SetQGISDirectories();
+
 public:
     explicit CBratMainWindow( CBratApplication &a );
 	

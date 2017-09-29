@@ -80,6 +80,7 @@ protected:
 
 	QTableWidget *mProcessesList = nullptr;
 	QPushButton *mKillButton = nullptr;
+	bool mUserKillRequestPending = false;
 
 	std::vector< COsProcess* > mProcesses;
 

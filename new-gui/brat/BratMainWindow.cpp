@@ -485,93 +485,6 @@ static const QUrl counter_url( "http://www.altimetry.info/test-page/" );
 RemoteCounter *RemoteCounter::smRemoteCounter = nullptr;
 
 
-#if defined(USE_WEB_ENGINE)
-
-//https://user:password@youtu.be/-Lt0Zka0nII														//not working with any url
-//static const QUrl counter_management_url( "https://www.youtube.com/my_videos?o=U" );
-//static const QUrl counter_original_url( "https://youtu.be/-Lt0Zka0nII" );							//original: not working as is
-//static const QUrl counter_url( "https://www.youtube.com/watch?v=-Lt0Zka0nII&feature=youtu.be" );	//works with unlisted
-
-
-
-RemoteCounter::RemoteCounter() 
-	: base_t( nullptr )
-{
-	assert__( smRemoteCounter == nullptr );
-
-	setAttribute( Qt::WA_DeleteOnClose );
-	connect( this, &QWebEngineView::loadFinished, [this]( bool success ) {
-		if ( !success )
-			LOG_WARN( "RemoteCounter failure" );
-		QTimer::singleShot( 10000, this, &QWidget::close );
-	} );
-	setVisible( false );
-	smRemoteCounter = this;
-}
-//virtual 
-RemoteCounter::~RemoteCounter()
-{
-	assert__( smRemoteCounter != nullptr );
-	LOG_INFO( "Deleted remote counter." );
-	smRemoteCounter = nullptr;
-}
-
-
-RemoteCounterPage::RemoteCounterPage( const std::string &user, const std::string &pass, QWebEngineProfile *profile, QObject *parent )
-	: QWebEnginePage(profile, parent)
-	, mUser( user )
-	, mPass( pass )
-{
-	connect(this, &QWebEnginePage::authenticationRequired, this, &RemoteCounterPage::handleAuthenticationRequired);
-	connect(this, &QWebEnginePage::proxyAuthenticationRequired, this, &RemoteCounterPage::handleProxyAuthenticationRequired);
-}
-//virtual 
-RemoteCounterPage::~RemoteCounterPage()
-{
-	LOG_INFO( "Deleted remote counter page." );
-}
-
-void RemoteCounterPage::FillAuth( QAuthenticator *auth )
-{
-	auth->setUser( mUser.c_str() );
-	auth->setPassword( mPass.c_str() );
-}
-
-bool RemoteCounterPage::certificateError( const QWebEngineCertificateError &error )
-{
-	QWidget *mainWindow = view()->window();
-	QMessageBox::critical( mainWindow, tr("Certificate Error"), error.errorDescription() );
-	return false;
-}
-
-void RemoteCounterPage::handleAuthenticationRequired( const QUrl &, QAuthenticator *auth )
-{
-	FillAuth( auth );
-}
-
-void RemoteCounterPage::handleProxyAuthenticationRequired( const QUrl &, QAuthenticator *auth, const QString & )
-{
-	FillAuth( auth );
-}
-
-void RemoteCounter::RemoteCount()
-{
-	RemoteCounterPage *webPage = new RemoteCounterPage( "brat.helpdesk@esa.int", "Deimos2015", QWebEngineProfile::defaultProfile(), this );
-	setPage( webPage );
-	page()->load( counter_url );
-}
-
-void RemoteCount()
-{
-	RemoteCounter *webview = new RemoteCounter;
-	webview->RemoteCount();
-}
-
-
-#else
-
-
-
 RemoteCounter::RemoteCounter()
 {
     assert__( !smRemoteCounter );
@@ -651,8 +564,6 @@ void RemoteCount()
 }
 
 
-#endif
-
 
 
 
@@ -689,13 +600,7 @@ CBratMainWindow::CBratMainWindow( CBratApplication &app )
 
 	connect( this, SIGNAL( SettingsUpdated() ), &mApp, SLOT( UpdateSettings() ) );
 
-	CMapWidget::SetQGISDirectories(
-		mSettings.BratPaths().mQgisPluginsDir,
-		mSettings.BratPaths().mVectorLayerPath,
-		mSettings.BratPaths().DefaulLocalFileRasterLayerPath(),
-		mSettings.BratPaths().RasterLayerPath(),
-        mSettings.BratPaths().URLRasterLayerPath() );
-
+	SetQGISDirectories();
 	CGlobeWidget::SetOSGDirectories( mSettings.BratPaths().mGlobeDir );
 
 	CWorkspaceSettings::InitializeCommonData( mSettings.BratPaths(), mApp.RadsServiceSettings() );
@@ -1597,11 +1502,26 @@ void CBratMainWindow::on_action_Launch_Scheduler_triggered()
 }
 
 
+
+void CBratMainWindow::SetQGISDirectories()
+{
+	CMapWidget::SetQGISDirectories(
+		mSettings.BratPaths().mQgisPluginsDir,
+		mSettings.BratPaths().mVectorLayerPath,
+		mSettings.BratPaths().DefaulLocalFileRasterLayerPath(),
+		mSettings.BratPaths().RasterLayerPath(),
+		mSettings.BratPaths().WMSRasterLayerPath() );
+}
+
+
 void CBratMainWindow::on_action_Options_triggered()
 {
     CApplicationSettingsDlg dlg( mApp, this );
 	if ( dlg.exec() == QDialog::Accepted )
+	{
+		SetQGISDirectories();
 		emit SettingsUpdated();
+	}
 }
 
 

@@ -109,8 +109,7 @@ void CExternalFilesNetCDF::GetDimensions(const std::string& varName, CStringArra
 }
 
 //----------------------------------------
-void CExternalFilesNetCDF::CheckDimensions
-		()
+void CExternalFilesNetCDF::CheckDimensions()
 {
   CStringArray		dimNamesArray;
 
@@ -1432,21 +1431,37 @@ CExternalFilesZFXY::CExternalFilesZFXY
 CExternalFilesZFXY::~CExternalFilesZFXY()
 {
 }
+
 //-------------------------------------------------------------
-//------------------- CExternalFilesNetCDFCFGeneric class --------------------
+//-------- CExternalFilesNetCDFCFGeneric Standard class -------
 //-------------------------------------------------------------
 
-CExternalFilesNetCDFCFGeneric::CExternalFilesNetCDFCFGeneric
-		(const std::string		&name /*= ""*/)
-	: CExternalFilesNetCDFCF(name)
+CExternalFilesNetCDFCFGenericStandard::CExternalFilesNetCDFCFGenericStandard( const std::string &name )	//name = ""
+	: base_t(name)
 {
 }
 
 //----------------------------------------
-CExternalFilesNetCDFCFGeneric::~CExternalFilesNetCDFCFGeneric()
+CExternalFilesNetCDFCFGenericStandard::~CExternalFilesNetCDFCFGenericStandard()
 {
 }
 
+
+
+
+//-------------------------------------------------------------
+//-------- CExternalFilesNetCDFCFGeneric Variant 1class -------
+//-------------------------------------------------------------
+
+CExternalFilesNetCDFCFGenericVariant1::CExternalFilesNetCDFCFGenericVariant1( const std::string &name )	//name = ""
+	: base_t(name)
+{
+}
+
+//----------------------------------------
+CExternalFilesNetCDFCFGenericVariant1::~CExternalFilesNetCDFCFGenericVariant1()
+{
 }
 
 
+}

@@ -27,7 +27,39 @@
 
 void CNcDumpDialog::Setup()
 {
-	connect( mRunAgainButton, &QPushButton::clicked, this, &CNcDumpDialog::HandleRunAgainButtonClicked );
+	QShortcut *find_shortcut = new QShortcut(QKeySequence("Ctrl+F"), this);
+	QShortcut *find_fnext_shortcut = new QShortcut(QKeySequence("F3"), this);
+	QShortcut *find_bnext_shortcut = new QShortcut(QKeySequence("Shift+F3"), this);
+
+	connect( find_shortcut, &QShortcut::activated, [this]()	{	mDumpTextWidget->FindDialog();	} );
+	connect( find_fnext_shortcut, &QShortcut::activated, [this]() {	mDumpTextWidget->FindNext();} );
+	connect( find_bnext_shortcut, &QShortcut::activated, [this]() {	mDumpTextWidget->FindPrev();} );
+
+	connect( mRunForHelp, &QPushButton::clicked, [this]() 
+	{ 
+		if ( mDumpOutputMsgBox )
+			mDumpOutputMsgBox->show();
+		else {
+			mDumpOutputToMsgBox = true;
+			Run( empty_string() );
+		}
+	} );
+
+	mWrapTextCheckBox->setChecked( mDumpTextWidget->HasWrapText() );
+	connect( mWrapTextCheckBox, &QCheckBox::toggled, [this](bool toggled)
+	{ 
+		mDumpTextWidget->SetWrapText( toggled );
+	} );
+
+	mMonoFont->setChecked( false );
+	connect( mMonoFont, &QCheckBox::toggled, [this](bool toggled)
+	{ 
+		mDumpTextWidget->SetMonoFont( toggled );
+	} );
+
+
+	auto *b = mButtonBox->button( QDialogButtonBox::Apply );
+	connect( b, &QPushButton::clicked, this, &CNcDumpDialog::HandleRunAgainButtonClicked );
 
 	connect( mButtonBox, &QDialogButtonBox::accepted, this, &CNcDumpDialog::accept );
     connect( mButtonBox, &QDialogButtonBox::rejected, this, &CNcDumpDialog::reject );
@@ -36,17 +68,25 @@ void CNcDumpDialog::Setup()
 }
 
 
+
+static const QString gstatic_help_text = "\nPress Ctrl+F to find, F3 to find next and Shift+F3 to find previous";
+
+
 void CNcDumpDialog::CreateWidgets()
 {
+	mRunForHelp = new QPushButton( "Options..." );
+	mWrapTextCheckBox = new QCheckBox( "Wrap Text" );
+	mMonoFont = new QCheckBox( "Mono Font" );
+
 	mDumpTextWidget = new CTextWidget;
 	mNcDumpOptionsLineEdit = new QLineEdit;
-	mRunAgainButton = new QPushButton( "Run Again" );
 
-	auto run_l = LayoutWidgets( Qt::Horizontal, { mNcDumpOptionsLineEdit, mRunAgainButton }, nullptr, 2, 2, 2, 2, 2 );
+	auto run_l = LayoutWidgets( Qt::Horizontal, { mNcDumpOptionsLineEdit, mRunForHelp }, nullptr, 2, 2, 2, 2, 2 );
 	auto *widgets_l = CreateGroupBox( ELayoutType::Vertical,
 	{
 		new QLabel( mNetcdfFilePath ), 
 		mDumpTextWidget, 
+		LayoutWidgets( Qt::Horizontal, { mWrapTextCheckBox, mMonoFont }, nullptr, 2, 2, 2, 2, 2 ),
 		LayoutWidgets( Qt::Vertical, { new QLabel("Options"), run_l }, nullptr, 2, 2, 2, 2, 2 )
 	},
 	"", nullptr, 2, 2, 2, 2, 2 );
@@ -55,7 +95,7 @@ void CNcDumpDialog::CreateWidgets()
     //... Help
 
     mHelpText = new CTextWidget;
-	mHelpText->SetHelpProperties( "ncdump of " + mNetcdfFilePath, 1, 6, Qt::AlignCenter, true );
+	mHelpText->SetHelpProperties( "ncdump of " + mNetcdfFilePath + gstatic_help_text, 1, 6, Qt::AlignCenter, true );
 	mHelpText->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
 	mHelpText->adjustSize();
 	auto help_group = CreateGroupBox( ELayoutType::Vertical, { mHelpText }, "", nullptr, 6, 6, 6, 6, 6 );
@@ -65,16 +105,12 @@ void CNcDumpDialog::CreateWidgets()
     mButtonBox = new QDialogButtonBox( this );
     mButtonBox->setObjectName( QString::fromUtf8( "mButtonBox" ) );
     mButtonBox->setOrientation( Qt::Horizontal );
-    mButtonBox->setStandardButtons( QDialogButtonBox::Close );
-	//if ( mModal )
-	//{
-	//	mButtonBox->setStandardButtons( QDialogButtonBox::Ok | QDialogButtonBox::Cancel );
-	//	mButtonBox->button( QDialogButtonBox::Ok )->setDefault( true );
-	//}
-	//else
-	//{
-	//	mButtonBox->setStandardButtons( QDialogButtonBox::Close | QDialogButtonBox::Apply );
-	//}
+	mButtonBox->setStandardButtons( QDialogButtonBox::Close | QDialogButtonBox::Apply );
+	auto *b = mButtonBox->button( QDialogButtonBox::Apply );
+	b->setAutoDefault( true );
+	b->setDefault( true );
+	b->setText( "Run Again" );
+
 
 
     //... All
@@ -110,7 +146,10 @@ CNcDumpDialog::CNcDumpDialog( bool modal, const std::string &ncdump_path, const 
 	, mNcDumpath( ncdump_path )
 {
 	if ( !mModal )
+	{
 		setAttribute( Qt::WA_DeleteOnClose );
+		SetWindowProperties( this );
+	}
 
 	CreateWidgets();
 }
@@ -119,6 +158,7 @@ CNcDumpDialog::CNcDumpDialog( bool modal, const std::string &ncdump_path, const 
 CNcDumpDialog::~CNcDumpDialog()
 {
 	delete mProcess;
+	delete mDumpOutputMsgBox;
 }
 
 
@@ -127,11 +167,11 @@ void CNcDumpDialog::SetHelpText()
 	assert__( mProcess );
 
 	QString cmd_line = t2q( mProcess->CmdLine() );
-	mHelpText->SetHelpProperties( "ncdump command line:\n" + cmd_line, 1, 6, Qt::AlignCenter, true );
+	mHelpText->SetHelpProperties( "ncdump command line:\n" + cmd_line + gstatic_help_text, 1, 6, Qt::AlignCenter, true );
 }
 
 
-void CNcDumpDialog::HandleRunAgainButtonClicked()
+void CNcDumpDialog::Run( const std::string &options )
 {
 	if ( mProcess && mProcess->state() != COsProcess::NotRunning )
 	{
@@ -139,14 +179,11 @@ void CNcDumpDialog::HandleRunAgainButtonClicked()
 		return;
 	}
 
-	auto options = q2a( mNcDumpOptionsLineEdit->text() );
-	if ( !options.empty() )
-		options += " ";
-
-	mDumpTextWidget->clear();
+	if ( !mDumpOutputToMsgBox )
+		mDumpTextWidget->clear();
 
 	delete mProcess;
-	mProcess = new COsProcess( mSync, "ncdump", this, "\"" + mNcDumpath + "\" " + options + q2a( mNetcdfFilePath ) );
+	mProcess = new COsProcess( mSync, "ncdump", this, "\"" + mNcDumpath + "\" " + options );
 
 	connect( mProcess, &COsProcess::readyReadStandardOutput,	this, &CNcDumpDialog::HandleUpdateOutput );
 	connect( mProcess, &COsProcess::readyReadStandardError,		this, &CNcDumpDialog::HandleUpdateOutput );
@@ -156,7 +193,7 @@ void CNcDumpDialog::HandleRunAgainButtonClicked()
 		:
 		&CNcDumpDialog::HandleAsyncProcessFinished
 	);
-	connect( mProcess, (void(COsProcess::*)( QProcess::ProcessError))&COsProcess::error,		this, &CNcDumpDialog::HandleProcessError );
+	connect( mProcess, (void(COsProcess::*)( QProcess::ProcessError))&COsProcess::error, this, &CNcDumpDialog::HandleProcessError );
 
 	SetHelpText();
 
@@ -165,10 +202,22 @@ void CNcDumpDialog::HandleRunAgainButtonClicked()
 }
 
 
+void CNcDumpDialog::HandleRunAgainButtonClicked()
+{
+	auto options = q2a( mNcDumpOptionsLineEdit->text() );
+	if ( !options.empty() )
+		options += " ";
+
+	mDumpOutputToMsgBox = false;
+
+	Run( options + q2a( mNetcdfFilePath ) );
+}
+
+
 //virtual
 void CNcDumpDialog::accept()
 {
-	base_t::accept();
+	//base_t::accept();
 }
 
 
@@ -182,13 +231,23 @@ void CNcDumpDialog::HandleUpdateOutput()
 {
 	COsProcess *process = qobject_cast<COsProcess*>( sender() );			assert__( process && mProcess == process );
 
-	QString text = process->readAllStandardError();
-	if ( !text.isEmpty() )
-		LOG_WARN( q2a( text ) );
+	QString text, error_text = process->readAllStandardError();
+	if ( !error_text.isEmpty() && !mDumpOutputToMsgBox )
+		LOG_WARN( q2a( error_text ) );
 
 	text = process->readAllStandardOutput();
+	text += ( "\n" + error_text );
 	if ( !text.isEmpty() )
-		mDumpTextWidget->append( text );
+		if ( mDumpOutputToMsgBox )
+		{
+			assert__( !mDumpOutputMsgBox );
+
+			mDumpOutputMsgBox = SimpleMsgBox_NotModal( text, false );
+		}
+		else
+		{
+			mDumpTextWidget->append( text );
+		}
 }
 
 

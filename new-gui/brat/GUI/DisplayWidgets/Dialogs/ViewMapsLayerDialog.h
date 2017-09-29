@@ -57,7 +57,7 @@ class CViewMapsLayerDialog : public QDialog
 
 	QRadioButton *mViewsUseVectorLayer = nullptr;
 	QRadioButton *mViewsUseRasterLayer = nullptr;
-    QRadioButton *mViewsUseRasterLayerURI = nullptr;
+    QRadioButton *mViewsUseRasterLayerWMS = nullptr;
 
     QDialogButtonBox *mButtonBox = nullptr;
 
@@ -68,10 +68,10 @@ class CViewMapsLayerDialog : public QDialog
 	//construction / destruction
 	// 
 
-	void CreateWidgets( bool enable_uri );
+	void CreateWidgets( bool enable_uri, bool enable_wms_uri );
 	void Wire();
 public:
-    explicit CViewMapsLayerDialog( ELayerBaseType type, bool enable_uri, QWidget *parent );
+    explicit CViewMapsLayerDialog( ELayerBaseType type, bool enable_uri, bool enable_wms_uri, QWidget *parent );
 	virtual ~CViewMapsLayerDialog();
 
 

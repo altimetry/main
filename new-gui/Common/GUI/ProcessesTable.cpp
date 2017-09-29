@@ -239,6 +239,7 @@ void CProcessesTable::HandleKill()
 	int index = mProcessesList->currentRow();					assert__( index >= 0 );	
 	COsProcess *item_process = GetItemProcessData( index );		assert__( item_process );
 	item_process->Kill();	//triggers error && finished
+	mUserKillRequestPending = true;
 }
 
 
@@ -317,6 +318,11 @@ bool CProcessesTable::Add( COsProcess *process, bool with_gui, bool sync, bool a
 
 		LogInfo( process, msg );
 	}
+
+	//In case any abnormal termination is not captured by the finish
+	// slots, which are also responsible for clearing the flag
+	// 
+	mUserKillRequestPending = false;
 
 	///////////////////
 	process->Execute();
@@ -408,8 +414,11 @@ COsProcess* CProcessesTable::ProcessFinished( int exit_code, QProcess::ExitStatu
 
     if (exitStatus == QProcess::CrashExit) 
 	{
-        LogWarn( process, q2a( FormatFinishedMessage( "program crash") ) );
-    } 
+		if ( mUserKillRequestPending )
+			LogInfo( process, q2a( FormatFinishedMessage( "termination requested by the user" ) ) );
+		else
+			LogWarn( process, q2a( FormatFinishedMessage( "program crash") ) );
+	} 
 	else if ( exit_code != 0 )	//this is ExitStatus::NormalExit, although error code != 0
 	{
         LogWarn( process, q2a( FormatFinishedMessage( ( "exit code " + n2s<std::string>( exit_code ) ).c_str() ) ) );
@@ -418,6 +427,8 @@ COsProcess* CProcessesTable::ProcessFinished( int exit_code, QProcess::ExitStatu
 	{
         LogInfo( process, q2a( FormatFinishedMessage( "success" ) ) );
     }
+
+	mUserKillRequestPending = false;
 
 	return process;
 }
@@ -445,8 +456,14 @@ void CProcessesTable::HandleSyncProcessFinished( int exit_code, QProcess::ExitSt
 }
 
 
+//slot
 void CProcessesTable::HandleProcessError( QProcess::ProcessError error )
 {
+	// Not an error if requested by the user
+	// 
+	if ( mUserKillRequestPending && error == QProcess::Crashed )
+		return;
+
 	COsProcess *process = qobject_cast<COsProcess*>( sender() );			assert__( process );
 
 	LogWarn( process, q2a( FormatErrorMessage( COsProcess::ProcessErrorMessage( error ) ) ) );

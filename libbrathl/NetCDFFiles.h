@@ -102,7 +102,8 @@ namespace brathl
 #define VALID_MIN_ATTR		"valid_min"
 #define VALID_MAX_ATTR		"valid_max"
 
-const std::string GENERIC_NETCDF_TYPE  = "Generic NetCdf";
+const std::string GENERIC_NETCDF_TYPE_STANDARD = "Generic NetCdf Standard";
+const std::string GENERIC_NETCDF_TYPE_VARIANT_1 = "Generic NetCdf Variant 1";
 const std::string YFX_NETCDF_TYPE  = "Y=F(X)";
 const std::string ZFXY_NETCDF_TYPE  = "Z=F(X,Y)";
 

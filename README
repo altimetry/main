@@ -43,14 +43,45 @@ as well, can be solved by running
 
 gsettings set org.gnome.desktop.wm.preferences button-layout appmenu:minimize,maximize,close
 
-and/or by calling gnome-tweak-tool from the command line and then 
+and by calling gnome-tweak-tool from the command line and then 
 selecting "Windows", "Titlebar Buttons", and clicking "ON" for the 
 maximize and minimize buttons.
+
+
+- Spurious error messages about map projections
+
+The first time a view is displayed in a BRAT GUI session, it is 
+possible that messages like
+
+"ERROR 6: EPSG PCS/GCS code 54003 not found in EPSG support files."
+"Is this a valid EPSG coordinate system?”
+
+are printed to the console. These messages are not issued by BRAT
+itself and the reasons why they originate have no consequences on
+BRAT functionality. They can be safely disregarded.
+
+
 
 
 
 Version History
 == == == == == == ==
+
+4.2.0 - October 2017
+--------------------
+Features added in this version:
+
+- Upgrade of supported Linux version to Debian 8.x
+- Upgrade of supported Python version to 3.4
+- Area coordinates can now be manually inserted, besides using the mouse
+- View maps base layers can now be changed at runtime
+- New application settings: GDAL and WMS raster layer providers
+- Support for new variant of Generic Netcdf aliases
+- Improved map zoom
+
+Corrections of all bugs and implementation of feature improvements 
+reported in version 4.1.0
+
 
 4.1.0 - April 2017
 --------------------

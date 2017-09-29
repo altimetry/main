@@ -48,7 +48,7 @@ class CApplicationPaths : public CApplicationStaticPaths
 
 public:
 
-	static const std::string smDefaultURLRasterLayerPath;
+	static const std::string smDefaultWMSRasterLayerPath;
 
 
     static std::string DefaultGlobeSubDir()
@@ -102,7 +102,7 @@ protected:
 
 protected:
 	std::string mRasterLayerPath;
-    std::string mURLRasterLayerPath;
+    std::string mWMSRasterLayerPath;
 
 
     ////////////////////////////////////////////
@@ -152,9 +152,9 @@ public:
 
 	void SetRasterLayerPath( const std::string &path ) { mRasterLayerPath = path; }
 
-	const std::string& URLRasterLayerPath() const { return mURLRasterLayerPath; }
+	const std::string& WMSRasterLayerPath() const { return mWMSRasterLayerPath; }
 
-    void SetURLRasterLayerPath( const std::string &path ) { mURLRasterLayerPath = path; }
+    void SetWMSRasterLayerPath( const std::string &path ) { mWMSRasterLayerPath = path; }
 
 
     const std::string& FullPythonExecutablePath() const

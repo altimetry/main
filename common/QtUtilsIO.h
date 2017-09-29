@@ -598,13 +598,47 @@ inline const std::string& SystemUserSettingsPath()
 
 inline bool IsLinuxDesktop( const std::string &desktop )
 {
-//Tested only in debian 7
-//DESKTOP_SESSION=kde-plasma
-//DESKTOP_SESSION=gnome
+//debian 7
+// 
+//	kde
+//	DESKTOP_SESSION=kde-plasma
+//	XDG_CURRENT_DESKTOP=
+// 
+//	gnome
+//	DESKTOP_SESSION=gnome
+//	XDG_CURRENT_DESKTOP=
 
+// CentOS 7
+// 
+// 	kde
+//	DESKTOP_SESSION=1-kde-plasma-standard
+//	XDG_CURRENT_DESKTOP=KDE
+//	
+
+//debian 8
+// 
+//	gdm3
+//	DESKTOP_SESSION=default
+//	XDG_CURRENT_DESKTOP=GNOME
+// 
+//	kdm
+//	DESKTOP_SESSION=gnome
+//	XDG_CURRENT_DESKTOP=GNOME
+// 
+//	kde
+//	DESKTOP_SESSION=kde-plasma
+//	XDG_CURRENT_DESKTOP=KDE
+// 
 #if defined (Q_OS_LINUX)
-    const char *DESKTOP_SESSION = getenv( "DESKTOP_SESSION" );
-    return DESKTOP_SESSION && ( std::string( DESKTOP_SESSION ).find( desktop ) != std::string::npos );
+
+	const char *XDG_CURRENT_DESKTOP = getenv( "XDG_CURRENT_DESKTOP" );
+	if ( XDG_CURRENT_DESKTOP )
+		return i_find( std::string( XDG_CURRENT_DESKTOP ), desktop ) != std::string::npos;
+
+	const char *DESKTOP_SESSION = getenv( "DESKTOP_SESSION" );
+	return 
+		DESKTOP_SESSION 
+		&& ( std::string( DESKTOP_SESSION ).find( desktop ) != std::string::npos );
 #else
 
     UNUSED( desktop )

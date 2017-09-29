@@ -400,12 +400,13 @@ bool CMapEditor::ResetViews( bool reset_2d, bool reset_3d, bool enable_2d, bool 
 void CMapEditor::HandleViewsLayerDialog()
 {
 	std::string url = mModel->BratPaths().RasterLayerPath();
+	std::string wms_url = mModel->BratPaths().WMSRasterLayerPath();
 
-	CViewMapsLayerDialog dlg( mLayerBaseType, !url.empty(), this );
+	CViewMapsLayerDialog dlg( mLayerBaseType, !url.empty(), !wms_url.empty(), this );
 	if ( dlg.exec() == QDialog::Accepted )
 	{
-		auto type = dlg.LayerBaseType();		assert__( type != CMapWidget::ELayerBaseType::eRasterURL || !url.empty() );
-
+		auto type = dlg.LayerBaseType();		assert__( type != CMapWidget::ELayerBaseType::eRasterLayer || !url.empty() );
+												assert__( type != CMapWidget::ELayerBaseType::eRasterLayerWMS || !wms_url.empty() );
 		if ( mLayerBaseType != type )
 		{
             WaitCursor wait;

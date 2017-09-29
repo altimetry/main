@@ -2164,103 +2164,98 @@ void CBratProcessZFXY::ResizeDataValues(CDoubleArrayOb* dataValues, uint32_t nbV
   dataValues->resize(size, base_t::MergeIdentifyUnsetData);
 }
 //----------------------------------------
-void CBratProcessZFXY::SubstituteAxisDim(const CStringArray& fieldDims, CStringArray& fieldDimsOut)
+void CBratProcessZFXY::SubstituteAxisDim( const CStringArray& fieldDims, CStringArray& fieldDimsOut )
 {
-    // Replace dimensions which have the same name of the X/Y fields by the X/Y expression name 
+	// Replace dimensions which have the same name of the X/Y fields by the X/Y expression name 
 
-  
-  CStringArray axisDimsSameRangeAsField;
-  CStringArray arrayTmp;
+	CStringArray arrayTmp;
 
-  CStringArray::const_iterator it;
+	for ( CStringArray::const_iterator it = m_netCdfAxisDims.begin(); it != m_netCdfAxisDims.end(); it++ )
+	{
+		uint32_t index = fieldDims.FindIndex( *it );
+		if ( isDefaultValue( index ) )
+		{
+			continue;
+		}
 
+		if ( arrayTmp.size() <= index )
+		{
+			arrayTmp.resize( index + 1 );
+		}
 
-  for (it = m_netCdfAxisDims.begin() ; it != m_netCdfAxisDims.end() ; it++)
-  {
-    uint32_t index = fieldDims.FindIndex(*it);
-    if (isDefaultValue(index))
-    {
-      continue;
-    }
+		arrayTmp[ index ] = *it;
+	}
 
-    if (arrayTmp.size() <= index)
-    {
-      arrayTmp.resize(index + 1);
-    }
+	int_t first = 0;
+	for ( ; first < (int_t)arrayTmp.size(); first++ )
+	{
+		if ( ! arrayTmp.at( first ).empty() )
+		{
+			break;
+		}
 
-    arrayTmp[index] = *it;
-  }
+	}
 
-  int32_t first = 0;
+	int_t last = last = arrayTmp.size() - 1;	//can be negative, cannot be size_t, 
+	for ( ; last >= 0; last-- )
+	{
+		if ( ! arrayTmp.at( last ).empty() )
+		{
+			break;
+		}
 
-  for (first = 0 ; first < (int32_t)arrayTmp.size() ; first++)
-  {
-    if (! arrayTmp.at(first).empty() ) 
-    {
-      break;
-    }
-    
-  }
+	}
 
-  size_t last = 0;
-  for (last = arrayTmp.size() - 1; last >= 0 ; last--)
-  {
-    if (! arrayTmp.at(last).empty() ) 
-    {
-      break;
-    }
-    
-  }
+	CStringArray axisDimsSameRangeAsField;
 
-  size_t i = 0;
-  for (i = first ; i <= last ; i++)
-  {
-    std::string str = arrayTmp.at(i);
+	for ( int_t i = first; i <= last; i++ )		//i must have same type as first and last
+	{
+		std::string str = arrayTmp.at( i );
 
-    if (str.empty())
-    {
-      str = fieldDims.at(i);
-    }
+		if ( str.empty() )
+		{
+			str = fieldDims.at( i );
+		}
 
-    if (str.empty()) 
-    {
-      continue;
-    }
+		if ( str.empty() )
+		{
+			continue;
+		}
 
-    axisDimsSameRangeAsField.Insert(str);
-  }
+		axisDimsSameRangeAsField.Insert( str );
+	}
 
-  CStringArray arrayReplaceBy;
-  arrayReplaceBy.resize(axisDimsSameRangeAsField.size());
-  
-  if (arrayReplaceBy.size() < 2)
-  {
-    arrayReplaceBy.resize(2);
-  }
-  
-  arrayReplaceBy[0] = m_xName;
-  arrayReplaceBy[arrayReplaceBy.size() - 1] = m_yName;
-  
-  for (i = 1 ; i < (int32_t)arrayReplaceBy.size() - 1 ; i++)
-  {
-    arrayReplaceBy[i] = axisDimsSameRangeAsField[i];
-  }
+	CStringArray arrayReplaceBy;
+	arrayReplaceBy.resize( axisDimsSameRangeAsField.size() );
 
-  std::string replaceBy = arrayReplaceBy.ToString("," , false);
+	if ( arrayReplaceBy.size() < 2 )
+	{
+		arrayReplaceBy.resize( 2 );
+	}
 
-  fieldDims.Replace(axisDimsSameRangeAsField, replaceBy, fieldDimsOut, true, true);
+	arrayReplaceBy[ 0 ] = m_xName;
+	arrayReplaceBy[ arrayReplaceBy.size() - 1 ] = m_yName;
 
-  /*
-  CStringArray fieldDimsOutTmp;
+	for ( int_t i = 1; i < (int_t)arrayReplaceBy.size() - 1; i++ )
+	{
+		arrayReplaceBy[ i ] = axisDimsSameRangeAsField[ i ];
+	}
 
-  fieldDimsOut.Replace(m_netCdfAxisDims, m_xName, fieldDimsOutTmp, true, true);
-  
-  fieldDimsOut = fieldDimsOutTmp;
+	std::string replaceBy = arrayReplaceBy.ToString( ",", false );
 
-  fieldDimsOut.Replace(m_netCdfAxisDims, m_yName, fieldDimsOutTmp, true, true);
+	fieldDims.Replace( axisDimsSameRangeAsField, replaceBy, fieldDimsOut, true, true );
 
-  fieldDimsOut = fieldDimsOutTmp;
-  */
+	/*
+	CStringArray fieldDimsOutTmp;
+
+	fieldDimsOut.Replace(m_netCdfAxisDims, m_xName, fieldDimsOutTmp, true, true);
+
+	fieldDimsOut = fieldDimsOutTmp;
+
+	fieldDimsOut.Replace(m_netCdfAxisDims, m_yName, fieldDimsOutTmp, true, true);
+
+	fieldDimsOut = fieldDimsOutTmp;
+	*/
 
 }
 

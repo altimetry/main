@@ -1033,15 +1033,21 @@
 	  <alias name="ocean_editing">%{Ocean_data_editing_Envisat_2P}</alias>
     </aliases>
 
-    <aliases productType="Generic NetCdf" description="Generic Netcdf Dataset Aliases">
+    <aliases productType="Generic NetCdf Standard" description="Generic Netcdf Dataset - Standard Aliases">
       <alias name="lat">lat</alias>
       <alias name="lon">lon</alias>
       <alias name="time">time</alias>
     </aliases>
 
-    <aliases productType="Y=F(X)" ref="Generic Netcdf" description="Brat Y=F(X)  Dataset Aliases"/>
+    <aliases productType="Generic NetCdf Variant 1" description="Generic Netcdf Dataset - Aliases Variant 1">
+      <alias name="lat">latitude</alias>
+      <alias name="lon">longitude</alias>
+      <alias name="time">time</alias>
+    </aliases>
 
-    <aliases productType="Z=F(X,Y)" ref="Generic Netcdf" description="Brat Z=F(X,Y)  Dataset Aliases"/>
+    <aliases productType="Y=F(X)" ref="Generic NetCdf Standard" description="Brat Y=F(X)  Dataset Aliases"/>
+
+    <aliases productType="Z=F(X,Y)" ref="Generic NetCdf Standard" description="Brat Z=F(X,Y)  Dataset Aliases"/>
 
   </product>
 

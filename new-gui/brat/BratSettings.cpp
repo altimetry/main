@@ -229,7 +229,7 @@ bool CBratSettings::LoadPaths()
 			k_v( ENTRY_USER_DATA_PATH,			&mBratPaths.mUserDataDirectory ),
             k_v( ENTRY_WORKSPACES_DIR,			&mBratPaths.mWorkspacesDirectory ),
 			k_v( ENTRY_FILE_RASTER_LAYER_PATH,  &mBratPaths.mRasterLayerPath, mBratPaths.DefaulLocalFileRasterLayerPath() ),
-            k_v( ENTRY_URL_RASTER_LAYER_PATH,   &mBratPaths.mURLRasterLayerPath, mBratPaths.smDefaultURLRasterLayerPath ),
+            k_v( ENTRY_URL_RASTER_LAYER_PATH,   &mBratPaths.mWMSRasterLayerPath, mBratPaths.smDefaultWMSRasterLayerPath ),
 
             k_v( ENTRY_PORTABLE_PATHS,			&mBratPaths.mUsePortablePaths )
 		)
@@ -247,7 +247,7 @@ bool CBratSettings::SavePaths()
 			k_v( ENTRY_USER_DATA_PATH,			mBratPaths.UserDataDirectory() ),
             k_v( ENTRY_WORKSPACES_DIR,          mBratPaths.WorkspacesDirectory() ),
 			k_v( ENTRY_FILE_RASTER_LAYER_PATH,	mBratPaths.RasterLayerPath() ),
-			k_v( ENTRY_URL_RASTER_LAYER_PATH,	mBratPaths.URLRasterLayerPath() ),
+			k_v( ENTRY_URL_RASTER_LAYER_PATH,	mBratPaths.WMSRasterLayerPath() ),
 
             k_v( ENTRY_PORTABLE_PATHS,			mBratPaths.UsePortablePaths() )
 		);

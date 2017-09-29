@@ -72,7 +72,7 @@ public:
     {
         eVectorLayer,
         eRasterLayer,
-        eRasterURL
+        eRasterLayerWMS
     };
 
 
@@ -88,14 +88,14 @@ protected:
 	static std::string smVectorLayerPath;
 	static std::string smDefaultRasterLayerPath;
 	static std::string smRasterLayerPath;
-    static std::string smURLRasterLayerPath;
+    static std::string smWMSRasterLayerPath;
 
 public:
 
 	static const std::string& QgisPluginsDir();
 	static const std::string& VectorLayerPath();
     static const std::string& RasterLayerPath();
-    static const std::string& URLRasterLayerPath();
+    static const std::string& WMSRasterLayerPath();
 
 	// Must be called at startup, before 1st map creation
 	//
@@ -104,7 +104,7 @@ public:
 		const std::string &VectorLayerPath, 
 		const std::string &DefaultRasterLayerPath,
 		const std::string &RasterLayerPath,
-        const std::string &URLRasterLayerPath );
+        const std::string &WMSRasterLayerPath );
 
 
 	// See parent widget creation helpers near instance methods for 
