@@ -723,7 +723,7 @@ class CObjectPointersArray : public std::vector<BRAT_OBJECT*>
 
 	//instance data
 
-	bool mDelete = true;
+	bool mDelete;
 
 
 	//construction / destruction
