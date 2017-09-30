@@ -483,6 +483,7 @@ IF (ENABLE_QT5)
             ${QT_BINDIR}/Qt${QTVER}WebChannel${DBG_SUFFIX}${DLL_SUFFIX}
             ${QT_BINDIR}/Qt${QTVER}Quick${DBG_SUFFIX}${DLL_SUFFIX}
             ${QT_BINDIR}/Qt${QTVER}Qml${DBG_SUFFIX}${DLL_SUFFIX}
+            ${QT_BINDIR}/Qt${QTVER}Script${DBG_SUFFIX}${DLL_SUFFIX}
             )
 
         set(QT_SPECIFIC_DEBUG_VERSION_LIBS
@@ -503,6 +504,7 @@ IF (ENABLE_QT5)
             ${QT_LIBDIR}/Qt${QTVER}WebChannel${DBG_SUFFIX}.pdb
             ${QT_LIBDIR}/Qt${QTVER}Quick${DBG_SUFFIX}.pdb
             ${QT_LIBDIR}/Qt${QTVER}Qml${DBG_SUFFIX}.pdb
+            ${QT_LIBDIR}/Qt${QTVER}Script${DBG_SUFFIX}.pdb
             )
 
     ELSEIF (APPLE)
@@ -525,6 +527,7 @@ IF (ENABLE_QT5)
 		file( GLOB GLOB_WebChannel			${QT_BINDIR}/libQt${QTVER}WebChannel${DBG_SUFFIX}.5*${DLL_SUFFIX} )
 		file( GLOB GLOB_Quick				${QT_BINDIR}/libQt${QTVER}Quick${DBG_SUFFIX}.5*${DLL_SUFFIX} )
 		file( GLOB GLOB_Qml					${QT_BINDIR}/libQt${QTVER}Qml${DBG_SUFFIX}.5*${DLL_SUFFIX} )
+		file( GLOB GLOB_Script				${QT_BINDIR}/libQt${QTVER}Script${DBG_SUFFIX}.5*${DLL_SUFFIX} )
 		file( GLOB GLOB_DBus				${QT_BINDIR}/libQt${QTVER}DBus${DBG_SUFFIX}.5*${DLL_SUFFIX} )
 		file( GLOB GLOB_MacExtras			${QT_BINDIR}/libQt${QTVER}MacExtras${DBG_SUFFIX}.5*${DLL_SUFFIX} )
 
@@ -547,6 +550,7 @@ IF (ENABLE_QT5)
 			${GLOB_WebChannel}
 			${GLOB_Quick}
 			${GLOB_Qml}
+			${GLOB_Script}
 			${GLOB_DBus}
 			${GLOB_MacExtras}
 			)
@@ -571,9 +575,9 @@ IF (ENABLE_QT5)
 		file( GLOB GLOB_WebChannel			${QT_BINDIR}/libQt${QTVER}WebChannel${DBG_SUFFIX}${DLL_SUFFIX}.* )
 		file( GLOB GLOB_Quick				${QT_BINDIR}/libQt${QTVER}Quick${DBG_SUFFIX}${DLL_SUFFIX}.* )
 		file( GLOB GLOB_Qml					${QT_BINDIR}/libQt${QTVER}Qml${DBG_SUFFIX}${DLL_SUFFIX}.* )
+		file( GLOB GLOB_Script				${QT_BINDIR}/libQt${QTVER}Script${DBG_SUFFIX}${DLL_SUFFIX}.* )
 		file( GLOB GLOB_DBus				${QT_BINDIR}/libQt${QTVER}DBus${DBG_SUFFIX}${DLL_SUFFIX}.* )
 		file( GLOB GLOB_XcbQpa				${QT_BINDIR}/libQt${QTVER}XcbQpa${DBG_SUFFIX}${DLL_SUFFIX}.* )
-		file( GLOB GLOB_Script				${QT_BINDIR}/libQt${QTVER}Script${DBG_SUFFIX}${DLL_SUFFIX}.* )
 
 
 		set(QT_SPECIFIC_VERSION_LIBS
@@ -594,9 +598,9 @@ IF (ENABLE_QT5)
 			${GLOB_WebChannel}
 			${GLOB_Quick}
 			${GLOB_Qml}
+			${GLOB_Script}
 			${GLOB_DBus}
 			${GLOB_XcbQpa}
-			${GLOB_Script}
 			)
 
 	ENDIF (WIN32)
