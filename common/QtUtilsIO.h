@@ -15,6 +15,8 @@
 #include <QStandardPaths>
 #endif
 #include <QCoreApplication>
+#include <QThread>
+#include <QProcess>
 
 #include "ccore-types.h"
 #include "+UtilsIO.h"		// => +Utils.h
@@ -689,7 +691,58 @@ inline bool ExecuteCommand( bool root, const std::string &script, const std::str
 
 
 
+//////////////////////////////////////////////////////////////////
+//						QProcess related
+//////////////////////////////////////////////////////////////////
+
+
+class QSimpleThread : public QThread
+{
+public:
+	static void sleep( unsigned long secs ) 
+	{
+		QThread::sleep( secs );
+	}
+
+	static void msleep( unsigned long msecs ) 
+	{
+		QThread::msleep( msecs );
+	}
+
+	static void usleep( unsigned long usecs ) 
+	{
+		QThread::usleep( usecs );
+	}
+};
 
 
 
-#endif		//BRAT_QT_UTILS_IO_H
+
+inline const QString& TranslateQProcessErrorMessage( QProcess::ProcessError error )
+{
+	static const QString msgs[] =
+	{
+		"Failed To Start",
+		"Crashed",
+		"Timed out",
+		"Read Error",
+		"Write Error",
+		"Unknown Error"
+	};
+	static const DEFINE_ARRAY_SIZE( msgs );
+
+	static_assert( ( QProcess::ProcessError::UnknownError + 1 ) == msgs_size, "ProcessError enumerated values differ in size from their respective messages array." );
+
+	assert__( error < (int)msgs_size );
+
+	return msgs[ error ];
+}
+
+
+
+
+;
+
+
+
+#endif		//QT_UTILS_IO_H

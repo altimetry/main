@@ -2771,8 +2771,6 @@ if(BRAT_BUILD_GUI)
 		new-gui/brat/GUI/ControlPanels/Dialogs/RadsPhasesDialog.cpp
 		new-gui/brat/GUI/DisplayWidgets/PSProcessing.cpp
 		new-gui/brat/GUI/DisplayWidgets/Dialogs/ViewMapsLayerDialog.cpp
-		new-gui/brat/NcDumpDialog.cpp
-		new-gui/Common/GUI/FindReplaceDialog.cpp
 	)
 
 		
@@ -2902,8 +2900,6 @@ if(BRAT_BUILD_GUI)
 		new-gui/brat/GUI/ControlPanels/Dialogs/RadsPhasesDialog.h
 		new-gui/brat/GUI/DisplayWidgets/PSProcessing.h
 		new-gui/brat/GUI/DisplayWidgets/Dialogs/ViewMapsLayerDialog.h
-		new-gui/brat/NcDumpDialog.h
-		new-gui/Common/GUI/FindReplaceDialog.h
 	)
 
 

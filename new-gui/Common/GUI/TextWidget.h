@@ -24,8 +24,6 @@
 
 #include "new-gui/Common/QtUtils.h"
 
-#include "FindReplaceDialog.h"
-
 
 #ifdef _MSC_VER
 #define toStdWString THIS_IS_AN_ERROR_QT_INCOMPETENTS_IN_WINDOWS___USE_Q2T_INSTEAD
@@ -125,7 +123,7 @@ enum EFileType
 
 
 
-class CTextWidget : public QTextEdit, public CFindReplaceInterface
+class CTextWidget : public QTextEdit
 {
 #if defined (__APPLE__)
 #pragma clang diagnostic push
@@ -141,7 +139,6 @@ class CTextWidget : public QTextEdit, public CFindReplaceInterface
 	// types
 
 	typedef QTextEdit base_t;
-	using find_base_t = CFindReplaceInterface;
 
 
 	// statics
@@ -180,24 +177,6 @@ public:
 	virtual void SetMonoFont( bool mono );		//should be called before SetFontBold
 	virtual QSize sizeHint() const override;
     void SetSizeHint( int w, int h ){ mSizeHint = QSize( w, h ); }
-
-	//CFindReplaceInterface	for FindReplaceDialog
-
-	virtual void CopyAvailable( bool yes) override { return copyAvailable( yes ); }
-	virtual bool HasSelectedText() const override { return textCursor().hasSelection(); }
-	virtual QString SelectedText() override { QString qs;  return getEditorText( this, qs ); }
-	virtual bool Find( const QString &toSearch, QTextDocument::FindFlags options ) override { return find( toSearch, options ); }
-	virtual bool FindRE( const QRegExp &expr, QTextDocument::FindFlags options ) override 
-	{ 
-		QTextCursor c = document()->find( expr, textCursor(), options );
-		if ( !c.isNull() )		//otherwise the CTextWidget becomes corrupt
-			setTextCursor( c );
-		return !c.isNull();
-	}
-	virtual void InsertText( const QString &text ) override { textCursor().insertText( text ); }
-	virtual void MoveToFirstLine() override { MoveToTop(); }
-	virtual void MoveToTextEnd() override { MoveToEnd( false ); }
-	virtual QWidget* EditorWidget() override { return dynamic_cast< base_t* >( this ); }
 
 
 	//selection / position

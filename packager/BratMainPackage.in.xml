@@ -17,7 +17,7 @@
         <component>
             <name>default</name>
             <description>Core files</description>
-            <canBeEdited>1</canBeEdited>
+            <canBeEdited>0</canBeEdited>
             <detailedDescription>The main BRAT package.
       This set contains the programs and the needed data.</detailedDescription>
             <selected>1</selected>

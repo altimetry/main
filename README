@@ -34,7 +34,7 @@ Known Issues
 
 The software recognizes Gnome when when running in a Linux desktop 
 and sets the appropriate properties for the minimize, maximize and 
-close buttons to be displayed in view windows. However, in Debain 8 
+close buttons to be displayed in view windows. However, in Debian 8 
 it was verified that additonal configuration steps might be necessary, 
 at the system level, for those buttons to be dislayed. 
 

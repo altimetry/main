@@ -17,7 +17,9 @@
 */
 
 
-#include "NcDumpDialog.h"
+#if defined (_DEBUG) || defined (DEBUG)|| defined (CORRESYF_WORK)
+#include "../support/code/future/NcDumpDialog.h"
+#endif
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -261,6 +263,7 @@ void TestSettingsPaths( const CBratSettings &settings )
 	SimpleMsgBox( msg );
 }
 
+
 void TestNcDump( CBratMainWindow *w, const CBratSettings &settings )
 {
 	static const std::string ncdump = settings.BratPaths().mExecutableDir + "/ncdump";
@@ -270,7 +273,11 @@ void TestNcDump( CBratMainWindow *w, const CBratSettings &settings )
 	if ( !path.isEmpty() )
 	{
 		netcdf_path = path;
+
+#if defined (_DEBUG) || defined (DEBUG)|| defined (CORRESYF_WORK)
 		CNcDumpDialog *pdlg = new CNcDumpDialog( false, ncdump, netcdf_path, w );
 		pdlg->show();
+#endif
+
 	}
 }

@@ -33,7 +33,6 @@
 CTextWidget::CTextWidget( QWidget *parent )	//parent = nullptr
 
 	: base_t( parent ) 
-	, find_base_t( false, false, this )
 	, mSizeHint( 60 * fontMetrics().width('x'), 10 * fontMetrics().lineSpacing() )
 {
 	auto sheet = styleSheet();

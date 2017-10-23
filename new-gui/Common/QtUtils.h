@@ -70,7 +70,6 @@
 #endif
 #include <QSettings>
 #include <QResource>
-#include <QProcess>
 #include <QThread>
 #include <QUrl>
 #include <QTimer>
@@ -1759,27 +1758,6 @@ inline void NotImplemented( const char *msg = nullptr )
 //	Candidates
 //////////////////////////////////////////////////////////////////
 
-inline const QString& TranslateQProcessErrorMessage( QProcess::ProcessError error )
-{
-	static const QString msgs[] =
-	{
-		"Failed To Start",
-		"Crashed",
-		"Timed out",
-		"Read Error",
-		"Write Error",
-		"Unknown Error"
-	};
-	static const DEFINE_ARRAY_SIZE( msgs );
-
-	static_assert( ( QProcess::ProcessError::UnknownError + 1 ) == msgs_size, "ProcessError enumerated values differ in size from their respective messages array." );
-
-	assert__( error < (int)msgs_size );
-
-	return msgs[ error ];
-}
-
-
 //inline int ItemRow( QListWidgetItem *item )
 //{
 //	return item->listWidget()->row( item );
@@ -1804,27 +1782,6 @@ inline QString UserName()
 
 	return name;
 }
-
-
-
-class QSimpleThread : public QThread
-{
-public:
-	static void sleep( unsigned long secs ) 
-	{
-		QThread::sleep( secs );
-	}
-
-	static void msleep( unsigned long msecs ) 
-	{
-		QThread::msleep( msecs );
-	}
-
-	static void usleep( unsigned long usecs ) 
-	{
-		QThread::usleep( usecs );
-	}
-};
 
 
 
