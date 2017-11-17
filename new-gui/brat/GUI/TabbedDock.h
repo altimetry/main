@@ -113,7 +113,10 @@ public:
 		return mTabWidget->widget( tab );
 	}
 
-    int SelectedTab() const
+    
+	// operations
+
+	int SelectedTab() const
 	{
 		return mTabWidget->currentIndex();
 	}
@@ -123,18 +126,22 @@ public:
 		return mTabWidget->setCurrentIndex( index );
 	}
 
-    virtual void SetTabTextColor( int index, const QColor &color )
-    {
-        mTabWidget->tabBar()->setTabTextColor( index, color );
-    }
 
-    virtual void SetTabIcon( int index, const QIcon &icon )
-    {
-        mTabWidget->tabBar()->setTabIcon( index, icon );
-    }
+	void EnableTab( int tab, bool enable ) const
+	{
+		return mTabWidget->setTabEnabled( tab, enable );
+	}
 
-    
-	// operations
+
+	virtual void SetTabTextColor( int index, const QColor &color )
+	{
+		mTabWidget->tabBar()->setTabTextColor( index, color );
+	}
+
+	virtual void SetTabIcon( int index, const QIcon &icon )
+	{
+		mTabWidget->tabBar()->setTabIcon( index, icon );
+	}
 
 	void SetTabShape( QTabWidget::TabShape s );
 

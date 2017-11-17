@@ -110,6 +110,11 @@ protected:
 	bool CheckRadsConfigStatus();
 
 
+signals:
+
+	void RadsStateChanged( bool running );
+
+
 protected slots:
 
 	void HandleCurrentIndexChanged( CRadsDatasetsTreeWidgetItem*, int index );			//Changed the mission selection in a dataset

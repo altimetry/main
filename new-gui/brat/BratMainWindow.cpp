@@ -237,6 +237,15 @@ void CBratMainWindow::CreateWorkingDock()
     connect( WorkingPanel< eFilter >(), SIGNAL( FiltersChanged() ),							WorkingPanel< eOperations >(), SLOT( HandleFiltersChanged() ) );
     connect( WorkingPanel< eFilter >(), SIGNAL( FilterCompositionChanged( std::string ) ),	WorkingPanel< eOperations >(), SLOT( HandleFilterCompositionChanged( std::string ) ) );
 
+	// Process the RADS notifications via WorkingPanel< eRADS >, because it already has the 
+	// processing logic for tricky asynchronous notifications, and not immediately after 
+	// their arrival to the application
+	// 
+	connect( WorkingPanel< eRADS >(), &TabType< eRADS >::RadsStateChanged, this, [this]( bool running )
+	{
+		mMainWorkingDock->EnableTab( eRADS, !running );
+	} );
+
 
 	LOG_TRACE( "Finished working dock construction." );
 }

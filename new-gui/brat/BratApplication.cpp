@@ -778,7 +778,7 @@ bool CBratApplication::ReadSingleSocketMessage()
     if ( rads_msg == CONFIG_UPDATED_SIGN.c_str() )
     {
         notification = eNotificationConfigSaved;
-        mRadsServiceSettings.LoadConfig();		//FIXME : clients should be notified of notification reading errors
+        mRadsServiceSettings.LoadConfig();		//FIXME : clients should be notified of configuration reading errors
     }
     else
     {

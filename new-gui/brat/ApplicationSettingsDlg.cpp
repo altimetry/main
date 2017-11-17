@@ -69,7 +69,7 @@ void CApplicationSettingsDlg::CreateWidgets()
 	mLoadLastProjectAtAtartupCheckBox = new QCheckBox( "Load last workspace of previous session" );
 
 	mUseVectorLayer = new QRadioButton( "Use a vector layer" );
-	mUseRasterLayer = new QRadioButton( "Use a raster layer file or URI" );
+	mUseRasterLayer = new QRadioButton( "Use a raster layer file" );
     mUseRasterLayerWMS = new QRadioButton( "Use a raster layer URI (WMS)" );
     auto *main_layers_group = CreateGroupBox( ELayoutType::Vertical,
                                         {

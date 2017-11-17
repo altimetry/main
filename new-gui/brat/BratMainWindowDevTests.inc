@@ -17,7 +17,7 @@
 */
 
 
-#if defined (_DEBUG) || defined (DEBUG)|| defined (CORRESYF_WORK)
+#if defined (CORRESYF_WORK)
 #include "../support/code/future/NcDumpDialog.h"
 #endif
 
@@ -274,7 +274,7 @@ void TestNcDump( CBratMainWindow *w, const CBratSettings &settings )
 	{
 		netcdf_path = path;
 
-#if defined (_DEBUG) || defined (DEBUG)|| defined (CORRESYF_WORK)
+#if defined (CORRESYF_WORK)
 		CNcDumpDialog *pdlg = new CNcDumpDialog( false, ncdump, netcdf_path, w );
 		pdlg->show();
 #endif

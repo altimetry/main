@@ -27,7 +27,7 @@
 void CViewMapsLayerDialog::CreateWidgets( bool enable_uri, bool enable_wms_uri )
 {
 	mViewsUseVectorLayer = new QRadioButton( "Use a vector layer" );
-	mViewsUseRasterLayer = new QRadioButton( "Use application raster layer file or URI" );
+	mViewsUseRasterLayer = new QRadioButton( "Use application raster layer file" );
 	mViewsUseRasterLayerWMS = new QRadioButton( "Use application raster layer URI (WMS)" );
 	mViewsUseRasterLayer->setToolTip( "This option is valid only if a layer URI is defined in the application settings" );
 	mViewsUseRasterLayerWMS->setToolTip( "This option is valid only if a WMS layer URI is defined in the application settings" );

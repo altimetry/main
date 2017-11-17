@@ -112,9 +112,16 @@ void CDesktopControlsPanel::SelectAreaInMap( double lonm, double lonM, double la
 	//	and the main window is not yet visible. In this case, empty areas 
 	//	cause geos exceptions and in turn QGIS warnings.
 	//
-	if ( mMap->isVisible() || ( mApp.SplashAvailable() && not_empty_area() ) )
+	if ( not_empty_area() )
 	{
-		mMap->SelectArea( lonm, lonM, latm, latM );
+		if ( mMap->isVisible() || mApp.SplashAvailable() )
+		{
+			mMap->SelectArea( lonm, lonM, latm, latM );
+		}
+	}
+	else
+	{
+		RemoveAreaSelectionFromMap();
 	}
 }
 

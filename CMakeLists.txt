@@ -2520,7 +2520,6 @@ if(BRAT_BUILD_GUI)
 		new-gui/Common/SingleApplication/qtlocalpeer.cpp
 		new-gui/Common/SingleApplication/qtlockedfile.cpp
 		new-gui/Common/System/OsProcess.cpp
-		new-gui/Common/GUI/FindReplaceDialog.cpp
 	)
 
 
@@ -2553,7 +2552,6 @@ if(BRAT_BUILD_GUI)
 		new-gui/Common/SingleApplication/qtlocalpeer.h
 		new-gui/Common/SingleApplication/qtlockedfile.h
 		new-gui/Common/System/OsProcess.h
-		new-gui/Common/GUI/FindReplaceDialog.h
 	)
 
     if (ENABLE_QT5)

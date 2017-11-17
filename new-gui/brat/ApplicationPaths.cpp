@@ -65,17 +65,19 @@ const std::string BRATCREATEYFX_EXE		= setExecExtension( "BratCreateYFX" );
 
 const std::string RADS_SERVICE_NAME_EXE	= setExecExtension( RADS_SERVICE_NAME );
 
-// The wms provider does not seem to work in mac, with the current set of dependencies. Only the gdal-wms provider.
-// But the default smDefaultWMSRasterLayerPath does not work in mac even with the gdal-wms provider, so a diferent URI is specified.
-// However, it must still be copied by the user to the standard raster URL (gdal), because with wms only never works.
+// Other URLS, previously used:
+// 
+//	R"raw(http://server.arcgisonline.com/arcgis/rest/services/ESRI_Imagery_World_2D/MapServer?f=json&pretty=true)raw";						//mac
+//	R"raw(&format=image/png&layers=bluemarble&styles=&url=http://disc1.sci.gsfc.nasa.gov/daac-bin/wms_airsnrt?layer%3DAIRS_SO2_A%26)raw";	//not mac, NASA
+//	R"raw(wms:http://disc1.sci.gsfc.nasa.gov/daac-bin/wms_airsnrt?&format=image/png&layers=bluemarble&styles=&layer%3DAIRS_SO2_A%26)raw";	//NASA
+//	contextualWMSLegend=0&crs=EPSG:4326&dpiMode=all&featureCount=10&format=image/png&layers=bluemarble&styles=&url=http://disc1.sci.gsfc.nasa.gov/daac-bin/wms_airsnrt?layer%3DAIRS_SO2_A%26
+//	crs=EPSG:900913&dpiMode=7&featureCount=10&format=image/png&layers=precipitation&styles=&url=http://wms.openweathermap.org/service		//not working
 //
+//    
 const std::string CApplicationPaths::smDefaultWMSRasterLayerPath =
-#if defined(Q_OS_MAC)        
-    R"raw(http://server.arcgisonline.com/arcgis/rest/services/ESRI_Imagery_World_2D/MapServer?f=json&pretty=true)raw";
-#else
-    R"raw(&format=image/png&layers=bluemarble&styles=&url=http://disc1.sci.gsfc.nasa.gov/daac-bin/wms_airsnrt?layer%3DAIRS_SO2_A%26)raw";
-#endif
-//contextualWMSLegend=0&crs=EPSG:4326&dpiMode=all&featureCount=10&format=image/png&layers=bluemarble&styles=&url=http://disc1.sci.gsfc.nasa.gov/daac-bin/wms_airsnrt?layer%3DAIRS_SO2_A%26
+	R"raw(http://www.gebco.net/data_and_products/gebco_web_services/web_map_service/mapserv?&service=wms&layers=GEBCO_LATEST&styles=&srs=EPSG:4326&format=image/jpeg)raw";	//ESA
+
+
 
 
 std::string CApplicationPaths::DefaulLocalFileRasterLayerPath() const

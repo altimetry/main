@@ -354,7 +354,6 @@ bool CMapWidget::OpenLayer( QWidget *parent, const QString &path, QgsRectangle &
 #endif
 
 
-
 void CMapWidget::Init()
 {
     // Instantiate Provider Registry
@@ -379,9 +378,34 @@ void CMapWidget::Init()
     }
     else
     {
-        QString raster_url = t2q( mLayerBaseType == eRasterLayer ? smRasterLayerPath : smWMSRasterLayerPath );        //"/home/brat/s3-altb/project/dev/support/data/WebMapServices_xml_files/map_GoogleMaps_jpg.xml";
-        QString provider = mLayerBaseType == eRasterLayerWMS ? "wms" : "";
-        mMainRasterLayer = AddRasterLayer( raster_url, "raster", provider );
+		// see ....\source\new-gui\brat\ApplicationPaths.cpp for wms raster URLs examples, near smDefaultWMSRasterLayerPath declaration
+		// 
+		struct CRasterInfo
+		{
+			ELayerBaseType effective_type;
+			QString effective_url;
+			QString effective_provider;
+
+        } raster_infos[3] =
+		{
+			{ eRasterLayer,		t2q( smRasterLayerPath ),		""		},	// GDAL local
+			{ eRasterLayerWMS,	t2q( smWMSRasterLayerPath ),	"wms"	},	// WMS URL
+			{ eRasterLayerWMS,	t2q( smWMSRasterLayerPath ),	""		},	// GDAL URL
+		};
+        std::vector<size_t> indexes = mLayerBaseType == eRasterLayer ? std::vector<size_t> { 0 } : std::vector<size_t> { 1, 2 };
+		try {
+			for ( auto const &index : indexes )
+			{
+				mMainRasterLayer = AddRasterLayer( raster_infos[ index ].effective_url, "raster", raster_infos[ index ].effective_provider );
+				if ( mMainRasterLayer )
+					break;
+
+				LOG_TRACE( "Filed attempt with '" + raster_infos[ index ].effective_provider + "' provider and URL: " + raster_infos[ index ].effective_url );
+			}
+		}
+		catch ( ... )
+		{}
+
         if ( mMainRasterLayer )
 		{
 			LOG_TRACE( "Raster layer created successfully." );
@@ -396,14 +420,11 @@ void CMapWidget::Init()
 
 			QTimer::singleShot( 2000, []()	//if at start-up, the log window is not ready yet, give it some time
 			{
-				LOG_WARN( "Raster layer: unable to use specified local file or URL. Loaded default raster layer." );
+				LOG_WARN( "Unable to use the specified local file or URL. Loaded default raster layer." );
 			});
 		}
 		mMainLayer = mMainRasterLayer;
 	}
-
-	//mMainRasterLayer = AddRasterLayer( "http://server.arcgisonline.com/arcgis/rest/services/ESRI_Imagery_World_2D/MapServer?f=json&pretty=true", "raster", "wms" );
-	//crs=EPSG:900913&dpiMode=7&featureCount=10&format=image/png&layers=precipitation&styles=&url=http://wms.openweathermap.org/service
 
     //mMainLayer =  new QgsVectorLayer(mVectorLayerPath, myLayerBaseName, myProviderName);
     //QgsSingleSymbolRendererV2 *mypRenderer = new QgsSingleSymbolRendererV2(QgsSymbolV2::defaultSymbol(mMainLayer->geometryType()));
@@ -1268,7 +1289,7 @@ inline QgsVectorLayer* CreateVectorLayer( const std::string &name, const QString
 		return l;
 	}
 
-	LOG_WARN( "Vector layer is NOT valid" );
+	LOG_TRACE( "Vector layer is NOT valid" );
 	delete l;
 	return nullptr;
 }
@@ -2154,7 +2175,7 @@ QgsRasterLayer* CMapWidget::AddRasterLayer( const QString &layer_path, const QSt
 		return l;
 	}
 
-	LOG_WARN( "Raster layer is NOT valid" );
+	LOG_TRACE( "Raster layer is NOT valid" );
 	delete l;
 	return nullptr;
 }

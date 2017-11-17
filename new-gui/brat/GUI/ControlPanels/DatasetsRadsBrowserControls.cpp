@@ -407,7 +407,7 @@ void CDatasetsRadsBrowserControls::HandleRsyncStatusChanged( CBratApplication::E
 
 
 	if ( change_enable_state )
-		setEnabled( notification != CBratApplication::eNotificationRsyncRunnig );
+		emit RadsStateChanged( notification == CBratApplication::eNotificationRsyncRunnig );	//	setEnabled( notification != CBratApplication::eNotificationRsyncRunnig );
 }
 
 

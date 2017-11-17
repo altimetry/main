@@ -28,7 +28,7 @@ brat-4.2.0-i386-installer.run. If necessary, use the command
 'chmod +x <installer-filename>' 
 to ensure the installer is executable.)
 
-Taking debian 7 as the BRAT version of reference for the Linux platform, 
+Taking debian 8 as the BRAT version of reference for the Linux platform, 
 the following additional dependencies are required for BRAT to run:
 
 libcurl
@@ -39,9 +39,13 @@ libproj
 libgeos-c1
 libxerces-c3.1
 libegl-mesa
+xsdcxx
+
 
 These dependencies are provided with the operating system but not
-necessarily installed by default.
+necessarily installed by default. Other dependencies may be necessary
+for the packages that must be build, and not simply insalled, as 
+explained below.
 
 
 + For Mac OS X: double-click the image file appropriate for the
@@ -150,11 +154,20 @@ Applications.
   CodeSynthesis XSD is a cross-platform W3C XML Schema to C++ data binding compiler.
   Link: http://www.codesynthesis.com/products/xsd/
 
+  + QCA v2.1.0
+
+  QCA stands for Qt Cryptographic Architecture.
+  Link: http://delta.affinix.com/qca/
+
+  + GEOS v3.4.2
+
+  GEOS (Geometry Engine - Open Source) is a C++ port of the Java Topology Suite.
+  Link: http://trac.osgeo.org/geos
+
   + Python v3.2
 
   Python programming language platform and libraries.
   Link: https://www.python.org/download/releases/3.2/
-
 
   + BitRock InstallBuilder v15.1.0
 
