@@ -197,9 +197,9 @@ inline bool IsPortableDataPath( const std::string &path )
 inline std::string normalizedPath( const std::string &path )
 {
 	std::string normalized = path;
-	replace( normalized, "//", "/" );
-	replace( normalized, "\\\\", "/" );
-	replace( normalized, "\\", "/" );
+	normalized = replace( normalized, "\\\\", "/" );
+	normalized = replace( normalized, "\\", "/" );
+	normalized = replace( normalized, "//", "/" );
 	return normalized;
 }
 
