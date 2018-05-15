@@ -2704,8 +2704,6 @@ if(BRAT_BUILD_GUI)
 		new-gui/brat/DataModels/PlotData/PlotValues.cpp
 		new-gui/brat/GUI/DisplayWidgets/QGISapp/MapDecorationGrid.cpp
 		new-gui/brat/GUI/DisplayWidgets/QGISapp/MapDecorationItem.cpp
-		new-gui/brat/GUI/DisplayWidgets/QGISapp/MapToolMeasure.cpp
-		new-gui/brat/GUI/DisplayWidgets/QGISapp/MapToolMeasureDialog.cpp
 		new-gui/brat/GUI/DisplayWidgets/QGISapp/MapToolSelectPolygon.cpp
 		new-gui/brat/GUI/DisplayWidgets/QGISapp/MapToolSelectRectangle.cpp
 		new-gui/brat/GUI/DisplayWidgets/QGISapp/MapToolSelectUtils.cpp
@@ -2769,6 +2767,9 @@ if(BRAT_BUILD_GUI)
 		new-gui/brat/GUI/ControlPanels/Dialogs/RadsPhasesDialog.cpp
 		new-gui/brat/GUI/DisplayWidgets/PSProcessing.cpp
 		new-gui/brat/GUI/DisplayWidgets/Dialogs/ViewMapsLayerDialog.cpp
+		new-gui/brat/GUI/DisplayWidgets/QGISapp/MapToolMeasures.cpp
+		new-gui/brat/GUI/DisplayWidgets/QGISapp/MapToolMeasuresDialog.cpp
+		new-gui/brat/GUI/ControlPanels/Dialogs/EditFilterFieldsDialog.cpp
 	)
 
 		
@@ -2827,8 +2828,6 @@ if(BRAT_BUILD_GUI)
 		new-gui/brat/DataModels/PlotData/PlotValues.h
 		new-gui/brat/GUI/DisplayWidgets/QGISapp/MapDecorationGrid.h
 		new-gui/brat/GUI/DisplayWidgets/QGISapp/MapDecorationItem.h
-		new-gui/brat/GUI/DisplayWidgets/QGISapp/MapToolMeasure.h
-		new-gui/brat/GUI/DisplayWidgets/QGISapp/MapToolMeasureDialog.h
 		new-gui/brat/GUI/DisplayWidgets/QGISapp/MapToolSelectPolygon.h
 		new-gui/brat/GUI/DisplayWidgets/QGISapp/MapToolSelectRectangle.h
 		new-gui/brat/GUI/DisplayWidgets/QGISapp/MapToolSelectUtils.h
@@ -2898,6 +2897,9 @@ if(BRAT_BUILD_GUI)
 		new-gui/brat/GUI/ControlPanels/Dialogs/RadsPhasesDialog.h
 		new-gui/brat/GUI/DisplayWidgets/PSProcessing.h
 		new-gui/brat/GUI/DisplayWidgets/Dialogs/ViewMapsLayerDialog.h
+		new-gui/brat/GUI/DisplayWidgets/QGISapp/MapToolMeasures.h
+		new-gui/brat/GUI/DisplayWidgets/QGISapp/MapToolMeasuresDialog.h
+		new-gui/brat/GUI/ControlPanels/Dialogs/EditFilterFieldsDialog.h
 	)
 
 

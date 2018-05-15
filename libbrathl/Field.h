@@ -196,7 +196,7 @@ public:
   void Convert(double* data, int32_t size);
   void SetDefaultValue(double* data, int32_t size);
 
-  int32_t GetNbDims() {return m_nbDims;}
+  int32_t GetNbDims() const { return m_nbDims; }
   virtual int32_t GetVirtualNbDims();
   virtual uint32_t GetOffsetDim();
   

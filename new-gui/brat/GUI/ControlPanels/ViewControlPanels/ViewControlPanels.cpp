@@ -304,6 +304,13 @@ CPlotControlsPanelAxisOptions::CPlotControlsPanelAxisOptions( QWidget *parent, Q
     mYAxisLabel = new QLineEdit;
     mZAxisLabel = new QLineEdit;
 
+	mXAxisDimension = CreateMenuButton( "", "", "Select X axis dimension", QList<QAction*>() );
+	mYAxisDimension = CreateMenuButton( "", "", "Select Y axis dimension", QList<QAction*>() );
+	mZAxisDimension = CreateMenuButton( "", "", "Select Z axis dimension", QList<QAction*>() );
+	mXAxisDimension->setFont( axis_font );
+	mXAxisDimension->setFont( axis_font );
+	mXAxisDimension->setFont( axis_font );
+
     mXNbTicks = new QLineEdit;	mXNbTicks->setValidator( new QRegExpValidator( QRegExp( "[0-9]+" ) ) );
     mYNbTicks = new QLineEdit;	mYNbTicks->setValidator( new QRegExpValidator( QRegExp( "[0-9]+" ) ) );
     mZNbTicks = new QLineEdit;	mZNbTicks->setValidator( new QRegExpValidator( QRegExp( "[0-9]+" ) ) );
@@ -364,10 +371,10 @@ CPlotControlsPanelAxisOptions::CPlotControlsPanelAxisOptions( QWidget *parent, Q
 
     AddTopLayout( ELayoutType::Grid,  
 	{ 
-		new QLabel("Axis"), lshrink("label"),		lshrink("ticks"),		lshrink("digits"),		lshrink("2D scale"),		lshrink("2D scale range"),	lshrink("3D scale"),	lshrink("3D log"),	nullptr,
-		lshrink("X"),		shrinkh( mXAxisLabel) ,	eshrink( mXNbTicks ),	eshrink( mXNbDigits ),	shrink( mX2DScaleSpin ),	eshrinkh( mXAxisMinMax ),	shrink( mX3DScaleSpin ), wcenter( mXLogScaleCheck ), nullptr,
-		lshrink("Y"),		shrinkh( mYAxisLabel ),	eshrink( mYNbTicks ),	eshrink( mYNbDigits ),	shrink( mY2DScaleSpin ),	eshrinkh( mYAxisMinMax ),	shrink( mY3DScaleSpin ), wcenter( mYLogScaleCheck ), nullptr,
-		lshrink("Z"),		shrinkh( mZAxisLabel ),	eshrink( mZNbTicks ),	eshrink( mZNbDigits ),	shrink( mZ2DScaleSpin ),	eshrinkh( mZAxisMinMax ),	shrink( mZ3DScaleSpin ), wcenter( mZLogScaleCheck ), nullptr,
+		new QLabel("Axis"), lshrink("label"),		lshrink("dimension"),		lshrink("ticks"),		lshrink("digits"),		lshrink("2D scale"),		lshrink("2D scale range"),	lshrink("3D scale"),	lshrink("3D log"),	nullptr,
+		lshrink("X"),		shrinkh( mXAxisLabel) ,	wcenter( shrinkh( mXAxisDimension ) ),	eshrink( mXNbTicks ),	eshrink( mXNbDigits ),	shrink( mX2DScaleSpin ),	eshrinkh( mXAxisMinMax ),	shrink( mX3DScaleSpin ), wcenter( mXLogScaleCheck ), nullptr,
+		lshrink("Y"),		shrinkh( mYAxisLabel ),	wcenter( shrinkh( mYAxisDimension ) ),	eshrink( mYNbTicks ),	eshrink( mYNbDigits ),	shrink( mY2DScaleSpin ),	eshrinkh( mYAxisMinMax ),	shrink( mY3DScaleSpin ), wcenter( mYLogScaleCheck ), nullptr,
+		lshrink("Z"),		shrinkh( mZAxisLabel ),	wcenter( shrinkh( mZAxisDimension ) ),	eshrink( mZNbTicks ),	eshrink( mZNbDigits ),	shrink( mZ2DScaleSpin ),	eshrinkh( mZAxisMinMax ),	shrink( mZ3DScaleSpin ), wcenter( mZLogScaleCheck ), nullptr,
 	}, 2, 2, 0, 2, 0
 	);
 

@@ -226,6 +226,11 @@ public:
 	////////////////////////////
 
 
+	const std::string& XAxis() const 								{ return Get( &CFieldData::GetXAxis ); }
+	void SetXAxis( const std::string &dimension )					{ Set( dimension, &CFieldData::SetXAxis ); }
+	CStringArray GetAvailableAxesDimensions() const					{ return Get( &CFieldData::GetAvailableAxes ); }
+
+
 	CFieldData::unsigned_t Opacity() const 							{ return Get( &CFieldData::Opacity ); }
 	void SetOpacity( CFieldData::unsigned_t op )					{ Set( op, &CFieldData::SetOpacity ); }
 

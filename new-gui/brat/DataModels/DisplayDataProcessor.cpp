@@ -403,25 +403,23 @@ void CDisplayDataProcessor::BuildPlotsPrivate()
 			//kwDISPLAY_XLABEL
 
 			std::string xAxisName;
-
-#if defined(BRAT_V3)
 			std::string xAxisLabel;
-
-			if ( display_data->GetXAxis().empty() )
+			
+			if ( display_data->GetXAxis().empty() )							//if ( display_data->GetX()->GetName().empty() )
 			{
-#endif
 				xAxisName = display_data->GetX()->GetName();
-
 #if defined(BRAT_V3)
 				xAxisLabel = display_data->GetX()->GetDescription();
+#endif
 			}
 			else
 			{
 				xAxisName = display_data->GetXAxis();
+#if defined(BRAT_V3)
 				auto const *f = display_data->FindDimension( xAxisName );
 				xAxisLabel = f ? f->GetDescription() : xAxisName;
-			}
 #endif
+			}
 
 			if ( !xAxisName.empty() )
 			{

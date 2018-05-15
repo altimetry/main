@@ -1,4 +1,4 @@
 75de6d3bd178bacb7cbae2ddec5dc0e8  QScintilla-gpl-2.9-patched.zip
 21b4d246ac45fc67fda51e1822ccc14d  qwt-5.2.3-vs2015-qt5-patched.zip
 d4c429e1447c06ea6a2cb0b5dc556e5f  qwtplot3d-0.2.7-qt5-vs2015-patched.tar.gz
- 
+0d361a5a89a2a30713cf6a7c1b316247  qca-2.1.0-patched.tar.gz 

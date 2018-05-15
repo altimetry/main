@@ -191,21 +191,24 @@ public:
 	//CAxisTab *mZ_axis = nullptr;
 
     QLineEdit *mXAxisLabel = nullptr;
-    QLineEdit *mXNbTicks  = nullptr;
+	QToolButton *mXAxisDimension = nullptr;
+	QLineEdit *mXNbTicks  = nullptr;
     QLineEdit *mXNbDigits = nullptr;
 	QDoubleSpinBox *mX2DScaleSpin = nullptr;
     QLineEdit *mXAxisMinMax = nullptr;
 	QDoubleSpinBox *mX3DScaleSpin = nullptr;
 
     QLineEdit *mYAxisLabel = nullptr;
-    QLineEdit *mYNbTicks  = nullptr;
+	QToolButton *mYAxisDimension = nullptr;
+	QLineEdit *mYNbTicks  = nullptr;
     QLineEdit *mYNbDigits = nullptr;
 	QDoubleSpinBox *mY2DScaleSpin = nullptr;
     QLineEdit *mYAxisMinMax = nullptr;
 	QDoubleSpinBox *mY3DScaleSpin = nullptr;
 
     QLineEdit *mZAxisLabel = nullptr;
-    QLineEdit *mZNbTicks  = nullptr;
+	QToolButton *mZAxisDimension = nullptr;
+	QLineEdit *mZNbTicks  = nullptr;
     QLineEdit *mZNbDigits = nullptr;
 	QDoubleSpinBox *mZ2DScaleSpin = nullptr;
     QLineEdit *mZAxisMinMax = nullptr;

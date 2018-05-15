@@ -16,15 +16,15 @@ distribution or installation.
 The short version is as follows:
 
 + For Windows: double-click the installer file appropriate
-for your platform (brat-4.2.0-Win32-installer.exe for 32-bit
-operating systems, brat-4.2.0-x64-installer.exe for 64-bit
+for your platform (brat-4.2.1-Win32-installer.exe for 32-bit
+operating systems, brat-4.2.1-x64-installer.exe for 64-bit
 operating systems), and follow the instructions.
 
 
 + For Linux: double-click in your desktop manager (or execute
 from the command-line) the installer file appropriate for your
 platform. For 32 bit operating system execute the file 
-brat-4.2.0-i386-installer.run. If necessary, use the command
+brat-4.2.1-i386-installer.run. If necessary, use the command
 'chmod +x <installer-filename>' 
 to ensure the installer is executable.)
 
@@ -46,11 +46,14 @@ These dependencies are provided with the operating system but not
 necessarily installed by default. Other dependencies may be necessary
 for the packages that must be build, and not simply insalled, as 
 explained below.
+Linux users can find more details and a precise installation procedure 
+targeting Debian 8 in the document SampleBuild.pdf, in the doc folder 
+of BRAT source package. 
 
 
 + For Mac OS X: double-click the image file appropriate for the
-type of application you want to install: brat-4.2.0-macosx-i386.dmg
-for 32 bit BRAT applications, or brat-4.2.0-macosx-x86_64.dmg for 
+type of application you want to install: brat-4.2.1-macosx-i386.dmg
+for 32 bit BRAT applications, or brat-4.2.1-macosx-x86_64.dmg for 
 64 bit BRAT applications (Intel only). Then, drag the 'brat.app' and 
 'scheduler.app' bundles to the 'Applications' folder on your machine. 
 For a full installation, documentation included, copy the mounted 
@@ -99,7 +102,7 @@ be downloaded using the native package manager) so this should
 not be a problem. For Linux, BRAT was developed with GNU g++
 (version 4.7.x or higher), for Windows with Visual Studio
 C++ 2015, for Mac OS X with GNU g++ 4.2 (BRAT 3.2.0, 32 bit) and
-clang 6.x (BRAT 4.2.0, 32 bit and 64 bit). In Mac OS X you should
+clang 6.x (BRAT 4.2.1, 32 bit and 64 bit). In Mac OS X you should
 make sure you have installed the Developer Tools. Both 32 bit and
 64 bit builds use SDK 10.8 and libc++.
 
@@ -211,14 +214,14 @@ all sub-dependencies are covered.
 
   On the other hand, different operating system versions often require 
 adjustments of compilation settings, even within the same platform family.
-BRAT v4.1.0 elected some versions as target for each supported platform 
+BRAT v4.2.1 elected some versions as target for each supported platform 
 and architecture, versions where the software is known to build and run
 according to the requirements and the documented procedures, and that 
 can be taken as reference for adjusting the build settings to different 
-environments. BRAT v4.1.0 reference operating system versions are the 
+environments. BRAT v4.2.1 reference operating system versions are the 
 following:
 
-- Linux platform: debian 7, 32 and 64 bit versions;
+- Linux platform: debian 8, 32 and 64 bit versions;
 
 - Windows platform: Windows 7 Professional, 32 and 64 bit versions;
 
@@ -227,6 +230,15 @@ following:
 
 Building the source package (Linux)
 -----------------------------------
+
+The build instructions in this document have necessarily a 
+certain degree of incompleteness, given the great diversity not
+only of Linux distributions but also of the possibly different
+configurations or updates in each concrete system. For a precise 
+installation procedure, targeting the reference OS version for 
+Linux (Debian 8), please see instead the document SampleBuild.pdf, 
+in the doc folder of BRAT source package.
+
 
 The following steps will guide you through the process of
 building the BRAT libraries and executables (including CODA, 
@@ -383,7 +395,7 @@ a Linux-based platform:
     The following additional options were inherited from 
     BRAT 3.1.0 and, with the exception of MATLAB support for 64 
     bit, so far they are supported only to the extent where they 
-    are compatible without changes with BRAT 4.2.0.
+    are compatible without changes with BRAT 4.2.1.
     
     -DBRATHL_BUILD_FORTRAN=OFF
 

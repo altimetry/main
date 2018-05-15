@@ -507,7 +507,7 @@ std::string CBratProcess::GetIndexName(long nbElts)
 
 }
 //----------------------------------------
-void CBratProcess::ResizeArrayDependOnFields(uint32_t size)
+void CBratProcess::ResizeArrayDependOnFields(uint_t size)
 {
   m_fields.resize(size);
   m_units.resize(size);
@@ -2226,23 +2226,16 @@ void CBratProcess::ReplaceFieldDefinition()
 //----------------------------------------
 void CBratProcess::ReplaceAxisDefinition()
 {
-  if (! CBratProcess::IsProductNetCdf() )
-  {
-    return;
-  }
-  
+	if ( !IsProductNetCdf() )
+	{
+		return;
+	}
 
-  SetDimCoordAxesToFieldWithoutDim(m_xField);
-  SetDimCoordAxesToFieldWithoutDim(m_yField);
- 
+	SetDimCoordAxesToFieldWithoutDim( *m_xField.GetFieldNames() );
+	SetDimCoordAxesToFieldWithoutDim( *m_yField.GetFieldNames() );
+
 }
 
-//----------------------------------------
-void CBratProcess::SetDimCoordAxesToFieldWithoutDim(const CExpression& expr)
-{
-  SetDimCoordAxesToFieldWithoutDim(*(expr.GetFieldNames()));
-}
-//----------------------------------------
 void CBratProcess::SetDimCoordAxesToFieldWithoutDim(const CStringArray& fieldNames)
 {
   if (m_product == nullptr)
@@ -2701,20 +2694,16 @@ void CBratProcess::AddDimensionsFromNetCdf( CStringArray& dimNames )
 //----------------------------------------
 void CBratProcess::OnAddDimensionsFromNetCdf()
 {
-  IncrementOffsetValues();
+	IncrementOffsetValues();
 
-  m_countOffsets.push_back(-1);
-  m_meanOffsets.push_back(-1);
+	m_countOffsets.push_back( -1 );
+	m_meanOffsets.push_back( -1 );
 
-  //-----------------
-  m_nbDataAllocated++;
-    //-----------------
+	//-----------------
+	m_nbDataAllocated++;
+	//-----------------
 
-}
-//----------------------------------------
-void CBratProcess::SubstituteAxisDim(const CStringArray& fieldDims, CStringArray& fieldDimsOut)
-{
-    UNUSED(fieldDims);    UNUSED(fieldDimsOut);
+	ResizeArrayDependOnFields( m_fields.size() );
 }
 //----------------------------------------
 void CBratProcess::AddVarsFromNetCdf()

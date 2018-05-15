@@ -47,6 +47,8 @@ protected:
 
 	static QTreeWidgetItem* SetItemBold( QTreeWidgetItem *item, bool bold );	
 
+	static QTreeWidgetItem* EnableItem( QTreeWidgetItem *item, bool enable );
+
 
 	// instance variables
 

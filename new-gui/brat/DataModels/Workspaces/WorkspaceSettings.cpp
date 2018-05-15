@@ -153,6 +153,7 @@ static const std::string ENTRY_ZOOM = "Zoom";
 
 
 
+DEFINE_WORKSPACE_ENTRY( FIELD_X_AXIS_DIMENSION )
 
 DEFINE_WORKSPACE_ENTRY( FIELD_DATA_NAME )
 DEFINE_WORKSPACE_ENTRY( FIELD_DESC_NAME )
@@ -1329,6 +1330,7 @@ bool CWorkspaceSettings::SaveConfig( CDisplayData &data, const std::string& path
 
 	WriteSection( path,
 
+		k_v( ENTRY_FIELD_X_AXIS_DIMENSION, data.mXAxisDimension ),
 		k_v( ENTRY_FIELD_DATA_NAME, data.mFieldName ),
 		k_v( ENTRY_FIELD_DESC_NAME, data.mUserName ),
 
@@ -1566,8 +1568,9 @@ bool CWorkspaceSettings::LoadConfig( CDisplayData *&pdata, const CDisplay *paren
 	double current_max = CBratLookupTable::smDefaultRangeValues;
 	ReadSection( path,
 
-		k_v( ENTRY_FIELD_DATA_NAME,		&data.mFieldName ),
-		k_v( ENTRY_FIELD_DESC_NAME,		&data.mUserName ),
+		k_v( ENTRY_FIELD_X_AXIS_DIMENSION,	&data.mXAxisDimension ),
+		k_v( ENTRY_FIELD_DATA_NAME,			&data.mFieldName ),
+		k_v( ENTRY_FIELD_DESC_NAME,			&data.mUserName ),
 
 		k_v( ENTRY_FIELD_DATA_OPACITY,	&data.mOpacity ),
 

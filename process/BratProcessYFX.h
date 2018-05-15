@@ -73,12 +73,12 @@ protected:
 
   DoublePtr* GetOneMeasure(double key);
 
+  //NOT used
   void ResizeDataValues(CDoubleArrayOb* dataValues, uint32_t nbValues);
   
   int32_t WriteData();
 
-  virtual void SubstituteAxisDim(const CStringArray& fieldDims, CStringArray& fieldDimsOut);
-  virtual void OnAddDimensionsFromNetCdf();
+  virtual void SubstituteAxisDim(const CStringArray& fieldDims, CStringArray& fieldDimsOut) const override;
 
   bool CheckValuesSimilar(uint32_t indexExpr, double* dataValues, uint32_t nbValues, std::string& msg);
   bool CheckValuesSimilar(uint32_t indexExpr);

@@ -175,7 +175,6 @@ private:
 
 #if defined(BRAT_V3)
 	//...axis
-	std::string m_xAxis;
 	bool m_invertXYAxes = false;
 #endif
 
@@ -327,13 +326,19 @@ public:
 	std::string CurrentMaxValueAsText() const { return GetValueAsText( CurrentMaxValue() ); }
 
 	std::string GetSolidColorAsText() const { return ( WithSolidColor() ? "Y" : "N" ); }
+	
+	virtual void GetAvailableAxes( CStringArray& names ) const;
+	virtual CStringArray GetAvailableAxes() const override
+	{
+		CStringArray dims;
+		GetAvailableAxes( dims );
+		return dims;
+	}
+
 
 #if defined(BRAT_V3)
 
 	//...axis
-
-	std::string GetXAxis() const { return m_xAxis; }
-	void SetXAxis( const std::string& value ) { m_xAxis = value; }
 
 public:
 	const std::string& GetXAxisText( unsigned index ) const;
@@ -341,8 +346,6 @@ public:
 
 	bool HasXComplement();
 	void GetXComplement( CStringArray& complement );
-
-	void GetAvailableAxes( CStringArray& names ) const;
 
 	bool IsInvertXYAxes() const { return m_invertXYAxes; }
 	void SetInvertXYAxes( bool value ) { m_invertXYAxes = value; }

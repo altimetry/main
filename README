@@ -61,11 +61,35 @@ itself and the reasons why they originate have no consequences on
 BRAT functionality. They can be safely disregarded.
 
 
+- Troubleshooting BRAT startup issues caused by OpenGL check failures
+
+By default, when the BRAT GUI application starts, some tests are executed 
+to evaluate the system's OpenGL capabilities. The user can then be alerted 
+if some 3D views (3D plots or the globe) have limitations or are not 
+displayed at all. In some systems, the Qt framework is not always able to 
+recover from these test failures, and the application crashes without 
+being able to circumvent the error and/or display any warnings to the user. 
+If BRAT cannot start, this is the most common reason, namely in virtual 
+machines. To disable these default checks, and allow BRAT to start 
+nevertheless, please see the BRAT Software User Manual, section “3.7. 
+Troubleshooting OpenGL issues”.
+
 
 
 
 Version History
 == == == == == == ==
+
+4.2.1 - May 2018
+--------------------
+Features added in this version:
+
+- Dimensions consistency check of all operation parameters
+- Prevent execution and display full information when dimensions check fails
+- Correction of map distance tool for all latitudes and projections
+- Improved visualization of X axis, supporting multiple dimensions
+- Support user defined variables for filtering parameters
+
 
 4.2.0 - October 2017
 --------------------

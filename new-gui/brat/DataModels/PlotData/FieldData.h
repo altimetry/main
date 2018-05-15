@@ -92,6 +92,11 @@ private:
 	mutable std::vector< CInternalFiles* > mInternalFiles;		//TODO serialize ???
 
 
+	//formerly m_xAxis
+	// 
+	std::string mXAxisDimension;
+
+
 	/////////////////////////
 	// YFX / ZFXY / LON-LAT
 	/////////////////////////
@@ -203,6 +208,7 @@ public:
 		if ( this != &o )
 		{
 			mInternalFiles = o.mInternalFiles;
+			mXAxisDimension = o.mXAxisDimension;
 
 #if defined (BRAT_V3)
 			mTitle = o.mTitle;
@@ -284,6 +290,8 @@ public:
 		return 
 			mInternalFiles == o.mInternalFiles &&
 
+			mXAxisDimension == o.mXAxisDimension &&
+
 #if defined (BRAT_V3)
 			mTitle == o.mTitle &&
 			m_xMax == o.m_xMax &&
@@ -361,6 +369,14 @@ public:
 	///////////////////////////////
 	//		properties
 	///////////////////////////////
+
+	const std::string& GetXAxis() const { return mXAxisDimension; }
+	void SetXAxis( const std::string& dimension ) { mXAxisDimension = dimension; }
+
+	virtual CStringArray GetAvailableAxes() const
+	{
+		return CStringArray();
+	}
 
 
 	// YFX / ZFXY / LON-LAT

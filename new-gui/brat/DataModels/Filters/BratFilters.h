@@ -81,6 +81,20 @@ inline const std::string& time_alias()
 
 
 
+
+
+enum EFilterVariablesNames
+{
+	eFilterVariableLon,
+	eFilterVariableLat,
+	eFilterVariableTime,
+
+	EEFilterVariablesNames_size
+};
+
+
+
+
 //////////////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -313,9 +327,10 @@ protected:
 public:
 	std::pair< bool, bool > Apply( const CStringList& files_in, CStringList& files_out, std::string &error_msg, CProgressInterface *progress ) const;
 
-	// Argument product_label must be the value returned by CProduct::GetLabelForCyclePass()
+	// Argument label_for_cycle_pass must be the value returned by CProduct::GetLabelForCyclePass()
+	// Items in op_vars should be empty or the variables names inserted by the user in the operation; but must be 3
 	//
-    std::string GetSelectionCriteriaExpression( const std::string &label_for_cycle_pass ) const;
+    std::string GetSelectionCriteriaExpression( const std::string &label_for_cycle_pass, const std::vector< std::string > &op_vars = std::vector< std::string >() ) const;
 };
 
 

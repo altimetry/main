@@ -144,17 +144,6 @@ CTrace* CTrace::GetInstance(const std::string& szFileLog)
  }
 //----------------------------------------------------
 
-CTrace* CTrace::GetInstance(int argc, char *argv[])
- {
-   if ( CTrace::m_instance == NULL)
-   {
-     CTrace::m_instance = CTrace::CreateObject(argc, argv);
-     prepareSmartCleaner();
-   }
-   return CTrace::m_instance;
- }
-//----------------------------------------------------
-
 CTrace* CTrace::GetInstance()
  {
    if ( CTrace::m_instance == NULL)
@@ -174,11 +163,11 @@ void CTrace::prepareSmartCleaner(void)
 }
 //----------------------------------------------------
 
-std::ostream* CTrace::SetDumpContext(std::ostream* value)
-{
-   CTrace * pTrace = GetInstance();
-   return pTrace->SetDumpContextReal(value);
-}
+//std::ostream* CTrace::SetDumpContext(std::ostream* value)
+//{
+//   CTrace * pTrace = GetInstance();
+//   return pTrace->SetDumpContextReal(value);
+//}
 //----------------------------------------------------
 
 std::ostream* CTrace::GetDumpContext()

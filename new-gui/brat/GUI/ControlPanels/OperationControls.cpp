@@ -44,6 +44,7 @@
 #include "Dialogs/ShowInfoDialog.h"
 #include "Dialogs/DataDisplayPropertiesDialog.h"
 #include "Dialogs/DatasetInterpolationDialog.h"
+#include "Dialogs/EditFilterFieldsDialog.h"
 
 #include "DataExpressionsTreeWidgets.h"
 #include "OperationControls.h"
@@ -285,7 +286,7 @@ void COperationControls::CreateAdvancedOperationsPage()
 	} );
 
 
-	// II. Operations & Datasets &Filters
+	// II. Operations & Datasets & Filters
 
 	mOperationsCombo = new QComboBox;
 	mOperationsCombo->setMinimumWidth( min_readable_combo_width );
@@ -358,6 +359,7 @@ void COperationControls::CreateAdvancedOperationsPage()
     mInsertAlgorithm = CreateToolButton( "", ":/images/OSGeo/algorithm.png", "Insert algorithm" );
     mInsertFormula = CreateToolButton( "", ":/images/OSGeo/expression.png", "Insert formula" );
     mSaveAsFormula = CreateToolButton( "", ":/images/OSGeo/expression_save.png", "Save as formula" );
+	mEditFilterFields = CreateToolButton( "", "://images/OSGeo/filter.png", "Change filter variables" );
     mDataDisplayProperties = CActionInfo::CreateToolButton( eAction_DataDisplayProperties );
 	mDataComputationGroup = CreateActionGroup( this, CreateDataComputationActions(), true );
     mDataComputation = CreateMenuButton(  "", ":/images/OSGeo/processing.png", "Set how data are stored/computed", mDataComputationGroup->actions() );
@@ -373,8 +375,8 @@ void COperationControls::CreateAdvancedOperationsPage()
 
 	auto *expression_buttons = CreateButtonRow( false, Qt::Horizontal, 
 	{ 
-        mInsertFunction, mInsertFormula, mSaveAsFormula, mInsertAlgorithm, nullptr, mDataDisplayProperties, mDataComputation, mDatasetInterpolationButton, mDataSmoothing, nullptr,
-                                                    mShowInfoButton, mShowAliasesButton
+        mInsertFunction, mInsertFormula, mSaveAsFormula, mInsertAlgorithm, nullptr, mDataDisplayProperties, mDataComputation, 
+		mDatasetInterpolationButton, mDataSmoothing, nullptr, mEditFilterFields, nullptr, mShowInfoButton, mShowAliasesButton
 	} );
 
 
@@ -548,6 +550,7 @@ void COperationControls::Wire()
 	connect( mInsertAlgorithm, SIGNAL( clicked() ), this, SLOT( HandleInsertAlgorithm() ) );
 	connect( mInsertFormula, SIGNAL( clicked() ), this, SLOT( HandleInsertFormula() ) );
 	connect( mSaveAsFormula, SIGNAL( clicked() ), this, SLOT( HandleSaveAsFormula() ) );
+	connect( mEditFilterFields, SIGNAL( clicked() ), this, SLOT( HandleEditFilterFields() ) );
     connect( mDataDisplayProperties, SIGNAL( clicked() ), this, SLOT( HandleDataDisplayProperties() ) );
 	connect( mDatasetInterpolationButton, SIGNAL( clicked() ), this, SLOT( HandleDatasetInterpolationRequested() ) );
 
@@ -2754,7 +2757,10 @@ void COperationControls::HandleSelectedFormulaChanged( CFormula *formula )
 	if ( enable_sampling )
 		UpdateSamplingGroup();
 
-    mDataDisplayProperties->setEnabled( MapPlotSelected() && mCurrentOperation && mCurrentOperation->GetFormulaCountDataFields() > 1 && enable_data_Computation_Smooth );
+	bool is_selection_criteria = mUserFormula != nullptr && mUserFormula->GetFieldType() == CMapTypeField::eTypeOpAsSelect;
+
+	mDataDisplayProperties->setEnabled( MapPlotSelected() && mCurrentOperation && mCurrentOperation->GetFormulaCountDataFields() > 1 && enable_data_Computation_Smooth );
+	mEditFilterFields->setEnabled( is_selection_criteria && mCurrentOperation && mCurrentOperation->Filter() );
 
 	UpdateGUIState();
 }
@@ -2802,6 +2808,15 @@ void COperationControls::HandleSaveAsFormula()
 	mDataExpressionsTree->SaveAsFormula();
 }
 
+
+void COperationControls::HandleEditFilterFields()
+{
+	assert__( mCurrentOperation );
+
+	CEditFilterFieldsDialog dlg( mCurrentOperation, this );
+	if ( dlg.exec() == QDialog::Accepted )
+	{}
+}
 
 void COperationControls::HandleDataDisplayProperties()
 {

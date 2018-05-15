@@ -58,6 +58,7 @@ CGenericTreeWidget::CGenericTreeWidget( QWidget *parent, bool default_icons )	//
 }
 
 
+//static 
 QTreeWidgetItem* CGenericTreeWidget::SetItemBold( QTreeWidgetItem *item, bool bold )
 {
 	QFont font = item->font( 0 );
@@ -67,7 +68,15 @@ QTreeWidgetItem* CGenericTreeWidget::SetItemBold( QTreeWidgetItem *item, bool bo
 }
 
 
-
+//static 
+QTreeWidgetItem* CGenericTreeWidget::EnableItem( QTreeWidgetItem *item, bool enable )
+{
+	if (enable)
+		item->setFlags( item->flags() | Qt::ItemIsEnabled );
+	else
+		item->setFlags( item->flags() & ~Qt::ItemIsEnabled );
+	return item;
+}
 
 
 

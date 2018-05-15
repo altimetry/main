@@ -44,11 +44,11 @@ public:
 	static CTrace* CreateObject( int argc, char *argv[] );
 
 	static CTrace* GetInstance( const std::string& szFileLog );
-	static CTrace* GetInstance( int argc, char *argv[] );
+	//static CTrace* GetInstance( int argc, char *argv[] );
 	static CTrace* GetInstance();
 
 	//static void Release();
-	static std::ostream* SetDumpContext( std::ostream* value );
+	//static std::ostream* SetDumpContext( std::ostream* value );
 	static std::ostream* GetDumpContext();
 
 	static bool IsTrace( int	Level	= 5 );
@@ -74,10 +74,10 @@ public:
 	*/
 	static void SetTraceLevel( int Level );
 
-	static int GetTraceLevel()
-	{
-		return m_TraceLevel;
-	}
+	//static int GetTraceLevel()
+	//{
+	//	return m_TraceLevel;
+	//}
 
 
 protected:

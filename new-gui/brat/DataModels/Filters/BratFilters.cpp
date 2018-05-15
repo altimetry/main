@@ -284,8 +284,9 @@ bool CBratFilter::GetTimeBounds( CDate &Start, CDate &Stop, const std::string &l
 
 
 // Argument label_for_cycle_pass must be the value returned by CProduct::GetLabelForCyclePass()
+// Arguments in op_vars should be empty or the variables names inserted by the user in the operation
 //
-std::string CBratFilter::GetSelectionCriteriaExpression( const std::string &label_for_cycle_pass ) const
+std::string CBratFilter::GetSelectionCriteriaExpression( const std::string &label_for_cycle_pass, const std::vector< std::string > &op_vars ) const	//op_vars = std::vector< std::string >() 
 {
 	//types
 
@@ -328,26 +329,30 @@ std::string CBratFilter::GetSelectionCriteriaExpression( const std::string &labe
 	
 	// is_bounded (see above) for latitudes
 	//
-	auto lat_is_bounded = [&is_bounded]( double min, double max ) -> std::string 
+	auto lat_is_bounded = [&is_bounded, &op_vars]( double min, double max ) -> std::string 
 	{
-		return is_bounded( min, lat_alias(), max );
+		auto op_lat_name = op_vars.empty() ? empty_string() : op_vars[eFilterVariableLat];
+		return is_bounded( min, op_lat_name.empty() ? lat_alias() : op_lat_name, max );
 	};
 
 
 	// is_bounded (see above) for normalized longitudes
 	//
-	auto lon_is_bounded = [&is_bounded]( double min, double max ) -> std::string 
+	auto lon_is_bounded = [&is_bounded, &op_vars]( double min, double max ) -> std::string 
 	{
 		auto lon_normalize_formula = []( const std::string &lon ) -> std::string 
 		{
 			return "deg_normalize( " + abs_min_lon_string + ", " + lon + " )";
 		};
 
-		return is_bounded( min, lon_normalize_formula( lon_alias() ), max );
+		auto op_lon_name = op_vars.empty() ? empty_string() : op_vars[eFilterVariableLon];
+		return is_bounded( min, lon_normalize_formula( op_lon_name.empty() ? lon_alias() : op_lon_name ), max );
 	};
 
 
 	//function body
+
+	assert__( op_vars.empty() || op_vars.size() == EEFilterVariablesNames_size );
 
 	std::string expression;
 
@@ -415,6 +420,7 @@ std::string CBratFilter::GetSelectionCriteriaExpression( const std::string &labe
 
     CDate Start, Stop;
     std::string error_msg;
+
 	if ( GetTimeBounds( Start, Stop, label_for_cycle_pass, error_msg ) )
     {
 		// Although some products have time fields in seconds since 2000-01-01,in selection 
@@ -428,7 +434,8 @@ std::string CBratFilter::GetSelectionCriteriaExpression( const std::string &labe
         {
             expression = "(" + expression + ")" + " && ";   //  ((AREA1) || (AREA2)) && ... (TIME_PERIOD)
         }
-        expression += is_bounded( start_seconds, time_alias(), stop_seconds );
+		auto op_time_name = op_vars.empty() ? empty_string() : op_vars[eFilterVariableTime];
+		expression += is_bounded( start_seconds, op_time_name.empty() ? time_alias() : op_time_name, stop_seconds );
     }
 
     if (expression.empty()) { LOG_INFO( "Filter '" + mName + "' applied no selection criteria expression." ); }

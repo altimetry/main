@@ -93,6 +93,11 @@ void CPlotEditor::Wire()
     connect( mTabAxisOptions->mYAxisLabel, SIGNAL( returnPressed() ), this, SLOT( HandleYAxisLabelChanged( ) ) );
     connect( mTabAxisOptions->mZAxisLabel, SIGNAL( returnPressed() ), this, SLOT( HandleZAxisLabelChanged( ) ) );
 
+	//...dimensions
+	mTabAxisOptions->mXAxisDimension->setEnabled( false );
+	mTabAxisOptions->mYAxisDimension->setEnabled( false );
+	mTabAxisOptions->mZAxisDimension->setEnabled( false );
+
     //...ticks
     connect( mTabAxisOptions->mXNbTicks, SIGNAL( returnPressed() ), this, SLOT( HandleXNbTicksChanged( ) ) );
     connect( mTabAxisOptions->mYNbTicks, SIGNAL( returnPressed() ), this, SLOT( HandleYNbTicksChanged( ) ) );
@@ -969,6 +974,7 @@ void CPlotEditor::Recreate3DPlots( bool build2d, bool build3d )
 
 	mMultiFrame = mPlotType != eHistogram && n_frames > 1;
 	mTabAnimateOptions->setEnabled( mMultiFrame );				assert__( !mMultiFrame );		//TODO check this for 3d
+	mTabAxisOptions->mXAxisDimension->setEnabled( mMultiFrame );
 
 
 	//interaction
@@ -1148,12 +1154,15 @@ void CPlotEditor::Recreate2DPlots()
         mPlot2DView->SetYAxisDigits( nrFields == 1 && mCurrentPlotYFX->YUnit().IsDate(), y_digits, RefDateFromUnit( mCurrentPlotYFX->YUnit() ) );
     }
 
-	//animation
+	// animation && X dimensions
 
 	mMultiFrame = mPlotType != eHistogram && n_frames > 1;
 	mTabAnimateOptions->setEnabled( mMultiFrame );
+	mTabAxisOptions->mXAxisDimension->setEnabled( mMultiFrame );
 	if ( mMultiFrame )
 	{
+		// animation
+		// 
 		mTabAnimateOptions->SetRange( n_frames -1 );
 		mTabAnimateOptions->mSpeedEdit->setText( "100" );
 		mTabAnimateOptions->mMoveForwardButton->setChecked( true ), 
@@ -1161,6 +1170,27 @@ void CPlotEditor::Recreate2DPlots()
 
 		connect( mPlot2DView, SIGNAL( FrameChanged( size_t ) ), mTabAnimateOptions, SLOT( HandleFrameChanged( size_t ) ) );
 		connect( mPlot2DView, SIGNAL( AnimationStopped() ), this, SLOT( AnimationStopped() ) );
+
+		// X axis dimensions
+		// 
+		//See CWorkspaceDisplay::CreateDisplays4Operation for another 
+		// way (using GetVarDims) of getting dimensions
+		// 
+		CStringArray dims = mCurrentPlotFieldYFX->GetAvailableAxesDimensions();
+		auto current_dim = mCurrentPlotFieldYFX->XAxis();
+
+		QActionGroup *group = ::CreateActionGroup( this, true );
+		for ( auto const &dim : dims )
+		{
+			QAction *a = new QAction( dim.c_str(), group );
+			a->setCheckable( true );
+			a->setChecked( current_dim == dim );
+			a->setFont( mTabAxisOptions->mXAxisDimension->font() );
+			connect( a, &QAction::triggered, this, &CPlotEditor::HandleXAxisDimensionChanged );
+		}
+
+		mTabAxisOptions->mXAxisDimension->menu()->clear();
+		mTabAxisOptions->mXAxisDimension->menu()->addActions( group->actions() );
 	}
 
 
@@ -1189,8 +1219,6 @@ void CPlotEditor::Recreate2DPlots()
 	else
 		HandleCurrentFieldChanged( 0 );
 }
-
-
 
 
 
@@ -1653,9 +1681,25 @@ void CPlotEditor::HandlePointOptionsChecked( bool checked )
 
 
 
-/////////////////////////
-// animation properties
-/////////////////////////
+///////////////////////////////////////////////
+// animation properties && X Axis Dimension
+///////////////////////////////////////////////
+
+
+
+void CPlotEditor::HandleXAxisDimensionChanged()
+{
+	assert__( mPlot2DView && CurrentDisplayDataProcessor() && mCurrentPlotYFX && mCurrentPlotFieldYFX );
+
+	const QAction *a = qobject_cast<const QAction*>( sender() );		assert__( a );
+	const std::string dim = q2a( a->text() );
+	if ( dim != mCurrentPlotFieldYFX->XAxis() )
+	{
+		mCurrentPlotFieldYFX->SetXAxis( dim );
+		RunButtonClicked();
+	}
+}
+
 
 
 void CPlotEditor::HandleAnimateButtonToggled( bool toggled )
@@ -1733,7 +1777,7 @@ void CPlotEditor::HandleFrameIndexSpinChanged( int i )
 
 void CPlotEditor::SetAnimationDescr( int frame )
 {
-	assert__( mPlot2DView  && mCurrentPlotFieldYFX );
+	assert__( mPlot2DView && mCurrentPlotFieldYFX );
 
 	mTabAnimateOptions->mInformation->setText( "" );
 

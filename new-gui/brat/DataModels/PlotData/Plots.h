@@ -574,7 +574,7 @@ public:
 #endif
 
 	std::vector< DATA_FIELD* > mDataFields;	//ex-CDisplayData/CXXXProperties, represents a data field display data
-	std::vector< PLOT_FIELD* > mPlotFields;	//ex-CXXPlotData, represents a plot field: can assemble 2 data fields (vector pots) and results from GetInfo (plot building)
+	std::vector< PLOT_FIELD* > mPlotFields;	//ex-CXXPlotData, represents a plot field: can assemble 2 data fields (vector plots) and results from GetInfo (plot building)
 
 
 //protected:

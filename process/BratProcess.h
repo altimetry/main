@@ -604,7 +604,7 @@ namespace processes
 		void DeleteInternalFile();
 		void DeleteFileParams();
 		void LoadProductDictionary( const std::string& filename, bool createVirtualField = true );
-		void ResizeArrayDependOnFields( uint32_t size );
+		virtual void ResizeArrayDependOnFields( uint_t size );
 
 		void NetCdfProductInitialization();
 		void AddCritSelectionComplementDimensionsFromNetCdf();
@@ -647,10 +647,12 @@ namespace processes
 		virtual void ReplaceFieldDefinition();
 		virtual void ReplaceAxisDefinition();
 
-		virtual void SetDimCoordAxesToFieldWithoutDim( const CExpression& expr );
-		virtual void SetDimCoordAxesToFieldWithoutDim( const CStringArray& fieldNames );
+private:
+		void SetDimCoordAxesToFieldWithoutDim( const CStringArray& fieldNames );
 
-		//virtual void CheckNetCdfFields(CStringArray& fields);
+protected:
+
+	//virtual void CheckNetCdfFields(CStringArray& fields);
 		CExternalFilesNetCDF* OpenExternalFilesNetCDF( const std::string& fileName );
 
 		virtual void AddDimensionsFromNetCdf( CStringArray& fields );
@@ -659,8 +661,12 @@ namespace processes
 
 		std::string GetExpressionNewName( const std::string& name );
 
-
-		virtual void SubstituteAxisDim( const CStringArray& fieldDims, CStringArray& fieldDimsOut );
+		//Cannot be pure virtual, the class is used by other processes (BratStats, etc.) without being specialized
+		// 
+		virtual void SubstituteAxisDim( const CStringArray& fieldDims, CStringArray& fieldDimsOut ) const
+		{
+			UNUSED(fieldDims);    UNUSED(fieldDimsOut);
+		}
 		virtual void OnAddDimensionsFromNetCdf();
 
 		// Creates, opens and read parameters file, then get the list of input files.

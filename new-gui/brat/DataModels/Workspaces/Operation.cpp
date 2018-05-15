@@ -263,8 +263,8 @@ public:
         // Add filter expression
         if ( mOp.Filter() )
         {
-            CritExpression.empty() ? CritExpression += "" : CritExpression += " && ";
-            CritExpression += mOp.Filter()->GetSelectionCriteriaExpression( pi.LabelForCyclePass() );
+            CritExpression.empty() ? CritExpression += "" : CritExpression += " && ";			
+            CritExpression += mOp.FilterExpression( &pi );
         }
 
         if ( !CritExpression.empty() )
@@ -963,9 +963,39 @@ void COperation::ReapplyFilter()
 }
 
 
+const std::vector< std::string >& COperation::DefaultFilterVariablesNames() const
+{
+	static std::vector< std::string > names;
+
+	if ( names.empty() )
+	{
+		names.resize( EEFilterVariablesNames_size );
+		names[ eFilterVariableLon ] = lon_name();
+		names[ eFilterVariableLat ] = lat_name();
+		names[ eFilterVariableTime ] = time_name();
+	}
+	return names;
+}
+
+
+void COperation::SetFilterVariablesNames( const std::vector< std::string > &names )	//names = std::vector< std::string >()
+{
+	assert__( names.empty() || names.size() == EEFilterVariablesNames_size );
+
+	if ( names.empty() )
+		mFilterVariablesNames = DefaultFilterVariablesNames();
+	else
+	{
+		mFilterVariablesNames[ eFilterVariableLon ] = names[ eFilterVariableLon ];
+		mFilterVariablesNames[ eFilterVariableLat ] = names[ eFilterVariableLat ];
+		mFilterVariablesNames[ eFilterVariableTime ] = names[ eFilterVariableTime ];
+	}
+}
+
 void COperation::SetFilter( const CBratFilter *filter )
 { 
-	mFilter = filter; 
+	mFilter = filter;
+	SetFilterVariablesNames();
 	RemoveFilteredDataset();;		// SetFilteredDataset( error_msg, pi );
 }
 
@@ -974,6 +1004,7 @@ void COperation::SetFilter( const CBratFilter *filter )
 void COperation::RemoveFilter()
 {
 	mFilter = nullptr; 
+	SetFilterVariablesNames();
 	RemoveFilteredDataset();	// SetFilteredDataset( error_msg, nullptr );
 }
 
@@ -1120,6 +1151,36 @@ void COperation::RemoveFormulas()
 std::string COperation::FilterName() const
 {
 	return mFilter == nullptr ? "" : mFilter->Name();
+}
+
+
+// If CProductInfo of the operation dataset is not provided, we rely here that label_4_cycle_pass 
+// is the same for mFilteredDataset and mOriginalDataset; otherwise the filter had to be applied 
+// to get mFilteredDataset and the respective product, and this can be a very lengthy operation,
+// besides not const
+// 
+std::string COperation::FilterExpression( const CProductInfo *ppi ) const	//ppi = nullptr  
+{
+	std::string fexp;
+	if ( mFilter )
+	{
+		std::string label_4_cycle_pass;
+		if ( !ppi )
+		{
+			auto dataset = mFilteredDataset ? mFilteredDataset : mOriginalDataset;			assert__( dataset );
+			const CProductInfo pi( dataset );
+			label_4_cycle_pass = pi.IsValid() ? pi.LabelForCyclePass() : "";
+		}
+		else
+			label_4_cycle_pass = ppi->LabelForCyclePass();
+
+		auto op_vars = mFilterVariablesNames;
+		if ( mFilterVariablesNames == DefaultFilterVariablesNames() )
+			op_vars.clear();
+
+		fexp = Filter()->GetSelectionCriteriaExpression( label_4_cycle_pass, op_vars );
+	}
+	return fexp;
 }
 
 std::string COperation::OriginalDatasetName() const
@@ -2098,7 +2159,7 @@ bool COperation::Control( CWorkspaceFormula *wks, std::string &msg, const CStrin
 
 	for ( CMapFormula::iterator it = m_formulas.begin(); it != m_formulas.end(); it++ )
 	{
-		CFormula* value = dynamic_cast<CFormula*>( it->second );
+		CFormula *value = dynamic_cast<CFormula*>( it->second );
 		if ( value == nullptr )
 		{
 			continue;
@@ -2193,6 +2254,50 @@ bool COperation::Control( CWorkspaceFormula *wks, std::string &msg, const CStrin
 		//{
 		//  errorCount++;
 		//}
+	}
+
+	// Check homogeneity of dimensions among all operation fields
+	
+	auto prev_dims = -1;
+	std::string prev_field_name;
+	for ( CMapFormula::iterator it = m_formulas.begin(); it != m_formulas.end(); it++ )
+	{
+		CFormula *formula = dynamic_cast<CFormula*>( it->second );
+		if ( !formula )
+		{
+			continue;
+		}
+
+		CStringArray field_names;
+		bOk = formula->GetFields( field_names, msg, aliases, pi.AliasesAsString() );
+		if ( !bOk )
+		{
+			errorCount++;
+			continue;
+		}
+
+		for ( auto &field_name : field_names )
+		{
+			CField *field = pi.FindFieldByName( field_name, m_record, msg );		assert__( field );
+			auto field_dims = field->GetNbDims();
+			if ( prev_dims >= 0 && prev_dims != field_dims )
+			{
+				errorCount++;
+				msg += "\nField '"
+					+ field->GetName()
+					+ "' has a number of dimensions ("
+					+ n2s( field_dims )
+					+ ") different from '"
+					+ prev_field_name 
+					+ "' ("
+					+ n2s( prev_dims )
+					+ ")."
+					;
+				break;
+			}
+			prev_field_name = field->GetName();
+			prev_dims = field_dims;
+		}
 	}
 
 	return ( errorCount == 0 );

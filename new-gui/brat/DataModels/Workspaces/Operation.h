@@ -156,6 +156,7 @@ protected:
 	CDataset *mFilteredDataset = nullptr;	   				//v4.1: mDataset -> mFilteredDataset
 	const CDataset *mOriginalDataset = nullptr;				//v4
 	const CBratFilter *mFilter = nullptr;					//v4
+	std::vector< std::string > mFilterVariablesNames;		//v4
 	std::string m_record;									//CFormula* m_formula;
 	CFormula *mSelectionCriteria = nullptr;
 	CMapFormula m_formulas;
@@ -210,6 +211,7 @@ public:
 
 	COperation( const std::string name ) : m_name( name )
 	{
+		mFilterVariablesNames.resize( EEFilterVariablesNames_size );
 		CreateSelectionCriteria();
 	}
 
@@ -300,6 +302,9 @@ protected:
 	void CopyFilteredDatasetAndProduct( const COperation &o );
 	CDataset* NewFilteredDataset() const;
 
+	std::string FilterExpression( const CProductInfo *ppi = nullptr ) const;
+	const std::vector< std::string >& DefaultFilterVariablesNames() const;
+
 public:
 	const CDataset* OriginalDataset() const { return mOriginalDataset; }
 	std::string OriginalDatasetName() const;
@@ -311,7 +316,9 @@ public:
 
 	const CBratFilter* Filter() const { return mFilter; }
 	std::string FilterName() const;
-    void SetFilter( const CBratFilter *filter );
+	void SetFilter( const CBratFilter *filter );
+	const std::vector< std::string >& FilterVariablesNames() const { return mFilterVariablesNames; }
+	void SetFilterVariablesNames( const std::vector< std::string > &names = std::vector< std::string >() );
 	void RemoveFilter();
 	void ReapplyFilter();	//obsolete from v4.0: simply calls RemoveFilteredDataset
 

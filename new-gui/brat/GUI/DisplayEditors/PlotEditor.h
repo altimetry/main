@@ -185,6 +185,8 @@ protected slots:
     void HandleYAxisLabelChanged();
     void HandleZAxisLabelChanged();
 
+	void HandleXAxisDimensionChanged();
+
     //...ticks
     void HandleXNbTicksChanged();
     void HandleYNbTicksChanged();

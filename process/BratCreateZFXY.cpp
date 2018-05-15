@@ -43,15 +43,6 @@ using namespace processes;
 
 static const char *app_name = "BratCreateZFXY";
 
-//-checked "E:/data/brat/workspaces/Demo/Operations/Create_Op2_Jason_2_ZFXY_1var.par"
-//-checked "E:/data/brat/workspaces/Demo/Operations/Create_CoReSyF_J2.par"
-
-//-checked "E:/data/brat/workspaces/Demo-SUM/Operations/Create_CoReSyF_J1.par"
-//-checked "E:/data/brat/workspaces/Demo-SUM/Operations/Create_CoReSyF_J1_NOT_hi.par"
-
-//-checked "/home/femm/Documents/BRAT/workspaces/Demo/Operations/Create_Op2_Jason_2_ZFXY.par"
-//-checked "/home/femm/Documents/BRAT/workspaces/Demo/Operations/Create_CoReSyF_J2_p0012.par"
-
 //----------------------------------------
 //----------------------------------------
 //----------------------------------------

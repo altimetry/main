@@ -181,7 +181,8 @@ protected:
 	QToolButton *mInsertAlgorithm = nullptr;
 	QToolButton *mInsertFormula = nullptr;
 	QToolButton *mSaveAsFormula = nullptr;
-    QToolButton *mDataDisplayProperties = nullptr;
+	QToolButton *mEditFilterFields = nullptr;
+	QToolButton *mDataDisplayProperties = nullptr;
 	QToolButton *mDatasetInterpolationButton = nullptr;
 	QToolButton *mShowInfoButton = nullptr;
 	QGroupBox *mExpressionGroup = nullptr;
@@ -453,6 +454,7 @@ protected slots:
 	void HandleInsertAlgorithm();
 	void HandleInsertFormula();
 	void HandleSaveAsFormula();
+	void HandleEditFilterFields();
     void HandleDataDisplayProperties();
 	void HandleDatasetInterpolationRequested();
 

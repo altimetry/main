@@ -74,7 +74,7 @@ protected:
   void Init();
   void DeleteData();
 
-  void ResizeArrayDependOnFields(uint32_t size);
+  virtual void ResizeArrayDependOnFields( uint_t size) override;
 
   virtual void AddFieldIndexes(CFieldIndex* fieldIndex, CNetCDFVarDef* varDef);
   
@@ -106,7 +106,8 @@ protected:
   void RegisterData();
 
 
-  void ResizeDataValues(CDoubleArrayOb* dataValues, uint32_t nbValues);
+  // NOT used
+  //void ResizeDataValues(CDoubleArrayOb* dataValues, uint32_t nbValues);
   
   int32_t WriteData();
 
@@ -115,8 +116,7 @@ protected:
   void GetDataValuesFromMatrix(size_t indexExpr, uint32_t xPos, uint32_t yPos, double *&dataValues, 
 	  double *&countValues, double *&meanValues, size_t& nbValues);
 
-  virtual void SubstituteAxisDim(const CStringArray& fieldDims, CStringArray& fieldDimsOut);
-  virtual void OnAddDimensionsFromNetCdf();
+  virtual void SubstituteAxisDim(const CStringArray& fieldDims, CStringArray& fieldDimsOut) const override;
 
 
   bool CheckValuesSimilar(uint32_t indexExpr, double* dataValues, size_t nbValues, uint32_t xPos, uint32_t yPos, std::string& msg);

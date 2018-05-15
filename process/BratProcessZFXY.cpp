@@ -142,7 +142,7 @@ void CBratProcessZFXY::DeleteData()
 }
 
 //----------------------------------------
-void CBratProcessZFXY::ResizeArrayDependOnFields(uint32_t size)
+void CBratProcessZFXY::ResizeArrayDependOnFields(uint_t size)
 {
   base_t::ResizeArrayDependOnFields(size);
 
@@ -1252,7 +1252,7 @@ void CBratProcessZFXY::RegisterData()
 
 			assert__( ( matrixDouble && !matrixDoublePtr ) || ( !matrixDouble && matrixDoublePtr ) );
 
-			double* auxParams = ComputeMergeDataValueParameters( recordSet, indexExpr, xValue, yValue );
+			double* auxParams = ComputeMergeDataValueParameters( recordSet, indexExpr, xValue, yValue );		//only works for pctTIME
 			if ( matrixDouble != NULL )
 			{
 				MergeDataValue( *dataValues, exprValue.GetValues()[ 0 ], countValues, meanValues, auxParams, m_dataMode[ indexExpr ] );
@@ -2153,18 +2153,18 @@ int32_t CBratProcessZFXY::WriteData()
 //  return base_t::GetObArrayOb(m_measures.Exists(key), withExcept);
 //}
 //----------------------------------------
-void CBratProcessZFXY::ResizeDataValues(CDoubleArrayOb* dataValues, uint32_t nbValues)
-{   
-  if (dataValues == NULL)
-  {
-    return;
-  }
-
-  int32_t size = (nbValues == 0 ? 1 : nbValues);
-  dataValues->resize(size, base_t::MergeIdentifyUnsetData);
-}
+//void CBratProcessZFXY::ResizeDataValues(CDoubleArrayOb* dataValues, uint32_t nbValues)
+//{   
+//  if (dataValues == NULL)
+//  {
+//    return;
+//  }
+//
+//  int32_t size = (nbValues == 0 ? 1 : nbValues);
+//  dataValues->resize(size, base_t::MergeIdentifyUnsetData);
+//}
 //----------------------------------------
-void CBratProcessZFXY::SubstituteAxisDim( const CStringArray& fieldDims, CStringArray& fieldDimsOut )
+void CBratProcessZFXY::SubstituteAxisDim( const CStringArray& fieldDims, CStringArray& fieldDimsOut ) const
 {
 	// Replace dimensions which have the same name of the X/Y fields by the X/Y expression name 
 
@@ -2256,13 +2256,6 @@ void CBratProcessZFXY::SubstituteAxisDim( const CStringArray& fieldDims, CString
 
 	fieldDimsOut = fieldDimsOutTmp;
 	*/
-
-}
-
-//----------------------------------------
-void CBratProcessZFXY::OnAddDimensionsFromNetCdf()
-{
-  base_t::OnAddDimensionsFromNetCdf();
 
 }
 

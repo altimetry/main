@@ -513,7 +513,9 @@ void CDisplayData::GetXComplement(CStringArray& complement)
   xName.Complement(names, complement);
 }
 
-//----------------------------------------
+#endif
+
+
 void CDisplayData::GetAvailableAxes( CStringArray& names ) const
 {
 	for ( auto const &dim : mDimFields )
@@ -526,8 +528,6 @@ void CDisplayData::GetAvailableAxes( CStringArray& names ) const
 }
 
 
-#endif
-//----------------------------------------
 
 
 //static 

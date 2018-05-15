@@ -1344,29 +1344,22 @@ DoublePtr* CBratProcessYFX::GetOneMeasure(double key)
 //  return base_t::GetObArrayOb(m_measures.Exists(key), withExcept);
 //}
 //----------------------------------------
-void CBratProcessYFX::ResizeDataValues(CDoubleArrayOb* dataValues, uint32_t nbValues)
-{   
-  if (dataValues == NULL)
-  {
-    return;
-  }
-
-  int32_t size = (nbValues == 0 ? 1 : nbValues);
-  dataValues->resize(size, base_t::MergeIdentifyUnsetData);
-}
+//void CBratProcessYFX::ResizeDataValues(CDoubleArrayOb* dataValues, uint32_t nbValues)
+//{   
+//  if (dataValues == NULL)
+//  {
+//    return;
+//  }
+//
+//  int32_t size = (nbValues == 0 ? 1 : nbValues);
+//  dataValues->resize(size, base_t::MergeIdentifyUnsetData);
+//}
 //----------------------------------------
-void CBratProcessYFX::SubstituteAxisDim(const CStringArray& fieldDims, CStringArray& fieldDimsOut)
+void CBratProcessYFX::SubstituteAxisDim(const CStringArray& fieldDims, CStringArray& fieldDimsOut) const
 {
     // Replace dimensions which have the same name of the X fields by the X expression name 
   fieldDims.Replace(m_netCdfAxisDims, m_xName, fieldDimsOut, true, true);
 
-
-}
-
-//----------------------------------------
-void CBratProcessYFX::OnAddDimensionsFromNetCdf()
-{
-  base_t::OnAddDimensionsFromNetCdf();
 
 }
 

@@ -43,7 +43,7 @@
 #include "QGISapp/MapToolSelectUtils.h"
 #include "QGISapp/MapToolSelectRectangle.h"
 #include "QGISapp/MapToolSelectPolygon.h"
-#include "QGISapp/MapToolMeasure.h"
+#include "QGISapp/MapToolMeasures.h"
 
 // for grid
 #include "QGISapp/MapDecorationGrid.h"
@@ -2448,6 +2448,60 @@ QToolButton* CMapWidget::AddMapSelectionPolygon( QToolButton *selection, QToolBa
 
 //slots
 
+//void CMapWidget::MeasureDistance( bool enable )
+//{
+//	enable ? setMapTool( mMeasureDistance ) : unsetMapTool( mMeasureDistance );
+//	setContextMenuPolicy( enable ? Qt::PreventContextMenu : Qt::ActionsContextMenu );
+//}
+//
+//void CMapWidget::MeasureArea( bool enable )
+//{
+//	enable ? setMapTool( mMeasureArea ) : unsetMapTool( mMeasureArea );
+//	setContextMenuPolicy( enable ? Qt::PreventContextMenu : Qt::ActionsContextMenu );
+//}
+//
+//
+////create and insert widgets/actions
+//
+//void 
+//CMapWidget::ConnectParentMeasureActions( QToolButton *measure_button, QAction *action_measure_distance, QAction *action_measure_area )
+//{
+//	mMeasureDistance = new CMeasuresTool( this, false );	//false -> distance
+//	mMeasureDistance->setAction( action_measure_distance );
+//
+//	mMeasureArea = new CMeasuresTool( this, true );		//true -> area
+//	mMeasureArea->setAction( action_measure_area );
+//
+//	connect( action_measure_distance, SIGNAL( toggled( bool ) ), this, SLOT( MeasureDistance( bool ) ) );
+//	connect( action_measure_area, SIGNAL( toggled( bool ) ), this, SLOT( MeasureArea( bool ) ) );
+//	connect( measure_button, SIGNAL( triggered( QAction * ) ), this, SLOT( ToolButtonTriggered( QAction * ) ) );
+//}
+//
+////static 
+//QToolButton* CMapWidget::CreateMapMeasureActions( QToolBar *tb, QAction *&action_measure_distance, QAction *&action_measure_area )
+//{
+//    action_measure_distance = CActionInfo::CreateAction( tb, eAction_MeasureLine );
+//	action_measure_area = CActionInfo::CreateAction( tb, eAction_MeasureArea );
+//
+//	QToolButton* measure = new QToolButton( tb );
+//	measure->setPopupMode( QToolButton::MenuButtonPopup );
+//	measure->addAction( action_measure_distance );
+//	measure->addAction( action_measure_area );
+//	measure->setDefaultAction( action_measure_distance );
+//
+//	return measure;
+//}
+//
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//		Measures Tool
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+//slots
+
 void CMapWidget::MeasureDistance( bool enable )
 {
 	enable ? setMapTool( mMeasureDistance ) : unsetMapTool( mMeasureDistance );
@@ -2466,10 +2520,10 @@ void CMapWidget::MeasureArea( bool enable )
 void 
 CMapWidget::ConnectParentMeasureActions( QToolButton *measure_button, QAction *action_measure_distance, QAction *action_measure_area )
 {
-	mMeasureDistance = new CMeasureTool( this, false );	//false -> distance
+	mMeasureDistance = new CMeasuresTool( this, false );	//false -> distance
 	mMeasureDistance->setAction( action_measure_distance );
 
-	mMeasureArea = new CMeasureTool( this, true );		//true -> area
+	mMeasureArea = new CMeasuresTool( this, true );		//true -> area
 	mMeasureArea->setAction( action_measure_area );
 
 	connect( action_measure_distance, SIGNAL( toggled( bool ) ), this, SLOT( MeasureDistance( bool ) ) );
@@ -2480,7 +2534,7 @@ CMapWidget::ConnectParentMeasureActions( QToolButton *measure_button, QAction *a
 //static 
 QToolButton* CMapWidget::CreateMapMeasureActions( QToolBar *tb, QAction *&action_measure_distance, QAction *&action_measure_area )
 {
-    action_measure_distance = CActionInfo::CreateAction( tb, eAction_MeasureLine );
+	action_measure_distance = CActionInfo::CreateAction( tb, eAction_MeasureLine );
 	action_measure_area = CActionInfo::CreateAction( tb, eAction_MeasureArea );
 
 	QToolButton* measure = new QToolButton( tb );
