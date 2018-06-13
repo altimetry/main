@@ -2256,50 +2256,6 @@ bool COperation::Control( CWorkspaceFormula *wks, std::string &msg, const CStrin
 		//}
 	}
 
-	// Check homogeneity of dimensions among all operation fields
-	
-	auto prev_dims = -1;
-	std::string prev_field_name;
-	for ( CMapFormula::iterator it = m_formulas.begin(); it != m_formulas.end(); it++ )
-	{
-		CFormula *formula = dynamic_cast<CFormula*>( it->second );
-		if ( !formula )
-		{
-			continue;
-		}
-
-		CStringArray field_names;
-		bOk = formula->GetFields( field_names, msg, aliases, pi.AliasesAsString() );
-		if ( !bOk )
-		{
-			errorCount++;
-			continue;
-		}
-
-		for ( auto &field_name : field_names )
-		{
-			CField *field = pi.FindFieldByName( field_name, m_record, msg );		assert__( field );
-			auto field_dims = field->GetNbDims();
-			if ( prev_dims >= 0 && prev_dims != field_dims )
-			{
-				errorCount++;
-				msg += "\nField '"
-					+ field->GetName()
-					+ "' has a number of dimensions ("
-					+ n2s( field_dims )
-					+ ") different from '"
-					+ prev_field_name 
-					+ "' ("
-					+ n2s( prev_dims )
-					+ ")."
-					;
-				break;
-			}
-			prev_field_name = field->GetName();
-			prev_dims = field_dims;
-		}
-	}
-
 	return ( errorCount == 0 );
 }
 

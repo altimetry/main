@@ -709,7 +709,7 @@ public:
   
   virtual void SetDimNames(const CStringArray& dimNames);
   virtual void SetDimNames(const CStringArray* dimNames);
-  const CStringArray& GetDimNames() { return m_dimNames; }
+  const CStringArray& GetDimNames() const { return m_dimNames; }
 
   const CUIntMap& GetDimRanges() { return m_dimRanges; }
   uint32_t GetDimRange(const std::string& dimName);

@@ -89,6 +89,8 @@ Features added in this version:
 - Correction of map distance tool for all latitudes and projections
 - Improved visualization of X axis, supporting multiple dimensions
 - Support user defined variables for filtering parameters
+- Support information accessible from about box
+- Updated licensing information
 
 
 4.2.0 - October 2017

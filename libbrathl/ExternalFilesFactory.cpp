@@ -83,15 +83,15 @@ namespace brathl
 		CHECK_TYPE( CExternalFilesNetCDFCFGenericVariant1 );
 
 		// Sentinel 3A
-		CHECK_TYPE( CExternalFilesSentinel3A );
+		CHECK_TYPE( CExternalFilesSentinel3 );
 
-		CHECK_TYPE( CExternalFilesSentinel3A_enhanced );
-		CHECK_TYPE( CExternalFilesSentinel3A_standard );
-		CHECK_TYPE( CExternalFilesSentinel3A_reduced );
+		CHECK_TYPE( CExternalFilesSentinel3_enhanced );
+		CHECK_TYPE( CExternalFilesSentinel3_standard );
+		CHECK_TYPE( CExternalFilesSentinel3_reduced );
 
-		CHECK_TYPE( CExternalFilesSentinel3A_l1b );
-		CHECK_TYPE( CExternalFilesSentinel3A_l1a );
-		CHECK_TYPE( CExternalFilesSentinel3A_l1bs );
+		CHECK_TYPE( CExternalFilesSentinel3_l1b );
+		CHECK_TYPE( CExternalFilesSentinel3_l1a );
+		CHECK_TYPE( CExternalFilesSentinel3_l1bs );
 
 		// Reaper
 		CHECK_TYPE( CExternalFilesReaper );

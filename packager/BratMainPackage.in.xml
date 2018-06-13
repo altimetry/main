@@ -8,7 +8,7 @@
     <installerFilename>@INSTALLER_FILENAME@</installerFilename>
     <readmeFile>@PROJECT_SOURCE_DIR@/README</readmeFile>
     <licenseFile>@PROJECT_SOURCE_DIR@/COPYING</licenseFile>
-    <htmlLicenseFile>@PROJECT_SOURCE_DIR@/COPYING.LESSER</htmlLicenseFile>
+    <!--<htmlLicenseFile>@PROJECT_SOURCE_DIR@/COPYING.LESSER</htmlLicenseFile>-->
     <leftImage>@BRAT_SOURCE_DIR@/packager/InstallBanner.png</leftImage>
     <logoImage>@BRAT_SOURCE_DIR@/packager/InstallLogo.png</logoImage>
     <splashImage>@BRAT_SOURCE_DIR@/packager/InstallSplashScreen.png</splashImage>
@@ -265,6 +265,9 @@
                       </distributionFile>
                       <distributionFile>
                         <origin>@CMAKE_SOURCE_DIR@/README</origin>
+                      </distributionFile>
+                      <distributionFile>
+                        <origin>@CMAKE_SOURCE_DIR@/LEGAL.txt</origin>
                       </distributionFile>
                       <distributionDirectory>
                             <origin>@CMAKE_BINARY_DIR@/doc/coda</origin>

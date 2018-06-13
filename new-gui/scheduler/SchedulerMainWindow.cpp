@@ -885,7 +885,9 @@ void CSchedulerMainWindow::action_UserManual_slot()
 
 void CSchedulerMainWindow::action_About_slot()
 {
-	SimpleAboutBox( BRAT_VERSION_STRING, PROCESSOR_ARCH, "CNES/ESA" );
+	static const std::string other_text = brat_about_info();
+
+	SimpleAboutBoxWithBuildDate( BRAT_VERSION_STRING, PROCESSOR_ARCH, "2015-2018 DEIMOS Engenharia and contributors", other_text );
 }
 
 

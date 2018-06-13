@@ -377,6 +377,7 @@
       <productType>SIR_GDR_2B</productType>
       <productType>SIR_IOP_2_</productType>
       <productType>SIR_GOP_2_</productType>
+      <productType>SIR_SAR_2_</productType>
     </defaultRecord>
 
     <defaultRecord name="siral_l2_fdm_mds">
@@ -462,6 +463,8 @@
     <aliases productType="SIR_SID_2_" ref="SIR_LRM_2_"/>
 
     <aliases productType="SIR_SIN_2_" ref="SIR_LRM_2_"/>
+
+    <aliases productType="SIR_SAR_2_" ref="SIR_LRM_2_"/>
 
     <aliases productType="SIR_LRM_1B">
       <alias name="lat_hr">time_orb_data.lat</alias>
@@ -785,7 +788,7 @@
 
     <aliases productType="GRID_BOXES_MERCATOR" ref="GRID_DOTS" description="Aviso Grid Boxes Mercator Netcdf Dataset Aliases"/>
 
-    <aliases productType="S3A/SR_2_STD" description="Sentinel 3A Level 2 Standard Dataset Aliases">
+    <aliases productType="S3/SR_2_STD" description="Sentinel 3 Level 2 Standard Dataset Aliases">
       <alias name="lat">lat_01</alias>
       <alias name="lon">lon_01</alias>
       <alias name="time">time_01</alias>
@@ -822,11 +825,11 @@
       <alias name="ocean_editing">%{Ocean_data_editing_Sentinel3}</alias>
     </aliases>
 
-    <aliases productType="S3A/SR_2_ENH" ref="S3A/SR_2_STD" description="Sentinel 3A Level 2 Enhanced Dataset Aliases">
+    <aliases productType="S3/SR_2_ENH" ref="S3/SR_2_STD" description="Sentinel 3 Level 2 Enhanced Dataset Aliases">
       <alias name="waveforms">waveform_20_ku</alias>
     </aliases>
 
-    <aliases productType="S3A/SR_2_RED" description="Sentinel 3A Level 2 Reduced Dataset Aliases">
+    <aliases productType="S3/SR_2_RED" description="Sentinel 3 Level 2 Reduced Dataset Aliases">
       <alias name="lat">lat_01</alias>
       <alias name="lon">lon_01</alias>
       <alias name="time">time_01</alias>
@@ -858,21 +861,21 @@
       <alias name="ocean_editing">%{Ocean_data_editing_Sentinel3}</alias>
     </aliases>
 
-    <aliases productType="S3A/SR_1_B" description="Sentinel 3A Level 1B Dataset Aliases">
+    <aliases productType="S3/SR_1_B" description="Sentinel 3 Level 1B Dataset Aliases">
       <alias name="lat">lat_l1b_echo_sar_ku</alias>
       <alias name="lon">lon_l1b_echo_sar_ku</alias>
       <alias name="time">time_l1b_echo_sar_ku</alias>
       <alias name="surface_type_ocean">surf_type_l1b_echo_sar_ku</alias>
     </aliases>
 
-    <aliases productType="S3A/SR_1_A" description="Sentinel 3A Level 1A Dataset Aliases">
+    <aliases productType="S3/SR_1_A" description="Sentinel 3 Level 1A Dataset Aliases">
       <alias name="lat">lat_l1a_echo_sar_ku</alias>
       <alias name="lon">lon_l1a_echo_sar_ku</alias>
       <alias name="time">time_l1a_echo_sar_ku</alias>
       <alias name="surface_type_ocean">surf_type_l1a_echo_sar_ku</alias>
     </aliases>
 
-    <aliases productType="S3A/SR_1_BS" description="Sentinel 3A Level 1BS Dataset Aliases">
+    <aliases productType="S3/SR_1_BS" description="Sentinel 3 Level 1BS Dataset Aliases">
       <alias name="lat">lat_l1bs_echo_sar_ku</alias>
       <alias name="lon">lon_l1bs_echo_sar_ku</alias>
       <alias name="time">time_l1bs_echo_sar_ku</alias>

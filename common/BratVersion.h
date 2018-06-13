@@ -25,5 +25,16 @@
 #define BRAT_VERSION_NUMBER VERSION_NUMBER
 
 
+inline const std::string& brat_about_info()
+{
+	static const std::string info = R"***(<p align='center'><small>
+More information can be found in <a href=http://www.altimetry.info>www.altimetry.info</a>
+<br>
+For support please contact us at <a href=mailto:brat.helpdesk@esa.int>brat.helpdesk@esa.int</a>
+ </small></p>)***";
+
+	return info;
+}
+
 
 #endif  //COMMON_BRAT_VERSION_H

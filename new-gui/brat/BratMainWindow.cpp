@@ -719,7 +719,9 @@ The service can be installed and configured from the " + options_name + " dialog
     mApp.ResetRadsSocketConnection();
     
     
-    RemoteCount();
+	// TODO: this should be subject to configuration
+	//
+	//RemoteCount();
 
 
 	LOG_TRACE( "Finished main window construction." );
@@ -1596,7 +1598,9 @@ void CBratMainWindow::UpdateWindowMenu()
 
 void CBratMainWindow::on_action_About_triggered()
 {
-	SimpleAboutBoxWithBuildDate( BRAT_VERSION_STRING, PROCESSOR_ARCH, "CNES/ESA" );
+	static const std::string other_text = brat_about_info();
+
+	SimpleAboutBoxWithBuildDate( BRAT_VERSION_STRING, PROCESSOR_ARCH, "2015-2018 DEIMOS Engenharia and contributors", other_text );
 }
 
 

@@ -342,19 +342,19 @@ public:
 
 
 
-class CExternalFilesSentinel3A : public CExternalFilesNetCDFCF
+class CExternalFilesSentinel3 : public CExternalFilesNetCDFCF
 {
     DECLARE_BASE_TYPE( CExternalFilesNetCDFCF )
 
 public:
-	CExternalFilesSentinel3A( const std::string	&name = "" )
+	CExternalFilesSentinel3( const std::string	&name = "" )
 		: base_t( name )
 	{}
 
-	virtual ~CExternalFilesSentinel3A()
+	virtual ~CExternalFilesSentinel3()
 	{}
 
-    static std::string TypeOf() { return "Sentinel 3A"; }
+    static std::string TypeOf() { return "Sentinel 3"; }
     virtual std::string GetType() { return TypeOf(); }
 };
 
@@ -444,106 +444,106 @@ public:
 };
 
 
-class CExternalFilesSentinel3A_enhanced : public CExternalFilesSentinel3A
+class CExternalFilesSentinel3_enhanced : public CExternalFilesSentinel3
 {
-    DECLARE_BASE_TYPE( CExternalFilesSentinel3A )
+    DECLARE_BASE_TYPE( CExternalFilesSentinel3 )
 
 public:
-    CExternalFilesSentinel3A_enhanced( const std::string	&name = "" )
+    CExternalFilesSentinel3_enhanced( const std::string	&name = "" )
         : base_t( name )
     {}
 
-    virtual ~CExternalFilesSentinel3A_enhanced()
+    virtual ~CExternalFilesSentinel3_enhanced()
     {}
 
-    static std::string TypeOf() { return "S3A/SR_2_ENH"; }
+    static std::string TypeOf() { return "S3/SR_2_ENH"; }
     virtual std::string GetType() { return TypeOf(); }
 };
 
 
 
-class CExternalFilesSentinel3A_standard : public CExternalFilesSentinel3A
+class CExternalFilesSentinel3_standard : public CExternalFilesSentinel3
 {
-    DECLARE_BASE_TYPE( CExternalFilesSentinel3A )
+    DECLARE_BASE_TYPE( CExternalFilesSentinel3 )
 
 public:
-    CExternalFilesSentinel3A_standard( const std::string	&name = "" )
+    CExternalFilesSentinel3_standard( const std::string	&name = "" )
         : base_t( name )
     {}
 
-    virtual ~CExternalFilesSentinel3A_standard()
+    virtual ~CExternalFilesSentinel3_standard()
     {}
 
-    static std::string TypeOf() { return "S3A/SR_2_STD"; }
+    static std::string TypeOf() { return "S3/SR_2_STD"; }
     virtual std::string GetType() { return TypeOf(); }
 };
 
 
 
-class CExternalFilesSentinel3A_reduced : public CExternalFilesSentinel3A
+class CExternalFilesSentinel3_reduced : public CExternalFilesSentinel3
 {
-    DECLARE_BASE_TYPE( CExternalFilesSentinel3A )
+    DECLARE_BASE_TYPE( CExternalFilesSentinel3 )
 
 public:
-    CExternalFilesSentinel3A_reduced( const std::string	&name = "" )
+    CExternalFilesSentinel3_reduced( const std::string	&name = "" )
         : base_t( name )
     {}
 
-    virtual ~CExternalFilesSentinel3A_reduced()
+    virtual ~CExternalFilesSentinel3_reduced()
     {}
 
-    static std::string TypeOf() { return "S3A/SR_2_RED"; }
+    static std::string TypeOf() { return "S3/SR_2_RED"; }
     virtual std::string GetType() { return TypeOf(); }
 };
 
 
-class CExternalFilesSentinel3A_l1b : public CExternalFilesSentinel3A
+class CExternalFilesSentinel3_l1b : public CExternalFilesSentinel3
 {
-    DECLARE_BASE_TYPE( CExternalFilesSentinel3A )
+    DECLARE_BASE_TYPE( CExternalFilesSentinel3 )
 
 public:
-    CExternalFilesSentinel3A_l1b( const std::string	&name = "" )
+    CExternalFilesSentinel3_l1b( const std::string	&name = "" )
         : base_t( name )
     {}
 
-    virtual ~CExternalFilesSentinel3A_l1b()
+    virtual ~CExternalFilesSentinel3_l1b()
     {}
 
-    static std::string TypeOf() { return "S3A/SR_1_B"; }
+    static std::string TypeOf() { return "S3/SR_1_B"; }
     virtual std::string GetType() { return TypeOf(); }
 };
 
 
-class CExternalFilesSentinel3A_l1a : public CExternalFilesSentinel3A
+class CExternalFilesSentinel3_l1a : public CExternalFilesSentinel3
 {
-    DECLARE_BASE_TYPE( CExternalFilesSentinel3A )
+    DECLARE_BASE_TYPE( CExternalFilesSentinel3 )
 
 public:
-    CExternalFilesSentinel3A_l1a( const std::string	&name = "" )
+    CExternalFilesSentinel3_l1a( const std::string	&name = "" )
         : base_t( name )
     {}
 
-    virtual ~CExternalFilesSentinel3A_l1a()
+    virtual ~CExternalFilesSentinel3_l1a()
     {}
 
-    static std::string TypeOf() { return "S3A/SR_1_A"; }
+    static std::string TypeOf() { return "S3/SR_1_A"; }
     virtual std::string GetType() { return TypeOf(); }
 };
 
 
-class CExternalFilesSentinel3A_l1bs : public CExternalFilesSentinel3A
+class CExternalFilesSentinel3_l1bs : public CExternalFilesSentinel3
 {
-    DECLARE_BASE_TYPE( CExternalFilesSentinel3A )
+    DECLARE_BASE_TYPE( CExternalFilesSentinel3 )
 
 public:
-    CExternalFilesSentinel3A_l1bs( const std::string	&name = "" )
+    CExternalFilesSentinel3_l1bs( const std::string	&name = "" )
         : base_t( name )
     {}
 
-    virtual ~CExternalFilesSentinel3A_l1bs()
+    virtual ~CExternalFilesSentinel3_l1bs()
     {}
 
-    static std::string TypeOf() { return "S3A/SR_1_BS"; }
+    static std::string TypeOf() { return "S3/SR_1_BS"; }
     virtual std::string GetType() { return TypeOf(); }
 };
 

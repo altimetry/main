@@ -4445,7 +4445,7 @@ std::pair< std::string, std::string > CNetCDFFiles::IdentifyExistingFile( bool c
 		//	...if-else-if sequence to build instance of derived class according to m_productClass & m_productType of CProductList
 		//
 
-		if ( foundMissionNameAttr == NC_NOERR && missionNameAttrValue == CExternalFilesSentinel3A::TypeOf() )
+		if ( foundMissionNameAttr == NC_NOERR && StartsWith( missionNameAttrValue, CExternalFilesSentinel3::TypeOf() ) )
 		{
 			//    - Reference date for S3A is 2000-01-01 00:00:00
 
@@ -4463,36 +4463,36 @@ std::pair< std::string, std::string > CNetCDFFiles::IdentifyExistingFile( bool c
 				// if exists dimension "echo_sample_ind" the enhanced, if exists dimension "time_20_ku" then standard,  otherwise reduced
 
 				if ( DimExists( "echo_sample_ind" ) )
-					return { CExternalFilesSentinel3A_enhanced::TypeOf(), "" };	//    S3A/SR_2_ENH (s3a enhanced level 2 product
+					return { CExternalFilesSentinel3_enhanced::TypeOf(), "" };	//    S3A/SR_2_ENH (s3a enhanced level 2 product
 				else
 				if ( DimExists( "time_20_ku" ) )
-					return { CExternalFilesSentinel3A_standard::TypeOf(), "" };	//    S3A/SR_2_STD (s3a standard level 2 product
+					return { CExternalFilesSentinel3_standard::TypeOf(), "" };	//    S3A/SR_2_STD (s3a standard level 2 product
 				else
-					return { CExternalFilesSentinel3A_reduced::TypeOf(), "" };	//    S3A/SR_2_RED (s3a reduced level 2 product
+					return { CExternalFilesSentinel3_reduced::TypeOf(), "" };	//    S3A/SR_2_RED (s3a reduced level 2 product
 			}
 			else
             if ( found_time_l1b_echo_sar_ku == true )
 			{
 				//    S3A/SR_1_B - Mission name is Sentinel 3A and dimension "time_l1b_echo_sar_ku" exists.
-				return { CExternalFilesSentinel3A_l1b::TypeOf(), "" };
+				return { CExternalFilesSentinel3_l1b::TypeOf(), "" };
 			}
 			else
             if ( found_time_l1a_echo_sar_ku == true )
 			{
 				//    S3A/SR_1_A Mission name is Sentinel 3A and dimension "time_l1a_echo_sar_ku" exists.
-				return { CExternalFilesSentinel3A_l1a::TypeOf(), "" };
+				return { CExternalFilesSentinel3_l1a::TypeOf(), "" };
 			}
 			else
             if ( found_time_l1bs_echo_sar_ku == true )
 			{
 				//    S3A/SR_1_BS Mission name is Sentinel 3A and dimension "time_l1bs_echo_sar_ku" exists.
-				return { CExternalFilesSentinel3A_l1bs::TypeOf(), "" };
+				return { CExternalFilesSentinel3_l1bs::TypeOf(), "" };
 			}
 
 
 			// fallback to generic Sentinel3A
 
-			return { CExternalFilesSentinel3A::TypeOf(), "" };
+			return { CExternalFilesSentinel3::TypeOf(), "" };
 		}
 		else
 			if ( foundDataSetAttr != NC_NOERR )
@@ -4823,7 +4823,21 @@ bool CNetCDFFiles::LoadVariables()
 			catch ( ... )
 			{
 				std::cout << i << " <======== " << std::endl;
-				con = false;
+
+// v4 NOTE: The intention of the original version seems to be: hang 
+// app in when developing if unexpected or new unsupported units are
+// found. Nevertheless, the "infinity" of the loop was removed, whatever 
+// the intentions.
+// 
+// But whole loop should be removed after analysis and confirmation 
+// that no iteration after 1st can change state so that some next 
+// iteration succeeds. SetUnit in particular should also be 
+// analyzed: it is responsible for the detected exceptions, so, 
+// the remaining calls in the loop don't occur and so SetUnit only 
+// could change state in order to avoid exception in next iterations 
+// (this is not probable, but was not analyzed). See also ALTB-343.
+// 
+				//con = false;
 			}
 		} 
 		while ( !con );

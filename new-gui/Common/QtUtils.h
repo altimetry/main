@@ -322,7 +322,8 @@ inline void SetWindowProperties( QDialog *w )
 //                  Simple Message Boxes
 ///////////////////////////////////////////////////////////////////
 
-inline void SimpleAboutBoxWithBuildDate( const std::string &version, const std::string &proc_arch, const std::string &copy_right, std::string app_name = std::string() )
+inline void SimpleAboutBoxWithBuildDate( const std::string &version, const std::string &proc_arch, const std::string &copy_right, std::string other = std::string(), 
+	std::string app_name = std::string() )
 {
 	if ( app_name.empty() )
 		app_name = q2a( QCoreApplication::applicationName() );
@@ -331,16 +332,22 @@ inline void SimpleAboutBoxWithBuildDate( const std::string &version, const std::
 
 	QString sversion = QString( "Welcome to " ) + app_name.c_str() + " " + version.c_str() + " - " + proc_arch.c_str();
 	QString sdate = application_build_date.c_str();
-	QString scopy = QString( "(C)opyright " ) + copy_right.c_str();
+	QString scopy = QString( "Copyright &copy; " ) + copy_right.c_str();
 
 	QString msg = "<p align='center'>" 
-		+ sversion + "<br><br>"
-		+ scopy + ", "
+		+ sversion
+		+ ", "
 		+ sdate
-		+ "</p>";
+		+ "<br>"
+		+ ( other.empty() ? "" : other.c_str() )
+		+ "<br>"
+		+ scopy
+		+ "</p>"
+		;
 
 	QMessageBox::about( ApplicationWindow(), QObject::tr( title.c_str() ), msg );
 }
+
 
 
 inline void SimpleAboutBox( const std::string &version, const std::string &proc_arch, const std::string &copy_right, std::string app_name = std::string() )
